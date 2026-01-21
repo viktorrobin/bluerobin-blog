@@ -443,6 +443,23 @@ html.dark .glass-card {
     border-color: rgba(51, 65, 85, 0.5);
 }
 
+/* Dark glass card for dark hero sections */
+.glass-card-dark {
+    background-color: rgba(30, 41, 59, 0.6);
+    backdrop-filter: blur(16px);
+    border-radius: 1rem;
+    border: 1px solid rgba(100, 116, 139, 0.2);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
+    transition: all 0.3s ease;
+}
+
+.glass-card-dark:hover {
+    background-color: rgba(30, 41, 59, 0.8);
+    border-color: rgba(100, 116, 139, 0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+}
+
 /* ==================== TAG STYLES ==================== */
 
 .tag {

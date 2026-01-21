@@ -1,0 +1,622 @@
+---
+title: "Introduction to NATS JetStream for .NET Developers"
+description: "Learn how to build event-driven applications with NATS JetStream in .NET—covering streams, consumers, publishing, and real-world patterns from a document processing system."
+pubDate: 2026-01-21
+author: "Victor Robin"
+category: "messaging"
+difficulty: "beginner"
+tags: ["nats-series", "dotnet", "event-driven", "messaging", "kubernetes"]
+series: "nats-series"
+seriesOrder: 1
+readTime: "15 min"
+toc: true
+featured: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+NATS is a high-performance messaging system that has become increasingly popular for building distributed systems. With **JetStream**, NATS adds persistence, exactly-once delivery, and stream processing capabilities—making it a compelling alternative to Kafka, RabbitMQ, and cloud messaging services.
+
+This article introduces NATS JetStream from a .NET developer's perspective, using production code from BlueRobin's document processing pipeline.
+
+## Why NATS JetStream?
+
+Before diving into code, let's understand what makes JetStream attractive:
+
+| Feature | Core NATS | JetStream |
+|---------|-----------|-----------|
+| **Delivery Guarantee** | At-most-once | At-least-once / Exactly-once |
+| **Persistence** | None (fire-and-forget) | Durable storage |
+| **Message Replay** | No | Yes (from any point) |
+| **Consumer Groups** | No | Yes (durable consumers) |
+| **Acknowledgments** | No | Yes (explicit ack/nak) |
+| **Horizontal Scaling** | Yes | Yes (with partitions) |
+
+<ExternalCite 
+  title="NATS JetStream Documentation" 
+  url="https://docs.nats.io/nats-concepts/jetstream" 
+  author="Synadia"
+/>
+
+### When to Use JetStream
+
+- **Event-driven architectures** — Decouple services with reliable message delivery
+- **Background processing** — Queue work for async processing
+- **Event sourcing** — Store events as the source of truth
+- **Fan-out patterns** — Multiple consumers processing the same events
+- **Workflow orchestration** — Coordinate multi-step processes
+
+## Core Concepts
+
+### Streams
+
+A **stream** is a persistent storage of messages. Think of it as a message log that captures all messages published to specific subjects.
+
+```
+Stream: DOCUMENTS
+├── Subject: archives.documents.uploaded
+├── Subject: archives.documents.ocr.completed
+├── Subject: archives.documents.analysis.completed
+└── Subject: archives.documents.indexed
+```
+
+### Subjects
+
+**Subjects** are the addressing mechanism. Publishers send to subjects, and streams capture messages matching subject patterns.
+
+```
+# Subject hierarchy
+archives.documents.uploaded          # Document uploaded
+archives.documents.ocr.completed     # OCR processing done
+archives.documents.analysis.completed # AI analysis done
+archives.documents.indexed           # Search indexing done
+
+# Wildcards
+archives.documents.*                 # Matches one token
+archives.documents.>                 # Matches one or more tokens
+```
+
+### Consumers
+
+**Consumers** read messages from streams. They can be:
+- **Durable** — Survives restarts, tracks position
+- **Ephemeral** — Temporary, auto-deleted when inactive
+
+```
+Consumer: ocr-worker
+├── Stream: DOCUMENTS
+├── Filter: archives.documents.uploaded
+├── Delivery: Pull (worker fetches messages)
+└── Ack Policy: Explicit (must acknowledge)
+```
+
+## Setting Up NATS in .NET
+
+### 1. Install the NuGet Package
+
+```bash
+dotnet add package NATS.Net
+```
+
+### 2. Configure the Connection
+
+```csharp
+using NATS.Client.Core;
+using NATS.Client.JetStream;
+
+// Create connection
+var natsUrl = "nats://localhost:4222";
+var connection = new NatsConnection(new NatsOpts
+{
+    Url = natsUrl,
+    Name = "MyApp-Worker"  // Helpful for monitoring
+});
+
+// Connect (can also be done lazily)
+await connection.ConnectAsync();
+
+// Create JetStream context
+var jsContext = new NatsJSContext(connection);
+```
+
+### 3. Register in Dependency Injection
+
+```csharp
+// Program.cs
+builder.Services.AddSingleton<NatsConnection>(sp =>
+{
+    var url = builder.Configuration["NATS:Url"] ?? "nats://localhost:4222";
+    return new NatsConnection(new NatsOpts
+    {
+        Url = url,
+        Name = "BlueRobin-Api"
+    });
+});
+
+builder.Services.AddSingleton<INatsJSContext>(sp =>
+{
+    var conn = sp.GetRequiredService<NatsConnection>();
+    return new NatsJSContext(conn);
+});
+```
+
+## Creating Streams
+
+Streams need to be created before you can publish or consume messages:
+
+```csharp
+public class JetStreamOptions
+{
+    public bool Enabled { get; set; } = true;
+    public TimeSpan MaxAge { get; set; } = TimeSpan.FromDays(7);
+    public long MaxBytes { get; set; } = 1_073_741_824; // 1GB
+    public long MaxMsgs { get; set; } = 1_000_000;
+    public TimeSpan AckWait { get; set; } = TimeSpan.FromSeconds(30);
+    public int MaxDeliver { get; set; } = 5;
+}
+
+public async Task CreateDocumentStreamAsync(CancellationToken cancellationToken)
+{
+    var streamConfig = new StreamConfig(
+        name: "DOCUMENTS",
+        subjects: new[] { "archives.documents.>" })
+    {
+        Description = "Document processing events",
+        Storage = StreamConfigStorage.File,
+        Retention = StreamConfigRetention.Limits,
+        MaxAge = TimeSpan.FromDays(7),
+        MaxBytes = 1_073_741_824,
+        MaxMsgs = 1_000_000,
+        Discard = StreamConfigDiscard.Old,
+        DuplicateWindow = TimeSpan.FromMinutes(2),
+        Replicas = 1
+    };
+
+    try
+    {
+        // Try to get existing stream
+        await _jsContext.GetStreamAsync("DOCUMENTS", cancellationToken: cancellationToken);
+        _logger.LogDebug("Stream DOCUMENTS already exists");
+    }
+    catch (NatsJSApiException ex) when (ex.Error.Code == 404)
+    {
+        // Stream doesn't exist, create it
+        await _jsContext.CreateStreamAsync(streamConfig, cancellationToken);
+        _logger.LogInformation("Created stream DOCUMENTS");
+    }
+}
+```
+
+### Stream Configuration Options
+
+| Option | Description | Recommendation |
+|--------|-------------|----------------|
+| `Storage` | `File` or `Memory` | Use `File` for durability |
+| `Retention` | `Limits`, `Interest`, or `WorkQueue` | `Limits` for most cases |
+| `MaxAge` | How long to keep messages | 7 days is reasonable |
+| `MaxBytes` | Maximum stream size | Set based on volume |
+| `Discard` | What to do when limits reached | `Old` discards oldest |
+| `DuplicateWindow` | Deduplication time window | 2 minutes works well |
+| `Replicas` | Number of replicas | 1 for dev, 3 for prod |
+
+<Callout type="info">
+The `DuplicateWindow` setting enables message deduplication. Publishers can include a `Nats-Msg-Id` header, and JetStream will reject duplicates within this window.
+</Callout>
+
+## Creating Consumers
+
+Consumers define how messages are delivered to your application:
+
+```csharp
+public async Task CreateOcrWorkerConsumerAsync(CancellationToken cancellationToken)
+{
+    var consumerConfig = new ConsumerConfig("ocr-worker")
+    {
+        DurableName = "ocr-worker",
+        Description = "Processes uploaded documents through OCR",
+        FilterSubject = "archives.documents.uploaded",
+        
+        // Delivery settings
+        DeliverPolicy = ConsumerConfigDeliverPolicy.All,
+        AckPolicy = ConsumerConfigAckPolicy.Explicit,
+        AckWait = TimeSpan.FromSeconds(30),
+        MaxDeliver = 5,
+        
+        // Performance tuning
+        MaxAckPending = 1000,
+        ReplayPolicy = ConsumerConfigReplayPolicy.Instant
+    };
+
+    await _jsContext.CreateOrUpdateConsumerAsync(
+        "DOCUMENTS", 
+        consumerConfig, 
+        cancellationToken);
+}
+```
+
+### Consumer Configuration Deep Dive
+
+| Option | Values | Description |
+|--------|--------|-------------|
+| `DeliverPolicy` | `All`, `Last`, `New`, `ByStartSequence`, `ByStartTime` | Where to start reading |
+| `AckPolicy` | `None`, `All`, `Explicit` | How acknowledgments work |
+| `AckWait` | TimeSpan | How long to wait for ack |
+| `MaxDeliver` | int | Max redelivery attempts |
+| `MaxAckPending` | int | Max unacked messages |
+| `FilterSubject` | string | Subject filter pattern |
+
+<ImplementationNote>
+BlueRobin uses `MaxDeliver = 5` with a 30-second `AckWait`. Messages that fail 5 times are moved to a dead-letter queue for manual investigation.
+</ImplementationNote>
+
+## Publishing Messages
+
+Publishing to JetStream returns an acknowledgment from the server:
+
+```csharp
+public async Task<PubAckResponse> PublishDocumentUploadedAsync(
+    DocumentUploadedEvent evt,
+    CancellationToken cancellationToken)
+{
+    var subject = "archives.documents.uploaded";
+    
+    var ack = await _jsContext.PublishAsync(
+        subject: subject,
+        data: evt,
+        serializer: NatsJsonSerializer<DocumentUploadedEvent>.Default,
+        cancellationToken: cancellationToken);
+
+    _logger.LogInformation(
+        "Published DocumentUploaded event to {Subject}, seq: {Sequence}",
+        subject, ack.Seq);
+
+    return ack;
+}
+```
+
+### Publishing with Headers (Deduplication)
+
+```csharp
+public async Task PublishWithDeduplicationAsync<T>(
+    string subject,
+    T data,
+    string messageId,
+    CancellationToken cancellationToken)
+{
+    var headers = new NatsHeaders
+    {
+        { "Nats-Msg-Id", messageId }  // Enables deduplication
+    };
+
+    await _jsContext.PublishAsync(
+        subject: subject,
+        data: data,
+        headers: headers,
+        serializer: NatsJsonSerializer<T>.Default,
+        cancellationToken: cancellationToken);
+}
+```
+
+## Consuming Messages
+
+### Pull-Based Consumption (Recommended for Workers)
+
+```csharp
+public abstract class NatsEventConsumerBase<TEvent> : BackgroundService 
+    where TEvent : class
+{
+    private readonly INatsJSContext _jsContext;
+    protected abstract string StreamName { get; }
+    protected abstract string ConsumerName { get; }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var consumer = await _jsContext.GetConsumerAsync(
+            StreamName, 
+            ConsumerName, 
+            stoppingToken);
+
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                // Fetch messages in batches
+                await foreach (var msg in consumer.FetchAsync<TEvent>(
+                    new NatsJSFetchOpts
+                    {
+                        MaxMsgs = 10,
+                        Expires = TimeSpan.FromSeconds(5)
+                    },
+                    cancellationToken: stoppingToken))
+                {
+                    await ProcessMessageAsync(msg, stoppingToken);
+                }
+            }
+            catch (NatsJSTimeoutException)
+            {
+                // No messages available, continue polling
+            }
+        }
+    }
+
+    private async Task ProcessMessageAsync(
+        NatsJSMsg<TEvent> msg, 
+        CancellationToken stoppingToken)
+    {
+        try
+        {
+            await HandleEventAsync(msg.Data!, stoppingToken);
+            
+            // Acknowledge successful processing
+            await msg.AckAsync(cancellationToken: stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing message");
+            
+            // Negative acknowledge - will be redelivered
+            await msg.NakAsync(
+                delay: TimeSpan.FromSeconds(5), 
+                cancellationToken: stoppingToken);
+        }
+    }
+
+    protected abstract Task HandleEventAsync(TEvent evt, CancellationToken ct);
+}
+```
+
+### Push-Based Consumption (For Real-Time Updates)
+
+```csharp
+public class NatsDocumentEventListener : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Create ephemeral consumer for real-time notifications
+        var consumer = await _jsContext.CreateOrUpdateConsumerAsync(
+            "DOCUMENTS",
+            new ConsumerConfig
+            {
+                Name = $"web-notifications-{Guid.NewGuid():N}",
+                FilterSubject = "archives.documents.>",
+                DeliverPolicy = ConsumerConfigDeliverPolicy.New,
+                AckPolicy = ConsumerConfigAckPolicy.None,  // Fire-and-forget
+                MaxDeliver = 1,
+                InactiveThreshold = TimeSpan.FromMinutes(5)
+            },
+            stoppingToken);
+
+        // Continuous consumption
+        await foreach (var msg in consumer.ConsumeAsync<byte[]>(
+            cancellationToken: stoppingToken))
+        {
+            await ProcessNotificationAsync(msg.Subject, msg.Data, stoppingToken);
+        }
+    }
+}
+```
+
+## A Complete Worker Example
+
+Here's a real-world worker that processes document OCR events:
+
+```csharp
+public class OcrCompletedConsumer : NatsEventConsumerBase<OcrCompletedEvent>
+{
+    private readonly IDocumentRepository _documentRepository;
+    private readonly IAiAnalysisService _analysisService;
+
+    protected override string StreamName => "DOCUMENTS";
+    protected override string ConsumerName => "analysis-worker";
+    protected override string SubscriptionSubject => "archives.documents.ocr.completed";
+
+    public OcrCompletedConsumer(
+        INatsJSContext jsContext,
+        IDocumentRepository documentRepository,
+        IAiAnalysisService analysisService,
+        ILogger<OcrCompletedConsumer> logger)
+        : base(jsContext, logger)
+    {
+        _documentRepository = documentRepository;
+        _analysisService = analysisService;
+    }
+
+    protected override async Task HandleEventAsync(
+        OcrCompletedEvent evt, 
+        CancellationToken ct)
+    {
+        _logger.LogInformation(
+            "Processing OCR result for document {DocumentId}", 
+            evt.DocumentId);
+
+        // Load document
+        var document = await _documentRepository.GetByIdAsync(
+            BlueRobinId.From(evt.DocumentId), ct);
+        
+        if (document is null)
+        {
+            _logger.LogWarning("Document {DocumentId} not found", evt.DocumentId);
+            return;  // Ack anyway - document was deleted
+        }
+
+        // Run AI analysis
+        var analysis = await _analysisService.AnalyzeAsync(
+            evt.ExtractedContent, ct);
+
+        // Update document
+        document.SetSummary(analysis.Summary);
+        document.SetFriendlyName(analysis.FriendlyName);
+        document.AddKeywords(analysis.Keywords);
+        document.RecordAnalysisTime(analysis.ProcessingTimeMs);
+
+        await _documentRepository.UpdateAsync(document, ct);
+
+        // Publish next event
+        await _jsContext.PublishAsync(
+            "archives.documents.analysis.completed",
+            new AnalysisCompletedEvent(
+                evt.DocumentId,
+                evt.ArchiveId,
+                analysis.Summary,
+                analysis.Keywords),
+            cancellationToken: ct);
+
+        _logger.LogInformation(
+            "Analysis completed for document {DocumentId}", 
+            evt.DocumentId);
+    }
+}
+```
+
+## Environment Prefixing Pattern
+
+In multi-environment setups, prefix subjects and streams by environment:
+
+```csharp
+public class EnvironmentOptions
+{
+    public string Environment { get; set; } = "dev";
+    
+    public string ApplySubjectPrefix(string subject)
+    {
+        // dev.archives.documents.uploaded
+        // staging.archives.documents.uploaded
+        // archives.documents.uploaded (production)
+        return Environment.ToLower() switch
+        {
+            "prod" or "production" => subject,
+            _ => $"{Environment.ToLower()}.{subject}"
+        };
+    }
+
+    public string ApplyResourcePrefix(string resourceName)
+    {
+        // DEV-DOCUMENTS, STAGING-DOCUMENTS, DOCUMENTS
+        return Environment.ToUpper() switch
+        {
+            "PROD" or "PRODUCTION" => resourceName,
+            _ => $"{Environment.ToUpper()}-{resourceName}"
+        };
+    }
+}
+```
+
+<ImplementationNote>
+BlueRobin uses environment prefixes to run dev, staging, and production on the same NATS cluster. Each environment has its own streams (DEV-DOCUMENTS, STAGING-DOCUMENTS, DOCUMENTS) and subjects (dev.archives.*, staging.archives.*, archives.*).
+</ImplementationNote>
+
+## Error Handling and Dead Letters
+
+Handle failures gracefully with retry and dead-letter queues:
+
+```csharp
+private async Task ProcessWithRetryAsync(
+    NatsJSMsg<TEvent> msg,
+    CancellationToken ct)
+{
+    var metadata = await msg.Metadata;
+    var deliveryCount = metadata?.NumDelivered ?? 1;
+
+    try
+    {
+        await HandleEventAsync(msg.Data!, ct);
+        await msg.AckAsync(cancellationToken: ct);
+    }
+    catch (Exception ex) when (deliveryCount < _maxDeliveries)
+    {
+        _logger.LogWarning(ex,
+            "Error processing message (attempt {Attempt}/{Max})",
+            deliveryCount, _maxDeliveries);
+
+        // Exponential backoff
+        var delay = TimeSpan.FromSeconds(Math.Pow(2, deliveryCount));
+        await msg.NakAsync(delay: delay, cancellationToken: ct);
+    }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex,
+            "Message failed after {Max} attempts, moving to DLQ",
+            _maxDeliveries);
+
+        // Move to dead letter queue
+        await _jsContext.PublishAsync(
+            $"dlq.{msg.Subject}",
+            new DeadLetterMessage
+            {
+                OriginalSubject = msg.Subject,
+                Payload = msg.Data,
+                Error = ex.Message,
+                FailedAt = DateTime.UtcNow
+            },
+            cancellationToken: ct);
+
+        await msg.AckTerminateAsync(cancellationToken: ct);
+    }
+}
+```
+
+## Health Checks
+
+Monitor NATS connection and consumer health:
+
+```csharp
+public class NatsHealthCheck : IHealthCheck
+{
+    private readonly NatsConnection _connection;
+    private readonly INatsJetStreamService _jetStreamService;
+
+    public async Task<HealthCheckResult> CheckHealthAsync(
+        HealthCheckContext context,
+        CancellationToken cancellationToken = default)
+    {
+        // Check connection
+        if (_connection.ConnectionState != NatsConnectionState.Open)
+        {
+            return HealthCheckResult.Unhealthy(
+                "NATS connection is not open");
+        }
+
+        // Check JetStream
+        if (!_jetStreamService.IsEnabled)
+        {
+            return HealthCheckResult.Degraded(
+                "JetStream is disabled");
+        }
+
+        // Check consumer lag (optional)
+        var lagInfo = await GetConsumerLagAsync(cancellationToken);
+        if (lagInfo.TotalLag > 10000)
+        {
+            return HealthCheckResult.Degraded(
+                $"High consumer lag: {lagInfo.TotalLag} messages");
+        }
+
+        return HealthCheckResult.Healthy("NATS JetStream is healthy");
+    }
+}
+```
+
+## Summary
+
+NATS JetStream provides a powerful foundation for event-driven architectures in .NET:
+
+1. **Streams** persist messages with configurable retention
+2. **Consumers** provide durable, exactly-once delivery
+3. **Pull-based consumption** is ideal for workers
+4. **Push-based consumption** works for real-time updates
+5. **Acknowledgments** ensure reliable processing
+6. **Dead-letter queues** handle failures gracefully
+
+The combination of high performance, simple operations, and strong delivery guarantees makes JetStream an excellent choice for building distributed systems.
+
+## Next in the Series
+
+In the next article, we'll dive deeper into **Streams and Consumers**—exploring configuration options, replay policies, and scaling patterns for high-throughput scenarios.
+
+<ExternalCite 
+  title="NATS.Net Client Library" 
+  url="https://github.com/nats-io/nats.net" 
+  author="Synadia / NATS.io"
+/>

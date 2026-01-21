@@ -1,0 +1,496 @@
+---
+title: "MinIO Object Storage for Document Management"
+description: "Deploy and integrate MinIO for S3-compatible object storage with per-user buckets, encryption, and lifecycle policies."
+pubDate: 2026-03-18
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "intermediate"
+tags: ["minio", "object-storage", "kubernetes", "s3", "encryption"]
+readTime: "15 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+MinIO provides S3-compatible object storage for Kubernetes. This guide covers deploying MinIO with per-user buckets, server-side encryption, and lifecycle management.
+
+## Deployment
+
+### Helm Release
+
+```yaml
+# infrastructure/data-layer/minio/helm-release.yaml
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: minio
+  namespace: data-layer
+spec:
+  interval: 30m
+  chart:
+    spec:
+      chart: minio
+      version: "5.2.x"
+      sourceRef:
+        kind: HelmRepository
+        name: minio
+        namespace: flux-system
+  values:
+    mode: standalone
+    
+    rootUser: minio
+    rootPassword: ${MINIO_ROOT_PASSWORD}
+    
+    persistence:
+      enabled: true
+      storageClass: longhorn-ha
+      size: 100Gi
+    
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+    
+    consoleIngress:
+      enabled: true
+      ingressClassName: traefik
+      hosts:
+        - minio-console.bluerobin.local
+      tls:
+        - secretName: minio-console-tls
+          hosts:
+            - minio-console.bluerobin.local
+    
+    environment:
+      MINIO_KMS_KES_ENDPOINT: https://kes.encryption.svc.cluster.local:7373
+      MINIO_KMS_KES_KEY_NAME: minio-default-key
+```
+
+## Server-Side Encryption
+
+### KES Integration
+
+```yaml
+# infrastructure/encryption/kes/config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kes-config
+  namespace: encryption
+data:
+  config.yaml: |
+    address: 0.0.0.0:7373
+    
+    admin:
+      identity: ${KES_ADMIN_IDENTITY}
+    
+    tls:
+      cert: /certs/tls.crt
+      key: /certs/tls.key
+    
+    policy:
+      minio:
+        allow:
+          - /v1/key/create/*
+          - /v1/key/generate/*
+          - /v1/key/decrypt/*
+          - /v1/key/encrypt/*
+        identities:
+          - ${MINIO_IDENTITY}
+    
+    keystore:
+      vault:
+        endpoint: https://vault.security.svc.cluster.local:8200
+        engine: kv-v2
+        namespace: ""
+        prefix: minio-keys
+        approle:
+          id: ${VAULT_APPROLE_ID}
+          secret: ${VAULT_APPROLE_SECRET}
+```
+
+<ImplementationNote>
+KES acts as a key management proxy between MinIO and HashiCorp Vault. Each user gets their own encryption key (`key-{BlueRobinId}`), enabling user-specific encryption.
+</ImplementationNote>
+
+## .NET Integration
+
+### MinIO Client Configuration
+
+```csharp
+// Infrastructure/Extensions/MinioExtensions.cs
+public static class MinioExtensions
+{
+    public static IServiceCollection AddMinioStorage(
+        this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddSingleton<IMinioClient>(sp =>
+        {
+            var options = configuration.GetSection("MinIO").Get<MinioOptions>()!;
+            
+            return new MinioClient()
+                .WithEndpoint(options.Endpoint)
+                .WithCredentials(options.AccessKey, options.SecretKey)
+                .WithSSL(options.UseSSL)
+                .Build();
+        });
+
+        services.AddScoped<IObjectStorageService, MinioObjectStorageService>();
+        services.AddScoped<IArchiveResolver, MinioArchiveResolver>();
+        
+        return services;
+    }
+}
+
+public record MinioOptions
+{
+    public string Endpoint { get; init; } = string.Empty;
+    public string AccessKey { get; init; } = string.Empty;
+    public string SecretKey { get; init; } = string.Empty;
+    public bool UseSSL { get; init; } = true;
+}
+```
+
+### Object Storage Service
+
+```csharp
+// Infrastructure/Storage/MinioObjectStorageService.cs
+public sealed class MinioObjectStorageService : IObjectStorageService
+{
+    private readonly IMinioClient _client;
+    private readonly ILogger<MinioObjectStorageService> _logger;
+
+    public MinioObjectStorageService(
+        IMinioClient client,
+        ILogger<MinioObjectStorageService> logger)
+    {
+        _client = client;
+        _logger = logger;
+    }
+
+    public async Task<string> UploadAsync(
+        string bucket,
+        string objectKey,
+        Stream content,
+        string contentType,
+        CancellationToken ct = default)
+    {
+        using var activity = ActivitySources.Infrastructure.StartActivity("MinIO.Upload");
+        activity?.SetTag("bucket", bucket);
+        activity?.SetTag("object_key", objectKey);
+
+        await EnsureBucketExistsAsync(bucket, ct);
+
+        var args = new PutObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey)
+            .WithStreamData(content)
+            .WithObjectSize(content.Length)
+            .WithContentType(contentType)
+            .WithServerSideEncryption(new SSEKMS($"key-{bucket}"));
+
+        await _client.PutObjectAsync(args, ct);
+        
+        _logger.LogInformation("Uploaded {ObjectKey} to {Bucket}", objectKey, bucket);
+        
+        return $"{bucket}/{objectKey}";
+    }
+
+    public async Task<Stream> DownloadAsync(
+        string bucket,
+        string objectKey,
+        CancellationToken ct = default)
+    {
+        using var activity = ActivitySources.Infrastructure.StartActivity("MinIO.Download");
+        activity?.SetTag("bucket", bucket);
+        activity?.SetTag("object_key", objectKey);
+
+        var memoryStream = new MemoryStream();
+        
+        var args = new GetObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey)
+            .WithCallbackStream(stream => stream.CopyTo(memoryStream));
+
+        await _client.GetObjectAsync(args, ct);
+        
+        memoryStream.Position = 0;
+        return memoryStream;
+    }
+
+    public async Task<bool> ExistsAsync(
+        string bucket,
+        string objectKey,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var args = new StatObjectArgs()
+                .WithBucket(bucket)
+                .WithObject(objectKey);
+
+            await _client.StatObjectAsync(args, ct);
+            return true;
+        }
+        catch (ObjectNotFoundException)
+        {
+            return false;
+        }
+    }
+
+    public async Task DeleteAsync(
+        string bucket,
+        string objectKey,
+        CancellationToken ct = default)
+    {
+        var args = new RemoveObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey);
+
+        await _client.RemoveObjectAsync(args, ct);
+        
+        _logger.LogInformation("Deleted {ObjectKey} from {Bucket}", objectKey, bucket);
+    }
+
+    private async Task EnsureBucketExistsAsync(string bucket, CancellationToken ct)
+    {
+        var existsArgs = new BucketExistsArgs().WithBucket(bucket);
+        var exists = await _client.BucketExistsAsync(existsArgs, ct);
+        
+        if (!exists)
+        {
+            var makeArgs = new MakeBucketArgs().WithBucket(bucket);
+            await _client.MakeBucketAsync(makeArgs, ct);
+            
+            _logger.LogInformation("Created bucket: {Bucket}", bucket);
+        }
+    }
+}
+```
+
+<Callout type="warning">
+Always use SSE-KMS encryption (`SSEKMS`) for user documents. The key name should match the user's bucket pattern for proper isolation.
+</Callout>
+
+## Archive Resolver
+
+### Per-User Bucket Resolution
+
+```csharp
+// Infrastructure/Storage/MinioArchiveResolver.cs
+public sealed class MinioArchiveResolver : IArchiveResolver
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IConfiguration _configuration;
+
+    public MinioArchiveResolver(
+        IHttpContextAccessor httpContextAccessor,
+        IConfiguration configuration)
+    {
+        _httpContextAccessor = httpContextAccessor;
+        _configuration = configuration;
+    }
+
+    public string ResolveBucket()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        var blueRobinId = user?.FindFirst("bluerobin_id")?.Value
+            ?? throw new UnauthorizedAccessException("User not authenticated");
+        
+        var environment = _configuration["Environment"] ?? "dev";
+        
+        return $"{environment}-{blueRobinId}";
+    }
+
+    public string ResolveObjectPath(DocumentId documentId, string filename)
+    {
+        return $"documents/{documentId.Value}/{filename}";
+    }
+
+    public string ResolveProcessedPath(DocumentId documentId)
+    {
+        return $"processed/{documentId.Value}/content.md";
+    }
+}
+```
+
+## Lifecycle Policies
+
+### Bucket Lifecycle Configuration
+
+```csharp
+// Infrastructure/Storage/MinioLifecycleService.cs
+public sealed class MinioLifecycleService : ILifecycleService
+{
+    private readonly IMinioClient _client;
+    private readonly ILogger<MinioLifecycleService> _logger;
+
+    public async Task ConfigureLifecycleAsync(
+        string bucket,
+        CancellationToken ct = default)
+    {
+        var rules = new List<LifecycleRule>
+        {
+            // Delete temporary files after 1 day
+            new LifecycleRule
+            {
+                Id = "delete-temp-files",
+                Status = "Enabled",
+                Prefix = "temp/",
+                Expiration = new Expiration { Days = 1 }
+            },
+            // Move processed files to infrequent access after 30 days
+            new LifecycleRule
+            {
+                Id = "archive-processed",
+                Status = "Enabled",
+                Prefix = "processed/",
+                Transition = new Transition
+                {
+                    Days = 30,
+                    StorageClass = "STANDARD_IA"
+                }
+            },
+            // Delete incomplete multipart uploads after 7 days
+            new LifecycleRule
+            {
+                Id = "cleanup-incomplete-uploads",
+                Status = "Enabled",
+                AbortIncompleteMultipartUpload = new AbortIncompleteMultipartUpload
+                {
+                    DaysAfterInitiation = 7
+                }
+            }
+        };
+
+        var config = new LifecycleConfiguration(rules);
+        
+        var args = new SetBucketLifecycleArgs()
+            .WithBucket(bucket)
+            .WithLifecycleConfiguration(config);
+
+        await _client.SetBucketLifecycleAsync(args, ct);
+        
+        _logger.LogInformation("Configured lifecycle for bucket: {Bucket}", bucket);
+    }
+}
+```
+
+## Event Notifications
+
+### Bucket Notifications Setup
+
+```csharp
+// Infrastructure/Storage/MinioNotificationService.cs
+public sealed class MinioNotificationService
+{
+    private readonly IMinioClient _client;
+
+    public async Task ConfigureNotificationsAsync(
+        string bucket,
+        string natsEndpoint,
+        CancellationToken ct = default)
+    {
+        var config = new BucketNotification();
+        
+        var natsConfig = new NatsConfig
+        {
+            Address = natsEndpoint,
+            Subject = $"minio.{bucket}.events"
+        };
+        
+        config.AddArnConfig(new Arn("minio", "nats", "", "", "primary"), new List<EventType>
+        {
+            EventType.ObjectCreatedAll,
+            EventType.ObjectRemovedAll
+        });
+
+        var args = new SetBucketNotificationArgs()
+            .WithBucket(bucket)
+            .WithBucketNotificationConfiguration(config);
+
+        await _client.SetBucketNotificationAsync(args, ct);
+    }
+}
+```
+
+## Presigned URLs
+
+### Secure Direct Upload
+
+```csharp
+// Infrastructure/Storage/MinioPresignedUrlService.cs
+public sealed class MinioPresignedUrlService : IPresignedUrlService
+{
+    private readonly IMinioClient _client;
+    private readonly IArchiveResolver _resolver;
+
+    public async Task<PresignedUploadUrl> GenerateUploadUrlAsync(
+        DocumentId documentId,
+        string filename,
+        string contentType,
+        CancellationToken ct = default)
+    {
+        var bucket = _resolver.ResolveBucket();
+        var objectKey = _resolver.ResolveObjectPath(documentId, filename);
+
+        var args = new PresignedPutObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey)
+            .WithExpiry(3600) // 1 hour
+            .WithHeaders(new Dictionary<string, string>
+            {
+                ["Content-Type"] = contentType
+            });
+
+        var url = await _client.PresignedPutObjectAsync(args);
+
+        return new PresignedUploadUrl(url, objectKey, DateTime.UtcNow.AddHours(1));
+    }
+
+    public async Task<string> GenerateDownloadUrlAsync(
+        string bucket,
+        string objectKey,
+        int expirySeconds = 3600,
+        CancellationToken ct = default)
+    {
+        var args = new PresignedGetObjectArgs()
+            .WithBucket(bucket)
+            .WithObject(objectKey)
+            .WithExpiry(expirySeconds);
+
+        return await _client.PresignedGetObjectAsync(args);
+    }
+}
+```
+
+<ImplementationNote>
+Use presigned URLs for direct client uploads to MinIO, bypassing the API server. This reduces server load and enables large file uploads without timeouts.
+</ImplementationNote>
+
+## Summary
+
+MinIO configuration for BlueRobin:
+
+| Feature | Configuration |
+|---------|--------------|
+| Storage | Longhorn PVC, HA replication |
+| Encryption | SSE-KMS via KES + Vault |
+| Buckets | Per-user: `{env}-{BlueRobinId}` |
+| Paths | `documents/{id}/`, `processed/{id}/` |
+| Lifecycle | Auto-cleanup temp, archive processed |
+| Access | Presigned URLs for direct upload |
+
+MinIO provides S3-compatible storage with enterprise features suitable for document management workloads.
+
+<ExternalCite 
+  title="MinIO .NET SDK Documentation" 
+  url="https://min.io/docs/minio/linux/developers/dotnet/minio-dotnet.html"
+  author="MinIO"
+/>

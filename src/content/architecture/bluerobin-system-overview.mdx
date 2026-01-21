@@ -1,0 +1,550 @@
+---
+title: "BlueRobin System Architecture Overview"
+description: "A comprehensive look at the BlueRobin document management system architecture—covering the technology stack, data flows, and design decisions."
+pubDate: 2026-01-21
+author: "Victor Robin"
+category: "system"
+difficulty: "intermediate"
+tags: ["architecture", "system-design", "dotnet", "kubernetes"]
+readTime: "20 min"
+toc: true
+featured: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+BlueRobin is a personal document management system designed to organize, search, and analyze documents using AI. This architecture overview explains the system's design, component interactions, and key technical decisions.
+
+## System Overview
+
+BlueRobin follows a **modular monolith** architecture deployed on Kubernetes, with event-driven communication between components. The system processes documents through a multi-stage pipeline: upload → OCR → analysis → embedding → indexing.
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              User Interface                                  │
+│                         Blazor Server (.NET 10)                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              API Gateway                                     │
+│                    FastEndpoints + OIDC (Authelia)                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+│     PostgreSQL       │  │      MinIO       │  │    NATS JetStream    │
+│  (User Data, Docs)   │  │ (Document Files) │  │      (Events)        │
+└──────────────────────┘  └──────────────────┘  └──────────────────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+│    OCR Worker        │  │  Analysis Worker │  │  Embedding Worker    │
+│   (Docling OCR)      │  │    (Ollama)      │  │    (Ollama)          │
+└──────────────────────┘  └──────────────────┘  └──────────────────────┘
+                                     │
+                    ┌────────────────┼────────────────┐
+                    ▼                ▼                ▼
+┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
+│       Qdrant         │  │    FalkorDB      │  │      spaCy NER       │
+│  (Vector Search)     │  │ (Knowledge Graph)│  │  (Entity Extraction) │
+└──────────────────────┘  └──────────────────┘  └──────────────────────┘
+```
+
+## Technology Stack
+
+| Layer | Technology | Purpose |
+|-------|------------|---------|
+| **Frontend** | Blazor Server (.NET 10) | Interactive server-side UI |
+| **Styling** | Tailwind CSS 4 | Utility-first CSS with OKLCH colors |
+| **API** | FastEndpoints | High-performance REST endpoints |
+| **Auth** | Authelia OIDC | Identity provider with 2FA |
+| **Messaging** | NATS JetStream | Event-driven communication |
+| **Database** | PostgreSQL (CNPG) | Relational data storage |
+| **Vector DB** | Qdrant | Semantic search embeddings |
+| **Graph DB** | FalkorDB | Entity relationships |
+| **Object Storage** | MinIO | S3-compatible document storage |
+| **AI (Local)** | Ollama | Local LLM inference |
+| **AI (Cloud)** | Azure OpenAI | Complex reasoning tasks |
+| **OCR** | Docling | Document text extraction |
+| **NER** | spaCy | Named entity recognition |
+| **Orchestration** | K3s + Flux | Kubernetes + GitOps |
+
+## Core Architectural Principles
+
+### 1. Domain-Driven Design (DDD)
+
+The codebase follows DDD tactical patterns:
+
+- **Entities** with identity (e.g., `Document`, `Archive`)
+- **Value Objects** for immutable data (e.g., `FingerPrint`, `BlueRobinId`)
+- **Aggregates** with enforced boundaries
+- **Domain Events** for cross-aggregate communication
+
+```csharp
+// Domain entity with factory method and domain events
+public class Document : AggregateRoot
+{
+    private Document() { }
+
+    public static Document Create(
+        BlueRobinId archiveId,
+        BlueRobinId createdBy,
+        FingerPrint fingerPrint,
+        string fileName,
+        long fileSize,
+        string contentType)
+    {
+        // Validation and initialization...
+        
+        document.RaiseDomainEvent(new DocumentAddedEvent(...));
+        return document;
+    }
+}
+```
+
+### 2. Clean Architecture
+
+The solution follows Clean Architecture with clear layer boundaries:
+
+```
+src/
+├── Archives.Core/           # Domain entities, value objects, interfaces
+├── Archives.Application/    # Use cases, DTOs, application services
+├── Archives.Infrastructure/ # EF Core, MinIO, NATS, external services
+├── Archives.Api/           # FastEndpoints, controllers
+├── Archives.Web/           # Blazor Server UI
+└── Archives.Workers/       # Background processing services
+```
+
+**Dependency Rule**: Dependencies flow inward. Core has no external dependencies; Infrastructure implements Core interfaces.
+
+### 3. Event-Driven Architecture
+
+Services communicate through NATS JetStream events:
+
+```
+Document Upload Flow:
+1. API receives file → Stores in MinIO → Publishes "document.uploaded"
+2. OCR Worker consumes → Extracts text → Publishes "ocr.completed"
+3. Analysis Worker consumes → Generates summary → Publishes "analysis.completed"
+4. Embedding Worker consumes → Creates vectors → Publishes "embedding.completed"
+5. Index Worker consumes → Updates Qdrant → Publishes "indexed"
+6. Web receives notification → Updates UI in real-time
+```
+
+<ImplementationNote>
+Events use environment-prefixed subjects (e.g., `dev.archives.documents.uploaded`, `staging.archives.documents.uploaded`) to isolate environments on a shared NATS cluster.
+</ImplementationNote>
+
+## Component Deep Dives
+
+### Identity Model
+
+BlueRobin uses a dual-identity model:
+
+| Identity | Format | Usage |
+|----------|--------|-------|
+| **BlueRobinId** | 8-char alphanumeric | Internal references, MinIO buckets, database keys |
+| **ExternalId** | UUID | OIDC `sub` claim from Authelia |
+
+The `UserSyncService` maps external identities to internal BlueRobinIds on first login.
+
+```csharp
+// UserSyncService resolves external ID to internal BlueRobinId
+public async Task<ApplicationUser> SyncUserAsync(ClaimsPrincipal principal)
+{
+    var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+    
+    var user = await _userRepository.GetByExternalIdAsync(externalId);
+    if (user is null)
+    {
+        user = ApplicationUser.Create(
+            BlueRobinId.New(),  // Generate internal ID
+            ExternalId.From(externalId),
+            principal.FindFirstValue(ClaimTypes.Email));
+        await _userRepository.AddAsync(user);
+    }
+    
+    return user;
+}
+```
+
+### Storage Architecture
+
+Each user has a dedicated MinIO bucket with server-side encryption:
+
+```
+Bucket: staging-abc12345  (environment-userId)
+├── original/
+│   └── {documentId}.pdf     # Original uploaded file
+├── processed/
+│   └── {documentId}/
+│       ├── content.md       # OCR extracted text
+│       └── thumbnail.png    # Preview image
+└── exports/
+    └── {exportId}.zip       # User-requested exports
+```
+
+**Encryption**: MinIO uses SSE-KMS with per-user keys managed by KES. Key names follow the pattern `key-{blueRobinId}`.
+
+<Callout type="warning">
+Workers must use the bucket name from event payloads (`evt.Bucket`), never construct bucket names manually. This ensures correct environment and user targeting.
+</Callout>
+
+### Database Design
+
+PostgreSQL stores structured data with per-environment databases:
+
+| Environment | Database | Purpose |
+|-------------|----------|---------|
+| Development | `archives_dev` | Local development |
+| Staging | `archives_staging` | Integration testing |
+| Production | `archives_prod` | Production data |
+
+Key tables:
+
+```sql
+-- Users and identity mapping
+CREATE TABLE application_users (
+    id VARCHAR(8) PRIMARY KEY,        -- BlueRobinId
+    external_id UUID NOT NULL UNIQUE, -- OIDC sub claim
+    email VARCHAR(255) NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL
+);
+
+-- Documents with metadata
+CREATE TABLE documents (
+    id VARCHAR(8) PRIMARY KEY,
+    archive_id VARCHAR(8) REFERENCES archives(id),
+    created_by VARCHAR(8) REFERENCES application_users(id),
+    status VARCHAR(50) NOT NULL,
+    metadata JSONB NOT NULL,          -- File info, fingerprint
+    analysis JSONB,                   -- AI-generated content
+    classification JSONB,             -- Document category
+    created_at TIMESTAMPTZ NOT NULL
+);
+
+-- Entity extractions for knowledge graph
+CREATE TABLE canonical_entities (
+    id VARCHAR(8) PRIMARY KEY,
+    entity_type_id VARCHAR(8) NOT NULL,
+    user_id VARCHAR(8) NOT NULL,
+    display_name VARCHAR(500) NOT NULL,
+    properties JSONB NOT NULL,        -- Flexible schema
+    confidence DECIMAL(5,4) NOT NULL
+);
+```
+
+### Search Architecture
+
+BlueRobin implements hybrid search combining:
+
+1. **Full-text search** — PostgreSQL `tsvector` for keyword matching
+2. **Semantic search** — Qdrant vector similarity for meaning-based matching
+3. **Graph traversal** — FalkorDB Cypher queries for relationship exploration
+
+```csharp
+public async Task<SearchResults> SearchAsync(
+    string query, 
+    BlueRobinId userId,
+    CancellationToken ct)
+{
+    // 1. Generate query embedding
+    var embedding = await _embeddingService.GenerateAsync(query, ct);
+    
+    // 2. Parallel search execution
+    var vectorTask = _qdrantClient.SearchAsync(
+        collectionName: $"{_env}-documents",
+        vector: embedding,
+        filter: new Filter { UserId = userId.Value },
+        limit: 20);
+    
+    var textTask = _documentRepository.FullTextSearchAsync(
+        query, userId, limit: 20, ct);
+    
+    await Task.WhenAll(vectorTask, textTask);
+    
+    // 3. Merge and rank results
+    return MergeResults(vectorTask.Result, textTask.Result);
+}
+```
+
+### AI Processing Pipeline
+
+Documents flow through a multi-stage AI pipeline:
+
+```
+┌─────────────┐     ┌─────────────┐     ┌─────────────┐
+│   Upload    │────▶│     OCR     │────▶│  Analysis   │
+│  (MinIO)    │     │  (Docling)  │     │  (Ollama)   │
+└─────────────┘     └─────────────┘     └─────────────┘
+                                              │
+                    ┌─────────────────────────┼─────────────────────────┐
+                    ▼                         ▼                         ▼
+             ┌─────────────┐           ┌─────────────┐           ┌─────────────┐
+             │  Chunking   │           │     NER     │           │ Embedding   │
+             │ (Semantic)  │           │  (spaCy)    │           │  (Ollama)   │
+             └─────────────┘           └─────────────┘           └─────────────┘
+                    │                         │                         │
+                    ▼                         ▼                         ▼
+             ┌─────────────┐           ┌─────────────┐           ┌─────────────┐
+             │   Qdrant    │           │  FalkorDB   │           │   Qdrant    │
+             │  (Chunks)   │           │   (Graph)   │           │   (Docs)    │
+             └─────────────┘           └─────────────┘           └─────────────┘
+```
+
+**Stage Details**:
+
+| Stage | Service | Input | Output |
+|-------|---------|-------|--------|
+| OCR | Docling | PDF/Image | Markdown text |
+| Analysis | Ollama (llama3) | Markdown | Summary, keywords, category |
+| Chunking | Custom | Markdown | Semantic chunks (500 tokens) |
+| NER | spaCy | Markdown | Named entities |
+| Embedding | Ollama (nomic-embed-text) | Text | 768-dim vectors |
+
+### Real-Time Updates
+
+Blazor components receive real-time updates through NATS:
+
+```csharp
+// NatsDocumentEventListener bridges NATS → Blazor
+public class NatsDocumentEventListener : BackgroundService
+{
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        // Subscribe to all document events
+        await foreach (var msg in _consumer.ConsumeAsync<DocumentEvent>(
+            cancellationToken: stoppingToken))
+        {
+            // Notify Blazor components through in-process service
+            await _notifier.NotifyDocumentUpdatedAsync(
+                msg.Data.DocumentId,
+                msg.Data.Status);
+        }
+    }
+}
+
+// Blazor component subscribes to updates
+@implements IDisposable
+
+protected override void OnInitialized()
+{
+    _notifier.OnDocumentUpdated += HandleDocumentUpdated;
+}
+
+private async Task HandleDocumentUpdated(string documentId, string status)
+{
+    if (documentId == Document.Id)
+    {
+        Document.Status = status;
+        await InvokeAsync(StateHasChanged);
+    }
+}
+```
+
+<ImplementationNote>
+BlueRobin uses NATS directly instead of SignalR for real-time updates. This eliminates an additional dependency and leverages the existing messaging infrastructure.
+</ImplementationNote>
+
+## Infrastructure Architecture
+
+### Kubernetes Namespace Strategy
+
+BlueRobin uses a shared infrastructure model:
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        K3s Cluster                               │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                    data-layer namespace                   │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │   │
+│  │  │PostgreSQL│ │   NATS   │ │  Qdrant  │ │  MinIO   │    │   │
+│  │  │ (CNPG)   │ │ JetStream│ │          │ │          │    │   │
+│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+│  ┌─────────────────────┐  ┌─────────────────────┐              │
+│  │ archives-staging    │  │ archives-prod       │              │
+│  │ ┌─────┐ ┌─────┐    │  │ ┌─────┐ ┌─────┐    │              │
+│  │ │ API │ │ Web │    │  │ │ API │ │ Web │    │              │
+│  │ └─────┘ └─────┘    │  │ └─────┘ └─────┘    │              │
+│  │ ┌─────────────┐    │  │ ┌─────────────┐    │              │
+│  │ │   Workers   │    │  │ │   Workers   │    │              │
+│  │ └─────────────┘    │  │ └─────────────┘    │              │
+│  └─────────────────────┘  └─────────────────────┘              │
+│                                                                  │
+│  ┌──────────────────────────────────────────────────────────┐   │
+│  │                       ai namespace                        │   │
+│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐                  │   │
+│  │  │  Ollama  │ │ Docling  │ │  spaCy   │                  │   │
+│  │  └──────────┘ └──────────┘ └──────────┘                  │   │
+│  └──────────────────────────────────────────────────────────┘   │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Rationale**: 
+- Single data infrastructure reduces operational complexity
+- Environment isolation achieved through per-environment databases, collections, and credentials
+- Shared AI services reduce GPU memory requirements
+
+### GitOps with Flux
+
+All infrastructure is managed through GitOps:
+
+```
+bluerobin-infra/
+├── apps/                    # Application manifests
+│   ├── archives-api/
+│   ├── archives-web/
+│   └── archives-workers/
+├── infrastructure/          # Data layer infrastructure
+│   └── data-layer/
+│       ├── postgres/
+│       ├── nats/
+│       ├── qdrant/
+│       └── minio/
+└── platform/               # Platform services
+    ├── monitoring/         # SigNoz
+    └── ai/                 # Ollama, Docling
+```
+
+**Deployment Flow**:
+1. Developer commits changes to `bluerobin-infra`
+2. Flux detects changes and reconciles
+3. Kubernetes applies updated manifests
+4. Image automation updates tags on new builds
+
+## Security Model
+
+### Authentication Flow
+
+```
+┌────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐
+│ Browser│────▶│ Traefik  │────▶│ Authelia │────▶│ BlueRobin│
+│        │◀────│ (Ingress)│◀────│  (OIDC)  │◀────│   API    │
+└────────┘     └──────────┘     └──────────┘     └──────────┘
+     │                                │
+     │         1. Initial request     │
+     │────────────────────────────────▶
+     │         2. Redirect to Authelia│
+     │◀────────────────────────────────
+     │         3. User authenticates  │
+     │────────────────────────────────▶
+     │         4. OIDC callback       │
+     │◀────────────────────────────────
+     │         5. Access with JWT     │
+     │────────────────────────────────▶
+```
+
+### Data Isolation
+
+| Layer | Isolation Method |
+|-------|------------------|
+| **Storage** | Per-user MinIO buckets with SSE-KMS |
+| **Database** | Row-level security via `user_id` columns |
+| **Search** | User filter on all Qdrant queries |
+| **Events** | User ID embedded in event payloads |
+
+### Secrets Management
+
+Secrets are managed through Infisical with ExternalSecrets Operator:
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: archives-secrets
+spec:
+  secretStoreRef:
+    name: infisical-store
+    kind: ClusterSecretStore
+  target:
+    name: archives-secrets
+  data:
+    - secretKey: DATABASE_PASSWORD
+      remoteRef:
+        key: ARCHIVES_DB_PASSWORD
+```
+
+## Performance Considerations
+
+### Caching Strategy
+
+| Data | Cache | TTL |
+|------|-------|-----|
+| User profiles | In-memory | 5 minutes |
+| Document metadata | PostgreSQL query cache | N/A |
+| Search results | None (real-time) | N/A |
+| AI model responses | None | N/A |
+
+### Database Optimization
+
+- **Connection pooling** via PgBouncer
+- **Indexes** on frequently queried columns (`user_id`, `archive_id`, `status`)
+- **JSONB indexes** using GIN for metadata queries
+
+### Async Processing
+
+All heavy operations are processed asynchronously:
+- Document OCR: Background worker
+- AI analysis: Background worker
+- Embedding generation: Background worker with batching
+- Search indexing: Eventually consistent
+
+## Observability
+
+### Metrics and Tracing
+
+BlueRobin uses SigNoz for unified observability:
+
+- **Metrics**: Prometheus format, collected by OTEL collector
+- **Traces**: Distributed tracing with correlation IDs
+- **Logs**: Structured JSON logs with trace context
+
+```csharp
+// Automatic tracing with OpenTelemetry
+services.AddOpenTelemetry()
+    .WithTracing(builder => builder
+        .AddAspNetCoreInstrumentation()
+        .AddHttpClientInstrumentation()
+        .AddNpgsql()
+        .AddSource("BlueRobin.Workers")
+        .AddOtlpExporter());
+```
+
+### Health Checks
+
+```csharp
+builder.Services.AddHealthChecks()
+    .AddNpgSql(connectionString, name: "postgresql")
+    .AddCheck<NatsHealthCheck>("nats")
+    .AddCheck<MinioHealthCheck>("minio")
+    .AddCheck<QdrantHealthCheck>("qdrant");
+```
+
+## Summary
+
+BlueRobin's architecture balances simplicity with scalability:
+
+- **Modular monolith** allows rapid development while maintaining boundaries
+- **Event-driven** processing enables loose coupling and horizontal scaling
+- **Shared infrastructure** reduces operational overhead
+- **DDD patterns** ensure a rich, maintainable domain model
+- **GitOps** provides reproducible, auditable deployments
+
+This architecture supports a single-user/family scale while providing a foundation for future growth.
+
+<ExternalCite 
+  title="Clean Architecture" 
+  url="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html" 
+  author="Robert C. Martin"
+/>

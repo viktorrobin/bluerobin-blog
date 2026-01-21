@@ -1,0 +1,437 @@
+---
+title: "EF Core Migrations and Schema Management"
+description: "Manage database schema evolution with EF Core migrations, including multi-environment strategies and zero-downtime deployments."
+pubDate: 2026-03-03
+author: "Victor Robin"
+category: "database"
+difficulty: "intermediate"
+tags: ["efcore", "migrations", "postgresql", "schema", "database"]
+readTime: "16 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Database schema evolution is critical for maintaining applications over time. EF Core migrations provide a code-first approach to managing schema changes with full version control integration.
+
+## Migration Workflow
+
+```mermaid
+flowchart TB
+    subgraph Lifecycle["🔄 Migration Lifecycle"]
+        Change["📝 Entity Change\n(Code First)"] --> Add["➕ Add-Migration\ndotnet ef migrations add"]
+        Add --> Review["👀 Review & Edit\nCheck generated SQL"]
+        Review --> Commit["📤 Commit to Git\nVersion control"]
+        Commit --> Update["🚀 Update-Database\ndotnet ef database update"]
+    end
+
+    style Lifecycle fill:#336791,color:#fff
+```
+
+## Project Setup
+
+### DbContext Configuration
+
+```csharp
+// Infrastructure/Persistence/ArchivesDbContext.cs
+public sealed class ArchivesDbContext : DbContext
+{
+    public ArchivesDbContext(DbContextOptions<ArchivesDbContext> options)
+        : base(options)
+    {
+    }
+    
+    public DbSet<Document> Documents => Set<Document>();
+    public DbSet<DocumentChunk> DocumentChunks => Set<DocumentChunk>();
+    public DbSet<ApplicationUser> Users => Set<ApplicationUser>();
+    public DbSet<AuditLog> AuditLogs => Set<AuditLog>();
+    
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.ApplyConfigurationsFromAssembly(
+            typeof(ArchivesDbContext).Assembly);
+        
+        // PostgreSQL-specific configurations
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+        modelBuilder.HasPostgresExtension("pg_trgm");
+    }
+}
+```
+
+### Design-Time Factory
+
+```csharp
+// Infrastructure/Persistence/DesignTimeDbContextFactory.cs
+public sealed class DesignTimeDbContextFactory 
+    : IDesignTimeDbContextFactory<ArchivesDbContext>
+{
+    public ArchivesDbContext CreateDbContext(string[] args)
+    {
+        var connectionString = Environment.GetEnvironmentVariable(
+            "ConnectionStrings__BlueRobinDb")
+            ?? "Host=localhost;Database=archives_dev;Username=postgres;Password=postgres";
+        
+        var optionsBuilder = new DbContextOptionsBuilder<ArchivesDbContext>();
+        optionsBuilder.UseNpgsql(connectionString, npgsql =>
+        {
+            npgsql.MigrationsAssembly("Archives.Infrastructure");
+            npgsql.EnableRetryOnFailure(3);
+        });
+        
+        return new ArchivesDbContext(optionsBuilder.Options);
+    }
+}
+```
+
+<ImplementationNote>
+The design-time factory is required for running migrations from the CLI when the DbContext isn't in the startup project.
+</ImplementationNote>
+
+## Creating Migrations
+
+### Initial Migration
+
+```bash
+# Create initial migration
+dotnet ef migrations add InitialCreate \
+    --project src/Archives.Infrastructure \
+    --startup-project src/Archives.Api \
+    --output-dir Persistence/Migrations
+```
+
+### Generated Migration
+
+```csharp
+// Infrastructure/Persistence/Migrations/20260101000000_InitialCreate.cs
+public partial class InitialCreate : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.CreateTable(
+            name: "Users",
+            columns: table => new
+            {
+                Id = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
+                ExternalId = table.Column<Guid>(type: "uuid", nullable: false),
+                Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
+                DisplayName = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Users", x => x.Id);
+            });
+        
+        migrationBuilder.CreateIndex(
+            name: "IX_Users_ExternalId",
+            table: "Users",
+            column: "ExternalId",
+            unique: true);
+        
+        migrationBuilder.CreateIndex(
+            name: "IX_Users_Email",
+            table: "Users",
+            column: "Email",
+            unique: true);
+        
+        migrationBuilder.CreateTable(
+            name: "Documents",
+            columns: table => new
+            {
+                Id = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
+                Title = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                OwnerId = table.Column<string>(type: "character varying(8)", maxLength: 8, nullable: false),
+                MimeType = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                FileSize = table.Column<long>(type: "bigint", nullable: false),
+                Status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                Tags = table.Column<string[]>(type: "text[]", nullable: false),
+                CreatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
+                UpdatedAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false)
+            },
+            constraints: table =>
+            {
+                table.PrimaryKey("PK_Documents", x => x.Id);
+                table.ForeignKey(
+                    name: "FK_Documents_Users_OwnerId",
+                    column: x => x.OwnerId,
+                    principalTable: "Users",
+                    principalColumn: "Id",
+                    onDelete: ReferentialAction.Cascade);
+            });
+        
+        migrationBuilder.CreateIndex(
+            name: "IX_Documents_OwnerId",
+            table: "Documents",
+            column: "OwnerId");
+        
+        migrationBuilder.CreateIndex(
+            name: "IX_Documents_Status",
+            table: "Documents",
+            column: "Status");
+    }
+    
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropTable(name: "Documents");
+        migrationBuilder.DropTable(name: "Users");
+    }
+}
+```
+
+## Entity Configuration
+
+### Document Configuration
+
+```csharp
+// Infrastructure/Persistence/Configurations/DocumentConfiguration.cs
+public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
+{
+    public void Configure(EntityTypeBuilder<Document> builder)
+    {
+        builder.ToTable("Documents");
+        
+        builder.HasKey(d => d.Id);
+        
+        builder.Property(d => d.Id)
+            .HasConversion(
+                id => id.Value,
+                value => BlueRobinId.From(value))
+            .HasMaxLength(8)
+            .IsRequired();
+        
+        builder.Property(d => d.Title)
+            .HasMaxLength(200)
+            .IsRequired();
+        
+        builder.Property(d => d.OwnerId)
+            .HasConversion(
+                id => id.Value,
+                value => BlueRobinId.From(value))
+            .HasMaxLength(8)
+            .IsRequired();
+        
+        builder.Property(d => d.MimeType)
+            .HasMaxLength(100)
+            .IsRequired();
+        
+        builder.Property(d => d.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired();
+        
+        builder.Property(d => d.Tags)
+            .HasColumnType("text[]");
+        
+        // Indexes
+        builder.HasIndex(d => d.OwnerId);
+        builder.HasIndex(d => d.Status);
+        builder.HasIndex(d => d.Tags)
+            .HasMethod("gin"); // GIN index for array contains
+        
+        // Relationships
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(d => d.OwnerId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Row-level security (PostgreSQL)
+        builder.HasQueryFilter(d => d.DeletedAt == null);
+    }
+}
+```
+
+## Schema Evolution
+
+### Adding Columns
+
+```csharp
+// Migration: AddDocumentMetadata
+public partial class AddDocumentMetadata : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AddColumn<string>(
+            name: "ContentHash",
+            table: "Documents",
+            type: "character varying(64)",
+            maxLength: 64,
+            nullable: true);
+        
+        migrationBuilder.AddColumn<int>(
+            name: "PageCount",
+            table: "Documents",
+            type: "integer",
+            nullable: true);
+        
+        migrationBuilder.AddColumn<JsonDocument>(
+            name: "Metadata",
+            table: "Documents",
+            type: "jsonb",
+            nullable: true);
+    }
+    
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.DropColumn(name: "ContentHash", table: "Documents");
+        migrationBuilder.DropColumn(name: "PageCount", table: "Documents");
+        migrationBuilder.DropColumn(name: "Metadata", table: "Documents");
+    }
+}
+```
+
+<Callout type="tip">
+Add new columns as nullable first, then populate data, then add NOT NULL constraint. This enables zero-downtime migrations.
+</Callout>
+
+### Data Migration
+
+```csharp
+// Migration: PopulateContentHashes
+public partial class PopulateContentHashes : Migration
+{
+    protected override void Up(MigrationBuilder migrationBuilder)
+    {
+        // Set default for existing rows
+        migrationBuilder.Sql("""
+            UPDATE "Documents"
+            SET "ContentHash" = encode(sha256("Title"::bytea), 'hex')
+            WHERE "ContentHash" IS NULL
+            """);
+        
+        // Now make it required
+        migrationBuilder.AlterColumn<string>(
+            name: "ContentHash",
+            table: "Documents",
+            type: "character varying(64)",
+            maxLength: 64,
+            nullable: false,
+            oldClrType: typeof(string),
+            oldType: "character varying(64)",
+            oldMaxLength: 64,
+            oldNullable: true);
+    }
+    
+    protected override void Down(MigrationBuilder migrationBuilder)
+    {
+        migrationBuilder.AlterColumn<string>(
+            name: "ContentHash",
+            table: "Documents",
+            type: "character varying(64)",
+            maxLength: 64,
+            nullable: true,
+            oldClrType: typeof(string),
+            oldType: "character varying(64)",
+            oldMaxLength: 64);
+    }
+}
+```
+
+## Multi-Environment Deployment
+
+### VS Code Task
+
+```json
+{
+    "label": "db: migrate",
+    "type": "shell",
+    "command": "export DATABASE_PASSWORD=$(infisical secrets get ARCHIVES_DB_PASSWORD --env=dev --plain) && export ConnectionStrings__BlueRobinDb=\"Host=192.168.0.6;Port=30432;Database=archives_dev;Username=archives_dev;Password=${DATABASE_PASSWORD};Include Error Detail=true;SSL Mode=Disable\" && dotnet ef database update --project src/Archives.Infrastructure/Archives.Infrastructure.csproj --startup-project src/Archives.Api/Archives.Api.csproj"
+}
+```
+
+### CI/CD Migration
+
+```yaml
+# .github/workflows/migrate.yml
+name: Database Migration
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Target environment'
+        required: true
+        type: choice
+        options:
+          - staging
+          - prod
+
+jobs:
+  migrate:
+    runs-on: self-hosted
+    environment: ${{ inputs.environment }}
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      
+      - name: Install EF Tools
+        run: dotnet tool restore
+      
+      - name: Run Migrations
+        env:
+          ConnectionStrings__BlueRobinDb: ${{ secrets.DATABASE_CONNECTION_STRING }}
+        run: |
+          dotnet ef database update \
+            --project src/Archives.Infrastructure \
+            --startup-project src/Archives.Api
+```
+
+## Rollback Strategy
+
+### Reverting Migrations
+
+```bash
+# Revert to specific migration
+dotnet ef database update AddDocumentMetadata \
+    --project src/Archives.Infrastructure \
+    --startup-project src/Archives.Api
+
+# Revert all migrations
+dotnet ef database update 0 \
+    --project src/Archives.Infrastructure \
+    --startup-project src/Archives.Api
+```
+
+### Safe Rollback Patterns
+
+```csharp
+// Always implement Down() properly
+protected override void Down(MigrationBuilder migrationBuilder)
+{
+    // Reverse data migration first
+    migrationBuilder.Sql("""
+        -- Move data back if needed
+        UPDATE "Documents" SET "OldColumn" = "NewColumn"
+        WHERE "OldColumn" IS NULL
+        """);
+    
+    // Then remove column
+    migrationBuilder.DropColumn(name: "NewColumn", table: "Documents");
+}
+```
+
+## Summary
+
+EF Core migrations provide:
+
+| Feature | Benefit |
+|---------|---------|
+| Code-First | Schema defined in C# |
+| Version Control | Migrations in Git |
+| Idempotent | Safe to run multiple times |
+| Rollback | Down() methods for reverting |
+| Multi-Environment | Same migrations, different DBs |
+
+Combined with proper CI/CD, EF Core enables safe schema evolution across all environments.
+
+<ExternalCite 
+  title="EF Core Migrations" 
+  url="https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/"
+  author="Microsoft"
+/>

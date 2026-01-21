@@ -1,0 +1,538 @@
+---
+title: "Running PostgreSQL on Kubernetes with CloudNative-PG"
+description: "Deploy a production-ready PostgreSQL cluster on Kubernetes using CloudNative-PG, with automated backups, failover, and multi-database support."
+pubDate: 2026-01-30
+author: "Victor Robin"
+category: "database"
+difficulty: "advanced"
+tags: ["postgresql", "kubernetes", "cnpg", "database", "high-availability"]
+readTime: "20 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+CloudNative-PG (CNPG) is a Kubernetes operator that manages the full lifecycle of PostgreSQL clusters. It provides high availability, automated failover, backup/recovery, and connection pooling—all with declarative configuration.
+
+## Why CNPG?
+
+| Feature | CNPG | StatefulSet | Helm Chart |
+|---------|------|-------------|------------|
+| Automated failover | ✅ | ❌ | Varies |
+| Point-in-time recovery | ✅ | ❌ | ❌ |
+| Connection pooling | ✅ Built-in | Manual | Optional |
+| Backup to S3/GCS | ✅ | Manual | Manual |
+| Rolling updates | ✅ | Basic | Basic |
+| Declarative config | ✅ | ✅ | ❌ |
+
+<ExternalCite 
+  title="CloudNative-PG" 
+  url="https://cloudnative-pg.io/"
+  author="EDB"
+/>
+
+## Installing CNPG Operator
+
+```bash
+# Add the CNPG Helm repository
+helm repo add cnpg https://cloudnative-pg.github.io/charts
+helm repo update
+
+# Install the operator
+helm install cnpg cnpg/cloudnative-pg \
+  --namespace cnpg-system \
+  --create-namespace
+```
+
+Verify installation:
+
+```bash
+kubectl get deployment -n cnpg-system
+# NAME                          READY   AGE
+# cnpg-cloudnative-pg          1/1     2m
+```
+
+## Creating a PostgreSQL Cluster
+
+### Basic Cluster
+
+```yaml
+# infrastructure/data-layer/postgres/cluster.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: data-layer
+spec:
+  instances: 3
+  
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+      effective_cache_size: "768MB"
+      maintenance_work_mem: "128MB"
+      checkpoint_completion_target: "0.9"
+      wal_buffers: "8MB"
+      random_page_cost: "1.1"
+      effective_io_concurrency: "200"
+      work_mem: "4MB"
+      min_wal_size: "1GB"
+      max_wal_size: "4GB"
+  
+  bootstrap:
+    initdb:
+      database: postgres
+      owner: postgres
+  
+  storage:
+    size: 20Gi
+    storageClass: local-path
+  
+  resources:
+    requests:
+      memory: "512Mi"
+      cpu: "250m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
+```
+
+<ImplementationNote>
+A 3-instance cluster provides quorum-based failover. The primary handles writes; standbys handle reads and are promotion candidates.
+</ImplementationNote>
+
+### Multi-Database Configuration
+
+For BlueRobin, we create environment-specific databases in one cluster:
+
+```yaml
+# infrastructure/data-layer/postgres/cluster.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: data-layer
+spec:
+  instances: 3
+  
+  postgresql:
+    parameters:
+      max_connections: "200"
+      shared_buffers: "256MB"
+  
+  bootstrap:
+    initdb:
+      database: archives_dev
+      owner: archives_dev
+      postInitSQL:
+        - CREATE DATABASE archives_staging OWNER archives_staging;
+        - CREATE DATABASE archives_prod OWNER archives_prod;
+      postInitApplicationSQL:
+        - GRANT ALL PRIVILEGES ON DATABASE archives_dev TO archives_dev;
+        - GRANT ALL PRIVILEGES ON DATABASE archives_staging TO archives_staging;
+        - GRANT ALL PRIVILEGES ON DATABASE archives_prod TO archives_prod;
+  
+  managed:
+    roles:
+      - name: archives_dev
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-archives-dev-password
+      - name: archives_staging
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-archives-staging-password
+      - name: archives_prod
+        ensure: present
+        login: true
+        passwordSecret:
+          name: postgres-archives-prod-password
+  
+  storage:
+    size: 50Gi
+    storageClass: local-path
+```
+
+### Secrets for Roles
+
+Create secrets for each database user:
+
+```yaml
+# infrastructure/data-layer/postgres/secrets.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: postgres-archives-dev-password
+  namespace: data-layer
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical-store
+  target:
+    name: postgres-archives-dev-password
+  data:
+    - secretKey: password
+      remoteRef:
+        key: ARCHIVES_DEV_DB_PASSWORD
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: postgres-archives-staging-password
+  namespace: data-layer
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical-store
+  target:
+    name: postgres-archives-staging-password
+  data:
+    - secretKey: password
+      remoteRef:
+        key: ARCHIVES_STAGING_DB_PASSWORD
+---
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: postgres-archives-prod-password
+  namespace: data-layer
+spec:
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical-store
+  target:
+    name: postgres-archives-prod-password
+  data:
+    - secretKey: password
+      remoteRef:
+        key: ARCHIVES_PROD_DB_PASSWORD
+```
+
+## Backup Configuration
+
+### S3-Compatible Backup (MinIO)
+
+```yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres
+  namespace: data-layer
+spec:
+  # ... previous configuration ...
+  
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://postgres-backups/
+      endpointURL: http://minio.data-layer.svc.cluster.local:9000
+      s3Credentials:
+        accessKeyId:
+          name: minio-credentials
+          key: access-key
+        secretAccessKey:
+          name: minio-credentials
+          key: secret-key
+      wal:
+        compression: gzip
+        maxParallel: 2
+      data:
+        compression: gzip
+        immediateCheckpoint: true
+    retentionPolicy: "30d"
+```
+
+### Scheduled Backups
+
+```yaml
+# infrastructure/data-layer/postgres/scheduled-backup.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: postgres-daily
+  namespace: data-layer
+spec:
+  schedule: "0 2 * * *"  # 2 AM daily
+  backupOwnerReference: self
+  cluster:
+    name: postgres
+  target: prefer-standby  # Don't impact primary
+```
+
+<Callout type="tip">
+Use `prefer-standby` for backups to avoid impacting the primary's write performance.
+</Callout>
+
+## Connection Pooling with PgBouncer
+
+CNPG includes optional PgBouncer pooling:
+
+```yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Pooler
+metadata:
+  name: postgres-pooler
+  namespace: data-layer
+spec:
+  cluster:
+    name: postgres
+  instances: 2
+  type: rw  # Read-write pooler
+  
+  pgbouncer:
+    poolMode: transaction
+    parameters:
+      max_client_conn: "1000"
+      default_pool_size: "25"
+```
+
+Access via the pooler service:
+
+```
+postgres-pooler-rw.data-layer.svc.cluster.local:5432
+```
+
+## Monitoring
+
+### Exposing Metrics
+
+CNPG exposes Prometheus metrics automatically. Create a ServiceMonitor:
+
+```yaml
+# infrastructure/data-layer/postgres/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres-metrics
+  namespace: data-layer
+spec:
+  selector:
+    matchLabels:
+      cnpg.io/cluster: postgres
+  endpoints:
+    - port: metrics
+      interval: 30s
+```
+
+### Key Metrics
+
+| Metric | Description | Alert Threshold |
+|--------|-------------|-----------------|
+| `cnpg_pg_replication_lag` | Replication lag in bytes | > 10MB |
+| `cnpg_pg_stat_archiver_archived_count` | WAL files archived | Stalled |
+| `cnpg_pg_database_size_bytes` | Database size | Near storage limit |
+| `cnpg_pg_stat_activity_count` | Active connections | > 80% max |
+
+## High Availability
+
+### Failover Behavior
+
+CNPG automatically handles failover:
+
+1. Primary becomes unavailable
+2. CNPG detects failure (configurable timeout)
+3. Most up-to-date standby is promoted
+4. Services updated to point to new primary
+5. Old primary rejoins as standby when recovered
+
+### Testing Failover
+
+```bash
+# Delete the primary pod (CNPG will failover)
+kubectl delete pod postgres-1 -n data-layer
+
+# Watch failover
+kubectl get pods -n data-layer -w
+
+# Check cluster status
+kubectl get cluster postgres -n data-layer -o yaml
+```
+
+## Accessing from Applications
+
+### Service Discovery
+
+CNPG creates services for each role:
+
+| Service | Purpose |
+|---------|---------|
+| `postgres-rw` | Read-write (primary) |
+| `postgres-ro` | Read-only (standbys) |
+| `postgres-r` | Any replica (for reads) |
+
+### Connection String Configuration
+
+```yaml
+# apps/archives-api/staging/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: archives-api-config
+  namespace: archives-staging
+data:
+  ConnectionStrings__BlueRobinDb: >-
+    Host=postgres-rw.data-layer.svc.cluster.local;
+    Port=5432;
+    Database=archives_staging;
+    Username=archives_staging;
+    Include Error Detail=true;
+    SSL Mode=Disable
+```
+
+Password from secret:
+
+```yaml
+# apps/archives-api/staging/deployment.yaml
+env:
+  - name: ConnectionStrings__BlueRobinDb
+    valueFrom:
+      secretKeyRef:
+        name: archives-secrets
+        key: DATABASE_CONNECTION_STRING
+```
+
+### .NET Configuration
+
+```csharp
+// Program.cs
+builder.Services.AddDbContext<BlueRobinDbContext>(options =>
+{
+    var connectionString = builder.Configuration
+        .GetConnectionString("BlueRobinDb");
+    
+    options.UseNpgsql(connectionString, npgsql =>
+    {
+        npgsql.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(30),
+            errorCodesToAdd: null);
+        
+        npgsql.CommandTimeout(30);
+    });
+});
+```
+
+## Local Development Access
+
+Expose PostgreSQL via NodePort for local development:
+
+```yaml
+# infrastructure/data-layer/postgres/nodeport.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres-nodeport
+  namespace: data-layer
+spec:
+  type: NodePort
+  selector:
+    cnpg.io/cluster: postgres
+    role: primary
+  ports:
+    - port: 5432
+      targetPort: 5432
+      nodePort: 30432
+```
+
+Connection via Tailscale:
+
+```
+Host=192.168.0.6;Port=30432;Database=archives_dev;Username=archives_dev;Password=xxx
+```
+
+## Point-in-Time Recovery
+
+Recover to a specific timestamp:
+
+```yaml
+# recovery-cluster.yaml
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-recovery
+  namespace: data-layer
+spec:
+  instances: 1
+  
+  bootstrap:
+    recovery:
+      source: postgres
+      recoveryTarget:
+        targetTime: "2026-01-30 10:00:00+00"
+  
+  externalClusters:
+    - name: postgres
+      barmanObjectStore:
+        destinationPath: s3://postgres-backups/
+        endpointURL: http://minio.data-layer.svc.cluster.local:9000
+        s3Credentials:
+          accessKeyId:
+            name: minio-credentials
+            key: access-key
+          secretAccessKey:
+            name: minio-credentials
+            key: secret-key
+```
+
+## Maintenance Operations
+
+### Rolling Updates
+
+```bash
+# Update PostgreSQL version
+kubectl patch cluster postgres -n data-layer \
+  --type merge \
+  -p '{"spec":{"imageName":"ghcr.io/cloudnative-pg/postgresql:16.2"}}'
+```
+
+CNPG performs rolling updates automatically.
+
+### Manual Switchover
+
+```bash
+# Promote a standby
+kubectl cnpg promote postgres postgres-2 -n data-layer
+```
+
+### Check Cluster Status
+
+```bash
+kubectl cnpg status postgres -n data-layer
+```
+
+Output:
+
+```
+Cluster Summary
+Name:               postgres
+Namespace:          data-layer
+PostgreSQL Image:   ghcr.io/cloudnative-pg/postgresql:16.2
+Primary instance:   postgres-1
+Status:             Cluster in healthy state
+Instances:          3
+Ready instances:    3
+
+Instances status
+Name        Database Size  Current LSN  Replication role  Status  QoS
+----        -------------  -----------  ----------------  ------  ---
+postgres-1  1.5 GB         0/A000060    Primary           OK      Guaranteed
+postgres-2  1.5 GB         0/A000060    Standby (sync)    OK      Guaranteed
+postgres-3  1.5 GB         0/A000060    Standby (async)   OK      Guaranteed
+```
+
+## Summary
+
+We've deployed a production-ready PostgreSQL cluster with CNPG:
+
+- **3-instance HA cluster** with automatic failover
+- **Multi-database** setup for environment isolation
+- **Automated backups** to S3-compatible storage
+- **Connection pooling** with PgBouncer
+- **Monitoring** with Prometheus metrics
+- **Point-in-time recovery** capability
+
+CNPG transforms PostgreSQL management from complex operations into declarative Kubernetes resources.

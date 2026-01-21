@@ -1,0 +1,370 @@
+---
+title: "Container Security Best Practices for .NET"
+description: "Build secure container images for .NET applications with minimal attack surface, non-root users, and distroless base images."
+pubDate: 2026-03-15
+author: "Victor Robin"
+category: "security"
+difficulty: "intermediate"
+tags: ["docker", "security", "dotnet", "containers", "kubernetes"]
+readTime: "14 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Secure containers are essential for defense in depth. This guide covers building minimal, hardened container images for .NET applications.
+
+## Multi-Stage Dockerfile
+
+### Production Dockerfile
+
+```dockerfile
+# Dockerfile
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
+WORKDIR /src
+
+# Copy csproj files and restore
+COPY ["src/Archives.Api/Archives.Api.csproj", "Archives.Api/"]
+COPY ["src/Archives.Application/Archives.Application.csproj", "Archives.Application/"]
+COPY ["src/Archives.Core/Archives.Core.csproj", "Archives.Core/"]
+COPY ["src/Archives.Infrastructure/Archives.Infrastructure.csproj", "Archives.Infrastructure/"]
+COPY ["Directory.Build.props", "./"]
+
+RUN dotnet restore "Archives.Api/Archives.Api.csproj"
+
+# Copy source and build
+COPY src/ .
+WORKDIR /src/Archives.Api
+RUN dotnet publish -c Release -o /app/publish \
+    --no-restore \
+    /p:UseAppHost=false
+
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
+WORKDIR /app
+
+# Create non-root user
+RUN addgroup -g 1000 appgroup && \
+    adduser -u 1000 -G appgroup -D -s /sbin/nologin appuser
+
+# Copy published output
+COPY --from=build --chown=appuser:appgroup /app/publish .
+
+# Set file permissions
+RUN chmod -R 550 /app && \
+    chmod -R 440 /app/*.dll /app/*.json
+
+# Switch to non-root user
+USER appuser
+
+# Configure runtime
+ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+ENV DOTNET_EnableDiagnostics=0
+
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "Archives.Api.dll"]
+```
+
+<Callout type="tip">
+Use Alpine-based images for smaller footprint. The `aspnet:10.0-alpine` image is ~100MB compared to ~200MB for Debian-based images.
+</Callout>
+
+## Distroless Images
+
+### Using Google Distroless
+
+```dockerfile
+# Dockerfile.distroless
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY ["src/Archives.Api/Archives.Api.csproj", "Archives.Api/"]
+COPY ["Directory.Build.props", "./"]
+RUN dotnet restore "Archives.Api/Archives.Api.csproj"
+
+COPY src/ .
+WORKDIR /src/Archives.Api
+
+# Build self-contained for distroless
+RUN dotnet publish -c Release -o /app/publish \
+    --self-contained true \
+    -r linux-x64 \
+    /p:PublishTrimmed=true \
+    /p:PublishSingleFile=true
+
+# Distroless runtime
+FROM gcr.io/distroless/cc-debian12:nonroot AS runtime
+WORKDIR /app
+
+COPY --from=build /app/publish/Archives.Api /app/
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["/app/Archives.Api"]
+```
+
+<ImplementationNote>
+Distroless images have no shell, package manager, or other tools—dramatically reducing attack surface. Debug with the `:debug` tag variant which includes a shell.
+</ImplementationNote>
+
+## Chiseled Ubuntu Images
+
+### Microsoft Chiseled Images
+
+```dockerfile
+# Dockerfile.chiseled
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+WORKDIR /src
+
+COPY . .
+RUN dotnet publish src/Archives.Api/Archives.Api.csproj \
+    -c Release \
+    -o /app/publish \
+    /p:UseAppHost=false
+
+# Chiseled runtime (no shell, no root)
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled AS runtime
+WORKDIR /app
+
+COPY --from=build /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+
+ENTRYPOINT ["dotnet", "Archives.Api.dll"]
+```
+
+## Security Scanning
+
+### GitHub Actions Integration
+
+```yaml
+# .github/workflows/build.yml
+jobs:
+  build:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Build image
+        run: |
+          docker build -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} .
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+          
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+          
+      - name: Fail on critical vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+          exit-code: '1'
+          severity: 'CRITICAL'
+```
+
+## Kubernetes Security Context
+
+### Pod Security Configuration
+
+```yaml
+# apps/archives-api/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: archives-api
+spec:
+  template:
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: archives-api:latest
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: aspnet-data
+              mountPath: /home/appuser/.aspnet
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: aspnet-data
+          emptyDir: {}
+```
+
+<Callout type="warning">
+`readOnlyRootFilesystem: true` requires mounting writable volumes for `/tmp` and any other directories your app writes to. ASP.NET Core needs a writable data protection keys directory.
+</Callout>
+
+## Network Policies
+
+### Minimal Network Access
+
+```yaml
+# apps/archives-api/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: archives-api
+  namespace: archives-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik-system
+      ports:
+        - port: 8080
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+      ports:
+        - port: 5432
+        - port: 4222
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - port: 53
+          protocol: UDP
+```
+
+## Secret Management
+
+### No Secrets in Images
+
+```dockerfile
+# BAD - Don't do this
+ENV DATABASE_PASSWORD=secret123
+
+# GOOD - Use Kubernetes secrets
+ENV DATABASE_PASSWORD_FILE=/run/secrets/db-password
+```
+
+### External Secrets Integration
+
+```yaml
+# apps/archives-api/externalsecret.yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: archives-api-secrets
+  namespace: archives-staging
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: infisical-store
+  target:
+    name: archives-api-secrets
+  data:
+    - secretKey: ConnectionStrings__BlueRobinDb
+      remoteRef:
+        key: ARCHIVES_DB_CONNECTION_STRING
+    - secretKey: Nats__Url
+      remoteRef:
+        key: NATS_URL
+```
+
+## Image Signing
+
+### Cosign Integration
+
+```yaml
+# .github/workflows/build.yml
+- name: Sign container image
+  env:
+    COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+    COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+  run: |
+    cosign sign --key env://COSIGN_PRIVATE_KEY \
+      ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+
+- name: Generate SBOM
+  run: |
+    syft ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }} \
+      -o cyclonedx-json > sbom.json
+
+- name: Attach SBOM to image
+  env:
+    COSIGN_PRIVATE_KEY: ${{ secrets.COSIGN_PRIVATE_KEY }}
+  run: |
+    cosign attach sbom --sbom sbom.json \
+      ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
+```
+
+## Resource Limits
+
+### Memory and CPU Constraints
+
+```yaml
+# apps/archives-api/deployment.yaml
+containers:
+  - name: api
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 1000m
+        memory: 1Gi
+```
+
+## Summary
+
+Container security checklist:
+
+| Practice | Implementation |
+|----------|---------------|
+| Non-root user | `USER appuser` in Dockerfile |
+| Minimal base image | Alpine, distroless, or chiseled |
+| Read-only filesystem | `readOnlyRootFilesystem: true` |
+| Drop capabilities | `capabilities.drop: [ALL]` |
+| No privilege escalation | `allowPrivilegeEscalation: false` |
+| Vulnerability scanning | Trivy in CI/CD |
+| Image signing | Cosign with SBOM |
+| Secret injection | ExternalSecrets, not ENV |
+| Network policies | Explicit allow rules |
+
+Defense in depth requires securing containers at build time, deployment time, and runtime.
+
+<ExternalCite 
+  title="Container security best practices" 
+  url="https://cloud.google.com/architecture/best-practices-for-building-containers"
+  author="Google Cloud"
+/>

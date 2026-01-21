@@ -73,29 +73,71 @@ export const SERIES = {
 
 // Category metadata
 export const CATEGORIES = {
-  cookbook: {
-    title: "Cookbook",
-    description: "Quick, copy-paste ready solutions",
-    icon: "📋",
-    color: "quantum",
-  },
-  guide: {
-    title: "Implementation Guide",
-    description: "Step-by-step tutorials",
-    icon: "📖",
-    color: "neural",
-  },
   architecture: {
-    title: "Architecture Deep Dive",
+    title: "Architecture",
     description: "System design and patterns",
     icon: "🏗️",
     color: "aurora",
   },
-  troubleshooting: {
-    title: "Troubleshooting",
-    description: "Common problems and solutions",
-    icon: "🔧",
+  messaging: {
+    title: "Messaging",
+    description: "Event-driven and async communication",
+    icon: "📨",
+    color: "quantum",
+  },
+  infrastructure: {
+    title: "Infrastructure",
+    description: "Kubernetes, GitOps, and DevOps",
+    icon: "⚙️",
+    color: "neural",
+  },
+  security: {
+    title: "Security",
+    description: "Authentication, encryption, and compliance",
+    icon: "🔒",
     color: "glow",
+  },
+  ai: {
+    title: "AI/ML",
+    description: "Machine learning and LLM integration",
+    icon: "🤖",
+    color: "neural",
+  },
+  frontend: {
+    title: "Frontend",
+    description: "Blazor and UI development",
+    icon: "🎨",
+    color: "aurora",
+  },
+  backend: {
+    title: "Backend",
+    description: ".NET, APIs, and server-side",
+    icon: "⚡",
+    color: "quantum",
+  },
+  database: {
+    title: "Database",
+    description: "PostgreSQL, EF Core, and data storage",
+    icon: "🗄️",
+    color: "glow",
+  },
+  "ci-cd": {
+    title: "CI/CD",
+    description: "Pipelines and automation",
+    icon: "🚀",
+    color: "aurora",
+  },
+  observability: {
+    title: "Observability",
+    description: "Monitoring, logging, and tracing",
+    icon: "📊",
+    color: "neural",
+  },
+  storage: {
+    title: "Storage",
+    description: "Object storage and file management",
+    icon: "💾",
+    color: "quantum",
   },
 } as const;
 
@@ -115,5 +157,10 @@ export const DIFFICULTIES = {
     label: "Advanced",
     description: "Complex patterns and deep expertise",
     color: "aurora",
+  },
+  expert: {
+    label: "Expert",
+    description: "Deep system-level knowledge required",
+    color: "neural",
   },
 } as const;

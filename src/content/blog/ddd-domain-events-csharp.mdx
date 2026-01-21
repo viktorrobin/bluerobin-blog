@@ -1,0 +1,629 @@
+---
+title: "Domain Events: Decoupling Your Domain Logic"
+description: "Master domain events in C# to build reactive systems with loose coupling, eventual consistency, and clean separation of concerns."
+pubDate: 2026-02-05
+author: "Victor Robin"
+category: "backend"
+difficulty: "advanced"
+tags: ["ddd", "domain-events", "cqrs", "csharp", "architecture", "messaging"]
+readTime: "20 min"
+toc: true
+series:
+  name: "Domain-Driven Design in Practice"
+  part: 5
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Domain events capture something significant that happened in your domain. They enable loose coupling between aggregates, trigger side effects, and form the foundation for event-driven architectures.
+
+## What Are Domain Events?
+
+A domain event is an immutable record of something that happened in the past. It describes a state change that domain experts care about.
+
+```
+Document Created → DocumentCreatedEvent
+Document Processed → DocumentProcessingCompletedEvent
+Tag Added → TagAddedEvent
+```
+
+## Event Structure
+
+```csharp
+// Core/Primitives/IDomainEvent.cs
+public interface IDomainEvent
+{
+    Guid EventId { get; }
+    DateTimeOffset OccurredAt { get; }
+}
+
+// Core/Primitives/DomainEvent.cs
+public abstract record DomainEvent : IDomainEvent
+{
+    public Guid EventId { get; } = Guid.NewGuid();
+    public DateTimeOffset OccurredAt { get; } = DateTimeOffset.UtcNow;
+}
+```
+
+### Implementing Domain Events
+
+```csharp
+// Core/Events/DocumentCreatedEvent.cs
+public sealed record DocumentCreatedEvent(
+    BlueRobinId DocumentId,
+    BlueRobinId OwnerId,
+    string Title,
+    string FileName) : DomainEvent;
+
+// Core/Events/DocumentProcessingCompletedEvent.cs
+public sealed record DocumentProcessingCompletedEvent(
+    BlueRobinId DocumentId,
+    DocumentMetadata Metadata) : DomainEvent;
+
+// Core/Events/ChunkCreatedEvent.cs
+public sealed record ChunkCreatedEvent(
+    BlueRobinId DocumentId,
+    BlueRobinId ChunkId,
+    int SequenceNumber) : DomainEvent;
+
+// Core/Events/TagAddedEvent.cs
+public sealed record TagAddedEvent(
+    BlueRobinId DocumentId,
+    string TagName) : DomainEvent;
+```
+
+<ImplementationNote>
+Use C# records for domain events—they're immutable by default and get automatic equality comparison.
+</ImplementationNote>
+
+## Raising Events from Aggregates
+
+Events are raised within aggregate methods:
+
+```csharp
+public sealed class Document : AggregateRoot<BlueRobinId>
+{
+    public static Document Create(
+        BlueRobinId ownerId,
+        DocumentTitle title,
+        FileName originalFileName,
+        FileSize size,
+        ContentType contentType)
+    {
+        var document = new Document(
+            BlueRobinId.New(),
+            ownerId,
+            title,
+            originalFileName,
+            size,
+            contentType);
+        
+        // Raise domain event
+        document.AddDomainEvent(new DocumentCreatedEvent(
+            document.Id,
+            ownerId,
+            title.Value,
+            originalFileName.Value));
+        
+        return document;
+    }
+    
+    public void CompleteProcessing(DocumentMetadata metadata)
+    {
+        if (Status != ProcessingStatus.Embedding)
+        {
+            throw new InvalidStateTransitionException(Status, ProcessingStatus.Completed);
+        }
+        
+        Metadata = metadata;
+        Status = ProcessingStatus.Completed;
+        ProcessedAt = DateTimeOffset.UtcNow;
+        
+        // Raise completion event
+        AddDomainEvent(new DocumentProcessingCompletedEvent(Id, metadata));
+    }
+    
+    public void AddTag(Tag tag)
+    {
+        if (_tags.Contains(tag)) return;
+        
+        _tags.Add(tag);
+        AddDomainEvent(new TagAddedEvent(Id, tag.Name));
+    }
+}
+```
+
+## Dispatching Domain Events
+
+### MediatR Integration
+
+```csharp
+// Install packages
+dotnet add package MediatR
+dotnet add package MediatR.Extensions.Microsoft.DependencyInjection
+```
+
+```csharp
+// Application/Interfaces/IDomainEventDispatcher.cs
+public interface IDomainEventDispatcher
+{
+    Task DispatchAsync(IEnumerable<IDomainEvent> events, CancellationToken ct = default);
+}
+
+// Infrastructure/Events/MediatRDomainEventDispatcher.cs
+public sealed class MediatRDomainEventDispatcher : IDomainEventDispatcher
+{
+    private readonly IMediator _mediator;
+    private readonly ILogger<MediatRDomainEventDispatcher> _logger;
+    
+    public MediatRDomainEventDispatcher(
+        IMediator mediator,
+        ILogger<MediatRDomainEventDispatcher> logger)
+    {
+        _mediator = mediator;
+        _logger = logger;
+    }
+    
+    public async Task DispatchAsync(
+        IEnumerable<IDomainEvent> events,
+        CancellationToken ct = default)
+    {
+        foreach (var domainEvent in events)
+        {
+            _logger.LogDebug(
+                "Dispatching domain event {EventType} ({EventId})",
+                domainEvent.GetType().Name,
+                domainEvent.EventId);
+            
+            await _mediator.Publish(domainEvent, ct);
+        }
+    }
+}
+```
+
+### Unit of Work Pattern
+
+Dispatch events after saving:
+
+```csharp
+// Infrastructure/Persistence/UnitOfWork.cs
+public sealed class UnitOfWork : IUnitOfWork
+{
+    private readonly BlueRobinDbContext _context;
+    private readonly IDomainEventDispatcher _eventDispatcher;
+    
+    public UnitOfWork(
+        BlueRobinDbContext context,
+        IDomainEventDispatcher eventDispatcher)
+    {
+        _context = context;
+        _eventDispatcher = eventDispatcher;
+    }
+    
+    public async Task<int> SaveChangesAsync(CancellationToken ct = default)
+    {
+        // Collect domain events from all tracked aggregates
+        var aggregates = _context.ChangeTracker
+            .Entries<IAggregateRoot>()
+            .Select(e => e.Entity)
+            .Where(a => a.DomainEvents.Count > 0)
+            .ToList();
+        
+        var domainEvents = aggregates
+            .SelectMany(a => a.DomainEvents)
+            .ToList();
+        
+        // Clear events before saving
+        foreach (var aggregate in aggregates)
+        {
+            aggregate.ClearDomainEvents();
+        }
+        
+        // Save changes first
+        var result = await _context.SaveChangesAsync(ct);
+        
+        // Dispatch events after successful save
+        await _eventDispatcher.DispatchAsync(domainEvents, ct);
+        
+        return result;
+    }
+}
+```
+
+<Callout type="warning">
+Always dispatch events **after** saving. If you dispatch before and the save fails, you'll have inconsistent state.
+</Callout>
+
+## Event Handlers
+
+### In-Process Handlers
+
+```csharp
+// Application/EventHandlers/DocumentCreatedEventHandler.cs
+public sealed class DocumentCreatedEventHandler 
+    : INotificationHandler<DocumentCreatedEvent>
+{
+    private readonly ILogger<DocumentCreatedEventHandler> _logger;
+    private readonly IArchiveResolver _archiveResolver;
+    
+    public DocumentCreatedEventHandler(
+        ILogger<DocumentCreatedEventHandler> logger,
+        IArchiveResolver archiveResolver)
+    {
+        _logger = logger;
+        _archiveResolver = archiveResolver;
+    }
+    
+    public async Task Handle(
+        DocumentCreatedEvent notification,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation(
+            "Document {DocumentId} created by {OwnerId}",
+            notification.DocumentId,
+            notification.OwnerId);
+        
+        // Example: Ensure archive exists for user
+        await _archiveResolver.EnsureArchiveExistsAsync(
+            notification.OwnerId,
+            cancellationToken);
+    }
+}
+```
+
+### Multiple Handlers
+
+One event can have multiple handlers:
+
+```csharp
+// Handler 1: Update search index
+public sealed class UpdateSearchIndexHandler 
+    : INotificationHandler<DocumentProcessingCompletedEvent>
+{
+    private readonly ISearchIndexService _searchIndex;
+    
+    public async Task Handle(
+        DocumentProcessingCompletedEvent notification,
+        CancellationToken cancellationToken)
+    {
+        await _searchIndex.IndexDocumentAsync(
+            notification.DocumentId,
+            cancellationToken);
+    }
+}
+
+// Handler 2: Send notification
+public sealed class SendNotificationHandler 
+    : INotificationHandler<DocumentProcessingCompletedEvent>
+{
+    private readonly INotificationService _notifications;
+    
+    public async Task Handle(
+        DocumentProcessingCompletedEvent notification,
+        CancellationToken cancellationToken)
+    {
+        await _notifications.NotifyDocumentReadyAsync(
+            notification.DocumentId,
+            cancellationToken);
+    }
+}
+
+// Handler 3: Update statistics
+public sealed class UpdateStatisticsHandler 
+    : INotificationHandler<DocumentProcessingCompletedEvent>
+{
+    private readonly IStatisticsService _stats;
+    
+    public async Task Handle(
+        DocumentProcessingCompletedEvent notification,
+        CancellationToken cancellationToken)
+    {
+        await _stats.IncrementProcessedCountAsync(cancellationToken);
+    }
+}
+```
+
+## Publishing to External Systems
+
+### NATS Integration
+
+Convert domain events to integration events:
+
+```csharp
+// Application/EventHandlers/PublishToNatsHandler.cs
+public sealed class PublishToNatsHandler : INotificationHandler<DocumentCreatedEvent>
+{
+    private readonly INatsConnection _nats;
+    private readonly IConfiguration _config;
+    
+    public PublishToNatsHandler(
+        INatsConnection nats,
+        IConfiguration config)
+    {
+        _nats = nats;
+        _config = config;
+    }
+    
+    public async Task Handle(
+        DocumentCreatedEvent notification,
+        CancellationToken cancellationToken)
+    {
+        var env = _config["Environment"] ?? "dev";
+        var subject = $"{env}.archives.documents.created";
+        
+        var integrationEvent = new DocumentCreatedIntegrationEvent
+        {
+            DocumentId = notification.DocumentId.Value,
+            OwnerId = notification.OwnerId.Value,
+            Title = notification.Title,
+            FileName = notification.FileName,
+            Timestamp = notification.OccurredAt
+        };
+        
+        await _nats.PublishAsync(
+            subject,
+            integrationEvent,
+            cancellationToken: cancellationToken);
+    }
+}
+```
+
+### Integration Event Schema
+
+```csharp
+// Application/IntegrationEvents/DocumentCreatedIntegrationEvent.cs
+public sealed class DocumentCreatedIntegrationEvent
+{
+    public required string DocumentId { get; init; }
+    public required string OwnerId { get; init; }
+    public required string Title { get; init; }
+    public required string FileName { get; init; }
+    public required DateTimeOffset Timestamp { get; init; }
+}
+```
+
+## Event Sourcing Light
+
+Store events for audit trails without full event sourcing:
+
+```csharp
+// Infrastructure/Persistence/DomainEventStore.cs
+public sealed class DomainEventStore : IDomainEventStore
+{
+    private readonly BlueRobinDbContext _context;
+    
+    public async Task StoreAsync(
+        IEnumerable<IDomainEvent> events,
+        CancellationToken ct = default)
+    {
+        var storedEvents = events.Select(e => new StoredDomainEvent
+        {
+            EventId = e.EventId,
+            EventType = e.GetType().Name,
+            AggregateType = ExtractAggregateType(e),
+            AggregateId = ExtractAggregateId(e),
+            Payload = JsonSerializer.Serialize(e, e.GetType()),
+            OccurredAt = e.OccurredAt
+        });
+        
+        await _context.StoredDomainEvents.AddRangeAsync(storedEvents, ct);
+        await _context.SaveChangesAsync(ct);
+    }
+    
+    private static string ExtractAggregateType(IDomainEvent e) => e switch
+    {
+        DocumentCreatedEvent => "Document",
+        DocumentProcessingCompletedEvent => "Document",
+        ChunkCreatedEvent => "Document",
+        _ => "Unknown"
+    };
+    
+    private static string ExtractAggregateId(IDomainEvent e) => e switch
+    {
+        DocumentCreatedEvent de => de.DocumentId.Value,
+        DocumentProcessingCompletedEvent dp => dp.DocumentId.Value,
+        ChunkCreatedEvent ce => ce.DocumentId.Value,
+        _ => string.Empty
+    };
+}
+
+// Core/Entities/StoredDomainEvent.cs
+public sealed class StoredDomainEvent
+{
+    public Guid EventId { get; init; }
+    public required string EventType { get; init; }
+    public required string AggregateType { get; init; }
+    public required string AggregateId { get; init; }
+    public required string Payload { get; init; }
+    public DateTimeOffset OccurredAt { get; init; }
+}
+```
+
+## Handling Failures
+
+### Retry with Polly
+
+```csharp
+// Infrastructure/Events/ResilientEventDispatcher.cs
+public sealed class ResilientEventDispatcher : IDomainEventDispatcher
+{
+    private readonly IDomainEventDispatcher _inner;
+    private readonly ILogger<ResilientEventDispatcher> _logger;
+    private readonly AsyncRetryPolicy _retryPolicy;
+    
+    public ResilientEventDispatcher(
+        IDomainEventDispatcher inner,
+        ILogger<ResilientEventDispatcher> logger)
+    {
+        _inner = inner;
+        _logger = logger;
+        
+        _retryPolicy = Policy
+            .Handle<Exception>()
+            .WaitAndRetryAsync(
+                3,
+                attempt => TimeSpan.FromSeconds(Math.Pow(2, attempt)),
+                (exception, timeSpan, attempt, context) =>
+                {
+                    _logger.LogWarning(
+                        exception,
+                        "Event dispatch attempt {Attempt} failed. Retrying in {Delay}s",
+                        attempt,
+                        timeSpan.TotalSeconds);
+                });
+    }
+    
+    public async Task DispatchAsync(
+        IEnumerable<IDomainEvent> events,
+        CancellationToken ct = default)
+    {
+        await _retryPolicy.ExecuteAsync(
+            async () => await _inner.DispatchAsync(events, ct));
+    }
+}
+```
+
+### Outbox Pattern
+
+For guaranteed delivery:
+
+```csharp
+// Infrastructure/Persistence/OutboxMessage.cs
+public sealed class OutboxMessage
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public required string EventType { get; init; }
+    public required string Payload { get; init; }
+    public DateTimeOffset CreatedAt { get; init; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? ProcessedAt { get; set; }
+    public int RetryCount { get; set; }
+    public string? Error { get; set; }
+}
+
+// Infrastructure/Services/OutboxProcessor.cs
+public sealed class OutboxProcessor : BackgroundService
+{
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<OutboxProcessor> _logger;
+    
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        while (!stoppingToken.IsCancellationRequested)
+        {
+            try
+            {
+                await ProcessPendingMessagesAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Outbox processing failed");
+            }
+            
+            await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+        }
+    }
+    
+    private async Task ProcessPendingMessagesAsync(CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var context = scope.ServiceProvider.GetRequiredService<BlueRobinDbContext>();
+        var nats = scope.ServiceProvider.GetRequiredService<INatsConnection>();
+        
+        var pendingMessages = await context.OutboxMessages
+            .Where(m => m.ProcessedAt == null && m.RetryCount < 5)
+            .OrderBy(m => m.CreatedAt)
+            .Take(100)
+            .ToListAsync(ct);
+        
+        foreach (var message in pendingMessages)
+        {
+            try
+            {
+                await PublishToNatsAsync(nats, message, ct);
+                message.ProcessedAt = DateTimeOffset.UtcNow;
+            }
+            catch (Exception ex)
+            {
+                message.RetryCount++;
+                message.Error = ex.Message;
+            }
+        }
+        
+        await context.SaveChangesAsync(ct);
+    }
+    
+    private async Task PublishToNatsAsync(
+        INatsConnection nats,
+        OutboxMessage message,
+        CancellationToken ct)
+    {
+        var subject = $"staging.archives.events.{message.EventType.ToLowerInvariant()}";
+        await nats.PublishAsync(subject, message.Payload, cancellationToken: ct);
+    }
+}
+```
+
+## Testing Domain Events
+
+```csharp
+public class DocumentEventTests
+{
+    [Fact]
+    public void Create_ShouldRaiseDocumentCreatedEvent()
+    {
+        // Act
+        var document = Document.Create(
+            BlueRobinId.New(),
+            DocumentTitle.From("Test"),
+            FileName.From("test.pdf"),
+            FileSize.From(1024),
+            ContentType.From("application/pdf"));
+        
+        // Assert
+        var @event = document.DomainEvents
+            .Should().ContainSingle()
+            .Which.Should().BeOfType<DocumentCreatedEvent>()
+            .Subject;
+        
+        @event.DocumentId.Should().Be(document.Id);
+        @event.Title.Should().Be("Test");
+    }
+    
+    [Fact]
+    public void CompleteProcessing_ShouldRaiseCompletedEvent()
+    {
+        // Arrange
+        var document = CreateProcessingDocument();
+        var metadata = new DocumentMetadata { /* ... */ };
+        
+        // Act
+        document.CompleteProcessing(metadata);
+        
+        // Assert
+        document.DomainEvents.Should().Contain(e => 
+            e is DocumentProcessingCompletedEvent completed &&
+            completed.DocumentId == document.Id);
+    }
+}
+```
+
+## Summary
+
+Domain events enable powerful patterns:
+
+| Pattern | Use Case |
+|---------|----------|
+| In-process handlers | Same-transaction side effects |
+| Integration events | Cross-service communication |
+| Event store | Audit trails, debugging |
+| Outbox pattern | Guaranteed delivery |
+
+Next, we'll explore repositories and how they interact with aggregates and domain events.
+
+<ExternalCite 
+  title="Domain Events: Design and Implementation" 
+  url="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/domain-events-design-implementation"
+  author="Microsoft"
+/>

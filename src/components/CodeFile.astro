@@ -19,7 +19,7 @@ export interface Props {
 const { filename } = Astro.props;
 ---
 
-<div class="code-container not-prose my-6">
+<div class="code-container not-prose my-6 rounded-lg overflow-hidden shadow-md">
   <div class="code-filename">
     📄 {filename}
   </div>
@@ -29,11 +29,9 @@ const { filename } = Astro.props;
 </div>
 
 <style>
-  .code-container {
-    @apply rounded-lg overflow-hidden shadow-md;
-  }
-  
   .code-container :global(pre) {
-    @apply rounded-t-none m-0 !important;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    margin: 0 !important;
   }
 </style>

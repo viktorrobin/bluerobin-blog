@@ -1,0 +1,452 @@
+---
+title: "Authelia OIDC Authentication with Blazor"
+description: "Implement secure authentication in Blazor Server applications using Authelia as an OpenID Connect identity provider."
+pubDate: 2026-03-19
+author: "Victor Robin"
+category: "security"
+difficulty: "intermediate"
+tags: ["authelia", "blazor", "oidc", "authentication", "identity"]
+readTime: "14 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Authelia provides self-hosted authentication with OIDC support. This guide covers integrating Authelia with Blazor Server applications for secure user authentication.
+
+## Authelia OIDC Configuration
+
+### Client Configuration
+
+```yaml
+# infrastructure/authelia/config.yaml
+identity_providers:
+  oidc:
+    cors:
+      endpoints:
+        - authorization
+        - token
+        - revocation
+        - introspection
+        - userinfo
+      allowed_origins_from_client_redirect_uris: true
+    
+    clients:
+      - client_id: bluerobin-web-dev
+        client_name: BlueRobin Web (Dev)
+        client_secret: ${BLUEROBIN_OIDC_SECRET_HASH}
+        public: false
+        authorization_policy: two_factor
+        redirect_uris:
+          - https://localhost:5001/signin-oidc
+          - https://web.bluerobin.local/signin-oidc
+        scopes:
+          - openid
+          - profile
+          - email
+          - groups
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_post
+        
+      - client_id: bluerobin-web-staging
+        client_name: BlueRobin Web (Staging)
+        client_secret: ${BLUEROBIN_STAGING_OIDC_SECRET_HASH}
+        public: false
+        authorization_policy: two_factor
+        redirect_uris:
+          - https://web-staging.bluerobin.local/signin-oidc
+        scopes:
+          - openid
+          - profile
+          - email
+          - groups
+        userinfo_signed_response_alg: none
+        token_endpoint_auth_method: client_secret_post
+```
+
+## Blazor Authentication Setup
+
+### Service Configuration
+
+```csharp
+// Program.cs
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+})
+.AddCookie(options =>
+{
+    options.Cookie.Name = "BlueRobin.Auth";
+    options.Cookie.HttpOnly = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.ExpireTimeSpan = TimeSpan.FromHours(8);
+    options.SlidingExpiration = true;
+})
+.AddOpenIdConnect(options =>
+{
+    options.Authority = builder.Configuration["Auth:Authority"];
+    options.ClientId = builder.Configuration["Auth:ClientId"];
+    options.ClientSecret = builder.Configuration["Auth:ClientSecret"];
+    
+    options.ResponseType = OpenIdConnectResponseType.Code;
+    options.ResponseMode = OpenIdConnectResponseMode.Query;
+    
+    options.Scope.Clear();
+    options.Scope.Add("openid");
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+    options.Scope.Add("groups");
+    
+    options.SaveTokens = true;
+    options.GetClaimsFromUserInfoEndpoint = true;
+    
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        NameClaimType = "name",
+        RoleClaimType = "groups"
+    };
+    
+    options.Events = new OpenIdConnectEvents
+    {
+        OnTokenValidated = async context =>
+        {
+            var userSyncService = context.HttpContext.RequestServices
+                .GetRequiredService<IUserSyncService>();
+            
+            await userSyncService.SyncUserAsync(context.Principal!, CancellationToken.None);
+        },
+        OnRemoteFailure = context =>
+        {
+            var logger = context.HttpContext.RequestServices
+                .GetRequiredService<ILogger<Program>>();
+            
+            logger.LogError(context.Failure, "Authentication failed");
+            
+            context.Response.Redirect("/auth/error");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        }
+    };
+});
+
+builder.Services.AddAuthorization();
+builder.Services.AddCascadingAuthenticationState();
+```
+
+<Callout type="tip">
+Use `client_secret_post` as the token endpoint auth method for Authelia. This sends credentials in the POST body rather than as a Basic auth header.
+</Callout>
+
+## User Synchronization
+
+### Sync Service
+
+```csharp
+// Application/Services/UserSyncService.cs
+public sealed class UserSyncService : IUserSyncService
+{
+    private readonly IUserRepository _userRepository;
+    private readonly ILogger<UserSyncService> _logger;
+
+    public UserSyncService(
+        IUserRepository userRepository,
+        ILogger<UserSyncService> logger)
+    {
+        _userRepository = userRepository;
+        _logger = logger;
+    }
+
+    public async Task<ApplicationUser> SyncUserAsync(
+        ClaimsPrincipal principal,
+        CancellationToken ct = default)
+    {
+        var externalId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value
+            ?? principal.FindFirst("sub")?.Value
+            ?? throw new InvalidOperationException("No subject claim found");
+
+        var email = principal.FindFirst(ClaimTypes.Email)?.Value
+            ?? principal.FindFirst("email")?.Value;
+
+        var displayName = principal.FindFirst("name")?.Value
+            ?? principal.FindFirst(ClaimTypes.Name)?.Value
+            ?? email;
+
+        var existingUser = await _userRepository.GetByExternalIdAsync(externalId, ct);
+        
+        if (existingUser is not null)
+        {
+            // Update user info if changed
+            if (existingUser.Email != email || existingUser.DisplayName != displayName)
+            {
+                existingUser.UpdateProfile(email!, displayName!);
+                await _userRepository.UpdateAsync(existingUser, ct);
+                _logger.LogInformation("Updated user profile: {BlueRobinId}", existingUser.BlueRobinId);
+            }
+            
+            return existingUser;
+        }
+
+        // Create new user with BlueRobinId
+        var newUser = ApplicationUser.Create(
+            externalId: externalId,
+            email: email!,
+            displayName: displayName!);
+
+        await _userRepository.AddAsync(newUser, ct);
+        
+        _logger.LogInformation(
+            "Created new user: {BlueRobinId} for external ID: {ExternalId}",
+            newUser.BlueRobinId, externalId);
+
+        return newUser;
+    }
+}
+```
+
+<ImplementationNote>
+`UserSyncService` maps the external OIDC subject to an internal `BlueRobinId`. This 8-character alphanumeric ID is used throughout the application for all internal references.
+</ImplementationNote>
+
+## Authentication State Provider
+
+### Custom Provider for Blazor
+
+```csharp
+// Web/Auth/BlueRobinAuthenticationStateProvider.cs
+public sealed class BlueRobinAuthenticationStateProvider : ServerAuthenticationStateProvider
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUserRepository _userRepository;
+
+    public BlueRobinAuthenticationStateProvider(
+        IHttpContextAccessor httpContextAccessor,
+        IUserRepository userRepository)
+    {
+        _httpContextAccessor = httpContextAccessor;
+        _userRepository = userRepository;
+    }
+
+    public override async Task<AuthenticationState> GetAuthenticationStateAsync()
+    {
+        var user = _httpContextAccessor.HttpContext?.User;
+        
+        if (user?.Identity?.IsAuthenticated != true)
+        {
+            return new AuthenticationState(new ClaimsPrincipal(new ClaimsIdentity()));
+        }
+
+        // Add BlueRobinId claim if not present
+        var identity = (ClaimsIdentity)user.Identity;
+        
+        if (!identity.HasClaim(c => c.Type == "bluerobin_id"))
+        {
+            var externalId = user.FindFirst("sub")?.Value;
+            if (externalId is not null)
+            {
+                var appUser = await _userRepository.GetByExternalIdAsync(externalId);
+                if (appUser is not null)
+                {
+                    identity.AddClaim(new Claim("bluerobin_id", appUser.BlueRobinId.Value));
+                }
+            }
+        }
+
+        return new AuthenticationState(user);
+    }
+}
+```
+
+## Blazor Components
+
+### Login/Logout Component
+
+```razor
+@* Components/Auth/LoginDisplay.razor *@
+@inject NavigationManager Navigation
+
+<AuthorizeView>
+    <Authorized>
+        <div class="flex items-center gap-4">
+            <span class="text-sm text-gray-600">
+                Hello, @context.User.Identity?.Name
+            </span>
+            <a href="/auth/logout" 
+               class="btn btn-secondary text-sm">
+                Sign out
+            </a>
+        </div>
+    </Authorized>
+    <NotAuthorized>
+        <a href="/auth/login" 
+           class="btn btn-primary">
+            Sign in
+        </a>
+    </NotAuthorized>
+</AuthorizeView>
+```
+
+### Auth Controller
+
+```csharp
+// Web/Controllers/AuthController.cs
+[Route("auth")]
+public sealed class AuthController : Controller
+{
+    [HttpGet("login")]
+    public IActionResult Login(string? returnUrl = null)
+    {
+        var redirectUri = returnUrl ?? "/";
+        
+        if (User.Identity?.IsAuthenticated == true)
+        {
+            return LocalRedirect(redirectUri);
+        }
+
+        return Challenge(new AuthenticationProperties
+        {
+            RedirectUri = redirectUri
+        }, OpenIdConnectDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("logout")]
+    public async Task<IActionResult> Logout()
+    {
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        
+        return SignOut(new AuthenticationProperties
+        {
+            RedirectUri = "/"
+        }, OpenIdConnectDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("error")]
+    public IActionResult Error()
+    {
+        return View();
+    }
+}
+```
+
+## Authorization Policies
+
+### Policy Configuration
+
+```csharp
+// Program.cs
+builder.Services.AddAuthorizationBuilder()
+    .AddPolicy("RequireAuthenticatedUser", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    })
+    .AddPolicy("RequireAdmin", policy =>
+    {
+        policy.RequireRole("admins");
+    })
+    .AddPolicy("RequireDocumentAccess", policy =>
+    {
+        policy.Requirements.Add(new DocumentAccessRequirement());
+    });
+```
+
+### Custom Authorization Handler
+
+```csharp
+// Application/Authorization/DocumentAccessHandler.cs
+public sealed class DocumentAccessHandler : AuthorizationHandler<DocumentAccessRequirement, Document>
+{
+    protected override Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        DocumentAccessRequirement requirement,
+        Document resource)
+    {
+        var userId = context.User.FindFirst("bluerobin_id")?.Value;
+        
+        if (userId is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        var blueRobinId = BlueRobinId.From(userId);
+        
+        if (resource.OwnerId == blueRobinId)
+        {
+            context.Succeed(requirement);
+        }
+
+        return Task.CompletedTask;
+    }
+}
+```
+
+## Token Refresh
+
+### Automatic Token Refresh
+
+```csharp
+// Web/Auth/TokenRefreshMiddleware.cs
+public sealed class TokenRefreshMiddleware
+{
+    private readonly RequestDelegate _next;
+    private readonly ILogger<TokenRefreshMiddleware> _logger;
+
+    public async Task InvokeAsync(HttpContext context)
+    {
+        if (context.User.Identity?.IsAuthenticated == true)
+        {
+            var expiresAt = await context.GetTokenAsync("expires_at");
+            
+            if (DateTimeOffset.TryParse(expiresAt, out var expiry))
+            {
+                if (expiry < DateTimeOffset.UtcNow.AddMinutes(5))
+                {
+                    _logger.LogDebug("Token expiring soon, triggering refresh");
+                    
+                    // Trigger re-authentication to refresh tokens
+                    await context.ChallengeAsync(OpenIdConnectDefaults.AuthenticationScheme);
+                    return;
+                }
+            }
+        }
+
+        await _next(context);
+    }
+}
+```
+
+## Configuration
+
+### appsettings.json
+
+```json
+{
+  "Auth": {
+    "Authority": "https://auth.bluerobin.local",
+    "ClientId": "bluerobin-web-dev",
+    "ClientSecret": "${OIDC_CLIENT_SECRET}"
+  }
+}
+```
+
+## Summary
+
+Authelia OIDC integration checklist:
+
+| Component | Configuration |
+|-----------|--------------|
+| Client Type | Confidential (`public: false`) |
+| Auth Method | `client_secret_post` |
+| Scopes | openid, profile, email, groups |
+| Token Storage | Cookie-based with sliding expiration |
+| User Sync | External ID → BlueRobinId mapping |
+
+Authelia provides a self-hosted alternative to cloud identity providers with full OIDC compliance.
+
+<ExternalCite 
+  title="Authelia OpenID Connect 1.0" 
+  url="https://www.authelia.com/configuration/identity-providers/openid-connect/"
+  author="Authelia"
+/>

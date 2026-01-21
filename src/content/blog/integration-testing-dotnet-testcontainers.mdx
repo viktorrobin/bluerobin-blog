@@ -1,0 +1,495 @@
+---
+title: "Integration Testing in .NET with Testcontainers"
+description: "Build reliable integration tests for .NET applications using Testcontainers, WebApplicationFactory, and real database instances."
+pubDate: 2026-03-17
+author: "Victor Robin"
+category: "backend"
+difficulty: "intermediate"
+tags: ["dotnet", "testing", "testcontainers", "integration-testing", "xunit"]
+readTime: "15 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Integration tests verify that components work together correctly. This guide covers building maintainable integration tests with real dependencies using Testcontainers.
+
+## Test Infrastructure
+
+### Package References
+
+```xml
+<!-- Archives.Tests.Integration.csproj -->
+<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.0" />
+<PackageReference Include="Testcontainers" Version="3.9.0" />
+<PackageReference Include="Testcontainers.PostgreSql" Version="3.9.0" />
+<PackageReference Include="Testcontainers.Redis" Version="3.9.0" />
+<PackageReference Include="xunit" Version="2.9.0" />
+<PackageReference Include="FluentAssertions" Version="6.12.0" />
+<PackageReference Include="Bogus" Version="35.0.0" />
+```
+
+### Custom WebApplicationFactory
+
+```csharp
+// Tests/Integration/Infrastructure/CustomWebApplicationFactory.cs
+public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>, IAsyncLifetime
+{
+    private readonly PostgreSqlContainer _postgres;
+    private readonly RedisContainer _redis;
+
+    public CustomWebApplicationFactory()
+    {
+        _postgres = new PostgreSqlBuilder()
+            .WithImage("postgres:16-alpine")
+            .WithDatabase("archives_test")
+            .WithUsername("test")
+            .WithPassword("test")
+            .Build();
+
+        _redis = new RedisBuilder()
+            .WithImage("redis:7-alpine")
+            .Build();
+    }
+
+    public async Task InitializeAsync()
+    {
+        await _postgres.StartAsync();
+        await _redis.StartAsync();
+    }
+
+    public new async Task DisposeAsync()
+    {
+        await _postgres.DisposeAsync();
+        await _redis.DisposeAsync();
+        await base.DisposeAsync();
+    }
+
+    protected override void ConfigureWebHost(IWebHostBuilder builder)
+    {
+        builder.ConfigureServices(services =>
+        {
+            // Remove existing DbContext registration
+            var descriptor = services.SingleOrDefault(
+                d => d.ServiceType == typeof(DbContextOptions<BlueRobinDbContext>));
+            if (descriptor is not null)
+            {
+                services.Remove(descriptor);
+            }
+
+            // Add test database
+            services.AddDbContext<BlueRobinDbContext>(options =>
+            {
+                options.UseNpgsql(_postgres.GetConnectionString());
+            });
+
+            // Configure Redis
+            services.AddStackExchangeRedisCache(options =>
+            {
+                options.Configuration = _redis.GetConnectionString();
+            });
+
+            // Apply migrations
+            var sp = services.BuildServiceProvider();
+            using var scope = sp.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<BlueRobinDbContext>();
+            db.Database.Migrate();
+        });
+
+        builder.ConfigureTestServices(services =>
+        {
+            // Mock external services
+            services.AddSingleton<IMinioClient, FakeMinioClient>();
+            services.AddSingleton<INatsConnection, FakeNatsConnection>();
+        });
+    }
+}
+```
+
+<Callout type="tip">
+Testcontainers automatically starts and stops Docker containers for your tests. Each test run gets a fresh, isolated database instance.
+</Callout>
+
+## Collection Fixture
+
+### Shared Test Infrastructure
+
+```csharp
+// Tests/Integration/Infrastructure/IntegrationTestCollection.cs
+[CollectionDefinition(Name)]
+public sealed class IntegrationTestCollection : ICollectionFixture<CustomWebApplicationFactory>
+{
+    public const string Name = "Integration";
+}
+
+// Base class for all integration tests
+public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFactory>
+{
+    protected readonly HttpClient Client;
+    protected readonly CustomWebApplicationFactory Factory;
+    protected readonly IServiceScope Scope;
+    protected readonly BlueRobinDbContext DbContext;
+
+    protected IntegrationTestBase(CustomWebApplicationFactory factory)
+    {
+        Factory = factory;
+        Client = factory.CreateClient();
+        Scope = factory.Services.CreateScope();
+        DbContext = Scope.ServiceProvider.GetRequiredService<BlueRobinDbContext>();
+    }
+
+    protected async Task<T> GetServiceAsync<T>() where T : notnull
+    {
+        return Scope.ServiceProvider.GetRequiredService<T>();
+    }
+
+    protected async Task AuthenticateAsync(string userId = "test-user")
+    {
+        Client.DefaultRequestHeaders.Authorization = 
+            new AuthenticationHeaderValue("Bearer", GenerateTestToken(userId));
+    }
+
+    private string GenerateTestToken(string userId)
+    {
+        // Generate test JWT token
+        var claims = new[]
+        {
+            new Claim("sub", userId),
+            new Claim("bluerobin_id", "testuser1"),
+            new Claim("email", "test@example.com")
+        };
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("test-secret-key-minimum-length-256-bits"));
+        var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+        var token = new JwtSecurityToken(
+            issuer: "test",
+            audience: "test",
+            claims: claims,
+            expires: DateTime.UtcNow.AddHours(1),
+            signingCredentials: creds);
+
+        return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+}
+```
+
+## API Integration Tests
+
+### Document Endpoint Tests
+
+```csharp
+// Tests/Integration/Endpoints/DocumentEndpointTests.cs
+[Collection(IntegrationTestCollection.Name)]
+public sealed class DocumentEndpointTests : IntegrationTestBase
+{
+    private readonly Faker<CreateDocumentRequest> _requestFaker;
+
+    public DocumentEndpointTests(CustomWebApplicationFactory factory) : base(factory)
+    {
+        _requestFaker = new Faker<CreateDocumentRequest>()
+            .RuleFor(x => x.Name, f => f.System.FileName("pdf"))
+            .RuleFor(x => x.Description, f => f.Lorem.Sentence());
+    }
+
+    [Fact]
+    public async Task CreateDocument_WithValidRequest_ReturnsCreated()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        var request = _requestFaker.Generate();
+
+        // Act
+        var response = await Client.PostAsJsonAsync("/api/documents", request);
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Created);
+        
+        var document = await response.Content.ReadFromJsonAsync<DocumentResponse>();
+        document.Should().NotBeNull();
+        document!.Name.Should().Be(request.Name);
+        document.Id.Should().NotBeEmpty();
+        
+        // Verify in database
+        var dbDocument = await DbContext.Documents
+            .FirstOrDefaultAsync(d => d.Id == DocumentId.From(document.Id));
+        dbDocument.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetDocument_WhenNotFound_ReturnsNotFound()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        var nonExistentId = Guid.NewGuid();
+
+        // Act
+        var response = await Client.GetAsync($"/api/documents/{nonExistentId}");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task GetDocuments_WithPagination_ReturnsPagedResults()
+    {
+        // Arrange
+        await AuthenticateAsync();
+        await SeedDocumentsAsync(25);
+
+        // Act
+        var response = await Client.GetAsync("/api/documents?page=2&limit=10");
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+        
+        var result = await response.Content.ReadFromJsonAsync<PagedResult<DocumentResponse>>();
+        result.Should().NotBeNull();
+        result!.Items.Should().HaveCount(10);
+        result.TotalCount.Should().Be(25);
+        result.Page.Should().Be(2);
+    }
+
+    private async Task SeedDocumentsAsync(int count)
+    {
+        var userId = BlueRobinId.From("testuser1");
+        var documents = Enumerable.Range(0, count)
+            .Select(_ => Document.Create(_requestFaker.Generate().Name, userId))
+            .ToList();
+
+        DbContext.Documents.AddRange(documents);
+        await DbContext.SaveChangesAsync();
+    }
+}
+```
+
+<ImplementationNote>
+Use Bogus for generating realistic test data. It provides consistent, reproducible data generation with fluent configuration.
+</ImplementationNote>
+
+## Repository Integration Tests
+
+### Testing with Real Database
+
+```csharp
+// Tests/Integration/Repositories/DocumentRepositoryTests.cs
+[Collection(IntegrationTestCollection.Name)]
+public sealed class DocumentRepositoryTests : IntegrationTestBase
+{
+    private readonly IDocumentRepository _repository;
+
+    public DocumentRepositoryTests(CustomWebApplicationFactory factory) : base(factory)
+    {
+        _repository = Scope.ServiceProvider.GetRequiredService<IDocumentRepository>();
+    }
+
+    [Fact]
+    public async Task AddAsync_WithValidDocument_PersistsToDatabase()
+    {
+        // Arrange
+        var userId = BlueRobinId.From("testuser1");
+        var document = Document.Create("test-document.pdf", userId);
+
+        // Act
+        await _repository.AddAsync(document, CancellationToken.None);
+
+        // Assert
+        var retrieved = await DbContext.Documents
+            .FirstOrDefaultAsync(d => d.Id == document.Id);
+        
+        retrieved.Should().NotBeNull();
+        retrieved!.Name.Should().Be("test-document.pdf");
+        retrieved.OwnerId.Should().Be(userId);
+    }
+
+    [Fact]
+    public async Task GetByOwnerAsync_ReturnsOnlyUserDocuments()
+    {
+        // Arrange
+        var user1 = BlueRobinId.From("user1111");
+        var user2 = BlueRobinId.From("user2222");
+        
+        await _repository.AddAsync(Document.Create("doc1.pdf", user1), CancellationToken.None);
+        await _repository.AddAsync(Document.Create("doc2.pdf", user1), CancellationToken.None);
+        await _repository.AddAsync(Document.Create("doc3.pdf", user2), CancellationToken.None);
+
+        // Act
+        var user1Documents = await _repository.GetByOwnerAsync(user1, CancellationToken.None);
+
+        // Assert
+        user1Documents.Should().HaveCount(2);
+        user1Documents.Should().AllSatisfy(d => d.OwnerId.Should().Be(user1));
+    }
+
+    [Fact]
+    public async Task UpdateAsync_WithOptimisticConcurrency_ThrowsOnConflict()
+    {
+        // Arrange
+        var userId = BlueRobinId.From("testuser1");
+        var document = Document.Create("test.pdf", userId);
+        await _repository.AddAsync(document, CancellationToken.None);
+
+        // Simulate concurrent modification
+        await DbContext.Database.ExecuteSqlRawAsync(
+            "UPDATE \"Documents\" SET \"Name\" = 'modified.pdf' WHERE \"Id\" = {0}",
+            document.Id.Value);
+
+        // Act & Assert
+        document.Rename("new-name.pdf");
+        await Assert.ThrowsAsync<DbUpdateConcurrencyException>(
+            () => _repository.UpdateAsync(document, CancellationToken.None));
+    }
+}
+```
+
+## Service Integration Tests
+
+### Testing Service Composition
+
+```csharp
+// Tests/Integration/Services/DocumentProcessingServiceTests.cs
+[Collection(IntegrationTestCollection.Name)]
+public sealed class DocumentProcessingServiceTests : IntegrationTestBase
+{
+    private readonly IDocumentProcessingService _service;
+
+    public DocumentProcessingServiceTests(CustomWebApplicationFactory factory) : base(factory)
+    {
+        _service = Scope.ServiceProvider.GetRequiredService<IDocumentProcessingService>();
+    }
+
+    [Fact]
+    public async Task ProcessDocumentAsync_WithValidDocument_UpdatesStatus()
+    {
+        // Arrange
+        var userId = BlueRobinId.From("testuser1");
+        var document = Document.Create("test.pdf", userId);
+        DbContext.Documents.Add(document);
+        await DbContext.SaveChangesAsync();
+
+        // Act
+        await _service.ProcessDocumentAsync(document.Id, CancellationToken.None);
+
+        // Assert
+        DbContext.Entry(document).Reload();
+        document.Status.Should().Be(DocumentStatus.Processed);
+        document.ProcessedAt.Should().NotBeNull();
+    }
+}
+```
+
+## Test Data Builders
+
+### Fluent Builder Pattern
+
+```csharp
+// Tests/Integration/Builders/DocumentBuilder.cs
+public sealed class DocumentBuilder
+{
+    private string _name = "default.pdf";
+    private BlueRobinId _ownerId = BlueRobinId.From("testuser1");
+    private DocumentStatus _status = DocumentStatus.Pending;
+    private string? _content;
+
+    public DocumentBuilder WithName(string name)
+    {
+        _name = name;
+        return this;
+    }
+
+    public DocumentBuilder WithOwner(string ownerId)
+    {
+        _ownerId = BlueRobinId.From(ownerId);
+        return this;
+    }
+
+    public DocumentBuilder WithStatus(DocumentStatus status)
+    {
+        _status = status;
+        return this;
+    }
+
+    public DocumentBuilder WithContent(string content)
+    {
+        _content = content;
+        return this;
+    }
+
+    public Document Build()
+    {
+        var document = Document.Create(_name, _ownerId);
+        
+        if (_status != DocumentStatus.Pending)
+        {
+            // Use reflection or internal method to set status for testing
+            typeof(Document)
+                .GetProperty(nameof(Document.Status))!
+                .SetValue(document, _status);
+        }
+
+        if (_content is not null)
+        {
+            document.SetContent(_content, Array.Empty<float>());
+        }
+
+        return document;
+    }
+}
+
+// Usage
+var document = new DocumentBuilder()
+    .WithName("report.pdf")
+    .WithOwner("user1234")
+    .WithStatus(DocumentStatus.Processed)
+    .Build();
+```
+
+## Test Cleanup
+
+### Database Reset Between Tests
+
+```csharp
+// Tests/Integration/Infrastructure/DatabaseReset.cs
+public sealed class DatabaseReset : IAsyncLifetime
+{
+    private readonly BlueRobinDbContext _context;
+
+    public DatabaseReset(BlueRobinDbContext context) => _context = context;
+
+    public Task InitializeAsync() => Task.CompletedTask;
+
+    public async Task DisposeAsync()
+    {
+        // Clean up test data
+        _context.Documents.RemoveRange(_context.Documents);
+        _context.Users.RemoveRange(_context.Users.Where(u => u.Email.Contains("test")));
+        await _context.SaveChangesAsync();
+    }
+}
+```
+
+<Callout type="warning">
+Consider using Respawn for faster database cleanup in large test suites. It resets the database by deleting data rather than recreating the schema.
+</Callout>
+
+## Summary
+
+Integration testing strategy:
+
+| Component | Approach |
+|-----------|----------|
+| Database | Testcontainers with PostgreSQL |
+| Cache | Testcontainers with Redis |
+| External APIs | Fake implementations |
+| Authentication | Test JWT tokens |
+| Data | Bogus + Builder pattern |
+
+Testcontainers ensure tests run against real dependencies, catching integration issues that unit tests miss.
+
+<ExternalCite 
+  title="Testcontainers for .NET" 
+  url="https://testcontainers.com/guides/getting-started-with-testcontainers-for-dotnet/"
+  author="Testcontainers"
+/>

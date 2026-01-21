@@ -1,0 +1,862 @@
+---
+title: "Building a Semantic Embedding Pipeline with Ollama and Qdrant"
+description: "Create a production-ready embedding pipeline in .NET that generates vector embeddings with Ollama and stores them in Qdrant for semantic search."
+pubDate: 2026-01-29
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["embeddings", "ollama", "qdrant", "semantic-search", "dotnet", "ai"]
+series:
+  name: "AI in Production"
+  order: 3
+readTime: "22 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Semantic search requires converting text into dense vector representations (embeddings) that capture meaning. In this guide, we'll build a complete embedding pipeline using Ollama for local inference and Qdrant as our vector database.
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    subgraph Ingestion["📥 Ingestion"]
+        A["📄 Content<br/>Markdown"] --> B["✂️ Chunking<br/>Semantic"]
+        B --> C["🧠 Embedding<br/>Ollama"]
+    end
+
+    subgraph Storage["💾 Storage"]
+        C --> D["📤 Upsert<br/>Batched"]
+        D --> E[("🔮 Qdrant<br/>Vectors")]
+    end
+
+    subgraph Query["🔍 Query"]
+        F["💬 Search Query"] --> E
+        E --> G["✅ Results"]
+    end
+
+    style Ingestion fill:#3498db,color:#fff
+    style Storage fill:#27ae60,color:#fff
+    style Query fill:#f39c12,color:#fff
+```
+
+## Choosing an Embedding Model
+
+For local inference with Ollama, we use `nomic-embed-text`:
+
+| Model | Dimensions | Context | Speed | Quality |
+|-------|------------|---------|-------|---------|
+| nomic-embed-text | 768 | 8192 | Fast | Excellent |
+| mxbai-embed-large | 1024 | 512 | Medium | Very Good |
+| all-minilm | 384 | 256 | Very Fast | Good |
+
+<ExternalCite 
+  title="Nomic Embed: A Reproducible Long Context Text Embedder" 
+  url="https://blog.nomic.ai/posts/nomic-embed-text-v1"
+  author="Nomic AI"
+/>
+
+## The Embedding Service
+
+Create an interface-driven service for generating embeddings:
+
+```csharp
+// Application/Services/IEmbeddingService.cs
+namespace Archives.Application.Services;
+
+public interface IEmbeddingService
+{
+    /// <summary>
+    /// Generates an embedding for a single text.
+    /// </summary>
+    Task<float[]> GenerateEmbeddingAsync(
+        string text,
+        CancellationToken ct = default);
+    
+    /// <summary>
+    /// Generates embeddings for multiple texts in a batch.
+    /// </summary>
+    Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(
+        IReadOnlyList<string> texts,
+        CancellationToken ct = default);
+}
+```
+
+### Ollama Implementation
+
+```csharp
+// Infrastructure/AI/OllamaEmbeddingService.cs
+namespace Archives.Infrastructure.AI;
+
+public sealed class OllamaEmbeddingService : IEmbeddingService
+{
+    private readonly HttpClient _httpClient;
+    private readonly ILogger<OllamaEmbeddingService> _logger;
+    private readonly string _model;
+    private const int MaxBatchSize = 10;
+    
+    public OllamaEmbeddingService(
+        HttpClient httpClient,
+        IConfiguration configuration,
+        ILogger<OllamaEmbeddingService> logger)
+    {
+        _httpClient = httpClient;
+        _logger = logger;
+        _model = configuration["Ollama:EmbeddingModel"] ?? "nomic-embed-text";
+    }
+    
+    public async Task<float[]> GenerateEmbeddingAsync(
+        string text,
+        CancellationToken ct = default)
+    {
+        var result = await GenerateEmbeddingsAsync([text], ct);
+        return result[0];
+    }
+    
+    public async Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(
+        IReadOnlyList<string> texts,
+        CancellationToken ct = default)
+    {
+        if (texts.Count == 0)
+            return [];
+        
+        var embeddings = new List<float[]>(texts.Count);
+        
+        // Process in batches to avoid overwhelming Ollama
+        foreach (var batch in texts.Chunk(MaxBatchSize))
+        {
+            var batchEmbeddings = await GenerateBatchAsync(batch, ct);
+            embeddings.AddRange(batchEmbeddings);
+        }
+        
+        return embeddings;
+    }
+    
+    private async Task<IEnumerable<float[]>> GenerateBatchAsync(
+        IEnumerable<string> texts,
+        CancellationToken ct)
+    {
+        var results = new List<float[]>();
+        
+        foreach (var text in texts)
+        {
+            var request = new OllamaEmbedRequest
+            {
+                Model = _model,
+                Input = text
+            };
+            
+            var response = await _httpClient.PostAsJsonAsync(
+                "/api/embed",
+                request,
+                ct);
+            
+            response.EnsureSuccessStatusCode();
+            
+            var result = await response.Content
+                .ReadFromJsonAsync<OllamaEmbedResponse>(ct);
+            
+            if (result?.Embeddings is [var embedding, ..])
+            {
+                results.Add(embedding);
+            }
+            else
+            {
+                throw new EmbeddingException($"No embedding returned for text");
+            }
+        }
+        
+        return results;
+    }
+    
+    private sealed record OllamaEmbedRequest
+    {
+        [JsonPropertyName("model")]
+        public required string Model { get; init; }
+        
+        [JsonPropertyName("input")]
+        public required string Input { get; init; }
+    }
+    
+    private sealed record OllamaEmbedResponse
+    {
+        [JsonPropertyName("embeddings")]
+        public float[][]? Embeddings { get; init; }
+    }
+}
+
+public class EmbeddingException : Exception
+{
+    public EmbeddingException(string message) : base(message) { }
+}
+```
+
+<ImplementationNote>
+Ollama's `/api/embed` endpoint accepts a single input at a time. For batch processing, we iterate and manage concurrency ourselves.
+</ImplementationNote>
+
+## Semantic Chunking
+
+Before embedding, split documents into meaningful chunks:
+
+```csharp
+// Application/Services/ITextChunker.cs
+namespace Archives.Application.Services;
+
+public interface ITextChunker
+{
+    IReadOnlyList<TextChunk> ChunkText(
+        string text,
+        ChunkingOptions? options = null);
+}
+
+public record TextChunk(
+    string Content,
+    int StartOffset,
+    int EndOffset,
+    int Index);
+
+public record ChunkingOptions
+{
+    public int MaxTokens { get; init; } = 500;
+    public int OverlapTokens { get; init; } = 50;
+    public bool PreserveMarkdown { get; init; } = true;
+}
+```
+
+### Markdown-Aware Implementation
+
+```csharp
+// Infrastructure/Text/SemanticTextChunker.cs
+namespace Archives.Infrastructure.Text;
+
+public sealed class SemanticTextChunker : ITextChunker
+{
+    private readonly ILogger<SemanticTextChunker> _logger;
+    
+    // Approximate tokens as words * 1.3
+    private const double TokenToWordRatio = 1.3;
+    
+    public SemanticTextChunker(ILogger<SemanticTextChunker> logger)
+    {
+        _logger = logger;
+    }
+    
+    public IReadOnlyList<TextChunk> ChunkText(
+        string text,
+        ChunkingOptions? options = null)
+    {
+        options ??= new ChunkingOptions();
+        
+        if (string.IsNullOrWhiteSpace(text))
+            return [];
+        
+        var chunks = new List<TextChunk>();
+        var sections = options.PreserveMarkdown
+            ? SplitByMarkdownSections(text)
+            : SplitBySentences(text);
+        
+        var currentChunk = new StringBuilder();
+        var currentStart = 0;
+        var chunkIndex = 0;
+        
+        foreach (var section in sections)
+        {
+            var sectionTokens = EstimateTokens(section);
+            var currentTokens = EstimateTokens(currentChunk.ToString());
+            
+            if (currentTokens + sectionTokens > options.MaxTokens && currentChunk.Length > 0)
+            {
+                // Save current chunk
+                var content = currentChunk.ToString().Trim();
+                if (content.Length > 0)
+                {
+                    chunks.Add(new TextChunk(
+                        content,
+                        currentStart,
+                        currentStart + content.Length,
+                        chunkIndex++));
+                }
+                
+                // Start new chunk with overlap
+                var overlap = GetOverlapText(currentChunk.ToString(), options.OverlapTokens);
+                currentChunk.Clear();
+                currentChunk.Append(overlap);
+                currentStart = text.IndexOf(section, StringComparison.Ordinal);
+            }
+            
+            currentChunk.Append(section);
+            currentChunk.AppendLine();
+        }
+        
+        // Don't forget the last chunk
+        var lastContent = currentChunk.ToString().Trim();
+        if (lastContent.Length > 0)
+        {
+            chunks.Add(new TextChunk(
+                lastContent,
+                currentStart,
+                currentStart + lastContent.Length,
+                chunkIndex));
+        }
+        
+        _logger.LogDebug(
+            "Split {TextLength} chars into {ChunkCount} chunks",
+            text.Length,
+            chunks.Count);
+        
+        return chunks;
+    }
+    
+    private static IEnumerable<string> SplitByMarkdownSections(string text)
+    {
+        // Split by headers while keeping the header with its content
+        var lines = text.Split('\n');
+        var currentSection = new StringBuilder();
+        
+        foreach (var line in lines)
+        {
+            if (line.StartsWith('#') && currentSection.Length > 0)
+            {
+                yield return currentSection.ToString();
+                currentSection.Clear();
+            }
+            
+            currentSection.AppendLine(line);
+        }
+        
+        if (currentSection.Length > 0)
+        {
+            yield return currentSection.ToString();
+        }
+    }
+    
+    private static IEnumerable<string> SplitBySentences(string text)
+    {
+        // Simple sentence boundary detection
+        var sentenceEnders = new[] { ". ", "! ", "? ", ".\n", "!\n", "?\n" };
+        var start = 0;
+        
+        for (var i = 0; i < text.Length - 1; i++)
+        {
+            var twoChars = text.Substring(i, 2);
+            if (sentenceEnders.Contains(twoChars))
+            {
+                yield return text.Substring(start, i - start + 1).Trim();
+                start = i + 1;
+            }
+        }
+        
+        if (start < text.Length)
+        {
+            yield return text.Substring(start).Trim();
+        }
+    }
+    
+    private static int EstimateTokens(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text))
+            return 0;
+        
+        var wordCount = text.Split(
+            [' ', '\n', '\r', '\t'],
+            StringSplitOptions.RemoveEmptyEntries).Length;
+        
+        return (int)(wordCount * TokenToWordRatio);
+    }
+    
+    private static string GetOverlapText(string text, int overlapTokens)
+    {
+        var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        var overlapWordCount = (int)(overlapTokens / TokenToWordRatio);
+        
+        if (words.Length <= overlapWordCount)
+            return text;
+        
+        return string.Join(' ', words.TakeLast(overlapWordCount));
+    }
+}
+```
+
+## Qdrant Vector Storage
+
+### The Vector Store Interface
+
+```csharp
+// Application/Services/IVectorStore.cs
+namespace Archives.Application.Services;
+
+public interface IVectorStore
+{
+    Task UpsertAsync(
+        string collection,
+        IReadOnlyList<VectorPoint> points,
+        CancellationToken ct = default);
+    
+    Task<IReadOnlyList<SearchResult>> SearchAsync(
+        string collection,
+        float[] queryVector,
+        SearchOptions options,
+        CancellationToken ct = default);
+    
+    Task DeleteByDocumentIdAsync(
+        string collection,
+        string documentId,
+        CancellationToken ct = default);
+}
+
+public record VectorPoint(
+    Guid Id,
+    float[] Vector,
+    Dictionary<string, object> Payload);
+
+public record SearchResult(
+    Guid Id,
+    float Score,
+    Dictionary<string, object> Payload);
+
+public record SearchOptions
+{
+    public int Limit { get; init; } = 10;
+    public float ScoreThreshold { get; init; } = 0.7f;
+    public Dictionary<string, object>? Filters { get; init; }
+}
+```
+
+### Qdrant Implementation
+
+```csharp
+// Infrastructure/VectorStore/QdrantVectorStore.cs
+namespace Archives.Infrastructure.VectorStore;
+
+public sealed class QdrantVectorStore : IVectorStore
+{
+    private readonly QdrantClient _client;
+    private readonly ILogger<QdrantVectorStore> _logger;
+    private readonly string _environment;
+    
+    public QdrantVectorStore(
+        QdrantClient client,
+        IConfiguration configuration,
+        ILogger<QdrantVectorStore> logger)
+    {
+        _client = client;
+        _logger = logger;
+        _environment = configuration["Environment"] ?? "dev";
+    }
+    
+    public async Task UpsertAsync(
+        string collection,
+        IReadOnlyList<VectorPoint> points,
+        CancellationToken ct = default)
+    {
+        if (points.Count == 0)
+            return;
+        
+        var fullCollectionName = GetCollectionName(collection);
+        
+        // Ensure collection exists
+        await EnsureCollectionAsync(fullCollectionName, points[0].Vector.Length, ct);
+        
+        var qdrantPoints = points.Select(p => new PointStruct
+        {
+            Id = new PointId { Uuid = p.Id.ToString() },
+            Vectors = p.Vector,
+            Payload = { p.Payload.ToDictionary(kv => kv.Key, kv => ToQdrantValue(kv.Value)) }
+        }).ToList();
+        
+        await _client.UpsertAsync(
+            fullCollectionName,
+            qdrantPoints,
+            cancellationToken: ct);
+        
+        _logger.LogInformation(
+            "Upserted {PointCount} points to {Collection}",
+            points.Count,
+            fullCollectionName);
+    }
+    
+    public async Task<IReadOnlyList<SearchResult>> SearchAsync(
+        string collection,
+        float[] queryVector,
+        SearchOptions options,
+        CancellationToken ct = default)
+    {
+        var fullCollectionName = GetCollectionName(collection);
+        
+        Filter? filter = null;
+        if (options.Filters?.TryGetValue("user_id", out var userId) == true)
+        {
+            filter = new Filter
+            {
+                Must =
+                {
+                    new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key = "user_id",
+                            Match = new Match { Keyword = userId.ToString()! }
+                        }
+                    }
+                }
+            };
+        }
+        
+        var results = await _client.SearchAsync(
+            fullCollectionName,
+            queryVector,
+            filter: filter,
+            limit: (ulong)options.Limit,
+            scoreThreshold: options.ScoreThreshold,
+            cancellationToken: ct);
+        
+        return results.Select(r => new SearchResult(
+            Guid.Parse(r.Id.Uuid),
+            r.Score,
+            r.Payload.ToDictionary(kv => kv.Key, kv => FromQdrantValue(kv.Value))
+        )).ToList();
+    }
+    
+    public async Task DeleteByDocumentIdAsync(
+        string collection,
+        string documentId,
+        CancellationToken ct = default)
+    {
+        var fullCollectionName = GetCollectionName(collection);
+        
+        await _client.DeleteAsync(
+            fullCollectionName,
+            new Filter
+            {
+                Must =
+                {
+                    new Condition
+                    {
+                        Field = new FieldCondition
+                        {
+                            Key = "document_id",
+                            Match = new Match { Keyword = documentId }
+                        }
+                    }
+                }
+            },
+            cancellationToken: ct);
+        
+        _logger.LogInformation(
+            "Deleted vectors for document {DocumentId} from {Collection}",
+            documentId,
+            fullCollectionName);
+    }
+    
+    private string GetCollectionName(string baseName) 
+        => $"{_environment}-{baseName}";
+    
+    private async Task EnsureCollectionAsync(
+        string name,
+        int vectorSize,
+        CancellationToken ct)
+    {
+        try
+        {
+            await _client.GetCollectionInfoAsync(name, ct);
+        }
+        catch (QdrantException)
+        {
+            // Collection doesn't exist, create it
+            await _client.CreateCollectionAsync(
+                name,
+                new VectorParams
+                {
+                    Size = (ulong)vectorSize,
+                    Distance = Distance.Cosine
+                },
+                cancellationToken: ct);
+            
+            _logger.LogInformation("Created collection {Collection}", name);
+        }
+    }
+    
+    private static Value ToQdrantValue(object obj) => obj switch
+    {
+        string s => new Value { StringValue = s },
+        int i => new Value { IntegerValue = i },
+        long l => new Value { IntegerValue = l },
+        double d => new Value { DoubleValue = d },
+        bool b => new Value { BoolValue = b },
+        _ => new Value { StringValue = obj.ToString() ?? "" }
+    };
+    
+    private static object FromQdrantValue(Value value) => value.KindCase switch
+    {
+        Value.KindOneofCase.StringValue => value.StringValue,
+        Value.KindOneofCase.IntegerValue => value.IntegerValue,
+        Value.KindOneofCase.DoubleValue => value.DoubleValue,
+        Value.KindOneofCase.BoolValue => value.BoolValue,
+        _ => value.StringValue
+    };
+}
+```
+
+<Callout type="tip">
+Collection names are prefixed with the environment (e.g., `dev-documents`, `staging-documents`) to isolate data on a shared Qdrant instance.
+</Callout>
+
+## The Embedding Worker
+
+Orchestrate the embedding pipeline as a background worker:
+
+```csharp
+// Workers/EmbeddingWorker.cs
+namespace Archives.Workers;
+
+public sealed class EmbeddingWorker : BackgroundService
+{
+    private readonly INatsConnection _nats;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly ILogger<EmbeddingWorker> _logger;
+    private readonly string _environment;
+    
+    public EmbeddingWorker(
+        INatsConnection nats,
+        IServiceScopeFactory scopeFactory,
+        IConfiguration configuration,
+        ILogger<EmbeddingWorker> logger)
+    {
+        _nats = nats;
+        _scopeFactory = scopeFactory;
+        _logger = logger;
+        _environment = configuration["Environment"] ?? "dev";
+    }
+    
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        var js = _nats.CreateJetStreamContext();
+        
+        var consumer = await js.CreateOrUpdateConsumerAsync(
+            stream: "DOCUMENTS",
+            config: new ConsumerConfig
+            {
+                DurableName = $"{_environment}-embedding-worker",
+                FilterSubject = $"{_environment}.archives.documents.analysis.completed",
+                AckPolicy = ConsumerConfigAckPolicy.Explicit,
+                AckWait = TimeSpan.FromMinutes(5),
+                MaxDeliver = 3
+            },
+            stoppingToken);
+        
+        _logger.LogInformation("Embedding worker started");
+        
+        await foreach (var msg in consumer.ConsumeAsync<AnalysisCompletedEvent>(
+            cancellationToken: stoppingToken))
+        {
+            await ProcessAsync(msg, stoppingToken);
+        }
+    }
+    
+    private async Task ProcessAsync(
+        NatsJSMsg<AnalysisCompletedEvent> msg,
+        CancellationToken ct)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var embeddingService = scope.ServiceProvider.GetRequiredService<IEmbeddingService>();
+        var chunker = scope.ServiceProvider.GetRequiredService<ITextChunker>();
+        var vectorStore = scope.ServiceProvider.GetRequiredService<IVectorStore>();
+        var storage = scope.ServiceProvider.GetRequiredService<IObjectStorage>();
+        
+        var evt = msg.Data!;
+        
+        try
+        {
+            _logger.LogInformation(
+                "Processing embeddings for document {DocumentId}",
+                evt.DocumentId);
+            
+            // 1. Get document content
+            var contentPath = $"processed/{evt.DocumentId}/content.md";
+            var content = await storage.GetObjectAsStringAsync(
+                evt.Bucket, contentPath, ct);
+            
+            // 2. Chunk the content
+            var chunks = chunker.ChunkText(content, new ChunkingOptions
+            {
+                MaxTokens = 500,
+                OverlapTokens = 50,
+                PreserveMarkdown = true
+            });
+            
+            _logger.LogDebug(
+                "Document {DocumentId} split into {ChunkCount} chunks",
+                evt.DocumentId,
+                chunks.Count);
+            
+            // 3. Generate embeddings
+            var texts = chunks.Select(c => c.Content).ToList();
+            var embeddings = await embeddingService.GenerateEmbeddingsAsync(texts, ct);
+            
+            // 4. Create vector points with metadata
+            var points = chunks.Zip(embeddings, (chunk, embedding) =>
+            {
+                var payload = new Dictionary<string, object>
+                {
+                    ["document_id"] = evt.DocumentId,
+                    ["user_id"] = evt.UserId,
+                    ["chunk_index"] = chunk.Index,
+                    ["content"] = chunk.Content,
+                    ["start_offset"] = chunk.StartOffset,
+                    ["end_offset"] = chunk.EndOffset
+                };
+                
+                return new VectorPoint(Guid.NewGuid(), embedding, payload);
+            }).ToList();
+            
+            // 5. Delete existing vectors for this document
+            await vectorStore.DeleteByDocumentIdAsync(
+                "documents", evt.DocumentId, ct);
+            
+            // 6. Upsert new vectors
+            await vectorStore.UpsertAsync("documents", points, ct);
+            
+            // 7. Publish completion event
+            await _nats.PublishAsync(
+                $"{_environment}.archives.documents.embedding.completed",
+                new EmbeddingCompletedEvent
+                {
+                    DocumentId = evt.DocumentId,
+                    Bucket = evt.Bucket,
+                    UserId = evt.UserId,
+                    ChunkCount = chunks.Count,
+                    ProcessedAt = DateTimeOffset.UtcNow
+                },
+                cancellationToken: ct);
+            
+            await msg.AckAsync(cancellationToken: ct);
+            
+            _logger.LogInformation(
+                "Embeddings complete for {DocumentId}: {ChunkCount} chunks",
+                evt.DocumentId,
+                chunks.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to generate embeddings for {DocumentId}",
+                evt.DocumentId);
+            
+            await msg.NakAsync(
+                delay: TimeSpan.FromMinutes(1),
+                cancellationToken: ct);
+        }
+    }
+}
+```
+
+## Semantic Search Implementation
+
+Finally, implement search that queries the vector store:
+
+```csharp
+// Application/Services/SemanticSearchService.cs
+namespace Archives.Application.Services;
+
+public sealed class SemanticSearchService : ISemanticSearchService
+{
+    private readonly IEmbeddingService _embeddingService;
+    private readonly IVectorStore _vectorStore;
+    private readonly ILogger<SemanticSearchService> _logger;
+    
+    public SemanticSearchService(
+        IEmbeddingService embeddingService,
+        IVectorStore vectorStore,
+        ILogger<SemanticSearchService> logger)
+    {
+        _embeddingService = embeddingService;
+        _vectorStore = vectorStore;
+        _logger = logger;
+    }
+    
+    public async Task<IReadOnlyList<SemanticSearchResult>> SearchAsync(
+        string query,
+        string userId,
+        int limit = 10,
+        CancellationToken ct = default)
+    {
+        // Generate query embedding
+        var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(query, ct);
+        
+        // Search vector store
+        var results = await _vectorStore.SearchAsync(
+            "documents",
+            queryEmbedding,
+            new SearchOptions
+            {
+                Limit = limit,
+                ScoreThreshold = 0.7f,
+                Filters = new Dictionary<string, object> { ["user_id"] = userId }
+            },
+            ct);
+        
+        // Map to search results
+        return results.Select(r => new SemanticSearchResult
+        {
+            DocumentId = r.Payload["document_id"].ToString()!,
+            Content = r.Payload["content"].ToString()!,
+            ChunkIndex = Convert.ToInt32(r.Payload["chunk_index"]),
+            Score = r.Score
+        }).ToList();
+    }
+}
+
+public record SemanticSearchResult
+{
+    public required string DocumentId { get; init; }
+    public required string Content { get; init; }
+    public required int ChunkIndex { get; init; }
+    public required float Score { get; init; }
+}
+```
+
+## Service Registration
+
+```csharp
+// Program.cs
+// Ollama embedding service
+builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client =>
+{
+    client.BaseAddress = new Uri(
+        builder.Configuration["Ollama:Url"] 
+        ?? "http://ollama.ai.svc.cluster.local:11434");
+    client.Timeout = TimeSpan.FromMinutes(2);
+});
+
+// Qdrant vector store
+builder.Services.AddSingleton(sp =>
+{
+    var config = sp.GetRequiredService<IConfiguration>();
+    var host = config["Qdrant:Host"] ?? "qdrant.data-layer.svc.cluster.local";
+    var port = config.GetValue("Qdrant:GrpcPort", 6334);
+    return new QdrantClient(host, port);
+});
+builder.Services.AddSingleton<IVectorStore, QdrantVectorStore>();
+
+// Chunking and search
+builder.Services.AddSingleton<ITextChunker, SemanticTextChunker>();
+builder.Services.AddScoped<ISemanticSearchService, SemanticSearchService>();
+```
+
+## Summary
+
+We've built a complete semantic embedding pipeline:
+
+1. **Embedding Service** — Ollama integration for local inference
+2. **Text Chunker** — Markdown-aware semantic splitting
+3. **Vector Store** — Qdrant for storing and searching embeddings
+4. **Embedding Worker** — Event-driven pipeline processing
+5. **Semantic Search** — Query-time embedding and similarity search
+
+This pipeline enables powerful semantic search over documents, finding relevant content based on meaning rather than just keywords.
+
+Next in the series, we'll explore **hybrid search** that combines semantic and full-text search for the best of both worlds.

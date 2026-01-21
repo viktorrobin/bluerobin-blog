@@ -1,0 +1,130 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  // Define all diagram slugs manually since they're markdown files in content/diagrams
+  const diagrams = [
+    "rag-pipeline",
+    "document-ingestion", 
+    "event-driven-architecture",
+    "kubernetes-deployment",
+    "domain-model",
+    "cicd-pipeline",
+    "microservices-communication",
+    "cqrs-pattern"
+  ];
+
+  return diagrams.map((slug) => ({ params: { slug } }));
+}
+
+const { slug } = Astro.params;
+
+// Read the markdown file directly
+const diagramFiles = import.meta.glob('/src/content/diagrams/*.md', { as: 'raw' });
+const filePath = `/src/content/diagrams/${slug}.md`;
+const rawContent = diagramFiles[filePath] ? await diagramFiles[filePath]() : null;
+
+if (!rawContent) {
+  return Astro.redirect('/404');
+}
+
+// Parse frontmatter and content
+const frontmatterMatch = rawContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
+const content = frontmatterMatch ? frontmatterMatch[2] : rawContent;
+
+// Parse frontmatter YAML (simple parsing)
+const titleMatch = frontmatter.match(/title:\s*"([^"]+)"/);
+const descMatch = frontmatter.match(/description:\s*"([^"]+)"/);
+const typeMatch = frontmatter.match(/diagram_type:\s*"([^"]+)"/);
+const topicMatch = frontmatter.match(/topic:\s*"([^"]+)"/);
+
+const title = titleMatch ? titleMatch[1] : 'Diagram';
+const description = descMatch ? descMatch[1] : '';
+const diagramType = typeMatch ? typeMatch[1] : 'diagram';
+const topic = topicMatch ? topicMatch[1] : 'architecture';
+
+const topicColors: Record<string, string> = {
+  "ai": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+  "architecture": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  "infrastructure": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  "ddd": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
+  "devops": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+};
+---
+
+<MainLayout title={`${title} | BlueRobin Architecture`} description={description}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <nav class="text-sm mb-8">
+      <ol class="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
+        <li><a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a></li>
+        <li>/</li>
+        <li><a href="/architecture" class="hover:text-indigo-600 dark:hover:text-indigo-400">Architecture</a></li>
+        <li>/</li>
+        <li><a href="/architecture/diagrams" class="hover:text-indigo-600 dark:hover:text-indigo-400">Diagrams</a></li>
+        <li>/</li>
+        <li class="text-slate-900 dark:text-slate-100">{title}</li>
+      </ol>
+    </nav>
+
+    <!-- Header -->
+    <header class="mb-8">
+      <div class="flex items-center gap-3 mb-4">
+        <span class={`text-xs px-2 py-1 rounded-full ${topicColors[topic.toLowerCase()] || topicColors['architecture']}`}>
+          {topic}
+        </span>
+        <span class="text-xs text-slate-500 dark:text-slate-500">
+          {diagramType}
+        </span>
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+        {title}
+      </h1>
+      <p class="text-lg text-slate-600 dark:text-slate-400">
+        {description}
+      </p>
+    </header>
+
+    <!-- Diagram Content -->
+    <article class="glass-card p-8">
+      <div class="prose prose-lg dark:prose-invert max-w-none prose-pre:bg-slate-900 prose-pre:text-slate-100" set:html={content}>
+      </div>
+    </article>
+
+    <!-- Navigation -->
+    <nav class="mt-8 flex justify-between">
+      <a 
+        href="/architecture/diagrams"
+        class="text-indigo-600 dark:text-indigo-400 hover:underline"
+      >
+        ← Back to All Diagrams
+      </a>
+      <a 
+        href="/architecture"
+        class="text-indigo-600 dark:text-indigo-400 hover:underline"
+      >
+        View Architecture Articles →
+      </a>
+    </nav>
+  </div>
+</MainLayout>
+
+<script>
+  // Initialize Mermaid diagrams after page load
+  import mermaid from 'mermaid';
+  
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+    securityLevel: 'loose',
+    flowchart: {
+      useMaxWidth: true,
+      htmlLabels: true
+    },
+    sequence: {
+      useMaxWidth: true
+    }
+  });
+</script>

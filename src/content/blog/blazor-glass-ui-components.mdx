@@ -1,0 +1,774 @@
+---
+title: "Building Glass Morphism UI Components in Blazor"
+description: "Create a modern glass-effect component library using Blazor Server and Tailwind CSS 4, including cards, panels, and modals with blur effects."
+pubDate: 2026-01-22
+author: "Victor Robin"
+category: "frontend"
+difficulty: "intermediate"
+tags: ["blazor", "tailwind", "ui", "glass-morphism", "css"]
+series:
+  name: "Blazor UI Mastery"
+  order: 1
+readTime: "18 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+
+Glass morphism has become a popular design trend, featuring translucent surfaces with blur effects that create depth and hierarchy. In this guide, we'll build a reusable glass UI component library for Blazor Server using Tailwind CSS 4's modern features.
+
+## What We're Building
+
+By the end of this guide, you'll have:
+
+- A `GlassPanel` component with customizable blur and opacity
+- A `GlassCard` for content sections
+- A `GlassModal` with backdrop blur
+- A `GlassButton` with hover effects
+- Dark mode support using OKLCH colors
+
+## Prerequisites
+
+- .NET 10 with Blazor Server
+- Tailwind CSS 4 configured
+- Basic understanding of Razor components
+
+## Setting Up the Design System
+
+First, let's define our design tokens in Tailwind CSS 4's CSS-first configuration:
+
+```css
+/* input.css */
+@import "tailwindcss";
+
+@theme {
+  /* Glass surface colors using OKLCH */
+  --color-glass-light: oklch(98% 0.01 240 / 0.6);
+  --color-glass-dark: oklch(20% 0.02 240 / 0.7);
+  --color-glass-border-light: oklch(90% 0.01 240 / 0.3);
+  --color-glass-border-dark: oklch(40% 0.02 240 / 0.3);
+  
+  /* Blur intensities */
+  --blur-glass-sm: 8px;
+  --blur-glass-md: 16px;
+  --blur-glass-lg: 24px;
+  --blur-glass-xl: 40px;
+  
+  /* Accent colors */
+  --color-robin-blue: oklch(65% 0.15 240);
+  --color-robin-blue-hover: oklch(60% 0.18 240);
+  
+  /* Shadows for depth */
+  --shadow-glass: 0 8px 32px oklch(0% 0 0 / 0.1);
+  --shadow-glass-hover: 0 12px 40px oklch(0% 0 0 / 0.15);
+}
+
+/* Glass utility classes */
+@utility glass-panel {
+  background: var(--color-glass-light);
+  backdrop-filter: blur(var(--blur-glass-md));
+  -webkit-backdrop-filter: blur(var(--blur-glass-md));
+  border: 1px solid var(--color-glass-border-light);
+  box-shadow: var(--shadow-glass);
+  
+  @media (prefers-color-scheme: dark) {
+    background: var(--color-glass-dark);
+    border-color: var(--color-glass-border-dark);
+  }
+}
+
+@utility glass-card {
+  background: var(--color-glass-light);
+  backdrop-filter: blur(var(--blur-glass-sm));
+  -webkit-backdrop-filter: blur(var(--blur-glass-sm));
+  border: 1px solid var(--color-glass-border-light);
+  border-radius: 1rem;
+  box-shadow: var(--shadow-glass);
+  transition: all 0.2s ease;
+  
+  &:hover {
+    box-shadow: var(--shadow-glass-hover);
+    transform: translateY(-2px);
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    background: var(--color-glass-dark);
+    border-color: var(--color-glass-border-dark);
+  }
+}
+```
+
+<ImplementationNote>
+Tailwind CSS 4 uses `@utility` for custom utilities instead of the JavaScript `addUtilities()` plugin. This keeps all styling in CSS.
+</ImplementationNote>
+
+## The Base Component: GlassPanel
+
+Let's start with a foundational `GlassPanel` component that other components will build upon:
+
+```razor
+@* Components/Glass/GlassPanel.razor *@
+@inherits BlueRobinComponentBase
+
+<div class="@ComputedClass" @attributes="AdditionalAttributes">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    
+    [Parameter] public GlassBlur Blur { get; set; } = GlassBlur.Medium;
+    
+    [Parameter] public string? Class { get; set; }
+    
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    private string ComputedClass => new CssBuilder()
+        .AddClass("glass-panel rounded-2xl p-6")
+        .AddClass(BlurClass)
+        .AddClass(Class)
+        .Build();
+    
+    private string BlurClass => Blur switch
+    {
+        GlassBlur.Small => "backdrop-blur-sm",
+        GlassBlur.Medium => "backdrop-blur-md",
+        GlassBlur.Large => "backdrop-blur-lg",
+        GlassBlur.ExtraLarge => "backdrop-blur-xl",
+        _ => "backdrop-blur-md"
+    };
+}
+
+public enum GlassBlur
+{
+    Small,
+    Medium,
+    Large,
+    ExtraLarge
+}
+```
+
+The base component inherits from `BlueRobinComponentBase`, our common base class that provides utilities like `CssBuilder` and theming context.
+
+## The CssBuilder Helper
+
+We use a fluent CSS class builder to compose classes cleanly:
+
+```csharp
+// Helpers/CssBuilder.cs
+namespace Archives.Web.Helpers;
+
+public class CssBuilder
+{
+    private readonly List<string> _classes = new();
+    
+    public CssBuilder AddClass(string? className)
+    {
+        if (!string.IsNullOrWhiteSpace(className))
+        {
+            _classes.Add(className.Trim());
+        }
+        return this;
+    }
+    
+    public CssBuilder AddClass(string? className, bool when)
+    {
+        if (when && !string.IsNullOrWhiteSpace(className))
+        {
+            _classes.Add(className.Trim());
+        }
+        return this;
+    }
+    
+    public CssBuilder AddClass(Func<string> classNameFunc, bool when)
+    {
+        if (when)
+        {
+            AddClass(classNameFunc());
+        }
+        return this;
+    }
+    
+    public string Build() => string.Join(" ", _classes.Distinct());
+    
+    public override string ToString() => Build();
+}
+```
+
+## GlassCard Component
+
+The `GlassCard` adds semantic structure with header, body, and footer sections:
+
+```razor
+@* Components/Glass/GlassCard.razor *@
+@inherits BlueRobinComponentBase
+
+<article class="@ComputedClass" @attributes="AdditionalAttributes">
+    @if (Header is not null)
+    {
+        <header class="glass-card-header px-6 py-4 border-b border-glass-border-light 
+                       dark:border-glass-border-dark">
+            @Header
+        </header>
+    }
+    
+    <div class="glass-card-body p-6 @BodyClass">
+        @ChildContent
+    </div>
+    
+    @if (Footer is not null)
+    {
+        <footer class="glass-card-footer px-6 py-4 border-t border-glass-border-light 
+                       dark:border-glass-border-dark bg-black/5 dark:bg-white/5 
+                       rounded-b-2xl">
+            @Footer
+        </footer>
+    }
+</article>
+
+@code {
+    [Parameter] public RenderFragment? Header { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? BodyClass { get; set; }
+    [Parameter] public bool Hoverable { get; set; } = true;
+    
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    private string ComputedClass => new CssBuilder()
+        .AddClass("glass-card overflow-hidden")
+        .AddClass("hover:shadow-glass-hover hover:-translate-y-0.5 transition-all", Hoverable)
+        .AddClass(Class)
+        .Build();
+}
+```
+
+### Usage Example
+
+```razor
+<GlassCard>
+    <Header>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white">
+            Document Analysis
+        </h3>
+    </Header>
+    
+    <p class="text-gray-600 dark:text-gray-300">
+        Your document has been processed. Here are the key insights...
+    </p>
+    
+    <Footer>
+        <div class="flex justify-end gap-2">
+            <GlassButton Variant="GlassButtonVariant.Secondary">
+                Cancel
+            </GlassButton>
+            <GlassButton Variant="GlassButtonVariant.Primary">
+                View Details
+            </GlassButton>
+        </div>
+    </Footer>
+</GlassCard>
+```
+
+## GlassButton Component
+
+Buttons need multiple variants and states:
+
+```razor
+@* Components/Glass/GlassButton.razor *@
+@inherits BlueRobinComponentBase
+
+<button type="@Type" 
+        class="@ComputedClass" 
+        disabled="@Disabled"
+        @onclick="HandleClick"
+        @attributes="AdditionalAttributes">
+    @if (Loading)
+    {
+        <span class="animate-spin mr-2">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" 
+                        stroke="currentColor" stroke-width="4"/>
+                <path class="opacity-75" fill="currentColor" 
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
+            </svg>
+        </span>
+    }
+    else if (Icon is not null)
+    {
+        <span class="mr-2">@Icon</span>
+    }
+    
+    @ChildContent
+</button>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Icon { get; set; }
+    [Parameter] public GlassButtonVariant Variant { get; set; } = GlassButtonVariant.Primary;
+    [Parameter] public GlassButtonSize Size { get; set; } = GlassButtonSize.Medium;
+    [Parameter] public string Type { get; set; } = "button";
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Loading { get; set; }
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter] public string? Class { get; set; }
+    
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+    
+    private string ComputedClass => new CssBuilder()
+        .AddClass("inline-flex items-center justify-center font-medium")
+        .AddClass("rounded-xl transition-all duration-200")
+        .AddClass("focus:outline-none focus:ring-2 focus:ring-robin-blue/50")
+        .AddClass("disabled:opacity-50 disabled:cursor-not-allowed")
+        .AddClass(VariantClass)
+        .AddClass(SizeClass)
+        .AddClass(Class)
+        .Build();
+    
+    private string VariantClass => Variant switch
+    {
+        GlassButtonVariant.Primary => """
+            bg-robin-blue text-white 
+            hover:bg-robin-blue-hover 
+            active:scale-[0.98]
+            """,
+        GlassButtonVariant.Secondary => """
+            glass-panel text-gray-700 dark:text-gray-200
+            hover:bg-white/80 dark:hover:bg-white/10
+            active:scale-[0.98]
+            """,
+        GlassButtonVariant.Ghost => """
+            text-gray-600 dark:text-gray-300
+            hover:bg-black/5 dark:hover:bg-white/10
+            active:scale-[0.98]
+            """,
+        GlassButtonVariant.Danger => """
+            bg-red-500 text-white
+            hover:bg-red-600
+            active:scale-[0.98]
+            """,
+        _ => ""
+    };
+    
+    private string SizeClass => Size switch
+    {
+        GlassButtonSize.Small => "px-3 py-1.5 text-sm",
+        GlassButtonSize.Medium => "px-4 py-2 text-base",
+        GlassButtonSize.Large => "px-6 py-3 text-lg",
+        _ => "px-4 py-2 text-base"
+    };
+    
+    private async Task HandleClick(MouseEventArgs args)
+    {
+        if (!Disabled && !Loading)
+        {
+            await OnClick.InvokeAsync(args);
+        }
+    }
+}
+
+public enum GlassButtonVariant
+{
+    Primary,
+    Secondary,
+    Ghost,
+    Danger
+}
+
+public enum GlassButtonSize
+{
+    Small,
+    Medium,
+    Large
+}
+```
+
+## GlassModal Component
+
+The modal uses backdrop blur for a polished effect:
+
+```razor
+@* Components/Glass/GlassModal.razor *@
+@inherits BlueRobinComponentBase
+
+@if (IsOpen)
+{
+    <div class="fixed inset-0 z-50 overflow-y-auto" 
+         role="dialog" 
+         aria-modal="true"
+         aria-labelledby="@TitleId">
+        
+        @* Backdrop with blur *@
+        <div class="fixed inset-0 bg-black/30 backdrop-blur-sm transition-opacity"
+             @onclick="HandleBackdropClick">
+        </div>
+        
+        @* Modal positioning *@
+        <div class="flex min-h-full items-center justify-center p-4">
+            @* Modal panel *@
+            <div class="@ModalClass" @onclick:stopPropagation="true">
+                @* Header *@
+                <header class="flex items-center justify-between px-6 py-4 
+                               border-b border-glass-border-light dark:border-glass-border-dark">
+                    <h2 id="@TitleId" class="text-xl font-semibold text-gray-900 dark:text-white">
+                        @Title
+                    </h2>
+                    
+                    @if (ShowCloseButton)
+                    {
+                        <button type="button"
+                                class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 
+                                       transition-colors p-1 rounded-lg hover:bg-black/5 
+                                       dark:hover:bg-white/10"
+                                @onclick="Close"
+                                aria-label="Close modal">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    }
+                </header>
+                
+                @* Body *@
+                <div class="p-6 @BodyClass">
+                    @ChildContent
+                </div>
+                
+                @* Footer *@
+                @if (Footer is not null)
+                {
+                    <footer class="px-6 py-4 border-t border-glass-border-light 
+                                   dark:border-glass-border-dark bg-black/5 dark:bg-white/5 
+                                   rounded-b-2xl">
+                        @Footer
+                    </footer>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool IsOpen { get; set; }
+    [Parameter] public EventCallback<bool> IsOpenChanged { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment? Footer { get; set; }
+    [Parameter] public GlassModalSize Size { get; set; } = GlassModalSize.Medium;
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
+    [Parameter] public bool CloseOnBackdropClick { get; set; } = true;
+    [Parameter] public string? BodyClass { get; set; }
+    
+    private string TitleId => $"modal-title-{GetHashCode()}";
+    
+    private string ModalClass => new CssBuilder()
+        .AddClass("relative glass-panel rounded-2xl overflow-hidden")
+        .AddClass("transform transition-all")
+        .AddClass("animate-in fade-in zoom-in-95 duration-200")
+        .AddClass(SizeClass)
+        .Build();
+    
+    private string SizeClass => Size switch
+    {
+        GlassModalSize.Small => "w-full max-w-sm",
+        GlassModalSize.Medium => "w-full max-w-lg",
+        GlassModalSize.Large => "w-full max-w-2xl",
+        GlassModalSize.ExtraLarge => "w-full max-w-4xl",
+        GlassModalSize.Full => "w-full max-w-[90vw] max-h-[90vh]",
+        _ => "w-full max-w-lg"
+    };
+    
+    private async Task HandleBackdropClick()
+    {
+        if (CloseOnBackdropClick)
+        {
+            await Close();
+        }
+    }
+    
+    public async Task Close()
+    {
+        await IsOpenChanged.InvokeAsync(false);
+    }
+}
+
+public enum GlassModalSize
+{
+    Small,
+    Medium,
+    Large,
+    ExtraLarge,
+    Full
+}
+```
+
+### Modal Usage
+
+```razor
+@code {
+    private bool showUploadModal = false;
+}
+
+<GlassButton OnClick="@(() => showUploadModal = true)">
+    Upload Document
+</GlassButton>
+
+<GlassModal @bind-IsOpen="showUploadModal" 
+            Title="Upload Document" 
+            Size="GlassModalSize.Medium">
+    <div class="space-y-4">
+        <p class="text-gray-600 dark:text-gray-300">
+            Drag and drop a file or click to browse.
+        </p>
+        
+        <div class="border-2 border-dashed border-gray-300 dark:border-gray-600 
+                    rounded-xl p-8 text-center hover:border-robin-blue 
+                    transition-colors cursor-pointer">
+            <svg class="mx-auto w-12 h-12 text-gray-400" fill="none" 
+                 stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                      d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
+            </svg>
+            <p class="mt-2 text-sm text-gray-500">
+                PDF, Word, or images up to 50MB
+            </p>
+        </div>
+    </div>
+    
+    <Footer>
+        <div class="flex justify-end gap-2">
+            <GlassButton Variant="GlassButtonVariant.Secondary" 
+                         OnClick="@(() => showUploadModal = false)">
+                Cancel
+            </GlassButton>
+            <GlassButton Variant="GlassButtonVariant.Primary">
+                Upload
+            </GlassButton>
+        </div>
+    </Footer>
+</GlassModal>
+```
+
+## Dark Mode Toggle
+
+To complete the glass UI, add a theme toggle component:
+
+```razor
+@* Components/Glass/ThemeToggle.razor *@
+@inject IJSRuntime JS
+
+<button type="button"
+        class="glass-panel p-2 rounded-xl hover:bg-white/80 dark:hover:bg-white/10 
+               transition-all"
+        @onclick="ToggleTheme"
+        aria-label="@(isDarkMode ? "Switch to light mode" : "Switch to dark mode")">
+    @if (isDarkMode)
+    {
+        <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" 
+                  d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4 8a4 4 0 11-8 0 4 4 0 018 0zm-.464 4.95l.707.707a1 1 0 001.414-1.414l-.707-.707a1 1 0 00-1.414 1.414zm2.12-10.607a1 1 0 010 1.414l-.706.707a1 1 0 11-1.414-1.414l.707-.707a1 1 0 011.414 0zM17 11a1 1 0 100-2h-1a1 1 0 100 2h1zm-7 4a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zM5.05 6.464A1 1 0 106.465 5.05l-.708-.707a1 1 0 00-1.414 1.414l.707.707zm1.414 8.486l-.707.707a1 1 0 01-1.414-1.414l.707-.707a1 1 0 011.414 1.414zM4 11a1 1 0 100-2H3a1 1 0 000 2h1z"
+                  clip-rule="evenodd"/>
+        </svg>
+    }
+    else
+    {
+        <svg class="w-5 h-5 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"/>
+        </svg>
+    }
+</button>
+
+@code {
+    private bool isDarkMode = false;
+    
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            isDarkMode = await JS.InvokeAsync<bool>("darkMode.get");
+            StateHasChanged();
+        }
+    }
+    
+    private async Task ToggleTheme()
+    {
+        isDarkMode = !isDarkMode;
+        await JS.InvokeVoidAsync("darkMode.set", isDarkMode);
+    }
+}
+```
+
+Supporting JavaScript:
+
+```javascript
+// wwwroot/js/darkMode.js
+window.darkMode = {
+    get: function() {
+        if (localStorage.theme === 'dark') return true;
+        if (localStorage.theme === 'light') return false;
+        return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    },
+    set: function(isDark) {
+        localStorage.theme = isDark ? 'dark' : 'light';
+        document.documentElement.classList.toggle('dark', isDark);
+    },
+    init: function() {
+        const isDark = this.get();
+        document.documentElement.classList.toggle('dark', isDark);
+    }
+};
+
+// Initialize on load
+darkMode.init();
+```
+
+<Callout type="tip">
+Add `<script src="js/darkMode.js"></script>` before closing `</head>` tag with `defer` attribute to prevent flash of unstyled content.
+</Callout>
+
+## Putting It All Together
+
+Here's a complete page using all our glass components:
+
+```razor
+@page "/documents"
+
+<div class="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50
+            dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-8">
+    
+    <header class="flex items-center justify-between mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 dark:text-white">
+            Documents
+        </h1>
+        
+        <div class="flex items-center gap-4">
+            <ThemeToggle />
+            <GlassButton OnClick="@(() => showUploadModal = true)">
+                <Icon>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M12 4v16m8-8H4"/>
+                    </svg>
+                </Icon>
+                Upload
+            </GlassButton>
+        </div>
+    </header>
+    
+    <GlassPanel class="mb-8">
+        <div class="flex items-center gap-4">
+            <input type="search" 
+                   placeholder="Search documents..." 
+                   class="flex-1 bg-transparent border-none focus:outline-none 
+                          text-gray-900 dark:text-white placeholder-gray-400"/>
+            <GlassButton Variant="GlassButtonVariant.Ghost">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                </svg>
+            </GlassButton>
+        </div>
+    </GlassPanel>
+    
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        @foreach (var doc in documents)
+        {
+            <GlassCard>
+                <Header>
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-lg bg-robin-blue/10 
+                                    flex items-center justify-center">
+                            <svg class="w-5 h-5 text-robin-blue" fill="none" 
+                                 stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                      stroke-width="2" 
+                                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white truncate">
+                                @doc.Name
+                            </h3>
+                            <p class="text-sm text-gray-500">
+                                @doc.UploadedAt.ToString("MMM d, yyyy")
+                            </p>
+                        </div>
+                    </div>
+                </Header>
+                
+                <p class="text-gray-600 dark:text-gray-300 line-clamp-2">
+                    @doc.Summary
+                </p>
+                
+                <Footer>
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs px-2 py-1 rounded-full 
+                                     bg-green-100 text-green-700 
+                                     dark:bg-green-900/30 dark:text-green-400">
+                            @doc.Status
+                        </span>
+                        <GlassButton Variant="GlassButtonVariant.Ghost" Size="GlassButtonSize.Small">
+                            View
+                        </GlassButton>
+                    </div>
+                </Footer>
+            </GlassCard>
+        }
+    </div>
+</div>
+
+<GlassModal @bind-IsOpen="showUploadModal" Title="Upload Document">
+    @* Upload form content *@
+</GlassModal>
+```
+
+## Performance Tips
+
+1. **Use `content-visibility: auto`** for long lists of cards
+2. **Avoid blur on mobile** if performance is poor—use `@media (prefers-reduced-motion)` to simplify effects
+3. **Layer blurs carefully**—avoid stacking multiple backdrop-blur elements
+4. **Use CSS variables** for consistent, easily-adjustable theming
+
+```css
+/* Reduce motion for accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .glass-card {
+    transition: none;
+    
+    &:hover {
+      transform: none;
+    }
+  }
+  
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg {
+    backdrop-filter: none;
+  }
+}
+```
+
+## Summary
+
+We've built a complete glass morphism component library for Blazor:
+
+- **GlassPanel** — Base container with blur effects
+- **GlassCard** — Structured content card with hover effects
+- **GlassButton** — Multi-variant button with loading states
+- **GlassModal** — Accessible modal with backdrop blur
+- **ThemeToggle** — Dark/light mode switch
+
+These components follow Blazor best practices:
+- Component inheritance for shared functionality
+- Cascading parameters for theming
+- Proper accessibility attributes
+- CSS-first Tailwind CSS 4 configuration
+
+In the next article, we'll add **form components** including `GlassInput`, `GlassSelect`, and `GlassTextArea` with validation states.

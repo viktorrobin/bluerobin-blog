@@ -1,0 +1,557 @@
+---
+title: "Setting Up K3s on a Home Server"
+description: "A step-by-step guide to deploying K3s—a lightweight Kubernetes distribution—on a home server for running production-grade workloads."
+pubDate: 2026-01-21
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "beginner"
+tags: ["cookbook", "kubernetes", "k3s", "homelab", "infrastructure"]
+readTime: "12 min"
+toc: true
+featured: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+K3s is a lightweight, certified Kubernetes distribution designed for resource-constrained environments. It's perfect for home servers, edge deployments, and development environments—providing full Kubernetes functionality in a single binary under 100MB.
+
+This cookbook walks you through setting up K3s on a home server, from initial installation to production-ready configuration.
+
+## Prerequisites
+
+Before starting, ensure you have:
+
+- **Hardware**: A server with at least 2 CPU cores, 4GB RAM, and 20GB storage
+- **OS**: Ubuntu 22.04 LTS, Debian 12, or Rocky Linux 9
+- **Network**: Static IP address or DHCP reservation
+- **Access**: SSH access with sudo privileges
+
+<Callout type="info">
+K3s can run on ARM64 (Raspberry Pi) or x86_64 hardware. This guide assumes x86_64, but commands are identical for ARM.
+</Callout>
+
+## Step 1: Prepare the Server
+
+### Update System Packages
+
+```bash
+sudo apt update && sudo apt upgrade -y
+```
+
+### Disable Swap (Recommended)
+
+Kubernetes traditionally doesn't work well with swap enabled:
+
+```bash
+sudo swapoff -a
+sudo sed -i '/ swap / s/^/#/' /etc/fstab
+```
+
+### Configure Kernel Modules
+
+```bash
+cat <<EOF | sudo tee /etc/modules-load.d/k8s.conf
+overlay
+br_netfilter
+EOF
+
+sudo modprobe overlay
+sudo modprobe br_netfilter
+```
+
+### Set Sysctl Parameters
+
+```bash
+cat <<EOF | sudo tee /etc/sysctl.d/k8s.conf
+net.bridge.bridge-nf-call-iptables  = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.ipv4.ip_forward                 = 1
+EOF
+
+sudo sysctl --system
+```
+
+### Configure Firewall (if enabled)
+
+```bash
+# Allow K3s API server
+sudo ufw allow 6443/tcp
+
+# Allow Flannel VXLAN
+sudo ufw allow 8472/udp
+
+# Allow kubelet metrics
+sudo ufw allow 10250/tcp
+
+# Allow NodePort range
+sudo ufw allow 30000:32767/tcp
+```
+
+## Step 2: Install K3s
+
+### Single-Node Installation (Simplest)
+
+For a single-node cluster (server + agent combined):
+
+```bash
+curl -sfL https://get.k3s.io | sh -s - \
+  --write-kubeconfig-mode 644 \
+  --disable traefik \
+  --disable servicelb \
+  --flannel-backend=vxlan
+```
+
+<ImplementationNote>
+We disable the built-in Traefik and ServiceLB because we'll install Traefik manually for more control, and use MetalLB for load balancing on bare metal.
+</ImplementationNote>
+
+### Verify Installation
+
+```bash
+# Check K3s status
+sudo systemctl status k3s
+
+# Verify node is ready
+kubectl get nodes
+
+# Example output:
+# NAME          STATUS   ROLES                  AGE   VERSION
+# homeserver    Ready    control-plane,master   30s   v1.29.0+k3s1
+```
+
+### Configure kubectl for Your User
+
+```bash
+# Copy kubeconfig to user's home
+mkdir -p ~/.kube
+sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
+sudo chown $USER:$USER ~/.kube/config
+chmod 600 ~/.kube/config
+
+# Verify access
+kubectl cluster-info
+```
+
+## Step 3: Install Helm
+
+Helm is the package manager for Kubernetes:
+
+```bash
+curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+
+# Verify installation
+helm version
+```
+
+## Step 4: Install MetalLB for Load Balancing
+
+On bare metal, you need MetalLB to provide LoadBalancer service type:
+
+```bash
+# Add MetalLB Helm repository
+helm repo add metallb https://metallb.github.io/metallb
+helm repo update
+
+# Install MetalLB
+kubectl create namespace metallb-system
+helm install metallb metallb/metallb -n metallb-system
+```
+
+### Configure IP Address Pool
+
+Create a file `metallb-config.yaml`:
+
+```yaml
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: default-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    # Reserve a range of IPs on your network for K3s services
+    - 192.168.1.200-192.168.1.250
+---
+apiVersion: metallb.io/v1beta1
+kind: L2Advertisement
+metadata:
+  name: default
+  namespace: metallb-system
+spec:
+  ipAddressPools:
+    - default-pool
+```
+
+Apply the configuration:
+
+```bash
+kubectl apply -f metallb-config.yaml
+```
+
+<Callout type="warning">
+Choose an IP range that doesn't conflict with your DHCP server's range. These IPs will be assigned to LoadBalancer services.
+</Callout>
+
+## Step 5: Install Traefik Ingress Controller
+
+Traefik provides ingress routing and automatic TLS:
+
+```bash
+# Add Traefik Helm repository
+helm repo add traefik https://traefik.github.io/charts
+helm repo update
+
+# Create namespace
+kubectl create namespace traefik
+```
+
+Create `traefik-values.yaml`:
+
+```yaml
+deployment:
+  replicas: 1
+
+service:
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "192.168.1.200"
+
+ports:
+  web:
+    port: 80
+    expose: true
+    exposedPort: 80
+  websecure:
+    port: 443
+    expose: true
+    exposedPort: 443
+    tls:
+      enabled: true
+
+ingressRoute:
+  dashboard:
+    enabled: true
+    matchRule: Host(`traefik.homelab.local`)
+    entryPoints: ["websecure"]
+
+providers:
+  kubernetesCRD:
+    enabled: true
+    allowCrossNamespace: true
+  kubernetesIngress:
+    enabled: true
+
+logs:
+  general:
+    level: INFO
+  access:
+    enabled: true
+
+metrics:
+  prometheus:
+    entryPoint: metrics
+    addEntryPointsLabels: true
+    addServicesLabels: true
+```
+
+Install Traefik:
+
+```bash
+helm install traefik traefik/traefik \
+  -n traefik \
+  -f traefik-values.yaml
+```
+
+Verify the installation:
+
+```bash
+kubectl get svc -n traefik
+
+# Example output:
+# NAME      TYPE           CLUSTER-IP     EXTERNAL-IP     PORT(S)
+# traefik   LoadBalancer   10.43.45.123   192.168.1.200   80:31234/TCP,443:31235/TCP
+```
+
+## Step 6: Install cert-manager for TLS
+
+cert-manager automates TLS certificate management:
+
+```bash
+# Add jetstack Helm repository
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
+
+# Install cert-manager with CRDs
+helm install cert-manager jetstack/cert-manager \
+  --namespace cert-manager \
+  --create-namespace \
+  --set installCRDs=true
+```
+
+### Configure Let's Encrypt (Optional)
+
+For public-facing services, create a ClusterIssuer:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    email: your-email@example.com
+    server: https://acme-v02.api.letsencrypt.org/directory
+    privateKeySecretRef:
+      name: letsencrypt-prod-key
+    solvers:
+      - http01:
+          ingress:
+            class: traefik
+```
+
+### Self-Signed Certificates for Internal Services
+
+For internal services, create a self-signed CA:
+
+```yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: selfsigned-issuer
+spec:
+  selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: homelab-ca
+  namespace: cert-manager
+spec:
+  isCA: true
+  commonName: homelab-ca
+  secretName: homelab-ca-secret
+  privateKey:
+    algorithm: ECDSA
+    size: 256
+  issuerRef:
+    name: selfsigned-issuer
+    kind: ClusterIssuer
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: homelab-ca-issuer
+spec:
+  ca:
+    secretName: homelab-ca-secret
+```
+
+## Step 7: Install Flux for GitOps (Optional)
+
+Flux enables GitOps-style deployments:
+
+```bash
+# Install Flux CLI
+curl -s https://fluxcd.io/install.sh | sudo bash
+
+# Bootstrap Flux with your Git repository
+flux bootstrap github \
+  --owner=your-github-username \
+  --repository=homelab-infra \
+  --branch=main \
+  --path=clusters/homelab \
+  --personal
+```
+
+<ExternalCite 
+  title="Flux CD Documentation" 
+  url="https://fluxcd.io/flux/" 
+  author="CNCF"
+/>
+
+## Step 8: Deploy a Test Application
+
+Verify everything works with a simple deployment:
+
+```yaml
+# test-app.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-test
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx-test
+  template:
+    metadata:
+      labels:
+        app: nginx-test
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-test
+  namespace: default
+spec:
+  selector:
+    app: nginx-test
+  ports:
+    - port: 80
+      targetPort: 80
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: nginx-test
+  namespace: default
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`test.homelab.local`)
+      kind: Rule
+      services:
+        - name: nginx-test
+          port: 80
+  tls:
+    secretName: nginx-test-tls
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nginx-test-tls
+  namespace: default
+spec:
+  secretName: nginx-test-tls
+  issuerRef:
+    name: homelab-ca-issuer
+    kind: ClusterIssuer
+  dnsNames:
+    - test.homelab.local
+```
+
+Apply and test:
+
+```bash
+kubectl apply -f test-app.yaml
+
+# Add to /etc/hosts (or configure local DNS)
+echo "192.168.1.200 test.homelab.local" | sudo tee -a /etc/hosts
+
+# Test (ignore cert warning for self-signed)
+curl -k https://test.homelab.local
+```
+
+## Step 9: Access Remotely (Optional)
+
+### Option A: Tailscale VPN
+
+Tailscale provides secure remote access without exposing ports:
+
+```bash
+# Install Tailscale on your server
+curl -fsSL https://tailscale.com/install.sh | sh
+sudo tailscale up
+
+# Enable subnet routing for cluster access
+sudo tailscale up --advertise-routes=10.43.0.0/16,10.42.0.0/16
+
+# On your laptop, install Tailscale and connect
+# Access services via Tailscale IPs
+```
+
+### Option B: kubectl Port Forwarding
+
+For temporary access:
+
+```bash
+# Forward local port to a service
+kubectl port-forward svc/nginx-test 8080:80
+```
+
+## Useful Commands Reference
+
+```bash
+# Check cluster status
+kubectl get nodes -o wide
+kubectl get pods -A
+kubectl top nodes
+kubectl top pods -A
+
+# View logs
+kubectl logs -f deployment/nginx-test
+journalctl -u k3s -f
+
+# Debug networking
+kubectl run debug --rm -it --image=nicolaka/netshoot -- /bin/bash
+
+# Restart K3s
+sudo systemctl restart k3s
+
+# Uninstall K3s (if needed)
+/usr/local/bin/k3s-uninstall.sh
+```
+
+## Troubleshooting
+
+### Node Not Ready
+
+```bash
+# Check kubelet logs
+journalctl -u k3s -f
+
+# Check for resource pressure
+kubectl describe node $(hostname)
+```
+
+### Pods Stuck in Pending
+
+```bash
+# Check events
+kubectl get events --sort-by='.lastTimestamp'
+
+# Check resource availability
+kubectl describe nodes | grep -A5 "Allocated resources"
+```
+
+### Services Not Accessible
+
+```bash
+# Verify MetalLB assigned IP
+kubectl get svc -A | grep LoadBalancer
+
+# Check Traefik logs
+kubectl logs -n traefik -l app.kubernetes.io/name=traefik
+
+# Test internal DNS
+kubectl run test --rm -it --image=busybox -- nslookup kubernetes.default
+```
+
+## Summary
+
+You now have a production-ready K3s cluster with:
+
+- ✅ **K3s** — Lightweight Kubernetes distribution
+- ✅ **MetalLB** — Load balancer for bare metal
+- ✅ **Traefik** — Ingress controller with automatic TLS
+- ✅ **cert-manager** — Automated certificate management
+- ✅ **Flux** (optional) — GitOps deployment automation
+
+This foundation supports running complex workloads like databases, message queues, and web applications—all on a single home server.
+
+<ExternalCite 
+  title="K3s Documentation" 
+  url="https://docs.k3s.io/" 
+  author="Rancher / SUSE"
+/>

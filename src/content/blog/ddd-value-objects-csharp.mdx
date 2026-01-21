@@ -1,0 +1,632 @@
+---
+title: "Value Objects: Immutability and Self-Validation in C#"
+description: "Learn how to implement value objects with built-in validation, equality semantics, and EF Core persistence for a cleaner, more expressive domain model."
+pubDate: 2026-01-26
+author: "Victor Robin"
+category: "backend"
+difficulty: "intermediate"
+tags: ["ddd", "csharp", "dotnet", "value-objects", "design-patterns"]
+series:
+  name: "Domain-Driven Design in Practice"
+  order: 3
+readTime: "14 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Value objects are one of the most powerful yet underutilized tactical patterns in Domain-Driven Design. Unlike entities (which have identity), value objects are defined entirely by their attributes and are immutable once created.
+
+In this article, we'll implement production-ready value objects in C# 13 with self-validation, structural equality, and EF Core integration.
+
+## What Makes a Value Object?
+
+Value objects differ from entities in three key ways:
+
+| Aspect | Entity | Value Object |
+|--------|--------|--------------|
+| Identity | Unique identifier | No identity—defined by attributes |
+| Equality | Same ID = same entity | Same attributes = same value |
+| Mutability | Can change over time | Immutable after creation |
+| Examples | User, Document, Order | Email, Money, Address, BlueRobinId |
+
+**Rule of thumb**: If two instances with the same attributes are interchangeable, it's a value object.
+
+## The Base Value Object Class
+
+Let's create a base class that handles equality and hashing:
+
+```csharp
+// Core/Common/ValueObject.cs
+namespace Archives.Core.Common;
+
+public abstract class ValueObject : IEquatable<ValueObject>
+{
+    protected abstract IEnumerable<object?> GetEqualityComponents();
+    
+    public override bool Equals(object? obj)
+    {
+        if (obj is null || obj.GetType() != GetType())
+            return false;
+        
+        return Equals((ValueObject)obj);
+    }
+    
+    public bool Equals(ValueObject? other)
+    {
+        if (other is null)
+            return false;
+        
+        return GetEqualityComponents()
+            .SequenceEqual(other.GetEqualityComponents());
+    }
+    
+    public override int GetHashCode()
+    {
+        return GetEqualityComponents()
+            .Aggregate(0, (hash, component) => 
+                HashCode.Combine(hash, component));
+    }
+    
+    public static bool operator ==(ValueObject? left, ValueObject? right)
+    {
+        if (left is null && right is null) return true;
+        if (left is null || right is null) return false;
+        return left.Equals(right);
+    }
+    
+    public static bool operator !=(ValueObject? left, ValueObject? right)
+    {
+        return !(left == right);
+    }
+}
+```
+
+<ImplementationNote>
+The `GetEqualityComponents()` method returns all properties that define the value object's identity. Derived classes must override it.
+</ImplementationNote>
+
+## Single-Value Value Objects
+
+For value objects wrapping a single primitive, use a simpler generic base:
+
+```csharp
+// Core/Common/SingleValueObject.cs
+namespace Archives.Core.Common;
+
+public abstract class SingleValueObject<T> : ValueObject
+    where T : notnull
+{
+    public T Value { get; }
+    
+    protected SingleValueObject(T value)
+    {
+        Value = value;
+    }
+    
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return Value;
+    }
+    
+    public override string ToString() => Value.ToString() ?? string.Empty;
+    
+    // Implicit conversion to underlying type
+    public static implicit operator T(SingleValueObject<T> valueObject) 
+        => valueObject.Value;
+}
+```
+
+## BlueRobinId: A Real-World Example
+
+In BlueRobin, we use 8-character alphanumeric IDs throughout the system:
+
+```csharp
+// Core/ValueObjects/BlueRobinId.cs
+namespace Archives.Core.ValueObjects;
+
+public sealed class BlueRobinId : SingleValueObject<string>
+{
+    private const int Length = 8;
+    private const string ValidChars = "abcdefghijklmnopqrstuvwxyz0123456789";
+    
+    private BlueRobinId(string value) : base(value) { }
+    
+    /// <summary>
+    /// Creates a new BlueRobinId from an existing string value.
+    /// </summary>
+    public static BlueRobinId From(string value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        
+        if (value.Length != Length)
+            throw new DomainException($"BlueRobinId must be {Length} characters");
+        
+        if (!value.All(c => ValidChars.Contains(c)))
+            throw new DomainException("BlueRobinId must be lowercase alphanumeric");
+        
+        return new BlueRobinId(value);
+    }
+    
+    /// <summary>
+    /// Generates a new unique BlueRobinId.
+    /// </summary>
+    public static BlueRobinId New()
+    {
+        Span<char> chars = stackalloc char[Length];
+        
+        for (int i = 0; i < Length; i++)
+        {
+            chars[i] = ValidChars[Random.Shared.Next(ValidChars.Length)];
+        }
+        
+        return new BlueRobinId(new string(chars));
+    }
+    
+    /// <summary>
+    /// Attempts to create a BlueRobinId, returning null on invalid input.
+    /// </summary>
+    public static BlueRobinId? TryFrom(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+        
+        if (value.Length != Length)
+            return null;
+        
+        if (!value.All(c => ValidChars.Contains(c)))
+            return null;
+        
+        return new BlueRobinId(value);
+    }
+    
+    /// <summary>
+    /// Returns an empty ID for comparison purposes.
+    /// </summary>
+    public static BlueRobinId Empty => new("00000000");
+    
+    public bool IsEmpty => Value == Empty.Value;
+}
+```
+
+### Usage
+
+```csharp
+// Creating IDs
+var newId = BlueRobinId.New();        // Generate: "jektb47r"
+var existingId = BlueRobinId.From("abc12345");  // Parse existing
+
+// Invalid input throws
+BlueRobinId.From("ABC12345");  // Throws: must be lowercase
+BlueRobinId.From("short");    // Throws: must be 8 characters
+
+// Safe parsing
+var maybeId = BlueRobinId.TryFrom(userInput);
+if (maybeId is not null) { /* valid */ }
+
+// Implicit conversion
+string idString = newId;  // "jektb47r"
+
+// Equality
+var id1 = BlueRobinId.From("abc12345");
+var id2 = BlueRobinId.From("abc12345");
+Console.WriteLine(id1 == id2);  // true
+```
+
+## FingerPrint: Multi-Property Value Object
+
+Document fingerprints combine multiple properties:
+
+```csharp
+// Core/ValueObjects/FingerPrint.cs
+namespace Archives.Core.ValueObjects;
+
+public sealed class FingerPrint : ValueObject
+{
+    public string Hash { get; }
+    public long Size { get; }
+    public string Algorithm { get; }
+    public DateTimeOffset ComputedAt { get; }
+    
+    private FingerPrint(string hash, long size, string algorithm, DateTimeOffset computedAt)
+    {
+        Hash = hash;
+        Size = size;
+        Algorithm = algorithm;
+        ComputedAt = computedAt;
+    }
+    
+    public static FingerPrint Create(string hash, long size, string algorithm = "SHA256")
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(hash);
+        ArgumentOutOfRangeException.ThrowIfNegativeOrZero(size);
+        
+        if (algorithm == "SHA256" && hash.Length != 64)
+            throw new DomainException("SHA256 hash must be 64 characters");
+        
+        return new FingerPrint(
+            hash.ToLowerInvariant(), 
+            size, 
+            algorithm, 
+            DateTimeOffset.UtcNow);
+    }
+    
+    public static async Task<FingerPrint> ComputeAsync(
+        Stream stream, 
+        CancellationToken ct = default)
+    {
+        var size = stream.Length;
+        stream.Position = 0;
+        
+        var hashBytes = await SHA256.HashDataAsync(stream, ct);
+        var hash = Convert.ToHexStringLower(hashBytes);
+        
+        stream.Position = 0;  // Reset for subsequent reads
+        
+        return new FingerPrint(hash, size, "SHA256", DateTimeOffset.UtcNow);
+    }
+    
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return Hash;
+        yield return Size;
+        yield return Algorithm;
+        // Note: ComputedAt is NOT part of equality
+    }
+    
+    public override string ToString() 
+        => $"{Algorithm}:{Hash}:{Size}";
+}
+```
+
+<Callout type="tip">
+Notice that `ComputedAt` is not included in equality components. Two fingerprints are equal if they represent the same content, regardless of when they were computed.
+</Callout>
+
+## Email: Validation-Heavy Value Object
+
+Email addresses require careful validation:
+
+```csharp
+// Core/ValueObjects/Email.cs
+namespace Archives.Core.ValueObjects;
+
+public sealed partial class Email : SingleValueObject<string>
+{
+    private const int MaxLength = 254;
+    
+    private Email(string value) : base(value) { }
+    
+    public static Email From(string value)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(value);
+        
+        var normalized = value.Trim().ToLowerInvariant();
+        
+        if (normalized.Length > MaxLength)
+            throw new DomainException($"Email cannot exceed {MaxLength} characters");
+        
+        if (!EmailRegex().IsMatch(normalized))
+            throw new DomainException("Invalid email format");
+        
+        return new Email(normalized);
+    }
+    
+    public static Email? TryFrom(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+        
+        var normalized = value.Trim().ToLowerInvariant();
+        
+        if (normalized.Length > MaxLength)
+            return null;
+        
+        if (!EmailRegex().IsMatch(normalized))
+            return null;
+        
+        return new Email(normalized);
+    }
+    
+    public string LocalPart => Value.Split('@')[0];
+    public string Domain => Value.Split('@')[1];
+    
+    [GeneratedRegex(
+        @"^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$",
+        RegexOptions.Compiled)]
+    private static partial Regex EmailRegex();
+}
+```
+
+## Money: Precision Matters
+
+Financial values require decimal precision:
+
+```csharp
+// Core/ValueObjects/Money.cs
+namespace Archives.Core.ValueObjects;
+
+public sealed class Money : ValueObject
+{
+    public decimal Amount { get; }
+    public string Currency { get; }
+    
+    private Money(decimal amount, string currency)
+    {
+        Amount = amount;
+        Currency = currency;
+    }
+    
+    public static Money Create(decimal amount, string currency = "USD")
+    {
+        if (string.IsNullOrWhiteSpace(currency) || currency.Length != 3)
+            throw new DomainException("Currency must be 3-letter ISO code");
+        
+        // Round to 2 decimal places for most currencies
+        var roundedAmount = Math.Round(amount, 2, MidpointRounding.ToEven);
+        
+        return new Money(roundedAmount, currency.ToUpperInvariant());
+    }
+    
+    public static Money Zero(string currency = "USD") 
+        => Create(0, currency);
+    
+    public Money Add(Money other)
+    {
+        EnsureSameCurrency(other);
+        return Create(Amount + other.Amount, Currency);
+    }
+    
+    public Money Subtract(Money other)
+    {
+        EnsureSameCurrency(other);
+        return Create(Amount - other.Amount, Currency);
+    }
+    
+    public Money Multiply(decimal factor)
+        => Create(Amount * factor, Currency);
+    
+    public bool IsNegative => Amount < 0;
+    public bool IsZero => Amount == 0;
+    public bool IsPositive => Amount > 0;
+    
+    private void EnsureSameCurrency(Money other)
+    {
+        if (Currency != other.Currency)
+            throw new DomainException(
+                $"Cannot operate on different currencies: {Currency} and {other.Currency}");
+    }
+    
+    protected override IEnumerable<object?> GetEqualityComponents()
+    {
+        yield return Amount;
+        yield return Currency;
+    }
+    
+    public override string ToString() 
+        => $"{Amount:N2} {Currency}";
+    
+    // Operator overloads for natural usage
+    public static Money operator +(Money a, Money b) => a.Add(b);
+    public static Money operator -(Money a, Money b) => a.Subtract(b);
+    public static Money operator *(Money a, decimal b) => a.Multiply(b);
+}
+```
+
+## EF Core Integration
+
+### Value Conversions
+
+For single-value value objects, use value conversions:
+
+```csharp
+// Infrastructure/Persistence/Converters/BlueRobinIdConverter.cs
+public class BlueRobinIdConverter : ValueConverter<BlueRobinId, string>
+{
+    public BlueRobinIdConverter() 
+        : base(
+            v => v.Value,                    // To database
+            v => BlueRobinId.From(v))        // From database
+    { }
+}
+```
+
+### Owned Entity Types
+
+For multi-property value objects, use owned types:
+
+```csharp
+// Infrastructure/Persistence/Configurations/DocumentConfiguration.cs
+public class DocumentConfiguration : IEntityTypeConfiguration<Document>
+{
+    public void Configure(EntityTypeBuilder<Document> builder)
+    {
+        builder.ToTable("documents");
+        
+        // BlueRobinId as primary key
+        builder.HasKey(d => d.Id);
+        builder.Property(d => d.Id)
+            .HasConversion<BlueRobinIdConverter>()
+            .HasMaxLength(8)
+            .IsRequired();
+        
+        // FingerPrint as owned type
+        builder.OwnsOne(d => d.FingerPrint, fp =>
+        {
+            fp.Property(f => f.Hash)
+                .HasColumnName("fingerprint_hash")
+                .HasMaxLength(64)
+                .IsRequired();
+            
+            fp.Property(f => f.Size)
+                .HasColumnName("fingerprint_size")
+                .IsRequired();
+            
+            fp.Property(f => f.Algorithm)
+                .HasColumnName("fingerprint_algorithm")
+                .HasMaxLength(16)
+                .IsRequired();
+            
+            fp.Property(f => f.ComputedAt)
+                .HasColumnName("fingerprint_computed_at")
+                .IsRequired();
+        });
+        
+        // Email as converted property
+        builder.Property(d => d.OwnerEmail)
+            .HasConversion(
+                e => e.Value,
+                v => Email.From(v))
+            .HasMaxLength(254);
+    }
+}
+```
+
+### Global Value Converters
+
+Register converters globally for cleaner configuration:
+
+```csharp
+// Infrastructure/Persistence/BlueRobinDbContext.cs
+protected override void ConfigureConventions(
+    ModelConfigurationBuilder configurationBuilder)
+{
+    configurationBuilder.Properties<BlueRobinId>()
+        .HaveConversion<BlueRobinIdConverter>()
+        .HaveMaxLength(8);
+    
+    configurationBuilder.Properties<Email>()
+        .HaveConversion<EmailConverter>()
+        .HaveMaxLength(254);
+}
+```
+
+## Using Value Objects in Entities
+
+```csharp
+// Core/Entities/Document.cs
+public class Document : AggregateRoot
+{
+    public BlueRobinId Id { get; private set; }
+    public BlueRobinId ArchiveId { get; private set; }
+    public BlueRobinId CreatedBy { get; private set; }
+    public FingerPrint FingerPrint { get; private set; }
+    public string FileName { get; private set; }
+    
+    private Document() { }
+    
+    public static Document Create(
+        BlueRobinId archiveId,
+        BlueRobinId createdBy,
+        FingerPrint fingerPrint,
+        string fileName)
+    {
+        ArgumentNullException.ThrowIfNull(archiveId);
+        ArgumentNullException.ThrowIfNull(createdBy);
+        ArgumentNullException.ThrowIfNull(fingerPrint);
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        
+        return new Document
+        {
+            Id = BlueRobinId.New(),
+            ArchiveId = archiveId,
+            CreatedBy = createdBy,
+            FingerPrint = fingerPrint,
+            FileName = fileName.Trim()
+        };
+    }
+    
+    public bool IsDuplicateOf(Document other)
+        => FingerPrint == other.FingerPrint;
+}
+```
+
+## Testing Value Objects
+
+```csharp
+public class BlueRobinIdTests
+{
+    [Fact]
+    public void New_GeneratesValidId()
+    {
+        var id = BlueRobinId.New();
+        
+        Assert.Equal(8, id.Value.Length);
+        Assert.True(id.Value.All(c => char.IsLetterOrDigit(c)));
+        Assert.True(id.Value.All(c => char.IsLower(c) || char.IsDigit(c)));
+    }
+    
+    [Fact]
+    public void From_WithValidInput_CreatesId()
+    {
+        var id = BlueRobinId.From("abc12345");
+        
+        Assert.Equal("abc12345", id.Value);
+    }
+    
+    [Theory]
+    [InlineData("ABC12345")]  // Uppercase
+    [InlineData("short")]     // Too short
+    [InlineData("toolongvalue")] // Too long
+    [InlineData("abc!@#$%")]  // Invalid chars
+    public void From_WithInvalidInput_Throws(string input)
+    {
+        Assert.Throws<DomainException>(() => BlueRobinId.From(input));
+    }
+    
+    [Fact]
+    public void Equality_SameValue_AreEqual()
+    {
+        var id1 = BlueRobinId.From("abc12345");
+        var id2 = BlueRobinId.From("abc12345");
+        
+        Assert.Equal(id1, id2);
+        Assert.True(id1 == id2);
+        Assert.Equal(id1.GetHashCode(), id2.GetHashCode());
+    }
+    
+    [Fact]
+    public void ImplicitConversion_ReturnsValue()
+    {
+        var id = BlueRobinId.From("abc12345");
+        
+        string stringValue = id;
+        
+        Assert.Equal("abc12345", stringValue);
+    }
+}
+
+public class FingerPrintTests
+{
+    [Fact]
+    public void Equality_IgnoresComputedAt()
+    {
+        var fp1 = FingerPrint.Create("a".PadRight(64, 'a'), 1024);
+        Thread.Sleep(10);  // Ensure different timestamp
+        var fp2 = FingerPrint.Create("a".PadRight(64, 'a'), 1024);
+        
+        Assert.NotEqual(fp1.ComputedAt, fp2.ComputedAt);
+        Assert.Equal(fp1, fp2);  // Still equal
+    }
+}
+```
+
+## Benefits Summary
+
+Using value objects provides:
+
+1. **Self-documenting code**: `BlueRobinId` is clearer than `string`
+2. **Built-in validation**: Invalid states are impossible
+3. **Immutability**: No accidental modifications
+4. **Rich behavior**: Domain logic lives with the data
+5. **Type safety**: Can't pass an Email where a BlueRobinId is expected
+
+<ExternalCite 
+  title="Implementing Value Objects" 
+  url="https://docs.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/implement-value-objects"
+  author="Microsoft"
+/>
+
+In the next article, we'll explore **Aggregate Roots** and how they enforce business invariants across related entities.

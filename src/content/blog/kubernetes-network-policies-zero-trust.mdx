@@ -1,0 +1,556 @@
+---
+title: "Kubernetes Network Policies for Zero Trust Security"
+description: "Implement network segmentation and micro-segmentation in Kubernetes using Network Policies for defense in depth."
+pubDate: 2026-03-10
+author: "Victor Robin"
+category: "security"
+difficulty: "advanced"
+tags: ["kubernetes", "network-policies", "security", "zero-trust", "cilium"]
+readTime: "17 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+Network Policies provide Kubernetes-native firewall rules for pod-to-pod communication. This guide covers implementing zero-trust networking with deny-by-default policies.
+
+## Default Deny Policies
+
+### Deny All Ingress
+
+```yaml
+# core-infra/security/default-deny-ingress.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: archives-staging
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+```
+
+### Deny All Egress
+
+```yaml
+# core-infra/security/default-deny-egress.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-egress
+  namespace: archives-staging
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+```
+
+### Combined Default Deny
+
+```yaml
+# core-infra/security/default-deny-all.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: archives-staging
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+```
+
+<Callout type="warning">
+Always deploy default-deny policies **after** allow policies are in place, or you may lock yourself out of the cluster.
+</Callout>
+
+## Allow Policies
+
+### API to Database
+
+```yaml
+# apps/archives-api/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: archives-api-allow
+  namespace: archives-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from Traefik ingress
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik-system
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: traefik
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow to PostgreSQL
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow to NATS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # Allow DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+```
+
+<ImplementationNote>
+Always include DNS egress rules (port 53) or pods won't be able to resolve service names. This is a common source of issues when implementing network policies.
+</ImplementationNote>
+
+### Worker to Services
+
+```yaml
+# apps/archives-workers/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: archives-workers-allow
+  namespace: archives-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-workers
+  policyTypes:
+    - Egress
+  egress:
+    # PostgreSQL
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: postgresql
+      ports:
+        - protocol: TCP
+          port: 5432
+    # NATS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # Qdrant
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: qdrant
+      ports:
+        - protocol: TCP
+          port: 6333
+        - protocol: TCP
+          port: 6334
+    # MinIO
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: minio
+      ports:
+        - protocol: TCP
+          port: 9000
+    # Ollama AI
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ai
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: ollama
+      ports:
+        - protocol: TCP
+          port: 11434
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+```
+
+### Web to API
+
+```yaml
+# apps/bluerobin-web/network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: bluerobin-web-allow
+  namespace: archives-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: bluerobin-web
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    # Allow from Traefik
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik-system
+      ports:
+        - protocol: TCP
+          port: 8080
+  egress:
+    # Allow to API
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: archives-api
+      ports:
+        - protocol: TCP
+          port: 8080
+    # Allow to NATS (real-time updates)
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: data-layer
+          podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nats
+      ports:
+        - protocol: TCP
+          port: 4222
+    # DNS
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - protocol: UDP
+          port: 53
+```
+
+## Database Layer Policies
+
+### PostgreSQL Access Control
+
+```yaml
+# infrastructure/data-layer/postgresql-network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: postgresql-allow
+  namespace: data-layer
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: postgresql
+  policyTypes:
+    - Ingress
+  ingress:
+    # Allow from staging API and workers
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: archives-staging
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - archives-api
+                  - archives-workers
+                  - bluerobin-web
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow from production
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: archives-prod
+          podSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - archives-api
+                  - archives-workers
+                  - bluerobin-web
+      ports:
+        - protocol: TCP
+          port: 5432
+    # Allow from CNPG operator
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: cnpg-system
+      ports:
+        - protocol: TCP
+          port: 5432
+```
+
+### NATS Access Control
+
+```yaml
+# infrastructure/data-layer/nats-network-policy.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: nats-allow
+  namespace: data-layer
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: nats
+  policyTypes:
+    - Ingress
+  ingress:
+    # Client connections
+    - from:
+        - namespaceSelector:
+            matchExpressions:
+              - key: kubernetes.io/metadata.name
+                operator: In
+                values:
+                  - archives-staging
+                  - archives-prod
+      ports:
+        - protocol: TCP
+          port: 4222
+    # Cluster communication (between NATS pods)
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nats
+      ports:
+        - protocol: TCP
+          port: 6222
+    # Leafnode connections
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: nats
+      ports:
+        - protocol: TCP
+          port: 7422
+```
+
+## CIDR-Based Rules
+
+### External API Access
+
+```yaml
+# Allow egress to external APIs
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-external-apis
+  namespace: archives-staging
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-workers
+  policyTypes:
+    - Egress
+  egress:
+    # Allow HTTPS to external APIs
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+```
+
+<Callout type="tip">
+Exclude private IP ranges when allowing external access to prevent bypassing internal network policies.
+</Callout>
+
+## Cilium Enhanced Policies
+
+### Layer 7 HTTP Policy
+
+```yaml
+# Cilium L7 policy for API path filtering
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: archives-api-l7
+  namespace: archives-staging
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-api
+  ingress:
+    - fromEndpoints:
+        - matchLabels:
+            app.kubernetes.io/name: bluerobin-web
+      toPorts:
+        - ports:
+            - port: "8080"
+              protocol: TCP
+          rules:
+            http:
+              - method: "GET"
+                path: "/api/documents.*"
+              - method: "POST"
+                path: "/api/documents"
+              - method: "GET"
+                path: "/health.*"
+```
+
+### DNS Policy
+
+```yaml
+# Cilium DNS egress policy
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: allow-specific-dns
+  namespace: archives-staging
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: archives-workers
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - port: "53"
+              protocol: UDP
+          rules:
+            dns:
+              - matchPattern: "*.svc.cluster.local"
+              - matchName: "api.openai.com"
+```
+
+## Monitoring Network Policies
+
+### Policy Audit with Cilium
+
+```yaml
+# Enable Hubble for network flow visibility
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: audit-deny
+  namespace: archives-staging
+  annotations:
+    io.cilium.proxy-visibility: "<Egress/80/TCP/HTTP>,<Ingress/8080/TCP/HTTP>"
+spec:
+  endpointSelector: {}
+  enableDefaultDeny:
+    ingress: true
+    egress: true
+```
+
+### Validation Script
+
+```bash
+#!/bin/bash
+# Test network policy enforcement
+
+# Test allowed connection
+kubectl run test-client --rm -i --restart=Never \
+  --image=busybox \
+  -n archives-staging \
+  --labels="app.kubernetes.io/name=archives-api" \
+  -- wget -qO- --timeout=5 \
+  http://postgresql.data-layer.svc.cluster.local:5432 || echo "Connection blocked (expected)"
+
+# Test denied connection
+kubectl run test-client --rm -i --restart=Never \
+  --image=busybox \
+  -n archives-staging \
+  --labels="app.kubernetes.io/name=test-pod" \
+  -- wget -qO- --timeout=5 \
+  http://postgresql.data-layer.svc.cluster.local:5432 && echo "Connection allowed (unexpected!)" || echo "Connection blocked (expected)"
+```
+
+## Testing Strategy
+
+### Policy Test Matrix
+
+| Source | Destination | Port | Expected |
+|--------|-------------|------|----------|
+| archives-api | postgresql | 5432 | Allow |
+| archives-api | nats | 4222 | Allow |
+| archives-api | qdrant | 6333 | Deny |
+| archives-workers | qdrant | 6333 | Allow |
+| bluerobin-web | archives-api | 8080 | Allow |
+| bluerobin-web | postgresql | 5432 | Deny |
+| traefik | archives-api | 8080 | Allow |
+
+## Summary
+
+Network Policy implementation checklist:
+
+| Step | Action |
+|------|--------|
+| 1 | Label namespaces for selector targeting |
+| 2 | Deploy allow policies first |
+| 3 | Test allowed connections |
+| 4 | Deploy default-deny policies |
+| 5 | Verify denied connections |
+| 6 | Monitor with Hubble/Cilium |
+
+Network Policies enable micro-segmentation for defense-in-depth security in Kubernetes clusters.
+
+<ExternalCite 
+  title="Network Policies - Kubernetes Documentation" 
+  url="https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+  author="Kubernetes"
+/>

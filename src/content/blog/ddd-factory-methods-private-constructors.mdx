@@ -1,0 +1,551 @@
+---
+title: "Factory Methods and Private Constructors: Enforcing Domain Invariants"
+description: "Learn how to use static factory methods and private constructors to ensure entities are always created in a valid state—with real examples from a document management system."
+pubDate: 2026-01-21
+author: "Victor Robin"
+category: "architecture"
+difficulty: "intermediate"
+tags: ["ddd-series", "dotnet", "clean-architecture", "design-patterns"]
+series: "ddd-series"
+seriesOrder: 2
+readTime: "10 min"
+toc: true
+featured: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+In Domain-Driven Design, we want our domain entities to be **always valid**. An entity should never exist in an inconsistent state. The combination of **private constructors** and **static factory methods** is the key pattern that enforces this guarantee.
+
+This article explores why this pattern matters, how to implement it correctly, and common pitfalls to avoid—with production code from the BlueRobin document management system.
+
+## The Problem with Public Constructors
+
+Consider this naive entity implementation:
+
+```csharp
+// ❌ Anti-pattern: Public constructor allows invalid state
+public class Document
+{
+    public string Id { get; set; }
+    public string FileName { get; set; }
+    public long FileSize { get; set; }
+    public DateTime CreatedAt { get; set; }
+    
+    public Document() { } // Default constructor
+    
+    public Document(string id, string fileName, long fileSize)
+    {
+        Id = id;
+        FileName = fileName;
+        FileSize = fileSize;
+        CreatedAt = DateTime.UtcNow;
+    }
+}
+```
+
+What's wrong with this?
+
+1. **Default constructor** allows creating documents with null/empty properties
+2. **Public setters** allow modifying properties to invalid values after creation
+3. **No validation** — negative file size? Empty filename? All allowed
+4. **Inconsistent state** — callers might forget to set required properties
+
+```csharp
+// All of these compile and run, but create invalid documents
+var doc1 = new Document();  // Everything is null/default!
+var doc2 = new Document("", "", -100);  // Invalid values accepted
+doc2.FileName = "";  // Can be mutated to invalid state later
+```
+
+## The Solution: Private Constructor + Factory Method
+
+Here's the same entity, properly encapsulated:
+
+```csharp
+// ✅ Correct: Factory method enforces invariants
+public class Document : AggregateRoot
+{
+    // Private constructor - only factory methods can create instances
+    private Document()
+    {
+        // EF Core requires a parameterless constructor
+        // Properties initialized to satisfy nullability
+        Metadata = null!;
+        Analysis = null!;
+    }
+
+    // Static factory method - the ONLY way to create a Document
+    public static Document Create(
+        BlueRobinId archiveId,
+        BlueRobinId createdBy,
+        FingerPrint fingerPrint,
+        string fileName,
+        long fileSize,
+        string contentType)
+    {
+        // Validation happens BEFORE entity creation
+        ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+        ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+        ArgumentNullException.ThrowIfNull(fingerPrint);
+        
+        if (fileSize <= 0)
+            throw new ArgumentOutOfRangeException(nameof(fileSize), 
+                "File size must be positive");
+
+        var id = BlueRobinId.New();
+
+        var document = new Document
+        {
+            Id = id,
+            ArchiveId = archiveId,
+            CreatedBy = createdBy,
+            Metadata = DocumentMetadata.CreateWithGeneratedObjectName(
+                id.Value, fileName, contentType, fileSize, fingerPrint),
+            Status = DocumentStatus.Pending,
+            CreatedOnUtc = DateTime.UtcNow,
+            Classification = DocumentClassification.Unclassified(),
+            Analysis = DocumentAnalysis.Empty(),
+            Metrics = ProcessingMetrics.Empty()
+        };
+
+        // Raise domain event after successful creation
+        document.RaiseDomainEvent(new DocumentAddedEvent(
+            document.Id, archiveId, createdBy, 
+            fileName, contentType, fileSize, document.ObjectName));
+
+        return document;
+    }
+
+    // Properties with private setters - only modifiable through methods
+    public BlueRobinId ArchiveId { get; private init; }
+    public BlueRobinId CreatedBy { get; private init; }
+    public DocumentMetadata Metadata { get; private set; }
+    public DocumentStatus Status { get; private set; }
+    public DateTime CreatedOnUtc { get; private init; }
+    public DocumentClassification Classification { get; private set; }
+    public DocumentAnalysis Analysis { get; private set; }
+    public ProcessingMetrics Metrics { get; private set; }
+}
+```
+
+### Benefits of This Pattern
+
+| Benefit | Description |
+|---------|-------------|
+| **Always valid** | Entity cannot exist in an invalid state |
+| **Explicit validation** | All rules checked before entity creation |
+| **Named constructors** | `Document.Create()` is self-documenting |
+| **Immutable after creation** | Private setters prevent external mutation |
+| **Event raising** | Perfect place to publish domain events |
+| **Testable** | Clear contract for valid/invalid inputs |
+
+## Anatomy of a Factory Method
+
+Let's break down the components:
+
+### 1. Parameter Validation
+
+```csharp
+public static Document Create(
+    BlueRobinId archiveId,
+    BlueRobinId createdBy,
+    FingerPrint fingerPrint,
+    string fileName,
+    long fileSize,
+    string contentType)
+{
+    // Guard clauses at the top - fail fast
+    ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+    ArgumentException.ThrowIfNullOrWhiteSpace(contentType);
+    ArgumentNullException.ThrowIfNull(fingerPrint);
+    
+    if (fileSize <= 0)
+        throw new ArgumentOutOfRangeException(nameof(fileSize));
+```
+
+<Callout type="info">
+.NET 6+ provides `ArgumentException.ThrowIfNullOrWhiteSpace()` and similar helpers. Use them—they're optimized and generate consistent error messages.
+</Callout>
+
+### 2. ID Generation
+
+```csharp
+    var id = BlueRobinId.New();
+```
+
+The factory method is responsible for generating the entity's identity. This ensures IDs are always valid and follows the DDD principle that entities should control their own identity.
+
+### 3. Entity Initialization
+
+```csharp
+    var document = new Document
+    {
+        Id = id,
+        ArchiveId = archiveId,
+        CreatedBy = createdBy,
+        // Initialize value objects with their factory methods
+        Metadata = DocumentMetadata.CreateWithGeneratedObjectName(...),
+        Classification = DocumentClassification.Unclassified(),
+        Analysis = DocumentAnalysis.Empty(),
+        Metrics = ProcessingMetrics.Empty(),
+        // Set defaults for required state
+        Status = DocumentStatus.Pending,
+        CreatedOnUtc = DateTime.UtcNow
+    };
+```
+
+Notice how value objects are also created through their factory methods, ensuring the entire object graph is valid.
+
+### 4. Domain Event Raising
+
+```csharp
+    document.RaiseDomainEvent(new DocumentAddedEvent(...));
+    
+    return document;
+}
+```
+
+The factory method is the perfect place to raise "created" domain events because:
+- The entity is guaranteed to be valid
+- All information needed for the event is available
+- The event is raised exactly once per creation
+
+## The EF Core Conundrum
+
+Entity Framework Core needs a parameterless constructor to materialize entities from the database. This seems to conflict with our private constructor goal.
+
+```csharp
+private Document()
+{
+    // EF Core constructor
+    Metadata = null!;
+    Analysis = null!;
+}
+```
+
+<Callout type="warning">
+The private parameterless constructor initializes required properties to `null!`. This looks dangerous, but EF Core immediately populates these from database values. We trust data already in the database was validated on entry.
+</Callout>
+
+### Why This Is Safe
+
+1. **EF Core uses reflection** — It can access private constructors
+2. **Immediate population** — Properties are set right after construction
+3. **Database data is trusted** — It was validated when originally created
+4. **Compile-time safety** — The `null!` tells the compiler "trust me, this will be set"
+
+<ExternalCite 
+  title="EF Core Entity Construction" 
+  url="https://learn.microsoft.com/en-us/ef/core/modeling/constructors" 
+  author="Microsoft"
+/>
+
+## Multiple Factory Methods
+
+Sometimes you need different ways to create an entity. Use multiple factory methods with descriptive names:
+
+```csharp
+public class FamilyMember : Entity
+{
+    private FamilyMember() { }
+
+    // Create a new family member
+    public static FamilyMember Create(
+        BlueRobinId familyId,
+        string name,
+        FamilyRelation relation,
+        DateOnly? dateOfBirth = null)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(name);
+        
+        return new FamilyMember
+        {
+            Id = BlueRobinId.New(),
+            FamilyId = familyId,
+            Name = name.Trim(),
+            Relation = relation,
+            DateOfBirth = dateOfBirth,
+            AddedAt = DateTime.UtcNow
+        };
+    }
+
+    // Reconstitute from stored data (used by repositories)
+    internal static FamilyMember Reconstitute(
+        BlueRobinId id,
+        BlueRobinId familyId,
+        string name,
+        FamilyRelation relation,
+        DateOnly? dateOfBirth,
+        DateTime addedAt)
+    {
+        return new FamilyMember
+        {
+            Id = id,
+            FamilyId = familyId,
+            Name = name,
+            Relation = relation,
+            DateOfBirth = dateOfBirth,
+            AddedAt = addedAt
+        };
+    }
+}
+```
+
+<ImplementationNote>
+The `Reconstitute` method is marked `internal` so only the Infrastructure layer (repositories) can use it. This prevents application code from bypassing validation while allowing efficient hydration from the database.
+</ImplementationNote>
+
+## Factory Methods for Value Objects
+
+Value objects follow the same pattern, but often use `Create` or `From` naming:
+
+```csharp
+public readonly struct FingerPrint : IEquatable<FingerPrint>
+{
+    public string Sha256 { get; }
+    public string Md5 { get; }
+
+    private FingerPrint(string sha256, string md5)
+    {
+        Sha256 = sha256;
+        Md5 = md5;
+    }
+
+    // Factory method for creating from raw hashes
+    public static FingerPrint Create(string sha256, string md5)
+    {
+        if (string.IsNullOrWhiteSpace(sha256) || sha256.Length != 64)
+            throw new ArgumentException("SHA256 must be 64 characters", nameof(sha256));
+            
+        if (string.IsNullOrWhiteSpace(md5) || md5.Length != 32)
+            throw new ArgumentException("MD5 must be 32 characters", nameof(md5));
+
+        return new FingerPrint(sha256.ToLowerInvariant(), md5.ToLowerInvariant());
+    }
+
+    // Factory method for computing from a stream
+    public static async Task<FingerPrint> ComputeAsync(Stream stream)
+    {
+        var sha256 = await ComputeSha256Async(stream);
+        stream.Position = 0;
+        var md5 = await ComputeMd5Async(stream);
+        
+        return new FingerPrint(sha256, md5);
+    }
+}
+```
+
+### Naming Conventions
+
+| Method Name | Use Case |
+|-------------|----------|
+| `Create()` | Primary creation with validation |
+| `From()` | Parse/convert from another type |
+| `Empty()` | Return a null object pattern instance |
+| `Reconstitute()` | Rebuild from persistence (internal) |
+| `TryCreate()` | Non-throwing validation with bool return |
+
+## Testing Factory Methods
+
+Factory methods make testing straightforward:
+
+```csharp
+public class DocumentTests
+{
+    [Fact]
+    public void Create_Should_CreateValidDocument()
+    {
+        // Arrange
+        var archiveId = BlueRobinId.New();
+        var userId = BlueRobinId.New();
+        var fingerPrint = FingerPrint.Create(
+            "a".PadLeft(64, 'a'), 
+            "b".PadLeft(32, 'b'));
+
+        // Act
+        var document = Document.Create(
+            archiveId, userId, fingerPrint, 
+            "test.pdf", 1024, "application/pdf");
+
+        // Assert
+        document.Should().NotBeNull();
+        document.Id.Should().NotBeNull();
+        document.ArchiveId.Should().Be(archiveId);
+        document.Status.Should().Be(DocumentStatus.Pending);
+        document.CreatedOnUtc.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void Create_Should_ThrowException_WhenFileNameIsInvalid(string? invalidFileName)
+    {
+        // Arrange
+        var fingerPrint = FingerPrint.Create(
+            "a".PadLeft(64, 'a'), 
+            "b".PadLeft(32, 'b'));
+
+        // Act
+        var act = () => Document.Create(
+            BlueRobinId.New(),
+            BlueRobinId.New(),
+            fingerPrint,
+            invalidFileName!,
+            1024,
+            "application/pdf");
+
+        // Assert
+        act.Should().Throw<ArgumentException>();
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(-1)]
+    [InlineData(-100)]
+    public void Create_Should_ThrowException_WhenFileSizeIsInvalid(long invalidFileSize)
+    {
+        // Arrange
+        var fingerPrint = FingerPrint.Create(
+            "a".PadLeft(64, 'a'), 
+            "b".PadLeft(32, 'b'));
+
+        // Act
+        var act = () => Document.Create(
+            BlueRobinId.New(),
+            BlueRobinId.New(),
+            fingerPrint,
+            "test.pdf",
+            invalidFileSize,
+            "application/pdf");
+
+        // Assert
+        act.Should().Throw<ArgumentOutOfRangeException>();
+    }
+
+    [Fact]
+    public void Create_Should_RaiseDomainEvent()
+    {
+        // Act
+        var document = Document.Create(
+            BlueRobinId.New(),
+            BlueRobinId.New(),
+            FingerPrint.Create("a".PadLeft(64, 'a'), "b".PadLeft(32, 'b')),
+            "test.pdf",
+            1024,
+            "application/pdf");
+
+        // Assert
+        document.DomainEvents.Should().ContainSingle()
+            .Which.Should().BeOfType<DocumentAddedEvent>();
+    }
+}
+```
+
+## Common Mistakes to Avoid
+
+### 1. Validation in the Wrong Place
+
+```csharp
+// ❌ Wrong: Validation in property setter
+public string FileName 
+{ 
+    get => _fileName;
+    set 
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            throw new ArgumentException("FileName required");
+        _fileName = value;
+    }
+}
+
+// ✅ Right: Validation in factory method
+public static Document Create(..., string fileName, ...)
+{
+    ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+    return new Document { FileName = fileName };
+}
+```
+
+### 2. Allowing Partial Creation
+
+```csharp
+// ❌ Wrong: Multiple steps to create valid entity
+var doc = Document.Create(archiveId, userId);
+doc.SetFileName("test.pdf");  // Can forget this!
+doc.SetFileSize(1024);        // Or this!
+
+// ✅ Right: All required data in one call
+var doc = Document.Create(archiveId, userId, fingerPrint, 
+    "test.pdf", 1024, "application/pdf");
+```
+
+### 3. Returning Null Instead of Throwing
+
+```csharp
+// ❌ Wrong: Silent failure
+public static Document? Create(string fileName)
+{
+    if (string.IsNullOrWhiteSpace(fileName))
+        return null;  // Caller might not check!
+    ...
+}
+
+// ✅ Right: Explicit failure
+public static Document Create(string fileName)
+{
+    ArgumentException.ThrowIfNullOrWhiteSpace(fileName);
+    ...
+}
+
+// ✅ Also acceptable: Try pattern for expected failures
+public static bool TryCreate(string fileName, out Document? document)
+{
+    if (string.IsNullOrWhiteSpace(fileName))
+    {
+        document = null;
+        return false;
+    }
+    document = new Document { FileName = fileName };
+    return true;
+}
+```
+
+## When to Use This Pattern
+
+| Use Case | Recommendation |
+|----------|----------------|
+| **Domain entities** | Always use factory methods |
+| **Value objects** | Always use factory methods |
+| **DTOs** | Public constructors/records are fine |
+| **View models** | Public constructors are fine |
+| **Configuration objects** | Consider builder pattern |
+
+<Callout type="info">
+The factory method pattern is specifically for **domain objects** that must maintain invariants. Data transfer objects (DTOs), which are just data carriers, don't need this level of protection.
+</Callout>
+
+## Summary
+
+The private constructor + factory method pattern is fundamental to building robust domain models:
+
+1. **Private constructors** prevent direct instantiation
+2. **Factory methods** validate all inputs before creating entities
+3. **Private setters** prevent mutation after creation
+4. **Domain events** are raised at the moment of successful creation
+5. **EF Core** can still work with a private parameterless constructor
+
+This pattern ensures your domain entities are **always valid**, making your entire system more reliable and easier to reason about.
+
+## Next in the Series
+
+In the next article, we'll explore **Aggregates** in depth—how to define boundaries, maintain consistency, and design aggregates that are both correct and performant.
+
+<ExternalCite 
+  title="Implementing Value Objects (MS Architecture Docs)" 
+  url="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/implement-value-objects" 
+  author="Microsoft"
+/>
