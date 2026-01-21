@@ -1,6 +1,6 @@
 export const SITE = {
   website: "https://blog.bluerobin.local",
-  author: "Victor Rentea",
+  author: "Victor Robin",
   desc: "BlueRobin Technical Blog - A homelab journey from medical document search to production AI. Deep dives into .NET, Kubernetes, LLM integration, and Domain-Driven Design.",
   title: "BlueRobin Tech Blog",
   ogImage: "og-default.png",

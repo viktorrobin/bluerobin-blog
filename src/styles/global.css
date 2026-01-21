@@ -132,50 +132,299 @@ code, pre {
 }
 
 /* ==================== PROSE STYLES ==================== */
+/* Comprehensive typography for blog articles */
 
 .prose {
-    @apply max-w-none;
+    @apply max-w-none text-slate-700 leading-relaxed;
+    font-size: 1.0625rem;
+    line-height: 1.75;
 }
 
-.prose pre {
-    @apply bg-slate-900 rounded-lg overflow-x-auto;
+html.dark .prose {
+    @apply text-slate-300;
 }
 
-.prose code {
-    @apply bg-slate-200 px-1.5 py-0.5 rounded text-sm;
+/* Paragraphs */
+.prose p {
+    @apply mb-6;
 }
 
-html.dark .prose code {
-    @apply bg-slate-700;
+.prose p:last-child {
+    @apply mb-0;
 }
 
-.prose pre code {
-    @apply bg-transparent p-0;
+/* Headings */
+.prose h1 {
+    @apply text-3xl sm:text-4xl font-bold text-slate-900 mt-12 mb-6;
+    font-family: var(--font-display);
 }
 
+.prose h2 {
+    @apply text-2xl sm:text-3xl font-bold text-slate-900 mt-10 mb-4 pb-2 border-b border-slate-200;
+    font-family: var(--font-display);
+}
+
+.prose h3 {
+    @apply text-xl sm:text-2xl font-semibold text-slate-800 mt-8 mb-3;
+    font-family: var(--font-display);
+}
+
+.prose h4 {
+    @apply text-lg sm:text-xl font-semibold text-slate-800 mt-6 mb-2;
+    font-family: var(--font-display);
+}
+
+html.dark .prose h1,
+html.dark .prose h2,
+html.dark .prose h3,
+html.dark .prose h4 {
+    @apply text-slate-100;
+}
+
+html.dark .prose h2 {
+    @apply border-slate-700;
+}
+
+/* Links */
 .prose a {
-    @apply text-neural-600 underline decoration-neural-300 
-           underline-offset-2 transition-colors;
+    @apply text-neural-600 underline decoration-neural-300/50 
+           underline-offset-2 transition-all duration-200;
 }
 
 .prose a:hover {
-    @apply decoration-neural-500;
+    @apply text-neural-500 decoration-neural-500;
 }
 
 html.dark .prose a {
-    @apply text-neural-400 decoration-neural-600;
+    @apply text-neural-400 decoration-neural-600/50;
 }
 
+html.dark .prose a:hover {
+    @apply text-neural-300 decoration-neural-400;
+}
+
+/* Lists */
+.prose ul {
+    @apply my-6 ml-6 list-disc space-y-2;
+}
+
+.prose ol {
+    @apply my-6 ml-6 list-decimal space-y-2;
+}
+
+.prose li {
+    @apply pl-2;
+}
+
+.prose li > ul,
+.prose li > ol {
+    @apply my-2 ml-4;
+}
+
+/* Blockquotes */
 .prose blockquote {
-    @apply border-l-4 border-neural-500 pl-4 italic text-slate-600;
+    @apply my-6 pl-6 border-l-4 border-neural-500 italic text-slate-600;
+    quotes: none;
+}
+
+.prose blockquote p {
+    @apply mb-0;
 }
 
 html.dark .prose blockquote {
-    @apply text-slate-400;
+    @apply text-slate-400 border-neural-400;
 }
 
+/* Horizontal Rules */
+.prose hr {
+    @apply my-10 border-slate-200;
+}
+
+html.dark .prose hr {
+    @apply border-slate-700;
+}
+
+/* Images */
 .prose img {
-    @apply rounded-lg shadow-md;
+    @apply rounded-xl shadow-lg my-8 mx-auto;
+}
+
+/* Tables */
+.prose table {
+    @apply w-full my-8 text-sm border-collapse;
+}
+
+.prose thead {
+    @apply bg-slate-100;
+}
+
+html.dark .prose thead {
+    @apply bg-slate-800;
+}
+
+.prose th {
+    @apply px-4 py-3 text-left font-semibold text-slate-900 border-b-2 border-slate-300;
+}
+
+html.dark .prose th {
+    @apply text-slate-100 border-slate-600;
+}
+
+.prose td {
+    @apply px-4 py-3 border-b border-slate-200;
+}
+
+html.dark .prose td {
+    @apply border-slate-700;
+}
+
+.prose tbody tr:hover {
+    @apply bg-slate-50;
+}
+
+html.dark .prose tbody tr:hover {
+    @apply bg-slate-800/50;
+}
+
+/* Inline Code */
+.prose code:not(pre code) {
+    @apply px-1.5 py-0.5 rounded text-sm font-medium;
+    background-color: rgba(112, 105, 245, 0.1);
+    color: var(--color-neural-700);
+}
+
+html.dark .prose code:not(pre code) {
+    background-color: rgba(112, 105, 245, 0.2);
+    color: var(--color-neural-300);
+}
+
+/* Code Blocks */
+.prose pre {
+    @apply my-8 rounded-xl overflow-hidden;
+    background: linear-gradient(145deg, #1a1f36 0%, #0d1117 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.prose pre code {
+    @apply block p-5 overflow-x-auto text-sm leading-relaxed;
+    background: transparent;
+    color: #e2e8f0;
+    font-family: var(--font-mono);
+    tab-size: 2;
+}
+
+/* Shiki syntax highlighting overrides for vibrant colors */
+.prose pre code .line {
+    @apply block;
+}
+
+/* Override Shiki's default colors for better contrast on dark background */
+/* These selectors target Shiki's generated spans with color styles */
+.prose pre code span[style*="color:#"] {
+    /* Let Shiki colors through but ensure minimum brightness */
+}
+
+/* Force bright colors for common syntax elements */
+/* Keywords: if, else, return, public, class, etc. */
+.prose pre code span[style*="color:#C678DD"],
+.prose pre code span[style*="color:#c678dd"] {
+    color: #c792ea !important; /* Bright purple */
+}
+
+/* Strings */
+.prose pre code span[style*="color:#98C379"],
+.prose pre code span[style*="color:#98c379"] {
+    color: #a5d6a7 !important; /* Bright green */
+}
+
+/* Comments - keep readable but muted */
+.prose pre code span[style*="color:#5C6370"],
+.prose pre code span[style*="color:#5c6370"],
+.prose pre code span[style*="color:#7F848E"],
+.prose pre code span[style*="color:#7f848e"] {
+    color: #8b949e !important; /* Brighter grey for comments */
+}
+
+/* Numbers */
+.prose pre code span[style*="color:#D19A66"],
+.prose pre code span[style*="color:#d19a66"] {
+    color: #f9c74f !important; /* Bright orange-yellow */
+}
+
+/* Types/Classes */
+.prose pre code span[style*="color:#E5C07B"],
+.prose pre code span[style*="color:#e5c07b"] {
+    color: #ffd54f !important; /* Bright yellow */
+}
+
+/* Functions */
+.prose pre code span[style*="color:#61AFEF"],
+.prose pre code span[style*="color:#61afef"] {
+    color: #82aaff !important; /* Bright blue */
+}
+
+/* Variables and plain text - ensure readability */
+.prose pre code span[style*="color:#ABB2BF"],
+.prose pre code span[style*="color:#abb2bf"] {
+    color: #e2e8f0 !important; /* Bright slate */
+}
+
+/* Punctuation and operators */
+.prose pre code span[style*="color:#56B6C2"],
+.prose pre code span[style*="color:#56b6c2"] {
+    color: #89ddff !important; /* Bright cyan */
+}
+
+/* XML/HTML tags */
+.prose pre code span[style*="color:#E06C75"],
+.prose pre code span[style*="color:#e06c75"] {
+    color: #f07178 !important; /* Bright red-pink */
+}
+
+/* Attributes */
+.prose pre code span[style*="color:#D19A66"],
+.prose pre code span[style*="color:#d19a66"] {
+    color: #ffcb6b !important; /* Bright amber */
+}
+
+/* Ensure all text in code blocks is at minimum brightness */
+.prose pre code,
+.prose pre code span {
+    text-shadow: none;
+}
+
+/* Light mode code blocks */
+html:not(.dark) .prose pre {
+    background: linear-gradient(145deg, #fafbfc 0%, #f1f5f9 100%);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.1);
+}
+
+html:not(.dark) .prose pre code {
+    color: #1e293b;
+}
+
+/* Strong and Emphasis */
+.prose strong {
+    @apply font-bold text-slate-900;
+}
+
+html.dark .prose strong {
+    @apply text-slate-100;
+}
+
+.prose em {
+    @apply italic;
+}
+
+/* First paragraph styling (lead) */
+.prose > p:first-of-type {
+    @apply text-lg text-slate-600 leading-relaxed;
+}
+
+html.dark .prose > p:first-of-type {
+    @apply text-slate-400;
 }
 
 /* ==================== GLASS CARD ==================== */
