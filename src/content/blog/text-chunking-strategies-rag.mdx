@@ -14,9 +14,27 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Effective chunking is critical for RAG performance. This guide covers strategies for splitting documents while preserving semantic coherence and context.
+## Introduction
 
-## Chunking Strategies Comparison
+When building a Retrieval-Augmented Generation (RAG) pipeline, one of the most impactful decisions you'll make is how to split your documents into chunks. Poor chunking leads to poor retrieval, which leads to poor answers—regardless of how powerful your LLM is.
+
+**The core problem**: Embedding models have limited context windows (typically 512 tokens), and semantic similarity works best on focused, coherent text segments. If you chunk at arbitrary boundaries, you'll break sentences mid-thought, separate related concepts, and lose the context needed for accurate retrieval.
+
+### What You'll Learn
+
+In this guide, we'll implement five different chunking strategies in C#:
+
+1. **Fixed-Size Chunking** — Simple but naive approach
+2. **Sentence-Based Chunking** — Respects sentence boundaries
+3. **Paragraph-Based Chunking** — Uses natural document structure
+4. **Semantic Chunking** — Preserves markdown headings and document hierarchy
+5. **Sliding Window Chunking** — Overlapping chunks for better context preservation
+
+By the end, you'll have a complete `ChunkingService` that can intelligently split documents based on their structure and your retrieval requirements.
+
+## Chunking Strategies Overview
+
+Before diving into code, let's visualize the fundamental differences between chunking approaches. Each strategy makes different tradeoffs between simplicity, consistency, and semantic coherence:
 
 ```mermaid
 flowchart TB
@@ -31,7 +49,11 @@ flowchart TB
     style Strategies fill:#6c5ce7,color:#fff
 ```
 
-## Chunk Service Implementation
+**Fixed-size** chunks are predictable but can cut thoughts in half. **Sentence-based** chunking respects linguistic boundaries but produces variable sizes. **Semantic chunking** is the gold standard for structured documents—it keeps related content together by following the document's inherent organization.
+
+## The Chunking Service Architecture
+
+Our `ChunkingService` implements the strategy pattern, allowing callers to choose their chunking approach at runtime. This is useful when different document types benefit from different strategies—for example, structured markdown docs work best with semantic chunking, while plain text might need sentence-based chunking.
 
 ```csharp
 // Application/Services/ChunkingService.cs
@@ -62,7 +84,19 @@ public sealed class ChunkingService : IChunkingService
             _ => throw new ArgumentOutOfRangeException(nameof(strategy))
         };
     }
-    
+```
+
+The service defaults to `Semantic` chunking since most of our documents are markdown with headers. The `ChunkingOptions` (defined later) controls chunk size limits and overlap amounts.
+
+## Fixed-Size Chunking
+
+The simplest approach: split text into equal-sized pieces. While naive, this works surprisingly well for homogeneous content where you need predictable chunk sizes.
+
+**When to use**: Consistent-density text, when chunk size predictability matters, or as a baseline.
+
+**Tradeoffs**: Will definitely break sentences and paragraphs mid-thought.
+
+```csharp
     private IReadOnlyList<TextChunk> ChunkFixedSize(string content)
     {
         var chunks = new List<TextChunk>();
@@ -83,12 +117,25 @@ public sealed class ChunkingService : IChunkingService
                 TokenEstimate = EstimateTokens(chunkText)
             });
             
+            // Move forward, but overlap with previous chunk
             charIndex += chunkLength - _options.Overlap;
         }
         
         return chunks;
     }
-    
+```
+
+Notice we apply overlap even in fixed-size chunking. This creates redundancy but ensures that concepts split at chunk boundaries still appear completely in at least one chunk.
+
+## Sentence-Based Chunking
+
+A significant improvement: respect sentence boundaries. This ensures each chunk contains complete thoughts, making embeddings more semantically meaningful.
+
+**When to use**: Narrative text, articles, or any content where sentence integrity matters.
+
+**Tradeoffs**: Variable chunk sizes—some may be much smaller or larger than target.
+
+```csharp
     private IReadOnlyList<TextChunk> ChunkBySentence(string content)
     {
         var sentences = SplitIntoSentences(content);
@@ -100,9 +147,11 @@ public sealed class ChunkingService : IChunkingService
         
         foreach (var sentence in sentences)
         {
+            // Check if adding this sentence would exceed our limit
             if (currentChunk.Length + sentence.Length > _options.MaxChunkSize && 
                 currentChunk.Length > 0)
             {
+                // Finalize current chunk and start a new one
                 chunks.Add(new TextChunk
                 {
                     Index = chunkIndex++,
@@ -120,6 +169,7 @@ public sealed class ChunkingService : IChunkingService
             currentPos += sentence.Length + 1;
         }
         
+        // Don't forget the last chunk!
         if (currentChunk.Length > 0)
         {
             chunks.Add(new TextChunk
@@ -134,7 +184,19 @@ public sealed class ChunkingService : IChunkingService
         
         return chunks;
     }
-    
+```
+
+The algorithm greedily accumulates sentences until adding another would exceed the max size, then starts a new chunk. This produces chunks that are at most `MaxChunkSize` but may be smaller.
+
+## Paragraph-Based Chunking
+
+Documents with clear paragraph structure (double newlines) can leverage those natural boundaries. This often aligns with topic shifts better than sentence-level chunking.
+
+**When to use**: Well-structured documents with clear paragraph breaks.
+
+**Tradeoffs**: Paragraphs vary widely in size—some may need further splitting.
+
+```csharp
     private IReadOnlyList<TextChunk> ChunkByParagraph(string content)
     {
         var paragraphs = content.Split(
@@ -152,9 +214,10 @@ public sealed class ChunkingService : IChunkingService
             var trimmed = paragraph.Trim();
             if (string.IsNullOrEmpty(trimmed)) continue;
             
-            // If single paragraph exceeds max, split it
+            // Handle oversized paragraphs by falling back to sentence chunking
             if (trimmed.Length > _options.MaxChunkSize)
             {
+                // Flush current buffer first
                 if (currentChunk.Length > 0)
                 {
                     chunks.Add(CreateChunk(currentChunk.ToString(), chunkIndex++, startPos, position));
@@ -162,7 +225,7 @@ public sealed class ChunkingService : IChunkingService
                     startPos = position;
                 }
                 
-                // Split large paragraph by sentences
+                // Split the large paragraph using sentence chunking
                 var subChunks = ChunkBySentence(trimmed);
                 foreach (var sub in subChunks)
                 {
@@ -177,6 +240,7 @@ public sealed class ChunkingService : IChunkingService
                 continue;
             }
             
+            // Normal case: accumulate paragraphs
             if (currentChunk.Length + trimmed.Length + 2 > _options.MaxChunkSize && 
                 currentChunk.Length > 0)
             {
@@ -197,15 +261,27 @@ public sealed class ChunkingService : IChunkingService
         
         return chunks;
     }
-    
+```
+
+Notice the fallback to sentence chunking for oversized paragraphs. This hierarchical approach ensures we never produce chunks larger than the configured maximum.
+
+## Semantic Chunking (Recommended)
+
+This is our most sophisticated strategy. It parses markdown structure and uses headers to create semantically coherent chunks. Each chunk retains its heading context, dramatically improving retrieval relevance.
+
+**When to use**: Markdown documents, technical documentation, any content with headers.
+
+**Tradeoffs**: More complex, assumes markdown structure.
+
+```csharp
     private IReadOnlyList<TextChunk> ChunkSemantic(string content)
     {
-        // Parse markdown structure if present
+        // Parse the document's markdown structure
         var sections = ParseMarkdownSections(content);
         
         if (sections.Count == 0)
         {
-            // Fallback to paragraph chunking
+            // No headers found - fall back to paragraph chunking
             return ChunkByParagraph(content);
         }
         
@@ -216,7 +292,7 @@ public sealed class ChunkingService : IChunkingService
         {
             var sectionContent = section.Content;
             
-            // If section is small enough, keep as single chunk
+            // Small sections become single chunks
             if (sectionContent.Length <= _options.MaxChunkSize)
             {
                 chunks.Add(new TextChunk
@@ -235,11 +311,12 @@ public sealed class ChunkingService : IChunkingService
             }
             else
             {
-                // Split large sections by paragraph, preserving heading
+                // Large sections: split by paragraph but preserve heading context
                 var subChunks = ChunkByParagraph(sectionContent);
                 foreach (var sub in subChunks)
                 {
-                    // Prepend heading context to each sub-chunk
+                    // Prepend the section heading to each sub-chunk
+                    // This ensures retrieval knows the context
                     var contextualContent = section.Heading != null
                         ? $"## {section.Heading}\n\n{sub.Content}"
                         : sub.Content;
@@ -263,14 +340,29 @@ public sealed class ChunkingService : IChunkingService
         
         return chunks;
     }
-    
+```
+
+The key insight: when a section must be split, we prepend the heading to each sub-chunk. This way, when a user asks "How do I configure authentication?", chunks from the "Authentication" section will have higher similarity even if the word "authentication" doesn't appear in that specific paragraph.
+
+<ImplementationNote>
+Semantic chunking preserves document structure by respecting markdown headings. Each chunk includes the parent heading as context, improving retrieval relevance.
+</ImplementationNote>
+
+## Sliding Window Chunking
+
+For dense technical content where context spans multiple paragraphs, overlapping chunks ensure no information falls through the cracks.
+
+**When to use**: Technical documentation, code explanations, any content where adjacent sections are highly related.
+
+**Tradeoffs**: Produces more chunks (more storage), but better recall.
+
+```csharp
     private IReadOnlyList<TextChunk> ChunkSliding(string content)
     {
         var chunks = new List<TextChunk>();
         var sentences = SplitIntoSentences(content);
         var windowStart = 0;
         var chunkIndex = 0;
-        var charPosition = 0;
         var sentencePositions = CalculateSentencePositions(sentences);
         
         while (windowStart < sentences.Count)
@@ -278,7 +370,7 @@ public sealed class ChunkingService : IChunkingService
             var currentChunk = new StringBuilder();
             var windowEnd = windowStart;
             
-            // Build chunk up to max size
+            // Accumulate sentences until max size
             while (windowEnd < sentences.Count && 
                    currentChunk.Length + sentences[windowEnd].Length < _options.MaxChunkSize)
             {
@@ -298,7 +390,7 @@ public sealed class ChunkingService : IChunkingService
                 });
             }
             
-            // Slide window by overlap amount (in sentences)
+            // Slide window - keep some overlap
             var sentencesToSkip = Math.Max(1, 
                 (windowEnd - windowStart) * (1 - _options.Overlap / _options.MaxChunkSize));
             windowStart += (int)sentencesToSkip;
@@ -306,10 +398,18 @@ public sealed class ChunkingService : IChunkingService
         
         return chunks;
     }
-    
+```
+
+The overlap is controlled by `_options.Overlap`. A 20% overlap means each chunk shares about 20% of its content with the previous chunk, creating redundancy that improves recall at the cost of storage.
+
+## Helper Methods
+
+These utilities support the chunking strategies:
+
+```csharp
     private static IReadOnlyList<string> SplitIntoSentences(string text)
     {
-        // Simple sentence splitting - could use ML for better accuracy
+        // Pattern: split after sentence-ending punctuation followed by whitespace and capital letter
         var pattern = @"(?<=[.!?])\s+(?=[A-Z])";
         return Regex.Split(text, pattern)
             .Where(s => !string.IsNullOrWhiteSpace(s))
@@ -356,7 +456,7 @@ public sealed class ChunkingService : IChunkingService
             position += line.Length + 1;
         }
         
-        // Add final section
+        // Don't forget the final section
         if (current != null)
         {
             current.Content = contentBuilder.ToString();
@@ -365,7 +465,7 @@ public sealed class ChunkingService : IChunkingService
         }
         else if (contentBuilder.Length > 0)
         {
-            // No headings found, treat entire content as one section
+            // No headings found - treat entire content as one section
             sections.Add(new MarkdownSection
             {
                 Content = contentBuilder.ToString(),
@@ -377,6 +477,7 @@ public sealed class ChunkingService : IChunkingService
         return sections;
     }
     
+    // Quick token estimation: ~4 characters per token on average
     private static int EstimateTokens(string text) => text.Length / 4;
     
     private static TextChunk CreateChunk(string content, int index, int start, int end) =>
@@ -401,7 +502,13 @@ public sealed class ChunkingService : IChunkingService
         return positions;
     }
 }
+```
 
+## Data Types
+
+Finally, here are the supporting types used throughout the service:
+
+```csharp
 public sealed record TextChunk
 {
     public int Index { get; set; }
@@ -420,9 +527,9 @@ public sealed record ChunkMetadata
 
 public sealed record ChunkingOptions
 {
-    public int MaxChunkSize { get; init; } = 512;
-    public int Overlap { get; init; } = 50;
-    public int MinChunkSize { get; init; } = 100;
+    public int MaxChunkSize { get; init; } = 512;  // Characters, not tokens
+    public int Overlap { get; init; } = 50;        // Overlap in characters
+    public int MinChunkSize { get; init; } = 100;  // Avoid tiny chunks
 }
 
 public enum ChunkingStrategy
@@ -435,34 +542,32 @@ public enum ChunkingStrategy
 }
 ```
 
-<ImplementationNote>
-Semantic chunking preserves document structure by respecting markdown headings. Each chunk includes the parent heading as context, improving retrieval relevance.
-</ImplementationNote>
+## Choosing the Right Strategy
 
-## Strategy Selection
-
-| Strategy | Best For | Considerations |
-|----------|----------|----------------|
-| FixedSize | Simple text, consistent density | May break mid-thought |
-| Sentence | Narrative text | Variable chunk sizes |
-| Paragraph | Well-structured documents | Very variable sizes |
-| Semantic | Markdown/structured docs | Requires structure parsing |
-| Sliding | Dense technical content | More storage, better recall |
+| Strategy | Best For | Chunk Size | Considerations |
+|----------|----------|------------|----------------|
+| **Fixed-Size** | Simple text, consistent density | Predictable | May break mid-thought |
+| **Sentence** | Narrative text, articles | Variable | Respects linguistic units |
+| **Paragraph** | Well-structured documents | Very variable | Needs good paragraph structure |
+| **Semantic** | Markdown/technical docs | Variable | Best quality for structured content |
+| **Sliding** | Dense technical content | Overlapping | More storage, better recall |
 
 <Callout type="tip">
 Start with semantic chunking for markdown documents. Fall back to sliding window (256-token overlap) for dense technical content where context preservation is critical.
 </Callout>
 
-## Summary
+## Conclusion
 
-Effective chunking balances:
+Effective chunking is the foundation of a performant RAG system. The key principles:
 
-- **Semantic coherence**: Keep related content together
-- **Size consistency**: Fit embedding model context windows
-- **Context preservation**: Include headers and overlap
-- **Retrieval quality**: Smaller chunks = more precise matches
+- **Semantic coherence**: Keep related content together using document structure
+- **Size consistency**: Fit within embedding model context windows (typically 512 tokens)
+- **Context preservation**: Include headers and use overlap to prevent information loss
+- **Retrieval quality**: Smaller, focused chunks produce more precise similarity matches
 
-Combined with proper embedding models, good chunking significantly improves RAG accuracy.
+Start with semantic chunking for structured documents, then tune based on your retrieval metrics. Monitor which chunks get retrieved for your test queries—if they're missing critical context, increase overlap or adjust your chunking strategy.
+
+The `ChunkingService` we built supports all five strategies through a simple interface, making it easy to experiment and find what works best for your document corpus.
 
 <ExternalCite 
   title="Chunking Strategies for LLM Applications" 

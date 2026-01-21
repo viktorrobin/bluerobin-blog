@@ -1,6 +1,6 @@
 ---
 import MainLayout from "@layouts/MainLayout.astro";
-import { getCollection } from "astro:content";
+import { marked } from 'marked';
 
 export async function getStaticPaths() {
   // Define all diagram slugs manually since they're markdown files in content/diagrams
@@ -32,7 +32,7 @@ if (!rawContent) {
 // Parse frontmatter and content
 const frontmatterMatch = rawContent.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
 const frontmatter = frontmatterMatch ? frontmatterMatch[1] : '';
-const content = frontmatterMatch ? frontmatterMatch[2] : rawContent;
+const markdownContent = frontmatterMatch ? frontmatterMatch[2] : rawContent;
 
 // Parse frontmatter YAML (simple parsing)
 const titleMatch = frontmatter.match(/title:\s*"([^"]+)"/);
@@ -44,6 +44,23 @@ const title = titleMatch ? titleMatch[1] : 'Diagram';
 const description = descMatch ? descMatch[1] : '';
 const diagramType = typeMatch ? typeMatch[1] : 'diagram';
 const topic = topicMatch ? topicMatch[1] : 'architecture';
+
+// Custom renderer to preserve mermaid code blocks
+const renderer = new marked.Renderer();
+renderer.code = function({ text, lang }: { text: string; lang?: string }) {
+  if (lang === 'mermaid') {
+    // Return mermaid code block that our base script will process
+    return `<pre><code class="language-mermaid">${text}</code></pre>`;
+  }
+  // Default code block rendering
+  const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<pre><code class="language-${lang || 'plaintext'}">${escaped}</code></pre>`;
+};
+
+marked.setOptions({ renderer });
+
+// Convert markdown to HTML
+const htmlContent = marked.parse(markdownContent);
 
 const topicColors: Record<string, string> = {
   "ai": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
@@ -89,7 +106,7 @@ const topicColors: Record<string, string> = {
 
     <!-- Diagram Content -->
     <article class="glass-card p-8">
-      <div class="prose prose-lg dark:prose-invert max-w-none prose-pre:bg-slate-900 prose-pre:text-slate-100" set:html={content}>
+      <div class="prose prose-lg dark:prose-invert max-w-none prose-pre:bg-slate-900 prose-pre:text-slate-100" set:html={htmlContent}>
       </div>
     </article>
 
@@ -110,21 +127,3 @@ const topicColors: Record<string, string> = {
     </nav>
   </div>
 </MainLayout>
-
-<script>
-  // Initialize Mermaid diagrams after page load
-  import mermaid from 'mermaid';
-  
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
-    securityLevel: 'loose',
-    flowchart: {
-      useMaxWidth: true,
-      htmlLabels: true
-    },
-    sequence: {
-      useMaxWidth: true
-    }
-  });
-</script>

@@ -14,9 +14,29 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Named Entity Recognition (NER) extracts structured information from unstructured text, identifying people, organizations, locations, and more. This guide covers deploying a spaCy NER service and integrating it with .NET applications.
+## Introduction
 
-## Architecture
+Named Entity Recognition (NER) is a natural language processing technique that identifies and classifies named entities in text—people, organizations, locations, dates, and more. For a document management system, NER transforms unstructured text into structured, queryable data.
+
+**Why NER matters for document analysis:**
+
+- **Searchability**: Find all documents mentioning "Acme Corporation" without relying on exact text matches
+- **Knowledge Graphs**: Automatically discover relationships between entities across documents
+- **Faceted Search**: Filter search results by entity type (show only documents mentioning people)
+- **Document Clustering**: Group related documents by shared entities
+
+### What We'll Build
+
+In this guide, we'll:
+
+1. Deploy a spaCy NER service as a containerized microservice
+2. Create a .NET client with retry policies and circuit breakers
+3. Integrate NER into our document processing pipeline via NATS events
+4. Store extracted entities for graph queries and search facets
+
+## Architecture Overview
+
+Before diving into code, let's understand how NER fits into the broader document processing pipeline:
 
 ```mermaid
 flowchart TB
@@ -40,9 +60,19 @@ flowchart TB
     style Spacy fill:#09a3d5,color:#fff
 ```
 
-## spaCy Service Deployment
+**The flow**:
+1. After OCR completes, document content is chunked into manageable sections
+2. Each chunk is sent to the spaCy NER service for entity extraction
+3. Extracted entities are stored in three places:
+   - **FalkorDB**: Graph database for relationship queries ("Who works at Company X?")
+   - **Qdrant**: Vector metadata for filtered semantic search
+   - **PostgreSQL**: Facet counts for UI filtering
 
-### Dockerfile
+## Deploying the spaCy Service
+
+We'll run spaCy as a dedicated microservice for several reasons: spaCy's transformer models require significant memory (2-4GB), Python's GIL limits concurrency, and isolating NER allows independent scaling.
+
+### The Dockerfile
 
 ```dockerfile
 # services/spacy-ner/Dockerfile
@@ -54,7 +84,8 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Download spaCy model
+# Download the transformer-based model (~500MB)
+# This provides much better accuracy than the smaller models
 RUN python -m spacy download en_core_web_trf
 
 COPY app.py .
@@ -64,7 +95,11 @@ EXPOSE 8080
 CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8080"]
 ```
 
+We use `en_core_web_trf`—the transformer-based model—because accuracy matters more than speed for our use case. A misidentified entity pollutes the knowledge graph; a slower extraction is merely inconvenient.
+
 ### FastAPI Application
+
+The service exposes a simple REST API for entity extraction:
 
 ```python
 # services/spacy-ner/app.py
@@ -78,38 +113,51 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load transformer-based model for better accuracy
+# This happens once at startup and is reused for all requests
 nlp = spacy.load("en_core_web_trf")
 
 app = FastAPI(title="spaCy NER Service")
+```
 
+The model is loaded once at startup—this takes several seconds but ensures subsequent requests are fast.
+
+**Request and response models:**
+
+```python
 class NERRequest(BaseModel):
     text: str
-    entity_types: Optional[List[str]] = None
-    min_confidence: float = 0.5
+    entity_types: Optional[List[str]] = None  # Filter to specific types
+    min_confidence: float = 0.5               # Threshold for inclusion
 
 class Entity(BaseModel):
-    text: str
-    label: str
-    start: int
-    end: int
-    confidence: float
+    text: str           # The entity text ("John Doe")
+    label: str          # spaCy label ("PERSON")
+    start: int          # Character offset in original text
+    end: int            # End character offset
+    confidence: float   # Estimated confidence score
 
 class NERResponse(BaseModel):
     entities: List[Entity]
     text_length: int
     processing_time_ms: float
+```
 
+**The extraction endpoint:**
+
+```python
 @app.post("/extract", response_model=NERResponse)
 async def extract_entities(request: NERRequest):
     import time
     start_time = time.time()
     
+    # Guard against excessive input
     if len(request.text) > 100000:
         raise HTTPException(
             status_code=400, 
             detail="Text too long. Maximum 100,000 characters."
         )
     
+    # Run the spaCy pipeline
     doc = nlp(request.text)
     
     entities = []
@@ -118,8 +166,8 @@ async def extract_entities(request: NERRequest):
         if request.entity_types and ent.label_ not in request.entity_types:
             continue
         
-        # spaCy doesn't provide confidence scores directly
-        # Use a heuristic based on entity length and context
+        # spaCy doesn't provide confidence scores directly,
+        # so we use a heuristic based on entity characteristics
         confidence = min(0.9, 0.6 + (len(ent.text) / 50))
         
         if confidence >= request.min_confidence:
@@ -132,7 +180,6 @@ async def extract_entities(request: NERRequest):
             ))
     
     processing_time = (time.time() - start_time) * 1000
-    
     logger.info(f"Extracted {len(entities)} entities in {processing_time:.2f}ms")
     
     return NERResponse(
@@ -140,14 +187,18 @@ async def extract_entities(request: NERRequest):
         text_length=len(request.text),
         processing_time_ms=round(processing_time, 2)
     )
+```
 
+**Supporting endpoints for health checks and entity type discovery:**
+
+```python
 @app.get("/health")
 async def health():
     return {"status": "healthy", "model": "en_core_web_trf"}
 
 @app.get("/entity-types")
 async def entity_types():
-    """Return supported entity types"""
+    """Return all supported spaCy entity types with descriptions"""
     return {
         "types": [
             {"label": "PERSON", "description": "People, including fictional"},
@@ -168,6 +219,8 @@ async def entity_types():
 
 ### Kubernetes Deployment
 
+The NER service needs more resources than typical web services due to the transformer model:
+
 ```yaml
 # apps/spacy-ner/deployment.yaml
 apiVersion: apps/v1
@@ -176,7 +229,7 @@ metadata:
   name: spacy-ner
   namespace: ai
 spec:
-  replicas: 2
+  replicas: 2  # Multiple replicas for availability
   selector:
     matchLabels:
       app: spacy-ner
@@ -192,32 +245,34 @@ spec:
             - containerPort: 8080
           resources:
             requests:
-              memory: "1Gi"
+              memory: "1Gi"   # Minimum for stable operation
               cpu: "500m"
             limits:
-              memory: "4Gi"
+              memory: "4Gi"   # Transformer model needs headroom
               cpu: "2000m"
           readinessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 30  # Model loading takes time
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /health
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 60  # Allow for model warmup
             periodSeconds: 30
 ```
 
 <ImplementationNote>
-The transformer model (`en_core_web_trf`) provides better accuracy than the default models but requires more memory. Allocate at least 2GB per replica.
+The transformer model (`en_core_web_trf`) provides better accuracy than the default models but requires more memory. Allocate at least 2GB per replica. The longer `initialDelaySeconds` accounts for model loading time.
 </ImplementationNote>
 
-## .NET Integration
+## .NET Client Integration
 
-### NER Client
+Now let's build the .NET client that calls our spaCy service. We'll add resilience patterns to handle transient failures gracefully.
+
+### The NER Client
 
 ```csharp
 // Infrastructure/Ai/SpacyNerClient.cs
@@ -264,6 +319,7 @@ public sealed class SpacyNerClient : INerService
             result.Entities.Count,
             result.ProcessingTimeMs);
         
+        // Map spaCy labels to our domain model
         return result.Entities.Select(e => new ExtractedEntity
         {
             Value = e.Text,
@@ -274,11 +330,15 @@ public sealed class SpacyNerClient : INerService
         }).ToList();
     }
     
+    /// <summary>
+    /// Map spaCy's label strings to our strongly-typed EntityType enum.
+    /// This insulates our domain model from spaCy's naming conventions.
+    /// </summary>
     private static EntityType MapEntityType(string label) => label switch
     {
         "PERSON" => EntityType.Person,
         "ORG" => EntityType.Organization,
-        "GPE" or "LOC" => EntityType.Location,
+        "GPE" or "LOC" => EntityType.Location,  // Combine geo-political and location
         "DATE" or "TIME" => EntityType.Date,
         "MONEY" or "PERCENT" => EntityType.Numeric,
         "EVENT" => EntityType.Event,
@@ -288,7 +348,11 @@ public sealed class SpacyNerClient : INerService
         _ => EntityType.Other
     };
 }
+```
 
+**Supporting types for the client:**
+
+```csharp
 public sealed record NerOptions
 {
     public IReadOnlyList<string>? EntityTypes { get; init; }
@@ -296,6 +360,7 @@ public sealed record NerOptions
     
     public static NerOptions Default { get; } = new();
     
+    // Preset for common use case
     public static NerOptions PeopleAndOrgs { get; } = new()
     {
         EntityTypes = ["PERSON", "ORG"]
@@ -326,7 +391,9 @@ public enum EntityType
 }
 ```
 
-### Dependency Injection
+### Dependency Injection with Resilience
+
+We configure the HttpClient with Polly policies for retry and circuit breaking:
 
 ```csharp
 // Infrastructure/DependencyInjection.cs
@@ -347,6 +414,10 @@ public static IServiceCollection AddNerServices(
     return services;
 }
 
+/// <summary>
+/// Exponential backoff retry: wait 2s, 4s, 8s between attempts.
+/// Handles transient HTTP errors and 5xx responses.
+/// </summary>
 private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
 {
     return HttpPolicyExtensions
@@ -355,6 +426,10 @@ private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
             TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 }
 
+/// <summary>
+/// Circuit breaker: after 5 failures, stop calling for 30 seconds.
+/// Prevents cascade failures when the NER service is down.
+/// </summary>
 private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
 {
     return HttpPolicyExtensions
@@ -365,7 +440,7 @@ private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
 
 ## Document Processing Integration
 
-### Entity Extraction Worker
+The final piece: a background worker that listens for document analysis events and triggers entity extraction.
 
 ```csharp
 // Workers/EntityExtractionWorker.cs
@@ -380,6 +455,7 @@ public sealed class EntityExtractionWorker : BackgroundService
     
     protected override async Task ExecuteAsync(CancellationToken ct)
     {
+        // Subscribe to the environment-prefixed subject
         var env = _config["Environment"] ?? "dev";
         var subject = $"{env}.archives.documents.analysis.completed";
         
@@ -396,6 +472,7 @@ public sealed class EntityExtractionWorker : BackgroundService
                 _logger.LogError(ex, 
                     "Failed to extract entities for {DocumentId}",
                     msg.Data?.DocumentId);
+                // NAK will trigger redelivery after delay
                 await msg.NakAsync(cancellationToken: ct);
             }
         }
@@ -410,7 +487,7 @@ public sealed class EntityExtractionWorker : BackgroundService
         
         if (document == null) return;
         
-        // Extract entities from document content
+        // Extract entities from the full document content
         var entities = await _ner.ExtractAsync(
             evt.Content,
             NerOptions.Default,
@@ -421,14 +498,14 @@ public sealed class EntityExtractionWorker : BackgroundService
             entities.Count,
             evt.DocumentId);
         
-        // Store in graph database
+        // Store entities in the graph database for relationship queries
         await _relationships.AddDocumentEntitiesAsync(
             document.Id,
             document.OwnerId,
             entities,
             ct);
         
-        // Update document with entity counts
+        // Update document with aggregated entity counts for faceted search
         document.UpdateEntityCounts(
             entities.Count(e => e.Type == EntityType.Person),
             entities.Count(e => e.Type == EntityType.Organization),
@@ -440,22 +517,28 @@ public sealed class EntityExtractionWorker : BackgroundService
 ```
 
 <Callout type="tip">
-Process entities after OCR and before embedding generation to ensure entity metadata is available for vector search filtering.
+Process entities after OCR and before embedding generation. This ensures entity metadata is available for vector search filtering—users can search semantically while filtering to "only documents mentioning Company X."
 </Callout>
 
-## Summary
+## Conclusion
 
-spaCy NER enables:
+We've built a complete NER pipeline that transforms unstructured document text into structured, queryable entity data:
 
-| Feature | Benefit |
-|---------|---------|
-| 12+ Entity Types | Rich semantic extraction |
-| Transformer Model | High accuracy recognition |
-| Fast Processing | Sub-second for typical documents |
-| Graph Integration | Build knowledge graphs from entities |
-| Search Enhancement | Filter by entity mentions |
+| Component | Purpose |
+|-----------|---------|
+| **spaCy Service** | Transformer-based NER with 12+ entity types |
+| **.NET Client** | Resilient HTTP client with retry and circuit breaker |
+| **Worker** | Event-driven integration via NATS |
+| **Storage** | Graph (relationships), vector (metadata), relational (facets) |
 
-Combined with FalkorDB, extracted entities form a queryable knowledge graph across all documents.
+**Key takeaways:**
+
+- **Isolate NLP services**: Python NLP models have different resource needs than .NET APIs
+- **Use transformer models**: The accuracy improvement is worth the memory cost
+- **Build resilience**: NER failures shouldn't crash your document pipeline
+- **Store strategically**: Different storage backends serve different query patterns
+
+With entities extracted and stored in FalkorDB, you can now build powerful features like "find all documents where Person A and Company B are mentioned together" or "show the relationship network for this person across all my documents."
 
 <ExternalCite 
   title="spaCy NER Documentation" 

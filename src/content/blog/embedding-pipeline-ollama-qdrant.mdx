@@ -17,9 +17,32 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Semantic search requires converting text into dense vector representations (embeddings) that capture meaning. In this guide, we'll build a complete embedding pipeline using Ollama for local inference and Qdrant as our vector database.
+## Introduction
+
+Traditional keyword search fails when users search for "budget reports" but your documents say "financial statements." Semantic search solves this by converting text into vector representations (embeddings) that capture meaning, enabling similarity matching based on concepts rather than exact words.
+
+**In this guide, we'll build a production-ready embedding pipeline that:**
+
+1. Chunks documents into semantically meaningful segments
+2. Generates vector embeddings using Ollama (local inference)
+3. Stores vectors in Qdrant with metadata for filtered search
+4. Processes documents asynchronously via NATS events
+5. Enables semantic search with score thresholds and user isolation
+
+### Why Ollama + Qdrant?
+
+- **Ollama**: Run embedding models locally without API costs or data leaving your infrastructure. Perfect for sensitive documents.
+- **Qdrant**: Purpose-built vector database with filtering, payloads, and horizontal scaling. Much faster than Postgres with pgvector for large collections.
+
+### Prerequisites
+
+- Ollama running with `nomic-embed-text` model pulled
+- Qdrant instance (we use shared infrastructure in `data-layer` namespace)
+- NATS JetStream for event-driven processing
 
 ## Architecture Overview
+
+Before diving into code, understand the data flow:
 
 ```mermaid
 flowchart LR
@@ -43,15 +66,28 @@ flowchart LR
     style Query fill:#f39c12,color:#fff
 ```
 
+**The flow works like this:**
+1. After OCR completes, a NATS event triggers the embedding worker
+2. Document content is split into ~500 token chunks with overlap
+3. Each chunk is sent to Ollama for embedding generation
+4. Vectors are stored in Qdrant with metadata (document ID, user ID, chunk content)
+5. At search time, the query is embedded and compared against stored vectors
+
 ## Choosing an Embedding Model
 
-For local inference with Ollama, we use `nomic-embed-text`:
+Model selection significantly impacts both search quality and performance. For local inference with Ollama, we evaluated three options:
 
 | Model | Dimensions | Context | Speed | Quality |
 |-------|------------|---------|-------|---------|
 | nomic-embed-text | 768 | 8192 | Fast | Excellent |
 | mxbai-embed-large | 1024 | 512 | Medium | Very Good |
 | all-minilm | 384 | 256 | Very Fast | Good |
+
+**We chose `nomic-embed-text`** for several reasons:
+- **768 dimensions**: Good balance between expressiveness and storage
+- **8K context window**: Handles longer chunks without truncation
+- **Competitive quality**: Benchmarks well against commercial models
+- **Fast inference**: ~50ms per embedding on modest hardware
 
 <ExternalCite 
   title="Nomic Embed: A Reproducible Long Context Text Embedder" 
@@ -61,7 +97,7 @@ For local inference with Ollama, we use `nomic-embed-text`:
 
 ## The Embedding Service
 
-Create an interface-driven service for generating embeddings:
+Let's start with the interface. Defining a clean abstraction allows us to swap implementations (e.g., switch to OpenAI embeddings for comparison):
 
 ```csharp
 // Application/Services/IEmbeddingService.cs
@@ -78,6 +114,7 @@ public interface IEmbeddingService
     
     /// <summary>
     /// Generates embeddings for multiple texts in a batch.
+    /// More efficient than calling GenerateEmbeddingAsync repeatedly.
     /// </summary>
     Task<IReadOnlyList<float[]>> GenerateEmbeddingsAsync(
         IReadOnlyList<string> texts,
@@ -86,6 +123,8 @@ public interface IEmbeddingService
 ```
 
 ### Ollama Implementation
+
+The Ollama API is straightforward—send text, receive a vector. The complexity comes from batching and error handling:
 
 ```csharp
 // Infrastructure/AI/OllamaEmbeddingService.cs
@@ -96,7 +135,7 @@ public sealed class OllamaEmbeddingService : IEmbeddingService
     private readonly HttpClient _httpClient;
     private readonly ILogger<OllamaEmbeddingService> _logger;
     private readonly string _model;
-    private const int MaxBatchSize = 10;
+    private const int MaxBatchSize = 10;  // Prevent memory spikes
     
     public OllamaEmbeddingService(
         HttpClient httpClient,
@@ -125,7 +164,7 @@ public sealed class OllamaEmbeddingService : IEmbeddingService
         
         var embeddings = new List<float[]>(texts.Count);
         
-        // Process in batches to avoid overwhelming Ollama
+        // Process in batches to manage memory and provide progress
         foreach (var batch in texts.Chunk(MaxBatchSize))
         {
             var batchEmbeddings = await GenerateBatchAsync(batch, ct);
@@ -134,7 +173,11 @@ public sealed class OllamaEmbeddingService : IEmbeddingService
         
         return embeddings;
     }
-    
+```
+
+**Note on batching**: Ollama's `/api/embed` accepts one input at a time, so we iterate. However, batching still helps by limiting concurrent requests and providing natural checkpoints for logging.
+
+```csharp
     private async Task<IEnumerable<float[]>> GenerateBatchAsync(
         IEnumerable<string> texts,
         CancellationToken ct)
@@ -159,6 +202,7 @@ public sealed class OllamaEmbeddingService : IEmbeddingService
             var result = await response.Content
                 .ReadFromJsonAsync<OllamaEmbedResponse>(ct);
             
+            // Use pattern matching to safely extract the embedding
             if (result?.Embeddings is [var embedding, ..])
             {
                 results.Add(embedding);
@@ -195,12 +239,17 @@ public class EmbeddingException : Exception
 ```
 
 <ImplementationNote>
-Ollama's `/api/embed` endpoint accepts a single input at a time. For batch processing, we iterate and manage concurrency ourselves.
+Ollama's `/api/embed` endpoint accepts a single input at a time. For batch processing, we iterate and manage concurrency ourselves. Consider using `Parallel.ForEachAsync` with a throttle for CPU-bound scenarios.
 </ImplementationNote>
 
 ## Semantic Chunking
 
-Before embedding, split documents into meaningful chunks:
+Embedding models work best on focused, coherent text. A 10,000 word document embedded as-is produces a vector that represents "everything," making it hard to match against specific queries. Chunking splits documents into meaningful segments.
+
+**Key chunking decisions:**
+- **Chunk size**: ~500 tokens balances specificity with context. Too small = fragments; too large = diluted relevance.
+- **Overlap**: 50-100 tokens ensures concepts spanning chunk boundaries appear in at least one chunk.
+- **Boundary respect**: Split at markdown headers or sentence boundaries, not mid-word.
 
 ```csharp
 // Application/Services/ITextChunker.cs
@@ -229,6 +278,8 @@ public record ChunkingOptions
 
 ### Markdown-Aware Implementation
 
+Our documents are markdown from OCR output, so we should respect heading boundaries:
+
 ```csharp
 // Infrastructure/Text/SemanticTextChunker.cs
 namespace Archives.Infrastructure.Text;
@@ -237,7 +288,7 @@ public sealed class SemanticTextChunker : ITextChunker
 {
     private readonly ILogger<SemanticTextChunker> _logger;
     
-    // Approximate tokens as words * 1.3
+    // Approximate tokens as words * 1.3 (accounts for subword tokenization)
     private const double TokenToWordRatio = 1.3;
     
     public SemanticTextChunker(ILogger<SemanticTextChunker> logger)
@@ -255,6 +306,8 @@ public sealed class SemanticTextChunker : ITextChunker
             return [];
         
         var chunks = new List<TextChunk>();
+        
+        // Choose splitting strategy based on content type
         var sections = options.PreserveMarkdown
             ? SplitByMarkdownSections(text)
             : SplitBySentences(text);
@@ -268,9 +321,10 @@ public sealed class SemanticTextChunker : ITextChunker
             var sectionTokens = EstimateTokens(section);
             var currentTokens = EstimateTokens(currentChunk.ToString());
             
+            // Check if adding this section would exceed our limit
             if (currentTokens + sectionTokens > options.MaxTokens && currentChunk.Length > 0)
             {
-                // Save current chunk
+                // Finalize current chunk
                 var content = currentChunk.ToString().Trim();
                 if (content.Length > 0)
                 {
@@ -281,7 +335,7 @@ public sealed class SemanticTextChunker : ITextChunker
                         chunkIndex++));
                 }
                 
-                // Start new chunk with overlap
+                // Start new chunk with overlap from previous
                 var overlap = GetOverlapText(currentChunk.ToString(), options.OverlapTokens);
                 currentChunk.Clear();
                 currentChunk.Append(overlap);
@@ -292,7 +346,7 @@ public sealed class SemanticTextChunker : ITextChunker
             currentChunk.AppendLine();
         }
         
-        // Don't forget the last chunk
+        // Don't forget the final chunk!
         var lastContent = currentChunk.ToString().Trim();
         if (lastContent.Length > 0)
         {
@@ -310,15 +364,23 @@ public sealed class SemanticTextChunker : ITextChunker
         
         return chunks;
     }
-    
+```
+
+The helper methods handle the two splitting strategies:
+
+```csharp
+    /// <summary>
+    /// Split at markdown headers, keeping each header with its content.
+    /// This preserves document structure in the chunks.
+    /// </summary>
     private static IEnumerable<string> SplitByMarkdownSections(string text)
     {
-        // Split by headers while keeping the header with its content
         var lines = text.Split('\n');
         var currentSection = new StringBuilder();
         
         foreach (var line in lines)
         {
+            // When we hit a header, yield the previous section
             if (line.StartsWith('#') && currentSection.Length > 0)
             {
                 yield return currentSection.ToString();
@@ -334,9 +396,11 @@ public sealed class SemanticTextChunker : ITextChunker
         }
     }
     
+    /// <summary>
+    /// Fallback for non-markdown content: split at sentence boundaries.
+    /// </summary>
     private static IEnumerable<string> SplitBySentences(string text)
     {
-        // Simple sentence boundary detection
         var sentenceEnders = new[] { ". ", "! ", "? ", ".\n", "!\n", "?\n" };
         var start = 0;
         
@@ -368,6 +432,9 @@ public sealed class SemanticTextChunker : ITextChunker
         return (int)(wordCount * TokenToWordRatio);
     }
     
+    /// <summary>
+    /// Get the last N tokens worth of text for overlap.
+    /// </summary>
     private static string GetOverlapText(string text, int overlapTokens)
     {
         var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
@@ -383,7 +450,14 @@ public sealed class SemanticTextChunker : ITextChunker
 
 ## Qdrant Vector Storage
 
+Qdrant is a purpose-built vector database that handles similarity search at scale. Key features we use:
+- **Payloads**: Store metadata alongside vectors for filtering
+- **Collections**: Namespace vectors by environment (dev, staging, prod)
+- **Filtering**: Pre-filter by user_id before similarity search
+
 ### The Vector Store Interface
+
+We abstract Qdrant behind an interface for testability:
 
 ```csharp
 // Application/Services/IVectorStore.cs
@@ -428,6 +502,8 @@ public record SearchOptions
 
 ### Qdrant Implementation
 
+The implementation handles collection creation, upserts, search, and deletion:
+
 ```csharp
 // Infrastructure/VectorStore/QdrantVectorStore.cs
 namespace Archives.Infrastructure.VectorStore;
@@ -447,7 +523,13 @@ public sealed class QdrantVectorStore : IVectorStore
         _logger = logger;
         _environment = configuration["Environment"] ?? "dev";
     }
-    
+```
+
+**Upserting vectors with payloads:**
+
+The `UpsertAsync` method stores vectors along with metadata that enables filtering during search:
+
+```csharp
     public async Task UpsertAsync(
         string collection,
         IReadOnlyList<VectorPoint> points,
@@ -607,7 +689,11 @@ Collection names are prefixed with the environment (e.g., `dev-documents`, `stag
 
 ## The Embedding Worker
 
-Orchestrate the embedding pipeline as a background worker:
+Now we orchestrate everything in a background worker. This worker:
+1. Subscribes to `analysis.completed` events (after OCR)
+2. Fetches document content from MinIO
+3. Chunks → Embeds → Stores
+4. Publishes `embedding.completed` event
 
 ```csharp
 // Workers/EmbeddingWorker.cs
@@ -756,7 +842,10 @@ public sealed class EmbeddingWorker : BackgroundService
 
 ## Semantic Search Implementation
 
-Finally, implement search that queries the vector store:
+Finally, the search service that makes it all useful. At query time, we:
+1. Embed the search query
+2. Search Qdrant with user_id filter
+3. Return matching chunks with scores
 
 ```csharp
 // Application/Services/SemanticSearchService.cs
@@ -821,18 +910,21 @@ public record SemanticSearchResult
 
 ## Service Registration
 
+Wire everything up in dependency injection:
+
 ```csharp
 // Program.cs
-// Ollama embedding service
+
+// Ollama embedding service with timeout for large batches
 builder.Services.AddHttpClient<IEmbeddingService, OllamaEmbeddingService>(client =>
 {
     client.BaseAddress = new Uri(
         builder.Configuration["Ollama:Url"] 
         ?? "http://ollama.ai.svc.cluster.local:11434");
-    client.Timeout = TimeSpan.FromMinutes(2);
+    client.Timeout = TimeSpan.FromMinutes(2);  // Large documents take time
 });
 
-// Qdrant vector store
+// Qdrant vector store - singleton since client is thread-safe
 builder.Services.AddSingleton(sp =>
 {
     var config = sp.GetRequiredService<IConfiguration>();
@@ -842,21 +934,30 @@ builder.Services.AddSingleton(sp =>
 });
 builder.Services.AddSingleton<IVectorStore, QdrantVectorStore>();
 
-// Chunking and search
+// Chunking (stateless) and search (needs DI)
 builder.Services.AddSingleton<ITextChunker, SemanticTextChunker>();
 builder.Services.AddScoped<ISemanticSearchService, SemanticSearchService>();
 ```
 
-## Summary
+## Conclusion
 
 We've built a complete semantic embedding pipeline:
 
-1. **Embedding Service** — Ollama integration for local inference
-2. **Text Chunker** — Markdown-aware semantic splitting
-3. **Vector Store** — Qdrant for storing and searching embeddings
-4. **Embedding Worker** — Event-driven pipeline processing
-5. **Semantic Search** — Query-time embedding and similarity search
+| Component | Purpose |
+|-----------|---------|
+| **IEmbeddingService** | Generate vectors via Ollama |
+| **ITextChunker** | Markdown-aware semantic splitting |
+| **IVectorStore** | Qdrant storage with filtering |
+| **EmbeddingWorker** | Event-driven pipeline orchestration |
+| **SemanticSearchService** | Query-time embedding and search |
 
-This pipeline enables powerful semantic search over documents, finding relevant content based on meaning rather than just keywords.
+**Key takeaways:**
 
-Next in the series, we'll explore **hybrid search** that combines semantic and full-text search for the best of both worlds.
+- **Chunk thoughtfully**: Respect document structure for better retrieval
+- **Store metadata**: User IDs, document IDs, and chunk content enable filtering and reconstruction
+- **Delete before upsert**: Prevent duplicate vectors when re-processing documents
+- **Use score thresholds**: A 0.7 threshold filters out low-confidence matches
+
+The pipeline processes documents asynchronously, scales horizontally (add more workers), and isolates user data through Qdrant filters.
+
+**Next in the series**: We'll build **hybrid search** that combines semantic similarity with full-text keyword search for the best of both approaches.

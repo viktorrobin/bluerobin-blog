@@ -17,9 +17,40 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-AI agents go beyond simple question-answering by taking autonomous actions, using tools, and maintaining conversational memory. This guide covers building intelligent agents with Microsoft Semantic Kernel.
+## Introduction
 
-## Agent Architecture
+A user asks: "Find all documents about the Q3 budget, compare them to last year's actuals, and summarize the key variances."
+
+This isn't a simple search query—it requires multiple steps: search, retrieval, comparison, and synthesis. Traditional APIs can't handle this. **AI agents** can.
+
+Agents go beyond simple question-answering by:
+- **Planning**: Breaking complex requests into subtasks
+- **Tool calling**: Using external functions (search, database queries, APIs)
+- **Memory**: Maintaining context across interactions
+- **Reasoning**: Deciding which tools to use and in what order
+
+### What We'll Build
+
+In this guide, we'll use **Microsoft Semantic Kernel** to build:
+
+1. **Search Agent**: Semantic and keyword search over document collections
+2. **Analysis Agent**: Document comparison and entity extraction
+3. **Summary Agent**: Report generation and synthesis
+4. **Agent Orchestrator**: Coordinates agents for complex multi-step tasks
+
+By the end, users can ask natural language questions that span multiple operations—and get coherent, synthesized answers.
+
+### Why Semantic Kernel?
+
+Microsoft's Semantic Kernel is the .NET-native way to build AI applications:
+- **First-class C# support**: Strongly-typed plugins, dependency injection integration
+- **Model agnostic**: Works with OpenAI, Azure OpenAI, Ollama, and others
+- **Production ready**: Used in Microsoft 365 Copilot
+- **Plugin architecture**: Clean separation between AI reasoning and business logic
+
+## Agent Architecture Overview
+
+Before diving into code, let's understand how the pieces fit together:
 
 ```mermaid
 flowchart TB
@@ -40,9 +71,15 @@ flowchart TB
     style System fill:#512bd4,color:#fff
 ```
 
+**The flow**:
+1. User submits a natural language query
+2. Orchestrator uses LLM reasoning to determine which agents/tools to invoke
+3. Agents execute their tools (search, read, analyze, etc.)
+4. Results are combined and synthesized into a coherent response
+
 ## Semantic Kernel Setup
 
-### Configuration
+First, configure Semantic Kernel with our LLM providers and plugins:
 
 ```csharp
 // Infrastructure/DependencyInjection.cs
@@ -54,7 +91,7 @@ public static IServiceCollection AddSemanticKernel(
     {
         var kernelBuilder = Kernel.CreateBuilder();
         
-        // Configure Ollama for local inference
+        // Configure Ollama for local inference (fast, private)
         var ollamaEndpoint = configuration["Ollama:Endpoint"] 
             ?? "http://ollama.ai.svc.cluster.local:11434";
         
@@ -62,7 +99,7 @@ public static IServiceCollection AddSemanticKernel(
             modelId: "llama3.2",
             endpoint: new Uri(ollamaEndpoint));
         
-        // Add OpenAI for complex reasoning (fallback)
+        // Add OpenAI for complex reasoning (fallback for hard tasks)
         var openAiKey = configuration["OpenAI:ApiKey"];
         if (!string.IsNullOrEmpty(openAiKey))
         {
@@ -72,12 +109,12 @@ public static IServiceCollection AddSemanticKernel(
                 serviceId: "openai-complex");
         }
         
-        // Register services
+        // Inject our application services into Semantic Kernel
         kernelBuilder.Services.AddSingleton(sp.GetRequiredService<IVectorStore>());
         kernelBuilder.Services.AddSingleton(sp.GetRequiredService<IDocumentRepository>());
         kernelBuilder.Services.AddSingleton(sp.GetRequiredService<IEmbeddingService>());
         
-        // Add plugins
+        // Register plugins (tools the agent can use)
         kernelBuilder.Plugins.AddFromType<SearchPlugin>("Search");
         kernelBuilder.Plugins.AddFromType<DocumentPlugin>("Document");
         kernelBuilder.Plugins.AddFromType<AnalysisPlugin>("Analysis");
@@ -91,9 +128,15 @@ public static IServiceCollection AddSemanticKernel(
 }
 ```
 
+**Key insight**: Plugins are C# classes with methods decorated with `[KernelFunction]`. The LLM reads the descriptions and decides when to call them.
+
 ## Plugin Definitions
 
+Plugins expose your business logic as tools the AI can use. Each method describes what it does; the LLM decides when to call it.
+
 ### Search Plugin
+
+The search plugin provides semantic and keyword search capabilities:
 
 ```csharp
 // Application/Plugins/SearchPlugin.cs

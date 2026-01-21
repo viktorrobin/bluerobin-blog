@@ -3,8 +3,8 @@ import MainLayout from "@layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
 import { CATEGORIES, DIFFICULTIES } from "@/config";
 
-// Get all AI/ML posts
-const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.category === "ai");
+// Get all cookbook-type posts
+const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.type === "cookbook");
 const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });

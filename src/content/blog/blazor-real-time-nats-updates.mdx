@@ -17,9 +17,32 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 
-Blazor Server maintains a persistent connection to the server, making it ideal for real-time updates. Instead of adding SignalR (which Blazor already uses internally), we'll leverage our existing NATS messaging infrastructure to push document processing updates directly to the UI.
+## Introduction
 
-## Architecture
+When a user uploads a document, they shouldn't stare at a spinner wondering if anything is happening. They should see real-time progress: "OCR processing... 45%... Entity extraction... Complete!"
+
+**The typical solution is SignalR**, but Blazor Server already uses SignalR internally for its circuit connection. Adding another SignalR layer for real-time events creates redundancy. Instead, we'll leverage our existing NATS messaging infrastructure to push updates directly to Blazor components.
+
+### What We'll Build
+
+In this guide, we'll implement:
+
+1. **In-process notification service** — Decouples NATS from Blazor components
+2. **NATS event listener** — Bridges external events to the notification service
+3. **Base component class** — Handles subscriptions, filtering, and cleanup
+4. **Document uploader** — Shows real-time upload and processing progress
+5. **Live document list** — Updates automatically when documents change
+
+### Why NATS Instead of SignalR?
+
+- **Consistency**: Workers already publish to NATS; no need for a separate notification channel
+- **Simplicity**: One messaging system instead of two
+- **Scalability**: NATS handles cross-pod communication naturally; SignalR needs Redis backplane
+- **Already there**: No additional infrastructure to manage
+
+## Architecture Overview
+
+The data flow from worker to UI:
 
 ```mermaid
 flowchart LR
@@ -39,9 +62,16 @@ flowchart LR
     style CompC fill:#9b4dca,color:#fff
 ```
 
+**Key insight**: The `DocumentProcessingNotifier` acts as an in-process event bus. The NATS listener translates external messages to C# events; components subscribe to only the documents they care about.
+
 ## The Notification Service
 
-First, create an in-process notification service that Blazor components can subscribe to:
+The notification service provides an in-process event aggregation layer. Components subscribe to it; they never know about NATS directly.
+
+**Why this indirection?**
+- **Testability**: Unit tests can call `NotifyDocumentUpdatedAsync` without NATS
+- **Flexibility**: Could swap NATS for another source without changing components
+- **Filtering**: Components subscribe to specific document IDs; the service broadcasts to all
 
 ```csharp
 // Application/Services/IDocumentProcessingNotifier.cs
@@ -92,6 +122,8 @@ public record DocumentProgressUpdate(
 ```
 
 ### Implementation
+
+The implementation iterates through handlers, catching exceptions to prevent one bad handler from breaking the notification chain:
 
 ```csharp
 // Web/Services/DocumentProcessingNotifier.cs
@@ -155,7 +187,7 @@ public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
         var update = new DocumentProgressUpdate(
             documentId,
             stage,
-            Math.Clamp(percentage, 0, 100),
+            Math.Clamp(percentage, 0, 100),  // Ensure valid range
             detail,
             DateTimeOffset.UtcNow);
         
@@ -182,12 +214,12 @@ public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
 ```
 
 <ImplementationNote>
-Register the notifier as a singleton so all components and the NATS listener share the same instance.
+Register the notifier as a singleton so all components and the NATS listener share the same instance. This is critical—scoped registration would create separate instances that can't communicate.
 </ImplementationNote>
 
 ## NATS Event Listener
 
-Create a hosted service that bridges NATS events to the notification service:
+This hosted service bridges NATS events to the notification service. It uses an **ephemeral consumer** since we only care about real-time updates—if the web server restarts, we don't need to replay missed events.
 
 ```csharp
 // Web/Services/NatsDocumentEventListener.cs
@@ -216,15 +248,20 @@ public sealed class NatsDocumentEventListener : BackgroundService
     {
         var js = _nats.CreateJetStreamContext();
         
-        // Ephemeral consumer for real-time notifications
+        // Ephemeral consumer: unique name, short inactivity timeout, no ack required
         var consumer = await js.CreateOrUpdateConsumerAsync(
             stream: "DOCUMENTS",
             config: new ConsumerConfig
             {
+                // Unique name per instance for horizontal scaling
                 Name = $"web-{Environment.MachineName}-{Guid.NewGuid():N}",
+                // Subscribe to all document events for this environment
                 FilterSubject = $"{_environment}.archives.documents.>",
+                // Only receive new messages (not replays)
                 DeliverPolicy = ConsumerConfigDeliverPolicy.New,
+                // Fire-and-forget: missing a notification isn't critical
                 AckPolicy = ConsumerConfigAckPolicy.None,
+                // Auto-cleanup when this pod dies
                 InactiveThreshold = TimeSpan.FromMinutes(5)
             },
             stoppingToken);
@@ -246,7 +283,11 @@ public sealed class NatsDocumentEventListener : BackgroundService
             _logger.LogInformation("NATS document event listener stopping");
         }
     }
-    
+```
+
+**Event mapping**: The listener translates NATS subjects to notification calls. Subject structure is `{env}.archives.documents.{event-type}`:
+
+```csharp
     private async Task HandleEventAsync(
         string subject,
         DocumentEventEnvelope envelope,
@@ -254,7 +295,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
     {
         try
         {
-            // Parse event type from subject
+            // Extract event type from subject: "dev.archives.documents.ocr-completed" -> "ocr-completed"
             var eventType = subject.Split('.').Last();
             
             switch (eventType)
@@ -358,7 +399,9 @@ builder.Services.AddHostedService<NatsDocumentEventListener>();
 
 ## Blazor Component Base
 
-Create a base component that handles subscriptions and cleanup:
+Now the Blazor side. We create a base component that handles the subscription boilerplate and—critically—cleanup when components dispose.
+
+**Why cleanup matters**: Blazor Server components can be disposed at any time (navigation, circuit disconnect). Without unsubscribing, you get memory leaks and exceptions when handlers try to invoke `StateHasChanged` on disposed components.
 
 ```csharp
 // Components/BlueRobinComponentBase.cs
@@ -375,10 +418,15 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
     private readonly List<IDisposable> _subscriptions = new();
     private bool _disposed;
     
+    /// <summary>
+    /// Subscribe to updates for a specific document.
+    /// Automatically filters events and triggers StateHasChanged.
+    /// </summary>
     protected void SubscribeToDocumentUpdates(
         string documentId,
         Func<DocumentStatusUpdate, Task> handler)
     {
+        // Wrap handler to filter by document ID and trigger re-render
         async Task FilteredHandler(DocumentStatusUpdate update)
         {
             if (update.DocumentId == documentId)
@@ -393,6 +441,9 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
             Notifier.OnDocumentUpdated -= FilteredHandler));
     }
     
+    /// <summary>
+    /// Subscribe to progress updates for a specific document.
+    /// </summary>
     protected void SubscribeToProgressUpdates(
         string documentId,
         Func<DocumentProgressUpdate, Task> handler)
@@ -411,6 +462,9 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
             Notifier.OnProgressUpdated -= FilteredHandler));
     }
     
+    /// <summary>
+    /// Subscribe to all document updates (useful for lists).
+    /// </summary>
     protected void SubscribeToAllDocumentUpdates(
         Func<DocumentStatusUpdate, Task> handler)
     {
@@ -437,6 +491,7 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
         
         if (disposing)
         {
+            // Unsubscribe from all events
             foreach (var subscription in _subscriptions)
             {
                 subscription.Dispose();
@@ -447,6 +502,9 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
         _disposed = true;
     }
     
+    /// <summary>
+    /// Helper class to track subscriptions for cleanup.
+    /// </summary>
     private sealed class EventSubscription : IDisposable
     {
         private Action? _unsubscribe;
@@ -464,7 +522,11 @@ public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
 
 ## Document Upload Component
 
-A complete upload component with real-time progress:
+Now let's build a complete upload component that shows real-time progress. This component:
+1. Handles file selection via drag-and-drop or file picker
+2. Uploads to the API
+3. Subscribes to processing events for real-time progress
+4. Updates the UI as events arrive
 
 ```razor
 @* Components/Documents/DocumentUploader.razor *@
@@ -640,6 +702,8 @@ public record UploadResponse(string DocumentId);
 
 ## Upload Card with Progress
 
+The upload card displays file info, status, and a progress bar. The key is the progress bar that updates in real-time as events arrive:
+
 ```razor
 @* Components/Documents/DocumentUploadCard.razor *@
 
@@ -763,7 +827,7 @@ public record UploadResponse(string DocumentId);
 
 ## Document List with Live Updates
 
-A document list that updates in real-time:
+Finally, a document list that updates in real-time when new documents are added or statuses change. This uses `SubscribeToAllDocumentUpdates` since it needs to react to any document, not just a specific one:
 
 ```razor
 @* Components/Documents/DocumentList.razor *@
@@ -832,19 +896,28 @@ A document list that updates in real-time:
 ```
 
 <Callout type="tip">
-By subscribing to updates at the component level, each component receives only the updates it needs. The NATS listener broadcasts to all subscribers, and filtering happens in the component.
+By subscribing to updates at the component level, each component receives only the updates it needs. The NATS listener broadcasts to all subscribers, and filtering happens in the component—simple and efficient.
 </Callout>
 
-## Summary
+## Conclusion
 
-We've built a complete real-time update system for Blazor Server:
+We've built a complete real-time update system for Blazor Server that leverages existing NATS infrastructure:
 
-1. **Notification Service** — In-process event aggregation
-2. **NATS Listener** — Bridges NATS events to the notification service
-3. **Base Component** — Handles subscriptions and cleanup
-4. **Upload Component** — Real-time progress during document processing
-5. **Document List** — Live updates when documents change
+| Component | Purpose |
+|-----------|---------|
+| **IDocumentProcessingNotifier** | In-process event aggregation |
+| **NatsDocumentEventListener** | Bridges NATS → notification service |
+| **BlueRobinComponentBase** | Subscription management + cleanup |
+| **DocumentUploader** | Real-time upload + processing progress |
+| **DocumentList** | Live list updates |
 
-This approach leverages existing NATS infrastructure instead of adding SignalR, keeping the architecture simpler and more consistent.
+**Key patterns:**
 
-Next in the series, we'll build **advanced form components** with validation and glass morphism styling.
+- **Event filtering**: Components subscribe to specific document IDs; filtering happens locally
+- **Automatic cleanup**: Base component disposes subscriptions to prevent memory leaks
+- **Fire-and-forget NATS**: No acks needed for UI notifications; missed events aren't critical
+- **InvokeAsync(StateHasChanged)**: Always marshal UI updates to the Blazor synchronization context
+
+This approach keeps the architecture simple: one messaging system (NATS) for both backend workers and frontend notifications, no SignalR hubs to configure, no Redis backplane for scaling.
+
+**Next in the series**: We'll build **advanced form components** with validation, error states, and glass morphism styling.

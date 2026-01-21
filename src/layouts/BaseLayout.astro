@@ -74,5 +74,68 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
   </head>
   <body class="min-h-screen flex flex-col">
     <slot />
+    
+    <!-- Mermaid diagram rendering -->
+    <script>
+      import mermaid from 'mermaid';
+      
+      // Initialize Mermaid
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+        securityLevel: 'loose',
+        flowchart: {
+          useMaxWidth: true,
+          htmlLabels: true,
+          curve: 'basis'
+        },
+        sequence: {
+          useMaxWidth: true,
+          diagramMarginX: 50,
+          diagramMarginY: 10
+        },
+        themeVariables: {
+          primaryColor: '#6366f1',
+          primaryTextColor: '#fff',
+          primaryBorderColor: '#4f46e5',
+          lineColor: '#64748b',
+          secondaryColor: '#f1f5f9',
+          tertiaryColor: '#e2e8f0'
+        }
+      });
+      
+      // Find all code blocks with language-mermaid and render them
+      async function renderMermaidDiagrams() {
+        const codeBlocks = document.querySelectorAll('pre > code.language-mermaid, .mermaid');
+        
+        for (let i = 0; i < codeBlocks.length; i++) {
+          const codeBlock = codeBlocks[i];
+          const pre = codeBlock.parentElement;
+          const diagramCode = codeBlock.textContent || '';
+          
+          if (diagramCode.trim()) {
+            try {
+              const { svg } = await mermaid.render(`mermaid-diagram-${i}`, diagramCode);
+              const wrapper = document.createElement('div');
+              wrapper.className = 'mermaid-diagram my-6 overflow-x-auto';
+              wrapper.innerHTML = svg;
+              
+              if (pre && pre.tagName === 'PRE') {
+                pre.replaceWith(wrapper);
+              } else {
+                codeBlock.innerHTML = svg;
+                codeBlock.classList.add('mermaid-rendered');
+              }
+            } catch (e) {
+              console.error('Mermaid rendering error:', e);
+            }
+          }
+        }
+      }
+      
+      // Run on page load and after navigation
+      document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
+      document.addEventListener('astro:page-load', renderMermaidDiagrams);
+    </script>
   </body>
 </html>
