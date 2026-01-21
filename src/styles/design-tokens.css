@@ -1,0 +1,151 @@
+/* ============================================
+   BLUEROBIN SHARED DESIGN TOKENS
+   v5.4 - January 2026
+   
+   This file contains the core design tokens shared
+   between the BlueRobin Blog (Astro) and Web App (Blazor).
+   
+   Copy this file to both projects to maintain consistency:
+   - bluerobin-blog/src/styles/design-tokens.css
+   - bluerobin-app/src/Archives.Web/Styles/design-tokens.css
+   ============================================ */
+
+@theme {
+    /* ==================== COLOR PALETTE ==================== */
+    /* Primary: Neural Blue-Purple (AI/Intelligence) - oklch for perceptual uniformity */
+    --color-neural-50: oklch(96.5% 0.02 275);
+    --color-neural-100: oklch(93% 0.04 275);
+    --color-neural-200: oklch(87% 0.08 275);
+    --color-neural-300: oklch(78% 0.12 275);
+    --color-neural-400: oklch(68% 0.17 275);
+    --color-neural-500: oklch(58% 0.20 275);
+    --color-neural-600: oklch(52% 0.22 280);
+    --color-neural-700: oklch(46% 0.21 280);
+    --color-neural-800: oklch(40% 0.17 280);
+    --color-neural-900: oklch(35% 0.14 280);
+
+    /* Accent: Aurora Pink-Red (CTAs) - oklch for P3 gamut support */
+    --color-aurora-50: oklch(97% 0.02 10);
+    --color-aurora-100: oklch(93% 0.05 10);
+    --color-aurora-200: oklch(88% 0.09 10);
+    --color-aurora-300: oklch(78% 0.15 10);
+    --color-aurora-400: oklch(68% 0.22 10);
+    --color-aurora-500: oklch(60% 0.26 10);
+    --color-aurora-600: oklch(52% 0.25 5);
+    --color-aurora-700: oklch(45% 0.22 5);
+    --color-aurora-800: oklch(40% 0.18 5);
+    --color-aurora-900: oklch(35% 0.15 5);
+
+    /* Secondary: Quantum Cyan (Info/Health) - oklch for wide gamut */
+    --color-quantum-50: oklch(97% 0.02 195);
+    --color-quantum-100: oklch(94% 0.05 195);
+    --color-quantum-200: oklch(90% 0.10 195);
+    --color-quantum-300: oklch(84% 0.14 195);
+    --color-quantum-400: oklch(76% 0.16 195);
+    --color-quantum-500: oklch(68% 0.15 195);
+    --color-quantum-600: oklch(58% 0.13 195);
+    --color-quantum-700: oklch(50% 0.11 195);
+    --color-quantum-800: oklch(43% 0.09 195);
+    --color-quantum-900: oklch(38% 0.07 195);
+
+    /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
+    --color-glow-50: oklch(98% 0.03 85);
+    --color-glow-100: oklch(95% 0.08 85);
+    --color-glow-200: oklch(90% 0.14 85);
+    --color-glow-300: oklch(85% 0.18 85);
+    --color-glow-400: oklch(80% 0.18 80);
+    --color-glow-500: oklch(74% 0.17 70);
+    --color-glow-600: oklch(65% 0.16 60);
+    --color-glow-700: oklch(55% 0.14 55);
+    --color-glow-800: oklch(47% 0.11 50);
+    --color-glow-900: oklch(40% 0.09 45);
+
+    /* Neutrals: Slate (Refined Gray Scale) */
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
+
+    /* ==================== GLASSMORPHISM ==================== */
+    --glass-white-10: rgba(255, 255, 255, 0.10);
+    --glass-white-20: rgba(255, 255, 255, 0.20);
+    --glass-white-30: rgba(255, 255, 255, 0.30);
+    --glass-white-40: rgba(255, 255, 255, 0.40);
+    --glass-white-60: rgba(255, 255, 255, 0.60);
+    --glass-white-80: rgba(255, 255, 255, 0.80);
+    --glass-dark-10: rgba(15, 23, 42, 0.10);
+    --glass-dark-20: rgba(15, 23, 42, 0.20);
+    --glass-dark-40: rgba(15, 23, 42, 0.40);
+    --glass-dark-60: rgba(15, 23, 42, 0.60);
+
+    /* ==================== GRADIENTS ==================== */
+    --gradient-neural: linear-gradient(135deg, #7069f5 0%, #6147ea 50%, #5337d5 100%);
+    --gradient-aurora: linear-gradient(135deg, #ff6a8d 0%, #f83b69 50%, #e51e54 100%);
+    --gradient-quantum: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+    --gradient-glow: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+
+    /* Mesh Background */
+    --gradient-mesh-light: radial-gradient(at 0% 0%, rgba(112, 105, 245, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(248, 59, 105, 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.08) 0px, transparent 50%);
+
+    --gradient-mesh-dark: radial-gradient(at 0% 0%, rgba(112, 105, 245, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.1) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(248, 59, 105, 0.1) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.1) 0px, transparent 50%);
+
+    /* ==================== BORDER RADIUS ==================== */
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+
+    /* ==================== SHADOWS ==================== */
+    --shadow-sm: 0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
+    --shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08), 0 2px 4px 0 rgba(15, 23, 42, 0.04);
+    --shadow-lg: 0 8px 24px 0 rgba(15, 23, 42, 0.10), 0 4px 8px 0 rgba(15, 23, 42, 0.05);
+    --shadow-xl: 0 16px 48px 0 rgba(15, 23, 42, 0.12), 0 8px 16px 0 rgba(15, 23, 42, 0.06);
+    --shadow-neural: 0 8px 32px -4px rgba(112, 105, 245, 0.3);
+
+    /* ==================== TYPOGRAPHY ==================== */
+    --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
+
+    /* ==================== ANIMATIONS ==================== */
+    --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --duration-slow: 350ms;
+}
+
+/* ==================== DARK MODE UTILITIES ==================== */
+/* Shared dark mode patterns */
+
+/* Text colors in dark mode */
+html.dark {
+    color-scheme: dark;
+}
+
+/* Code blocks shared styling */
+.code-block {
+    background: linear-gradient(145deg, #1a1f36 0%, #0d1117 100%);
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+html:not(.dark) .code-block {
+    background: linear-gradient(145deg, #fafbfc 0%, #f1f5f9 100%);
+    border: 1px solid rgba(99, 102, 241, 0.15);
+    box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.1);
+}
