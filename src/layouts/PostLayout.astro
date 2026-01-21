@@ -1,0 +1,137 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import { CATEGORIES, DIFFICULTIES, SERIES } from "@/config";
+import type { CollectionEntry } from "astro:content";
+
+export interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const { title, description, pubDate, updatedDate, author, category, difficulty, tags, series, readTime, ogImage, toc } = post.data;
+
+const categoryMeta = CATEGORIES[category];
+const difficultyMeta = DIFFICULTIES[difficulty];
+const seriesMeta = series ? SERIES[series as keyof typeof SERIES] : null;
+
+// Format dates
+const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+// Get series tags for highlighting
+const seriesTags = tags.filter(tag => tag.endsWith("-series"));
+const regularTags = tags.filter(tag => !tag.endsWith("-series"));
+---
+
+<BaseLayout title={`${title} | BlueRobin Tech Blog`} description={description} ogImage={ogImage}>
+  <Header />
+  
+  <main class="flex-1">
+    <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Article Header -->
+      <header class="mb-8">
+        <!-- Breadcrumb -->
+        <nav class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+          <a href="/" class="hover:text-neural-600 dark:hover:text-neural-400">Home</a>
+          <span class="mx-2">/</span>
+          <a href="/blog/" class="hover:text-neural-600 dark:hover:text-neural-400">Blog</a>
+          <span class="mx-2">/</span>
+          <a href={`/${category}/`} class="hover:text-neural-600 dark:hover:text-neural-400 capitalize">{category}</a>
+        </nav>
+
+        <!-- Category & Difficulty badges -->
+        <div class="flex flex-wrap items-center gap-2 mb-4">
+          <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-${category}`}>
+            {categoryMeta.icon} {categoryMeta.title}
+          </span>
+          <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium difficulty-${difficulty}`}>
+            {difficultyMeta.label}
+          </span>
+          {readTime && (
+            <span class="text-sm text-slate-500 dark:text-slate-400">
+              ⏱️ {readTime}
+            </span>
+          )}
+        </div>
+
+        <!-- Title -->
+        <h1 class="text-3xl sm:text-4xl lg:text-5xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4 leading-tight">
+          {title}
+        </h1>
+
+        <!-- Description -->
+        <p class="text-xl text-slate-600 dark:text-slate-400 mb-6">
+          {description}
+        </p>
+
+        <!-- Meta info -->
+        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 dark:text-slate-400 mb-6">
+          <span>By {author}</span>
+          <span>•</span>
+          <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
+          {updatedDate && (
+            <>
+              <span>•</span>
+              <span>Updated: <time datetime={updatedDate.toISOString()}>{formatDate(updatedDate)}</time></span>
+            </>
+          )}
+        </div>
+
+        <!-- Tags -->
+        <div class="flex flex-wrap gap-2">
+          {seriesTags.map((tag) => (
+            <a href={`/tags/${tag}/`} class="tag tag-series">{tag.replace("-series", "")}</a>
+          ))}
+          {regularTags.map((tag) => (
+            <a href={`/tags/${tag}/`} class="tag">{tag}</a>
+          ))}
+        </div>
+      </header>
+
+      <!-- Series Navigation (if part of a series) -->
+      {seriesMeta && (
+        <div class="series-nav">
+          <div class="series-nav-title">
+            📚 Part of the "{seriesMeta.title}" series
+          </div>
+          <p class="text-sm text-slate-600 dark:text-slate-400">
+            {seriesMeta.description}
+          </p>
+          <a href={`/tags/${series}/`} class="text-sm text-neural-600 dark:text-neural-400 hover:underline mt-2 inline-block">
+            View all articles in this series →
+          </a>
+        </div>
+      )}
+
+      <!-- Article Content -->
+      <div class="prose prose-slate dark:prose-invert prose-headings:font-display prose-code:before:content-none prose-code:after:content-none max-w-none">
+        <slot />
+      </div>
+
+      <!-- Article Footer -->
+      <footer class="mt-12 pt-8 border-t border-slate-200 dark:border-slate-700">
+        <div class="flex flex-wrap gap-2 mb-6">
+          {tags.map((tag) => (
+            <a href={`/tags/${tag}/`} class={`tag ${tag.endsWith("-series") ? "tag-series" : ""}`}>
+              {tag.replace("-series", "")}
+            </a>
+          ))}
+        </div>
+
+        <div class="flex justify-between items-center">
+          <a href="/blog/" class="btn-secondary">
+            ← Back to Blog
+          </a>
+          {series && (
+            <a href={`/tags/${series}/`} class="btn-primary">
+              More in this series →
+            </a>
+          )}
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>

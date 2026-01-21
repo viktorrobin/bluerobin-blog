@@ -1,0 +1,18 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getEntry } from "astro:content";
+
+const aboutPage = await getEntry("pages", "about");
+if (!aboutPage) {
+  throw new Error("About page not found in content/pages/about.md");
+}
+const { Content } = await aboutPage.render();
+---
+
+<MainLayout title="About | BlueRobin Tech Blog" description="The story behind BlueRobin - a personal document management system built on a homelab">
+  <article class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <div class="prose prose-slate dark:prose-invert prose-headings:font-display max-w-none">
+      <Content />
+    </div>
+  </article>
+</MainLayout>

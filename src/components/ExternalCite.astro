@@ -1,0 +1,32 @@
+---
+/**
+ * ExternalCite Component
+ * 
+ * Usage in MDX:
+ * <ExternalCite 
+ *   title="Microsoft DDD Guidance" 
+ *   url="https://docs.microsoft.com/..." 
+ * />
+ */
+export interface Props {
+  title: string;
+  url: string;
+  author?: string;
+  date?: string;
+}
+
+const { title, url, author, date } = Astro.props;
+---
+
+<cite class="external-cite not-prose">
+  <a 
+    href={url} 
+    target="_blank" 
+    rel="noopener noreferrer"
+    class="text-quantum-600 dark:text-quantum-400 hover:underline"
+  >
+    [{title}]
+  </a>
+  {author && <span class="text-slate-500 dark:text-slate-500"> — {author}</span>}
+  {date && <span class="text-slate-500 dark:text-slate-500">, {date}</span>}
+</cite>

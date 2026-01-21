@@ -1,0 +1,39 @@
+---
+/**
+ * CodeFile Component
+ * 
+ * Displays code with a filename header, similar to GitHub code blocks.
+ * 
+ * Usage in MDX:
+ * <CodeFile filename="src/SharedKernel/AggregateRoot.cs" language="csharp">
+ * ```csharp
+ * // code here
+ * ```
+ * </CodeFile>
+ */
+export interface Props {
+  filename: string;
+  language?: string;
+}
+
+const { filename } = Astro.props;
+---
+
+<div class="code-container not-prose my-6">
+  <div class="code-filename">
+    📄 {filename}
+  </div>
+  <div class="code-block">
+    <slot />
+  </div>
+</div>
+
+<style>
+  .code-container {
+    @apply rounded-lg overflow-hidden shadow-md;
+  }
+  
+  .code-container :global(pre) {
+    @apply rounded-t-none m-0 !important;
+  }
+</style>

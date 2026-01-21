@@ -1,0 +1,81 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { DIFFICULTIES } from "@/config";
+
+// Get all architecture posts
+const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.category === "architecture");
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+---
+
+<MainLayout title="Architecture | BlueRobin Tech Blog" description="Deep dives into system design, patterns, and architectural decisions">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-12">
+      <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-architecture mb-4">
+        🏗️ Architecture
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+        Architecture Deep Dives
+      </h1>
+      <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+        In-depth exploration of system design, patterns, and architectural decisions. 
+        Learn the "why" behind BlueRobin's architecture with detailed diagrams and trade-off analysis.
+      </p>
+    </header>
+
+    {sortedPosts.length === 0 ? (
+      <div class="glass-card p-12 text-center">
+        <p class="text-slate-600 dark:text-slate-400 text-lg">
+          🚧 Architecture deep dives coming soon! The DDD SharedKernel article is first in the queue.
+        </p>
+      </div>
+    ) : (
+      <div class="space-y-8">
+        {sortedPosts.map((post) => {
+          const difficultyMeta = DIFFICULTIES[post.data.difficulty];
+          const seriesTags = post.data.tags.filter(t => t.endsWith("-series"));
+          const regularTags = post.data.tags.filter(t => !t.endsWith("-series")).slice(0, 3);
+          
+          return (
+            <article class="glass-card p-8 hover:shadow-lg transition-all">
+              <div class="flex items-center gap-2 mb-4">
+                <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
+                  {difficultyMeta.label}
+                </span>
+                {post.data.readTime && (
+                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                    ⏱️ {post.data.readTime}
+                  </span>
+                )}
+                <time class="text-xs text-slate-500 dark:text-slate-400" datetime={post.data.pubDate.toISOString()}>
+                  {formatDate(post.data.pubDate)}
+                </time>
+              </div>
+              
+              <a href={`/blog/${post.slug}/`}>
+                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 hover:text-neural-600 dark:hover:text-neural-400 transition-colors mb-3">
+                  {post.data.title}
+                </h2>
+              </a>
+              
+              <p class="text-slate-600 dark:text-slate-400 mb-4 text-lg">
+                {post.data.description}
+              </p>
+              
+              <div class="flex flex-wrap gap-2">
+                {seriesTags.map((tag) => (
+                  <a href={`/tags/${tag}/`} class="tag tag-series">{tag.replace("-series", "")}</a>
+                ))}
+                {regularTags.map((tag) => (
+                  <a href={`/tags/${tag}/`} class="tag">{tag}</a>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</MainLayout>

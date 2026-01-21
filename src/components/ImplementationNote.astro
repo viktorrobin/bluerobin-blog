@@ -1,0 +1,22 @@
+---
+/**
+ * ImplementationNote Component
+ * 
+ * For documenting personal discoveries and implementation decisions
+ * that aren't from external sources.
+ * 
+ * Usage in MDX:
+ * <ImplementationNote>
+ *   Through experimentation, I found 512-token chunks performed best for medical PDFs.
+ * </ImplementationNote>
+ */
+---
+
+<aside class="implementation-note not-prose my-4 p-4 bg-glow-50 dark:bg-glow-900/20 rounded-lg border-l-4 border-glow-500">
+  <div class="flex items-start gap-2">
+    <span class="text-glow-600 dark:text-glow-400 font-semibold text-sm">💡 Implementation Note:</span>
+  </div>
+  <div class="mt-1 text-sm text-glow-800 dark:text-glow-300">
+    <slot />
+  </div>
+</aside>

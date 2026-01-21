@@ -1,0 +1,66 @@
+---
+/**
+ * Callout Component
+ * 
+ * For highlighting important information, warnings, tips, etc.
+ * 
+ * Usage in MDX:
+ * <Callout type="tip">
+ *   This is a helpful tip!
+ * </Callout>
+ * 
+ * <Callout type="warning">
+ *   Watch out for this gotcha.
+ * </Callout>
+ */
+export interface Props {
+  type?: "tip" | "warning" | "info" | "danger";
+  title?: string;
+}
+
+const { type = "info", title } = Astro.props;
+
+const styles = {
+  tip: {
+    bg: "bg-emerald-50 dark:bg-emerald-900/20",
+    border: "border-emerald-500",
+    icon: "💡",
+    text: "text-emerald-800 dark:text-emerald-300",
+    defaultTitle: "Tip",
+  },
+  warning: {
+    bg: "bg-glow-50 dark:bg-glow-900/20",
+    border: "border-glow-500",
+    icon: "⚠️",
+    text: "text-glow-800 dark:text-glow-300",
+    defaultTitle: "Warning",
+  },
+  info: {
+    bg: "bg-quantum-50 dark:bg-quantum-900/20",
+    border: "border-quantum-500",
+    icon: "ℹ️",
+    text: "text-quantum-800 dark:text-quantum-300",
+    defaultTitle: "Info",
+  },
+  danger: {
+    bg: "bg-aurora-50 dark:bg-aurora-900/20",
+    border: "border-aurora-500",
+    icon: "🚨",
+    text: "text-aurora-800 dark:text-aurora-300",
+    defaultTitle: "Danger",
+  },
+};
+
+const style = styles[type];
+const displayTitle = title || style.defaultTitle;
+---
+
+<aside class={`callout not-prose my-6 p-4 ${style.bg} rounded-lg border-l-4 ${style.border}`}>
+  <div class="flex items-center gap-2 mb-2">
+    <span>{style.icon}</span>
+    <span class={`font-semibold ${style.text}`}>{displayTitle}</span>
+  </div>
+  <div class={`text-sm ${style.text}`}>
+    <slot />
+  </div>
+</aside>
