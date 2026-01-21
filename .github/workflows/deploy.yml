@@ -10,7 +10,7 @@ on:
 
 env:
   REGISTRY: registry.bluerobin.local
-  IMAGE_NAME: bluerobin-blog
+  IMAGE_NAME: blog
 
 jobs:
   build:
