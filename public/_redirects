@@ -1,0 +1,6 @@
+# Redirect /app to Blazor application
+/app/* https://app.bluerobin.io/:splat 301
+/app https://app.bluerobin.io 301
+
+# Redirect old blog paths if needed
+/archives/* https://app.bluerobin.io/archives/:splat 301
