@@ -5,7 +5,7 @@ pubDate: 2026-03-14
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
-tags: ["dotnet", "health-checks", "kubernetes", "monitoring", "aspnetcore"]
+tags: ["dotnet", "health-checks", "kubernetes", "monitoring"]
 readTime: "14 min"
 toc: true
 ---
@@ -14,7 +14,42 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Health checks enable Kubernetes to determine when your application is ready to receive traffic and when it needs to be restarted. This guide covers implementing comprehensive health monitoring in .NET.
+## Introduction
+
+In a containerized environment like Kubernetes, the orchestrator needs to know the exact state of your application to manage traffic routing and restarts. Health checks enable Kubernetes to determine when your application is ready to receive traffic (Readiness) and when it needs to be restarted (Liveness).
+
+This guide covers implementing comprehensive health monitoring in .NET, ensuring your services are observable and resilient.
+
+### What We'll Build
+1.  **Liveness & Readiness Probes**: Separate checks for startup, liveness, and readiness.
+2.  **Infrastructure Checks**: Custom checks for PostgreSQL, Redis, NATS, and MinIO.
+3.  **Health Dashboard**: A graphical UI to visualize the state of your cluster dependencies.
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    Kubelet["☸️ Kubelet"] -->|Probes /health/live| API["🚀 API Pod"]
+    LB["⚖️ Load Balancer"] -.->|Training /health/ready| API
+    
+    subgraph Checks["🏥 Health Checks"]
+        API --> DB[(SQL)]
+        API --> Redis[(Cache)]
+        API --> Msg[(NATS)]
+    end
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class API primary
+    class LB secondary
+    class DB,Redis,Msg db
+    class Kubelet warning
+```
+
+## Implementation
 
 ## Basic Setup
 
@@ -472,7 +507,7 @@ builder.Services.Configure<HealthCheckPublisherOptions>(options =>
 builder.Services.AddSingleton<IHealthCheckPublisher, MetricsHealthCheckPublisher>();
 ```
 
-## Summary
+## Conclusion
 
 Health check configuration by environment:
 

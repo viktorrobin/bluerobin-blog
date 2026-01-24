@@ -7,7 +7,9 @@ import remarkCollapse from "remark-collapse";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://blog.bluerobin.local",
+  site: "https://bluerobin.io",
+  // Pages are now under src/pages/blog/ to output to /blog/*
+  // Landing page is served from public/index.html at root
   integrations: [
     mdx(),
     sitemap(),
@@ -30,8 +32,8 @@ export default defineConfig({
     ],
     shikiConfig: {
       themes: {
-        light: "one-light",
-        dark: "one-dark-pro",
+        light: "github-light",
+        dark: "dracula",
       },
       wrap: true,
     },

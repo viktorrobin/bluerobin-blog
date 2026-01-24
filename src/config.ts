@@ -1,8 +1,8 @@
 export const SITE = {
-  website: "https://blog.bluerobin.local",
+  website: "https://bluerobin.io",
   author: "Victor Robin",
   desc: "BlueRobin Technical Blog - A homelab journey from medical document search to production AI. Deep dives into .NET, Kubernetes, LLM integration, and Domain-Driven Design.",
-  title: "BlueRobin Tech Blog",
+  title: "BlueRobin",
   ogImage: "og-default.png",
   lightAndDarkMode: true,
   postPerPage: 10,

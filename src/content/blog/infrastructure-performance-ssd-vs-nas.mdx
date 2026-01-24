@@ -1,0 +1,107 @@
+---
+title: "Storage Performance: Local NVMe SSD vs 10GbE NAS"
+description: "Benchmarking storage tiers for BlueRobin. Why databases need local NVMe paths while object storage thrives on the NAS."
+pubDate: 2026-03-20
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "intermediate"
+tags: ["performance", "storage"]
+readTime: "10 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+In a homelab or on-premise Kubernetes cluster, storage is often the biggest bottleneck. We have two main storage tiers available:
+
+1. **Local NVMe SSDs**: Directly attached to the compute nodes (PCIe Gen4).
+2. **Network Attached Storage (NAS)**: Accessed via 10GbE network (TrueNAS Scale over NFS/iSCSI).
+
+The question is: **Which workload goes where?**
+
+### What We'll Measure
+
+We will use `fio` to benchmark both paths from within a Kubernetes Pod to simulate real-world conditions.
+
+## Architecture Overview
+
+We use **Longhorn** as our Block Storage provider, but configured differently for each tier.
+
+- **Fast Path**: Longhorn utilizing `hostPath` on NVMe. Good for Databases.
+- **Bulk Path**: NFS mount backed by TrueNAS ZFS. Good for MinIO/Backups.
+
+## Section 1: The Benchmarks
+
+We ran `fio` with random read/write patterns (4k block size) to simulate database traffic, and sequential patterns (1M block size) for file streaming.
+
+### Local NVMe (WD Black SN850X)
+
+```bash
+fio --name=random-write --ioengine=libaio --rw=randwrite --bs=4k --numjobs=1 --size=4g --iodepth=32
+```
+
+- **IOPS**: ~650,000
+- **Latency**: 0.04ms
+- **Bandwidth**: ~2.5 GB/s
+
+### 10GbE NAS (NFS over TrueNAS)
+
+- **IOPS**: ~45,000
+- **Latency**: 0.8ms (Network overhead)
+- **Bandwidth**: ~980 MB/s (Saturation of 10GbE line)
+
+<Callout type="info" title="Latency is King">
+    While 980 MB/s sequential speed is great, the 0.8ms latency kills database performance for transactional workloads.
+</Callout>
+
+## Section 2: Workload Placement Strategy
+
+Based on these numbers, we split our infrastructure.
+
+### Databases (PostgreSQL, Qdrant, FalkorDB)
+**Placement**: Local NVMe.
+**Why**: Vector search and graph traversals are random-access heavy. High IOPS and low latency are critical for "snappy" searches.
+**Mechanism**: We use Kubernetes `LocalPersistentVolumes` or Longhorn with strict node affinity to keep data close to the CPU.
+
+### Object Storage (MinIO) & Backups
+**Placement**: NAS (NFS/iSCSI).
+**Why**: Documents (PDFs, Images) are read sequentially. A 20MB PDF loads in 0.02s over 10GbE, which is imperceptible to the user.
+**Scale**: The NAS offers 40TB of redundancy (RAIDZ2), which NVMe cannot match cost-effectively.
+
+## Section 3: Configuring Kubernetes
+
+To implement this, we define two StorageClasses.
+
+```yaml
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: fast-nvme
+provisioner: driver.longhorn.io
+parameters:
+  dataLocality: best-effort
+  numberOfReplicas: "1" # Rely on app-level replication or backups
+  diskSelector: "nvme"
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: bulk-nas
+provisioner: nfs.csi.k8s.io
+parameters:
+  server: 192.168.0.50
+  share: /mnt/tank/k8s
+```
+
+## Conclusion
+
+Don't treat all storage as equal. By mapping workloads to the physical characteristics of the storage medium, we get the best of both worlds: extreme database speed and massive, cheap capacity for files.
+
+**Next Steps**:
+- See how we [Image Optimization](/blog/kubernetes-image-optimization-small-pods) helps keep storage usage low.
+- Read about [RAG Query Improvement](/blog/improving-rag-query-quality-and-relevance) where database speed matters.

@@ -5,7 +5,7 @@ pubDate: 2026-02-18
 author: "Victor Robin"
 category: "ai"
 difficulty: "expert"
-tags: ["rag", "ollama", "qdrant", "llm", "ai", "semantic-search"]
+tags: ["ai", "qdrant", "search"]
 readTime: "30 min"
 toc: true
 series:
@@ -16,6 +16,21 @@ series:
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Large Language Models are impressive, but they have a critical limitation: they only know what they were trained on. Ask ChatGPT about your company's vacation policy, and it will confidently hallucinate an answer. **RAG (Retrieval-Augmented Generation)** solves this by grounding LLM responses in your actual documents.
+
+**Why RAG Architecture Matters:**
+
+- **Accuracy**: Answers are based on your documents, not model hallucinations
+- **Currency**: No retraining needed—just update your document corpus
+- **Attribution**: Cite specific sources for every answer
+- **Privacy**: Run entirely on-premise with Ollama—your data never leaves your infrastructure
+
+In BlueRobin, RAG powers our document Q&A feature. Users upload contracts, policies, and reports, then ask natural language questions like "What's the termination clause in the Smith contract?" The system retrieves relevant chunks, feeds them to an LLM, and returns an accurate, cited answer.
+
+## Architecture Overview
 
 Retrieval-Augmented Generation (RAG) combines the knowledge stored in your documents with the reasoning capabilities of large language models. This guide builds a complete RAG pipeline using Ollama for local inference and Qdrant for vector retrieval.
 
@@ -66,12 +81,13 @@ flowchart TB
     C3 --> G1
     G1 --> RS1
 
-    style Input fill:#3498db,color:#fff
-    style QueryProcessing fill:#f39c12,color:#fff
-    style Retrieval fill:#9b59b6,color:#fff
-    style Context fill:#27ae60,color:#fff
-    style Generation fill:#e74c3c,color:#fff
-    style Response fill:#1abc9c,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+    class Input warning
+    class QueryProcessing,Context,Generation,Response primary
+    class Retrieval db
 ```
 
 ## Core Components

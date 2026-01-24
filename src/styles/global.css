@@ -136,8 +136,8 @@ code, pre {
 
 .prose {
     @apply max-w-none text-slate-700 leading-relaxed;
-    font-size: 1.0625rem;
-    line-height: 1.75;
+    font-size: 1rem;
+    line-height: 1.7;
 }
 
 html.dark .prose {
@@ -155,22 +155,22 @@ html.dark .prose {
 
 /* Headings */
 .prose h1 {
-    @apply text-3xl sm:text-4xl font-bold text-slate-900 mt-12 mb-6;
+    @apply text-2xl sm:text-3xl font-bold text-slate-900 mt-10 mb-5;
     font-family: var(--font-display);
 }
 
 .prose h2 {
-    @apply text-2xl sm:text-3xl font-bold text-slate-900 mt-10 mb-4 pb-2 border-b border-slate-200;
+    @apply text-xl sm:text-2xl font-bold text-slate-900 mt-8 mb-3 pb-2 border-b border-slate-200;
     font-family: var(--font-display);
 }
 
 .prose h3 {
-    @apply text-xl sm:text-2xl font-semibold text-slate-800 mt-8 mb-3;
+    @apply text-lg sm:text-xl font-semibold text-slate-800 mt-6 mb-2;
     font-family: var(--font-display);
 }
 
 .prose h4 {
-    @apply text-lg sm:text-xl font-semibold text-slate-800 mt-6 mb-2;
+    @apply text-base sm:text-lg font-semibold text-slate-800 mt-5 mb-2;
     font-family: var(--font-display);
 }
 
@@ -294,115 +294,64 @@ html.dark .prose tbody tr:hover {
 }
 
 html.dark .prose code:not(pre code) {
-    background-color: rgba(112, 105, 245, 0.2);
+    background-color: rgba(112, 105, 245, 0.15);
     color: var(--color-neural-300);
 }
 
-/* Code Blocks */
+/* Code Blocks - Soothing dark theme inspired by One Dark Pro */
 .prose pre {
-    @apply my-8 rounded-xl overflow-hidden;
-    background: linear-gradient(145deg, #1a1f36 0%, #0d1117 100%);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    @apply my-6 rounded-lg overflow-hidden;
+    background-color: #1e2330 !important; /* Soft slate-blue dark */
+    border: 1px solid rgba(99, 110, 140, 0.25);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
 }
 
 .prose pre code {
-    @apply block p-5 overflow-x-auto text-sm leading-relaxed;
-    background: transparent;
-    color: #e2e8f0;
+    @apply block px-4 py-3 overflow-x-auto text-xs;
+    background: transparent !important;
+    color: #abb2bf; /* One Dark text - easy on eyes */
     font-family: var(--font-mono);
     tab-size: 2;
+    line-height: 1.4; /* Compact line spacing */
 }
 
-/* Shiki syntax highlighting overrides for vibrant colors */
+/* Shiki dual-theme: only swap text colors, not backgrounds */
+html.dark .astro-code {
+    background-color: #1e2330 !important;
+}
+
+html.dark .astro-code span {
+    color: var(--shiki-dark) !important;
+    background-color: transparent !important;
+}
+
+/* Line styling - compact and clean */
 .prose pre code .line {
-    @apply block;
+    display: block;
+    min-height: 1.25em; /* Reduced for compactness */
+    background: transparent !important;
 }
 
-/* Override Shiki's default colors for better contrast on dark background */
-/* These selectors target Shiki's generated spans with color styles */
-.prose pre code span[style*="color:#"] {
-    /* Let Shiki colors through but ensure minimum brightness */
+/* All code blocks - compact line height */
+.prose pre {
+    line-height: 1.4 !important;
 }
 
-/* Force bright colors for common syntax elements */
-/* Keywords: if, else, return, public, class, etc. */
-.prose pre code span[style*="color:#C678DD"],
-.prose pre code span[style*="color:#c678dd"] {
-    color: #c792ea !important; /* Bright purple */
-}
-
-/* Strings */
-.prose pre code span[style*="color:#98C379"],
-.prose pre code span[style*="color:#98c379"] {
-    color: #a5d6a7 !important; /* Bright green */
-}
-
-/* Comments - keep readable but muted */
-.prose pre code span[style*="color:#5C6370"],
-.prose pre code span[style*="color:#5c6370"],
-.prose pre code span[style*="color:#7F848E"],
-.prose pre code span[style*="color:#7f848e"] {
-    color: #8b949e !important; /* Brighter grey for comments */
-}
-
-/* Numbers */
-.prose pre code span[style*="color:#D19A66"],
-.prose pre code span[style*="color:#d19a66"] {
-    color: #f9c74f !important; /* Bright orange-yellow */
-}
-
-/* Types/Classes */
-.prose pre code span[style*="color:#E5C07B"],
-.prose pre code span[style*="color:#e5c07b"] {
-    color: #ffd54f !important; /* Bright yellow */
-}
-
-/* Functions */
-.prose pre code span[style*="color:#61AFEF"],
-.prose pre code span[style*="color:#61afef"] {
-    color: #82aaff !important; /* Bright blue */
-}
-
-/* Variables and plain text - ensure readability */
-.prose pre code span[style*="color:#ABB2BF"],
-.prose pre code span[style*="color:#abb2bf"] {
-    color: #e2e8f0 !important; /* Bright slate */
-}
-
-/* Punctuation and operators */
-.prose pre code span[style*="color:#56B6C2"],
-.prose pre code span[style*="color:#56b6c2"] {
-    color: #89ddff !important; /* Bright cyan */
-}
-
-/* XML/HTML tags */
-.prose pre code span[style*="color:#E06C75"],
-.prose pre code span[style*="color:#e06c75"] {
-    color: #f07178 !important; /* Bright red-pink */
-}
-
-/* Attributes */
-.prose pre code span[style*="color:#D19A66"],
-.prose pre code span[style*="color:#d19a66"] {
-    color: #ffcb6b !important; /* Bright amber */
-}
-
-/* Ensure all text in code blocks is at minimum brightness */
-.prose pre code,
-.prose pre code span {
-    text-shadow: none;
-}
-
-/* Light mode code blocks */
+/* Light mode code blocks - soft warm light */
 html:not(.dark) .prose pre {
-    background: linear-gradient(145deg, #fafbfc 0%, #f1f5f9 100%);
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.1);
+    background-color: #fafbfc !important;
+    border: 1px solid #e1e4e8;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
 
 html:not(.dark) .prose pre code {
-    color: #1e293b;
+    color: #383a42;
+    background: transparent !important;
+    line-height: 1.4;
+}
+
+html:not(.dark) .astro-code span {
+    background-color: transparent !important;
 }
 
 /* Strong and Emphasis */
@@ -420,7 +369,7 @@ html.dark .prose strong {
 
 /* First paragraph styling (lead) */
 .prose > p:first-of-type {
-    @apply text-lg text-slate-600 leading-relaxed;
+    @apply text-base text-slate-600 leading-relaxed;
 }
 
 html.dark .prose > p:first-of-type {
@@ -845,4 +794,76 @@ html.dark .callout-tip {
 
 html.dark .callout-danger {
     @apply bg-aurora-900/50 text-aurora-100;
+}
+
+/* ==================== MERMAID DIAGRAM FIXES ==================== */
+/* 
+   Mermaid uses foreignObjects with <p> tags for labels.
+   The .prose styles add margins to <p> tags, causing labels to be cut off.
+   We must reset these.
+*/
+.mermaid-diagram p {
+    margin: 0 !important;
+    padding: 0 !important;
+    line-height: normal !important;
+    font-size: 14px !important; 
+}
+
+.mermaid-diagram foreignObject {
+    overflow: visible !important;
+    line-height: normal !important; 
+}
+
+/* Force correct colors based on theme, ignoring Mermaid's inline styles */
+html:not(.dark) .mermaid-diagram text,
+html:not(.dark) .mermaid-diagram .nodeLabel, 
+html:not(.dark) .mermaid-diagram .edgeLabel, 
+html:not(.dark) .mermaid-diagram .label {
+    fill: var(--color-slate-900) !important;
+    color: var(--color-slate-900) !important;
+}
+
+html:not(.dark) .mermaid-diagram .node rect,
+html:not(.dark) .mermaid-diagram .node circle,
+html:not(.dark) .mermaid-diagram .node polygon,
+html:not(.dark) .mermaid-diagram .node path {
+    fill: var(--color-slate-50) !important;
+    stroke: var(--color-slate-400) !important;
+}
+
+html:not(.dark) .mermaid-diagram .flowchart-link,
+html:not(.dark) .mermaid-diagram .relation {
+    stroke: var(--color-slate-500) !important;
+}
+
+html:not(.dark) .mermaid-diagram .marker {
+    fill: var(--color-slate-500) !important;
+    stroke: var(--color-slate-500) !important;
+}
+
+/* Dark Mode Overrides */
+html.dark .mermaid-diagram text,
+html.dark .mermaid-diagram .nodeLabel, 
+html.dark .mermaid-diagram .edgeLabel, 
+html.dark .mermaid-diagram .label {
+    fill: var(--color-slate-200) !important;
+    color: var(--color-slate-200) !important;
+}
+
+html.dark .mermaid-diagram .node rect,
+html.dark .mermaid-diagram .node circle,
+html.dark .mermaid-diagram .node polygon,
+html.dark .mermaid-diagram .node path {
+    fill: var(--color-slate-800) !important;
+    stroke: var(--color-slate-500) !important;
+}
+
+html.dark .mermaid-diagram .flowchart-link,
+html.dark .mermaid-diagram .relation {
+    stroke: var(--color-slate-400) !important;
+}
+
+html.dark .mermaid-diagram .marker {
+    fill: var(--color-slate-400) !important;
+    stroke: var(--color-slate-400) !important;
 }

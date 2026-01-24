@@ -5,7 +5,7 @@ pubDate: 2026-03-20
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
-tags: ["dotnet", "error-handling", "polly", "resilience", "patterns"]
+tags: ["dotnet", "resilience", "patterns", "polly"]
 readTime: "15 min"
 toc: true
 ---
@@ -14,11 +14,53 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Robust error handling ensures applications gracefully handle failures. This guide covers implementing comprehensive error handling with Result patterns and resilience policies.
+## Introduction
 
-## Result Pattern
+Robust systems must anticipate and handle failures gracefully. In distributed architectures, errors are inevitable—services timeout, databases lock, and networks partition. Relying solely on try-catch blocks often leads to "exception-driven logic" which is hard to reason about and expensive at runtime. This guide explores implementing resilient error handling in .NET using the Result pattern for domain logic and Polly policies for infrastructure resilience, ensuring system stability under pressure.
 
-### Result Type Implementation
+## Architecture Overview
+
+The following diagram illustrates the multi-layered error handling strategy, from the domain layer up to the API and external integrations.
+
+```mermaid
+flowchart TB
+    Client["📱 Client"] --> API["🛡️ API Endpoint<br/>(Global Exception Handler)"]
+    
+    subgraph App["Application Layer"]
+        Service["⚙️ Service Layer<br/>(Result Pattern)"]
+        Retry["🔄 Polly Retry Policy"]
+        Breaker["⚡ Circuit Breaker"]
+    end
+    
+    subgraph Ext["External Systems"]
+        DB[("🗄️ Database")]
+        Remote["☁️ External API"]
+    end
+
+    API --> Service
+    Service -->|Success/Failure| API
+    
+    Service --> DB
+    Service --> Retry
+    Retry --> Breaker
+    Breaker --> Remote
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Service,API primary
+    class Retry,Breaker secondary
+    class Client,Remote warning
+    class DB db
+```
+
+## Implementation
+
+### Result Pattern
+
+#### Result Type Implementation
 
 ```csharp
 // Core/Common/Result.cs
@@ -26,6 +68,7 @@ public sealed class Result<T>
 {
     public T? Value { get; }
     public Error? Error { get; }
+    // ...existing code...
     public bool IsSuccess => Error is null;
     public bool IsFailure => !IsSuccess;
 
@@ -62,7 +105,7 @@ public static class Result
 }
 ```
 
-### Error Type
+#### Error Type
 
 ```csharp
 // Core/Common/Error.cs
@@ -95,7 +138,7 @@ public enum ErrorType
 }
 ```
 
-### Using Result in Services
+#### Using Result in Services
 
 ```csharp
 // Application/Services/DocumentService.cs
@@ -148,9 +191,9 @@ public sealed class DocumentService : IDocumentService
 The Result pattern makes errors explicit in method signatures, forcing callers to handle both success and failure cases. This eliminates null checks and exception catching throughout the codebase.
 </ImplementationNote>
 
-## FastEndpoints Error Handling
+### FastEndpoints Error Handling
 
-### Endpoint with Result Pattern
+#### Endpoint with Result Pattern
 
 ```csharp
 // Api/Endpoints/Documents/GetDocumentEndpoint.cs
@@ -193,9 +236,9 @@ public sealed class GetDocumentEndpoint : Endpoint<GetDocumentRequest, DocumentR
 }
 ```
 
-## Global Exception Handler
+### Global Exception Handler
 
-### Exception Handling Middleware
+#### Exception Handling Middleware
 
 ```csharp
 // Api/Middleware/GlobalExceptionHandler.cs
@@ -268,9 +311,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 Never expose internal exception details in production. Use `ProblemDetails` with generic messages while logging full details server-side.
 </Callout>
 
-## Polly Resilience
+### Polly Resilience
 
-### Resilience Pipeline Configuration
+#### Resilience Pipeline Configuration
 
 ```csharp
 // Infrastructure/Extensions/ResilienceExtensions.cs
@@ -309,7 +352,7 @@ public static class ResilienceExtensions
 }
 ```
 
-### Using Resilience in HttpClient
+#### Using Resilience in HttpClient
 
 ```csharp
 // Program.cs
@@ -327,7 +370,7 @@ builder.Services.AddHttpClient<IOcrService, DoclingOcrService>(client =>
 });
 ```
 
-### Manual Resilience Execution
+#### Manual Resilience Execution
 
 ```csharp
 // Application/Services/EmbeddingService.cs
@@ -357,9 +400,9 @@ public sealed class EmbeddingService : IEmbeddingService
 }
 ```
 
-## Domain Exceptions
+### Domain Exceptions
 
-### Custom Exception Types
+#### Custom Exception Types
 
 ```csharp
 // Core/Exceptions/DomainException.cs
@@ -401,9 +444,9 @@ public sealed class ConflictException : DomainException
 }
 ```
 
-## Error Response Models
+### Error Response Models
 
-### Standard Error Response
+#### Standard Error Response
 
 ```csharp
 // Api/Models/ErrorResponse.cs
@@ -430,18 +473,9 @@ public sealed record ValidationErrorResponse(
 }
 ```
 
-## Summary
+## Conclusion
 
-Error handling strategy:
-
-| Layer | Approach |
-|-------|----------|
-| Domain | `Result<T>` for expected failures |
-| Application | Domain exceptions for invariant violations |
-| API | Global exception handler + ProblemDetails |
-| External calls | Polly resilience pipelines |
-
-Combining Result patterns with resilience policies creates applications that handle failures gracefully while providing clear error information to clients.
+By combining the Result pattern for domain logic with Polly's resilience strategies, we create a defense-in-depth approach to error handling. This limits the blast radius of failures and provides a predictable experience for both developers and end-users. The Result pattern eliminates the ambiguity of exceptions for flow control, while Polly ensures that transient faults in external systems don't cascade through the application.
 
 <ExternalCite 
   title="Polly Documentation" 

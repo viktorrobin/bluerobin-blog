@@ -1,647 +1,149 @@
 ---
-title: "NATS JetStream Consumer Patterns: Push vs Pull"
-description: "Deep dive into NATS JetStream consumer types, acknowledgment strategies, and patterns for building reliable event-driven .NET applications."
-pubDate: 2026-01-27
+title: "NATS JetStream Consumer Patterns: Work Queues vs Fan-Out"
+description: "Deep dive into NATS consumer configurations. Learn how to implement Load Balanced Work Queues for scaling background jobs and Fan-Out patterns for event-driven systems."
+pubDate: 2026-02-12
 author: "Victor Robin"
 category: "messaging"
 difficulty: "advanced"
-tags: ["nats", "jetstream", "messaging", "dotnet", "event-driven"]
+tags: ["architecture", "jetstream", "nats", "patterns", "performance"]
 series:
-  name: "NATS for .NET Developers"
+  name: "Event-Driven Architecture with NATS"
   order: 2
-readTime: "20 min"
+readTime: "18 min"
 toc: true
 ---
-
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
-import CodeFile from '@components/CodeFile.astro';
 
-In the previous article, we introduced NATS JetStream basics. Now let's explore consumer patterns in depth—understanding when to use push vs pull consumers, how acknowledgments work, and patterns for reliable message processing.
+## Introduction
 
-## Consumer Types Overview
+In distributed systems, we generally communicate in two ways:
 
-JetStream offers two consumer delivery models:
+1.  **"Do this work" (Commands)**: We want *one* service to handle the request. If we have 5 workers, we want to load balance.
+2.  **"Something happened" (Events)**: We want *everyone* interested to know. If we have a Search Indexer and an Email Notifier, *both* must get the message.
 
-| Aspect | Push Consumer | Pull Consumer |
-|--------|---------------|---------------|
-| Message delivery | JetStream pushes to subscriber | Application pulls batches |
-| Flow control | Managed by JetStream | Application controls rate |
-| Scaling | Requires queue groups | Natural horizontal scaling |
-| Backpressure | Limited control | Full control |
-| Use case | Real-time notifications | Background workers |
+NATS JetStream handles both using **Consumers**. A consumer is effectively a "View" into a Stream.
 
-## Pull Consumers: The Workhorse
+## Architecture Overview
 
-Pull consumers are ideal for background processing where you control the pace:
+The following diagram illustrates the two primary patterns.
 
-### Creating a Pull Consumer
+**Scenario A: Work Queue (Load Balancing)**
+Multiple workers bind to the *same* durable consumer name. NATS distributes messages round-robin.
 
-```csharp
-// Infrastructure/Messaging/NatsConsumerFactory.cs
-public class NatsConsumerFactory
-{
-    private readonly INatsJSContext _js;
-    private readonly string _environment;
+**Scenario B: Fan-Out (Pub/Sub)**
+Different services create *different* consumer names. Each consumer gets a full copy of the message stream.
+
+```mermaid
+flowchart TD
+    Stream["Stream: ARCHIVES\n(Subject: archives.doc.created)"]
     
-    public NatsConsumerFactory(INatsConnection connection, IConfiguration config)
-    {
-        _js = connection.CreateJetStreamContext();
-        _environment = config["Environment"] ?? "dev";
-    }
+    subgraph WorkQueue["Pattern 1: Work Queue"]
+        Stream -->|Load Balance| Worker1["Worker Instance 1"]
+        Stream -->|Load Balance| Worker2["Worker Instance 2"]
+    end
     
-    public async Task<INatsJSConsumer> CreatePullConsumerAsync(
-        string streamName,
-        string consumerName,
-        string filterSubject,
-        ConsumerConfig? config = null,
-        CancellationToken ct = default)
-    {
-        var effectiveConfig = config ?? new ConsumerConfig
-        {
-            DurableName = consumerName,
-            FilterSubject = filterSubject,
-            AckPolicy = ConsumerConfigAckPolicy.Explicit,
-            AckWait = TimeSpan.FromSeconds(30),
-            MaxDeliver = 5,
-            MaxAckPending = 100,
-            DeliverPolicy = ConsumerConfigDeliverPolicy.All
-        };
-        
-        return await _js.CreateOrUpdateConsumerAsync(
-            streamName,
-            effectiveConfig,
-            ct);
-    }
-}
+    subgraph FanOut["Pattern 2: Fan-Out"]
+        Stream -->|Copy| Search["Search Service Consumer"]
+        Stream -->|Copy| Email["Email Service Consumer"]
+    end
+    
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+    class Stream secondary
 ```
 
-### Pull Consumer Worker Pattern
+## Pattern 1: Load Balanced Work Queue
+
+This is ideal for expensive tasks like OCR or Video Transcoding. You can scale from 1 to 50 workers instantly just by starting more instances. The key is that they all share the **same durable name**.
 
 ```csharp
-// Workers/DocumentProcessingWorker.cs
-public sealed class DocumentProcessingWorker : BackgroundService
+// All workers share this config
+var consumerConfig = new ConsumerConfig("ocr_processor_group")
 {
-    private readonly INatsConnection _nats;
-    private readonly IServiceScopeFactory _scopeFactory;
-    private readonly ILogger<DocumentProcessingWorker> _logger;
-    private readonly string _environment;
+    // Filter only what we need
+    FilterSubject = "archives.documents.uploaded",
     
-    private INatsJSConsumer? _consumer;
+    // Explicit Ack is MANDATORY for work queues
+    AckPolicy = ConsumerConfigAckPolicy.Explicit,
     
-    public DocumentProcessingWorker(
-        INatsConnection nats,
-        IServiceScopeFactory scopeFactory,
-        IConfiguration configuration,
-        ILogger<DocumentProcessingWorker> logger)
-    {
-        _nats = nats;
-        _scopeFactory = scopeFactory;
-        _logger = logger;
-        _environment = configuration["Environment"] ?? "dev";
-    }
+    // How many messages to keep 'checked out' but un-acked?
+    MaxAckPending = 10, 
     
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        // Initialize consumer
-        var js = _nats.CreateJetStreamContext();
-        
-        _consumer = await js.CreateOrUpdateConsumerAsync(
-            stream: "DOCUMENTS",
-            config: new ConsumerConfig
-            {
-                DurableName = $"{_environment}-document-processor",
-                FilterSubject = $"{_environment}.archives.documents.>",
-                AckPolicy = ConsumerConfigAckPolicy.Explicit,
-                AckWait = TimeSpan.FromMinutes(2),
-                MaxDeliver = 5,
-                MaxAckPending = 50
-            },
-            stoppingToken);
-        
-        _logger.LogInformation(
-            "Document processor started, consuming from {Stream}", 
-            "DOCUMENTS");
-        
-        // Process messages in batches
-        await foreach (var msg in _consumer.ConsumeAsync<DocumentEvent>(
-            opts: new NatsJSConsumeOpts
-            {
-                MaxMsgs = 10,  // Batch size
-                Expires = TimeSpan.FromSeconds(30)
-            },
-            cancellationToken: stoppingToken))
-        {
-            await ProcessMessageAsync(msg, stoppingToken);
-        }
-    }
-    
-    private async Task ProcessMessageAsync(
-        NatsJSMsg<DocumentEvent> msg, 
-        CancellationToken ct)
-    {
-        using var scope = _scopeFactory.CreateScope();
-        var processor = scope.ServiceProvider
-            .GetRequiredService<IDocumentProcessor>();
-        
-        try
-        {
-            _logger.LogDebug(
-                "Processing {Subject}: {DocumentId}",
-                msg.Subject,
-                msg.Data?.DocumentId);
-            
-            await processor.ProcessAsync(msg.Data!, ct);
-            
-            // Acknowledge successful processing
-            await msg.AckAsync(cancellationToken: ct);
-            
-            _logger.LogInformation(
-                "Processed document {DocumentId}",
-                msg.Data?.DocumentId);
-        }
-        catch (Exception ex) when (IsTransient(ex))
-        {
-            _logger.LogWarning(ex,
-                "Transient error processing {DocumentId}, will retry",
-                msg.Data?.DocumentId);
-            
-            // NAK with delay for retry
-            await msg.NakAsync(
-                delay: TimeSpan.FromSeconds(30),
-                cancellationToken: ct);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Permanent error processing {DocumentId}",
-                msg.Data?.DocumentId);
-            
-            // Terminate retries for this message
-            await msg.TermAsync(cancellationToken: ct);
-        }
-    }
-    
-    private static bool IsTransient(Exception ex) =>
-        ex is HttpRequestException or
-            TimeoutException or
-            TaskCanceledException { CancellationToken.IsCancellationRequested: false };
+    // If worker crashes, redeliver after 30s
+    AckWait = TimeSpan.FromSeconds(30)
+};
+
+var consumer = await js.CreateOrUpdateConsumerAsync("ARCHIVES", consumerConfig);
+
+// Process loop
+await foreach (var msg in consumer.ConsumeAsync<DocUploadedEvent>())
+{
+    // If I process this, Worker 2 will NOT see it.
+    Process(msg.Data);
+    await msg.AckAsync();
 }
 ```
 
 <ImplementationNote>
-Using `ConsumeAsync` with `MaxMsgs` enables batch fetching, reducing round trips to the NATS server. Adjust batch size based on processing time.
+For true Work Queue behavior (message deleted after processing), set the **Stream's** retention policy to `WorkQueue`. If the Stream is `Limits` (default), the message remains on disk even after Ack, but the Consumer cursor moves forward.
 </ImplementationNote>
 
-## Push Consumers: Real-Time Delivery
+## Pattern 2: Interactive Fan-Out
 
-Push consumers deliver messages immediately—ideal for real-time notifications:
+In this pattern, we want to update the UI via SignalR/Blazor *and* update the Search Index. These are independent concerns.
 
-### Creating a Push Consumer
+Each service creates its **own consumer**.
 
 ```csharp
-public async Task<INatsJSConsumer> CreatePushConsumerAsync(
-    string streamName,
-    string consumerName,
-    string filterSubject,
-    string deliverSubject,
-    CancellationToken ct = default)
-{
-    var config = new ConsumerConfig
-    {
-        DurableName = consumerName,
-        FilterSubject = filterSubject,
-        DeliverSubject = deliverSubject,  // Push delivery target
-        DeliverPolicy = ConsumerConfigDeliverPolicy.New,
-        AckPolicy = ConsumerConfigAckPolicy.Explicit,
-        AckWait = TimeSpan.FromSeconds(30),
-        MaxDeliver = 3,
-        FlowControl = true,  // Enable flow control
-        IdleHeartbeat = TimeSpan.FromSeconds(5)
-    };
-    
-    return await _js.CreateOrUpdateConsumerAsync(streamName, config, ct);
-}
+// Service A: Search Indexer
+var searchConfig = new ConsumerConfig("search_indexer") { /*...*/ };
+
+// Service B: Notification Service
+var notifyConfig = new ConsumerConfig("notifications") { /*...*/ };
 ```
 
-### Push Consumer for Blazor Notifications
+NATS guarantees that *every* active consumer gets a copy of the message pointer. They can process at different speeds. If the search indexer is down for maintenance, it will resume where it left off (because it's a Durable consumer).
+
+## Ephemeral Consumers (Real-time UI)
+
+For a Blazor UI showing a progress bar, we don't need persistence if the user closes the tab. We use **Ephemeral Consumers**.
 
 ```csharp
-// Services/NatsDocumentEventListener.cs
-public sealed class NatsDocumentEventListener : IHostedService, IAsyncDisposable
+// No 'DurableName' provided = Ephemeral
+// Consumer is deleted when connection closes
+var consumer = await js.CreateConsumerAsync("ARCHIVES", new ConsumerConfig
 {
-    private readonly INatsConnection _nats;
-    private readonly IDocumentProcessingNotifier _notifier;
-    private readonly ILogger<NatsDocumentEventListener> _logger;
-    private readonly string _environment;
-    
-    private INatsJSConsumer? _consumer;
-    private CancellationTokenSource? _cts;
-    private Task? _consumeTask;
-    
-    public NatsDocumentEventListener(
-        INatsConnection nats,
-        IDocumentProcessingNotifier notifier,
-        IConfiguration configuration,
-        ILogger<NatsDocumentEventListener> logger)
-    {
-        _nats = nats;
-        _notifier = notifier;
-        _logger = logger;
-        _environment = configuration["Environment"] ?? "dev";
-    }
-    
-    public async Task StartAsync(CancellationToken cancellationToken)
-    {
-        var js = _nats.CreateJetStreamContext();
-        
-        // Ephemeral push consumer for real-time notifications
-        _consumer = await js.CreateOrUpdateConsumerAsync(
-            stream: "DOCUMENTS",
-            config: new ConsumerConfig
-            {
-                Name = $"web-notifier-{Guid.NewGuid():N}",
-                FilterSubject = $"{_environment}.archives.documents.>",
-                DeliverSubject = $"_INBOX.{Guid.NewGuid():N}",
-                DeliverPolicy = ConsumerConfigDeliverPolicy.New,
-                AckPolicy = ConsumerConfigAckPolicy.None,  // Fire-and-forget
-                InactiveThreshold = TimeSpan.FromMinutes(5)
-            },
-            cancellationToken);
-        
-        _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-        _consumeTask = ConsumeAsync(_cts.Token);
-        
-        _logger.LogInformation("Document event listener started");
-    }
-    
-    private async Task ConsumeAsync(CancellationToken ct)
-    {
-        try
-        {
-            await foreach (var msg in _consumer!.ConsumeAsync<DocumentStatusEvent>(
-                cancellationToken: ct))
-            {
-                if (msg.Data is not null)
-                {
-                    await _notifier.NotifyDocumentUpdatedAsync(
-                        msg.Data.DocumentId,
-                        msg.Data.Status,
-                        msg.Data.Progress);
-                }
-            }
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            // Normal shutdown
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error in document event listener");
-        }
-    }
-    
-    public async Task StopAsync(CancellationToken cancellationToken)
-    {
-        _cts?.Cancel();
-        
-        if (_consumeTask is not null)
-        {
-            await Task.WhenAny(_consumeTask, Task.Delay(5000, cancellationToken));
-        }
-    }
-    
-    public async ValueTask DisposeAsync()
-    {
-        _cts?.Dispose();
-        
-        if (_consumer is not null)
-        {
-            await _consumer.DisposeAsync();
-        }
-    }
-}
+    FilterSubject = "archives.documents.*",
+    AckPolicy = ConsumerConfigAckPolicy.None, // Fire and Forget
+    DeliverPolicy = ConsumerConfigDeliverPolicy.New // Only new messages
+});
+
+await foreach (var msg in consumer.ConsumeAsync<object>()) { /* Update UI */ }
 ```
 
-## Acknowledgment Strategies
+## Handling Failures (Dead Letter Queues)
 
-JetStream offers three acknowledgment policies:
-
-### Explicit Acknowledgment (Recommended)
-
-Each message must be explicitly acknowledged:
+What if a message crashes the worker every time? We don't want an infinite loop.
 
 ```csharp
-// AckPolicy = ConsumerConfigAckPolicy.Explicit
-
-await foreach (var msg in consumer.ConsumeAsync<Event>(cancellationToken: ct))
+var config = new ConsumerConfig("processor")
 {
-    try
-    {
-        await ProcessAsync(msg.Data!);
-        await msg.AckAsync(cancellationToken: ct);  // Success
-    }
-    catch (TransientException)
-    {
-        await msg.NakAsync(delay: TimeSpan.FromSeconds(10), cancellationToken: ct);  // Retry later
-    }
-    catch (PermanentException)
-    {
-        await msg.TermAsync(cancellationToken: ct);  // Stop retries
-    }
-}
-```
-
-### Acknowledgment Methods
-
-| Method | Effect | Use Case |
-|--------|--------|----------|
-| `AckAsync()` | Message processed successfully | Normal completion |
-| `NakAsync()` | Redelivery requested | Transient failures |
-| `NakAsync(delay)` | Delayed redelivery | Rate limiting, backoff |
-| `TermAsync()` | Stop redelivery | Permanent failures |
-| `InProgressAsync()` | Extend ack deadline | Long processing |
-
-### Extending Processing Time
-
-For long-running operations, extend the ack deadline:
-
-```csharp
-await foreach (var msg in consumer.ConsumeAsync<LargeFileEvent>(cancellationToken: ct))
-{
-    // Start background heartbeat
-    using var heartbeatCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
-    var heartbeatTask = SendHeartbeatsAsync(msg, heartbeatCts.Token);
-    
-    try
-    {
-        await ProcessLargeFileAsync(msg.Data!, ct);
-        await msg.AckAsync(cancellationToken: ct);
-    }
-    finally
-    {
-        heartbeatCts.Cancel();
-        await heartbeatTask;
-    }
-}
-
-async Task SendHeartbeatsAsync(NatsJSMsg<LargeFileEvent> msg, CancellationToken ct)
-{
-    while (!ct.IsCancellationRequested)
-    {
-        try
-        {
-            await Task.Delay(TimeSpan.FromSeconds(10), ct);
-            await msg.InProgressAsync(cancellationToken: ct);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
-        {
-            break;
-        }
-    }
-}
-```
-
-## Consumer Scaling Patterns
-
-### Horizontal Scaling with Pull Consumers
-
-Pull consumers naturally support horizontal scaling—multiple instances pull from the same durable consumer:
-
-```csharp
-// Instance 1 and Instance 2 both connect to same consumer
-var consumer = await js.GetConsumerAsync("DOCUMENTS", "document-processor", ct);
-
-// Each instance pulls independently
-// JetStream ensures no message is delivered to multiple instances
-await foreach (var msg in consumer.ConsumeAsync<Event>(cancellationToken: ct))
-{
-    // Only one instance receives each message
-}
-```
-
-### Queue Groups with Push Consumers
-
-For push consumers, use deliver groups:
-
-```csharp
-var config = new ConsumerConfig
-{
-    DurableName = "notification-processor",
-    FilterSubject = "events.>",
-    DeliverSubject = "push.notifications",
-    DeliverGroup = "notification-workers",  // Queue group
-    // ...
+    // Retry 3 times
+    MaxDeliver = 3
 };
-```
 
-<Callout type="tip">
-Pull consumers are generally preferred for workers because they provide natural load balancing without explicit queue group configuration.
-</Callout>
-
-## Dead Letter Queue Pattern
-
-Route failed messages to a dead letter subject after max retries:
-
-```csharp
-public class DeadLetterProcessor : BackgroundService
+// ... in loop ...
+if (msg.Metadata.NumDelivered > 3)
 {
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        var js = _nats.CreateJetStreamContext();
-        
-        // Consumer with advisory delivery
-        var consumer = await js.CreateOrUpdateConsumerAsync(
-            stream: "DOCUMENTS",
-            config: new ConsumerConfig
-            {
-                DurableName = "processor-with-dlq",
-                FilterSubject = $"{_environment}.archives.documents.>",
-                AckPolicy = ConsumerConfigAckPolicy.Explicit,
-                MaxDeliver = 5  // Max 5 attempts
-            },
-            stoppingToken);
-        
-        await foreach (var msg in consumer.ConsumeAsync<DocumentEvent>(
-            cancellationToken: stoppingToken))
-        {
-            try
-            {
-                await ProcessAsync(msg.Data!, stoppingToken);
-                await msg.AckAsync(cancellationToken: stoppingToken);
-            }
-            catch (Exception ex)
-            {
-                var metadata = await msg.GetMetadataAsync(stoppingToken);
-                
-                if (metadata.NumDelivered >= 5)
-                {
-                    // Max retries reached - send to DLQ
-                    await SendToDeadLetterAsync(msg, ex, stoppingToken);
-                    await msg.TermAsync(cancellationToken: stoppingToken);
-                }
-                else
-                {
-                    // Retry with exponential backoff
-                    var delay = TimeSpan.FromSeconds(
-                        Math.Pow(2, metadata.NumDelivered));
-                    await msg.NakAsync(delay: delay, cancellationToken: stoppingToken);
-                }
-            }
-        }
-    }
-    
-    private async Task SendToDeadLetterAsync(
-        NatsJSMsg<DocumentEvent> msg, 
-        Exception ex,
-        CancellationToken ct)
-    {
-        var dlqEvent = new DeadLetterEvent
-        {
-            OriginalSubject = msg.Subject,
-            OriginalData = msg.Data,
-            Error = ex.Message,
-            StackTrace = ex.StackTrace,
-            FailedAt = DateTimeOffset.UtcNow
-        };
-        
-        await _nats.PublishAsync(
-            $"{_environment}.dlq.documents",
-            dlqEvent,
-            cancellationToken: ct);
-        
-        _logger.LogError(ex,
-            "Message {Subject} sent to DLQ after {Attempts} attempts",
-            msg.Subject, 5);
-    }
+    // Terminate: Tell NATS to stop sending this to me
+    // Usually you'd publish to a DLQ subject first
+    await msg.TermAsync(); 
 }
 ```
 
-## Ordered Consumers
+## Conclusion
 
-When message order matters, use ordered consumers:
-
-```csharp
-// Ordered consumer guarantees FIFO delivery
-var consumer = await js.CreateOrderedConsumerAsync(
-    stream: "ORDERS",
-    opts: new NatsJSOrderedConsumerOpts
-    {
-        FilterSubjects = new[] { $"{_environment}.orders.>" }
-    },
-    cancellationToken: ct);
-
-// Messages delivered in stream order
-await foreach (var msg in consumer.ConsumeAsync<OrderEvent>(cancellationToken: ct))
-{
-    // Guaranteed order per subject
-    await ProcessOrderAsync(msg.Data!, ct);
-    // No explicit ack needed for ordered consumers
-}
-```
-
-<Callout type="warning">
-Ordered consumers automatically handle redelivery and reconnection, but they cannot be shared across multiple instances. Use them only when strict ordering is required.
-</Callout>
-
-## Consumer Configuration Reference
-
-```csharp
-new ConsumerConfig
-{
-    // Identity
-    DurableName = "my-consumer",        // Survives restarts
-    Name = "ephemeral-consumer",        // Temporary
-    Description = "Processes document events",
-    
-    // Delivery
-    DeliverPolicy = ConsumerConfigDeliverPolicy.All,  // All, New, Last, ByStartSequence, ByStartTime
-    DeliverSubject = "push.subject",    // Push consumer only
-    DeliverGroup = "worker-group",      // Queue group
-    
-    // Filtering
-    FilterSubject = "events.>",         // Single filter
-    FilterSubjects = ["a.>", "b.>"],    // Multiple filters
-    
-    // Acknowledgment
-    AckPolicy = ConsumerConfigAckPolicy.Explicit,
-    AckWait = TimeSpan.FromSeconds(30),
-    MaxAckPending = 100,
-    
-    // Redelivery
-    MaxDeliver = 5,
-    BackOff = [TimeSpan.FromSeconds(5), TimeSpan.FromSeconds(30), TimeSpan.FromMinutes(1)],
-    
-    // Flow Control
-    FlowControl = true,
-    IdleHeartbeat = TimeSpan.FromSeconds(5),
-    
-    // Rate Limiting
-    RateLimitBps = 1024 * 1024,  // 1MB/s
-    
-    // Lifecycle
-    InactiveThreshold = TimeSpan.FromMinutes(5)
-}
-```
-
-## Monitoring Consumers
-
-Track consumer health with metrics:
-
-```csharp
-public class ConsumerHealthCheck : IHealthCheck
-{
-    private readonly INatsConnection _nats;
-    private readonly string _stream;
-    private readonly string _consumer;
-    
-    public async Task<HealthCheckResult> CheckHealthAsync(
-        HealthCheckContext context,
-        CancellationToken cancellationToken = default)
-    {
-        var js = _nats.CreateJetStreamContext();
-        
-        try
-        {
-            var consumer = await js.GetConsumerAsync(_stream, _consumer, cancellationToken);
-            var info = await consumer.GetCachedInfoAsync();
-            
-            var data = new Dictionary<string, object>
-            {
-                ["pending"] = info.NumPending,
-                ["ack_pending"] = info.NumAckPending,
-                ["redelivered"] = info.NumRedelivered,
-                ["waiting"] = info.NumWaiting
-            };
-            
-            // Alert if pending messages exceed threshold
-            if (info.NumPending > 1000)
-            {
-                return HealthCheckResult.Degraded(
-                    $"High message backlog: {info.NumPending}",
-                    data: data);
-            }
-            
-            return HealthCheckResult.Healthy("Consumer is healthy", data);
-        }
-        catch (Exception ex)
-        {
-            return HealthCheckResult.Unhealthy(
-                "Cannot reach consumer",
-                exception: ex);
-        }
-    }
-}
-```
-
-## Summary
-
-We've covered NATS JetStream consumer patterns:
-
-- **Pull vs Push**: Choose based on processing model
-- **Acknowledgments**: Explicit acks with Nak/Term for failures
-- **Scaling**: Pull consumers scale naturally
-- **Dead Letter Queues**: Route permanent failures
-- **Ordered Consumers**: When FIFO matters
-
-Next in the series, we'll explore **advanced patterns** including exactly-once processing and cross-stream workflows.
+Understanding the distinction between Stream Retention and Consumer Configuration is the key to mastering JetStream. By manipulating the `DurableName` and `DeliverGroup`, you can switch between Competing Consumers (Queue) and Pub/Sub (Topic) patterns instantly without changing infrastructure.

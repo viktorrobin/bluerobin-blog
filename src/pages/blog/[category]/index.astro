@@ -1,0 +1,111 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { CATEGORIES, DIFFICULTIES } from "@/config";
+
+export async function getStaticPaths() {
+  const categories = Object.keys(CATEGORIES);
+  return categories.map((category) => ({ params: { category } }));
+}
+
+const { category } = Astro.params;
+const categoryMeta = CATEGORIES[category as keyof typeof CATEGORIES];
+
+if (!categoryMeta) {
+  return Astro.redirect('/404');
+}
+
+// Get all posts in this category
+const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.category === category);
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+---
+
+<MainLayout title={`${categoryMeta.title} | BlueRobin Tech Blog`} description={categoryMeta.description}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-12">
+      <!-- Breadcrumb -->
+      <nav class="text-sm text-slate-500 dark:text-slate-400 mb-4">
+        <a href="/" class="hover:text-neural-600 dark:hover:text-neural-400">Home</a>
+        <span class="mx-2">/</span>
+        <a href="/articles/" class="hover:text-neural-600 dark:hover:text-neural-400">Articles</a>
+        <span class="mx-2">/</span>
+        <span class="text-slate-900 dark:text-slate-100">{categoryMeta.title}</span>
+      </nav>
+
+      <div class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-${category} mb-4`}>
+        {categoryMeta.icon} {categoryMeta.title}
+      </div>
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+        {categoryMeta.title} Articles
+      </h1>
+      <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+        {categoryMeta.description}. Explore {sortedPosts.length} article{sortedPosts.length !== 1 ? 's' : ''} in this category.
+      </p>
+    </header>
+
+    {sortedPosts.length === 0 ? (
+      <div class="glass-card p-12 text-center">
+        <p class="text-slate-600 dark:text-slate-400 text-lg">
+          🚧 No articles in this category yet. Check back soon!
+        </p>
+        <a href="/articles/" class="btn-primary mt-6 inline-block">
+          Browse All Articles
+        </a>
+      </div>
+    ) : (
+      <div class="space-y-6">
+        {sortedPosts.map((post) => {
+          const difficultyMeta = DIFFICULTIES[post.data.difficulty];
+          const seriesTags = post.data.tags.filter(t => t.endsWith("-series"));
+          const regularTags = post.data.tags.filter(t => !t.endsWith("-series")).slice(0, 4);
+          
+          return (
+            <article class="glass-card p-6 hover:shadow-lg transition-all group">
+              <div class="flex flex-wrap items-center gap-2 mb-3">
+                <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
+                  {difficultyMeta.label}
+                </span>
+                {post.data.readTime && (
+                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                    ⏱️ {post.data.readTime}
+                  </span>
+                )}
+                <time class="text-xs text-slate-500 dark:text-slate-400" datetime={post.data.pubDate.toISOString()}>
+                  {formatDate(post.data.pubDate)}
+                </time>
+              </div>
+              
+              <a href={`/articles/${post.slug}/`}>
+                <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 group-hover:text-neural-600 dark:group-hover:text-neural-400 transition-colors mb-2">
+                  {post.data.title}
+                </h2>
+              </a>
+              
+              <p class="text-slate-600 dark:text-slate-400 mb-4 line-clamp-2">
+                {post.data.description}
+              </p>
+              
+              <div class="flex flex-wrap gap-2">
+                {seriesTags.map((tag) => (
+                  <a href={`/tags/${tag}/`} class="tag tag-series text-xs">{tag.replace("-series", "")}</a>
+                ))}
+                {regularTags.map((tag) => (
+                  <a href={`/tags/${tag}/`} class="tag text-xs">{tag}</a>
+                ))}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+
+    <!-- Back to Blog -->
+    <div class="mt-12 text-center">
+      <a href="/articles/" class="btn-secondary">
+        ← Back to All Articles
+      </a>
+    </div>
+  </div>
+</MainLayout>

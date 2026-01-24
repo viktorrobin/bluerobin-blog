@@ -1,0 +1,95 @@
+---
+title: "Managing Kubernetes Clusters with MCP Server"
+description: "Revolutionizing cluster operations by replacing kubectl with natural language interaction using the Kubernetes MCP Server."
+pubDate: 2026-02-25
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "intermediate"
+tags: ["ai", "kubernetes", "infrastructure"]
+readTime: "10 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Command-line tools like `kubectl` are powerful but verbose. Debugging a failing pod often involves a repetitive cycle: `get pods`, `describe pod`, `logs`, `get events`. With the **Kubernetes Model Context Protocol (MCP) Server**, we can delegate this investigation to an AI agent that "lives" in our IDE.
+
+**Why AI-Driven Ops Matters:**
+
+- **Context Preservation**: The agent maintains the history of what you've looked at (e.g., "Why is *that* pod restarting?").
+- **Synthesis**: It can correlate events from different namespaces or resource types (e.g., a PVC error causing a Pod crash).
+- **Safety**: Tools are read-heavy by default, allowing safe exploration without risk of accidental deletion.
+
+### What We'll Build
+
+We will demonstrate a debugging session where we identify a crash loop in the BlueRobin worker using only natural language.
+
+## Architecture Overview
+
+The MCP server acts as a proxy between the LLM and the Kubernetes API Server, exposing safe tools like `list_pods` and `read_logs`.
+
+```mermaid
+flowchart LR
+    User[Developer] -->|Chat| LLM[AI Agent]
+    LLM -->|call tool| MCP[Kubernetes MCP Server]
+    MCP -->|KubeConfig| API[K8s API Server]
+    API -->|Status| Cluster[BlueRobin Cluster]
+    
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class MCP,LLM primary
+    class API,Cluster secondary
+    class User warning
+```
+
+## Implementation
+
+### 1. The Scenario
+
+You notice the "Worker" service is down. Instead of typing five commands, you ask:
+
+> **User**: "Why are the worker pods in the staging namespace restarting?"
+
+### 2. The Tool Chain
+
+The agent autonomously executes a sequence of checks via MCP.
+
+1.  **`mcp_kubernetes_pods_list(namespace="staging")`**: Finds the exact pod name `worker-7b5f6cd8-abcde`.
+2.  **`mcp_kubernetes_pods_get(name="...", namespace="staging")`**: Checks the status. Sees `CrashLoopBackOff`, exit code 137 (OOMKilled).
+3.  **`mcp_kubernetes_events_list(namespace="staging")`**: Corroborates with "Memory Limit Exceeded" events.
+
+### 3. The Resolution
+
+The agent reports back:
+
+> **AI**: "The pod `worker-7b5f6cd8-abcde` is terminating with OOMKilled (Exit Code 137). It exceeded its limit of 512Mi. I recommend increasing the memory limit in the deployment."
+
+You can then ask it to draft the fix:
+
+> **User**: "Show me the patch for the resources."
+
+<CodeFile filename="deployment-patch.yaml" language="yaml">
+```yaml
+resources:
+  limits:
+    memory: "1Gi"  # Increased from 512Mi
+  requests:
+    memory: "512Mi"
+```
+</CodeFile>
+
+<ImplementationNote title="Security">
+  The MCP server runs locally with your user credentials (`~/.kube/config`). It respects RBAC, so the AI cannot do anything you cannot do.
+</ImplementationNote>
+
+## Conclusion
+
+By abstracting the verbosity of `kubectl` behind MCP tools, we turn cluster management into a conversation. This lowers the barrier to entry for developers who might be intimidated by Kubernetes complexity and speeds up troubleshooting for seasoned ops engineers.

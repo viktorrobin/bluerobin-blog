@@ -1,19 +1,20 @@
 ---
-import { SITE, SOCIALS } from "@/config";
+import { SITE } from "@/config";
+import Search from "./Search.astro";
 
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
-  { href: "/", label: "Home" },
   { href: "/blog/", label: "Blog" },
-  { href: "/cookbook/", label: "Cookbook" },
-  { href: "/architecture/", label: "Architecture" },
-  { href: "/tags/", label: "Tags" },
-  { href: "/about/", label: "About" },
+  { href: "/blog/articles/", label: "Articles" },
+  { href: "/blog/cookbook/", label: "Cookbook" },
+  { href: "/blog/architecture/", label: "Architecture" },
+  { href: "/blog/tags/", label: "Tags" },
+  { href: "/blog/about/", label: "About" },
 ];
 
 const isActive = (href: string) => {
-  if (href === "/") return currentPath === "/";
+  if (href === "/blog/") return currentPath === "/blog/" || currentPath === "/blog";
   return currentPath.startsWith(href);
 };
 ---
@@ -43,8 +44,22 @@ const isActive = (href: string) => {
         ))}
       </div>
 
-      <!-- Right side: Theme toggle + Mobile menu -->
-      <div class="flex items-center space-x-4">
+      <!-- Right side: Search + Login + Theme toggle + Mobile menu -->
+      <div class="flex items-center space-x-3">
+        <!-- Search -->
+        <Search />
+        
+        <!-- Login Button -->
+        <a
+          href="https://web.bluerobin.io"
+          class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-neural-600 hover:bg-neural-700 text-white text-sm font-medium transition-colors"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+          </svg>
+          <span>Login</span>
+        </a>
+        
         <!-- Theme Toggle -->
         <button
           id="theme-toggle"
@@ -83,6 +98,12 @@ const isActive = (href: string) => {
             {label}
           </a>
         ))}
+        <a
+          href="https://web.bluerobin.io"
+          class="px-3 py-2 rounded-lg bg-neural-600 text-white text-center font-medium"
+        >
+          🔐 Login to BlueRobin
+        </a>
       </div>
     </div>
   </nav>

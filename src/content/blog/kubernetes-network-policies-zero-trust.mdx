@@ -5,7 +5,7 @@ pubDate: 2026-03-10
 author: "Victor Robin"
 category: "security"
 difficulty: "advanced"
-tags: ["kubernetes", "network-policies", "security", "zero-trust", "cilium"]
+tags: ["kubernetes", "networking", "security", "zero-trust"]
 readTime: "17 min"
 toc: true
 ---
@@ -14,11 +14,42 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Network Policies provide Kubernetes-native firewall rules for pod-to-pod communication. This guide covers implementing zero-trust networking with deny-by-default policies.
+## Introduction
 
-## Default Deny Policies
+In a flat network, a compromised pod can attack any other pod in the cluster. Network Policies act as a firewall for pods, enabling a Zero Trust architecture where communication is denied by default and explicitly allowed only where necessary. This guide demonstrates how to implement a defense-in-depth strategy using Kubernetes Network Policies, ensuring that services can only communicate with their valid dependencies.
 
-### Deny All Ingress
+## Architecture Overview
+
+Network Policies enforce a whitelist model. All traffic is blocked unless explicitly allowed.
+
+```mermaid
+flowchart TB
+    Traefik["🌐 Ingress<br/>(Traefik)"] --> Web["💻 Web"]
+    Web --> API["🛡️ API"]
+    
+    API --> DB[("🗄️ Database")]
+    API --> Cache[("🧊 Redis")]
+    
+    subgraph Attack["🚫 Blocked Path"]
+        Attacker["😈 Compromised<br/>Web Pod"] -.-> DB
+    end
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Web,API primary
+    class Traefik secondary
+    class DB,Cache db
+    class Attacker warning
+```
+
+## Implementation
+
+### Default Deny Policies
+
+#### Deny All Ingress
 
 ```yaml
 # core-infra/security/default-deny-ingress.yaml
@@ -33,7 +64,7 @@ spec:
     - Ingress
 ```
 
-### Deny All Egress
+#### Deny All Egress
 
 ```yaml
 # core-infra/security/default-deny-egress.yaml
@@ -48,7 +79,7 @@ spec:
     - Egress
 ```
 
-### Combined Default Deny
+#### Combined Default Deny
 
 ```yaml
 # core-infra/security/default-deny-all.yaml
@@ -68,9 +99,9 @@ spec:
 Always deploy default-deny policies **after** allow policies are in place, or you may lock yourself out of the cluster.
 </Callout>
 
-## Allow Policies
+### Allow Policies
 
-### API to Database
+#### API to Database
 
 ```yaml
 # apps/archives-api/network-policy.yaml
@@ -137,7 +168,7 @@ spec:
 Always include DNS egress rules (port 53) or pods won't be able to resolve service names. This is a common source of issues when implementing network policies.
 </ImplementationNote>
 
-### Worker to Services
+#### Worker to Services
 
 ```yaml
 # apps/archives-workers/network-policy.yaml
@@ -220,7 +251,7 @@ spec:
           port: 53
 ```
 
-### Web to API
+#### Web to API
 
 ```yaml
 # apps/bluerobin-web/network-policy.yaml
@@ -275,9 +306,9 @@ spec:
           port: 53
 ```
 
-## Database Layer Policies
+### Database Layer Policies
 
-### PostgreSQL Access Control
+#### PostgreSQL Access Control
 
 ```yaml
 # infrastructure/data-layer/postgresql-network-policy.yaml
@@ -335,7 +366,7 @@ spec:
           port: 5432
 ```
 
-### NATS Access Control
+#### NATS Access Control
 
 ```yaml
 # infrastructure/data-layer/nats-network-policy.yaml
@@ -381,9 +412,9 @@ spec:
           port: 7422
 ```
 
-## CIDR-Based Rules
+### CIDR-Based Rules
 
-### External API Access
+#### External API Access
 
 ```yaml
 # Allow egress to external APIs
@@ -416,9 +447,9 @@ spec:
 Exclude private IP ranges when allowing external access to prevent bypassing internal network policies.
 </Callout>
 
-## Cilium Enhanced Policies
+### Cilium Enhanced Policies
 
-### Layer 7 HTTP Policy
+#### Layer 7 HTTP Policy
 
 ```yaml
 # Cilium L7 policy for API path filtering
@@ -449,7 +480,7 @@ spec:
                 path: "/health.*"
 ```
 
-### DNS Policy
+#### DNS Policy
 
 ```yaml
 # Cilium DNS egress policy
@@ -477,9 +508,9 @@ spec:
               - matchName: "api.openai.com"
 ```
 
-## Monitoring Network Policies
+### Monitoring Network Policies
 
-### Policy Audit with Cilium
+#### Policy Audit with Cilium
 
 ```yaml
 # Enable Hubble for network flow visibility
@@ -497,7 +528,7 @@ spec:
     egress: true
 ```
 
-### Validation Script
+#### Validation Script
 
 ```bash
 #!/bin/bash
@@ -520,9 +551,9 @@ kubectl run test-client --rm -i --restart=Never \
   http://postgresql.data-layer.svc.cluster.local:5432 && echo "Connection allowed (unexpected!)" || echo "Connection blocked (expected)"
 ```
 
-## Testing Strategy
+### Testing Strategy
 
-### Policy Test Matrix
+#### Policy Test Matrix
 
 | Source | Destination | Port | Expected |
 |--------|-------------|------|----------|
@@ -534,20 +565,9 @@ kubectl run test-client --rm -i --restart=Never \
 | bluerobin-web | postgresql | 5432 | Deny |
 | traefik | archives-api | 8080 | Allow |
 
-## Summary
+## Conclusion
 
-Network Policy implementation checklist:
-
-| Step | Action |
-|------|--------|
-| 1 | Label namespaces for selector targeting |
-| 2 | Deploy allow policies first |
-| 3 | Test allowed connections |
-| 4 | Deploy default-deny policies |
-| 5 | Verify denied connections |
-| 6 | Monitor with Hubble/Cilium |
-
-Network Policies enable micro-segmentation for defense-in-depth security in Kubernetes clusters.
+Network Policies are a fundamental building block of Kubernetes security. By starting with a default-deny posture and whitelisting required traffic, you significantly reduce the attack surface of your cluster, turning it from a soft-shell target into a hardened fortress.
 
 <ExternalCite 
   title="Network Policies - Kubernetes Documentation" 

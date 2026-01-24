@@ -1,0 +1,132 @@
+---
+title: "Migrating Blazor to Tailwind CSS 4"
+description: "A comprehensive guide to adopting Tailwind CSS 4 in Blazor, leveraging CSS-first configuration and the new JIT engine for a streamlined frontend workflow."
+pubDate: 2026-01-20
+author: "Victor Robin"
+category: "frontend"
+difficulty: "intermediate"
+tags: ["frontend", "css", "blazor"]
+readTime: "12 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Tailwind CSS v4 introduces a paradigm shift by moving configuration from JavaScript (`tailwind.config.js`) directly into CSS. For Blazor developers, this simplifies the build pipeline significantly. We no longer need complex NPM build steps or PostCSS configs cluttering our .NET projects.
+
+**Why Tailwind v4 for Blazor Matters:**
+
+- **Simplified Toolchain**: The standalone CLI or simple PostCSS plugin is much lighter.
+- **Performance**: The new engine is rewritten in Rust, offering instant build times.
+- **CSS-First Configuration**: Configure your theme, fonts, and breakpoints right where you use them—in your CSS.
+
+### What We'll Build
+
+We will migrate the BlueRobin frontend to Tailwind v4. You will learn how to:
+
+1.  **Setup the CSS Input**: rigorous use of `@theme` and `@utility`.
+2.  **Integrate with Blazor**: Watching for changes and serving the output.
+3.  **Optimize for Production**: Minification and cache busting.
+
+## Architecture Overview
+
+Network traffic for styles during development is served directly from the compiled CSS file.
+
+```mermaid
+flowchart LR
+    Dev[Developer] -->|Edits| Razor[Component.razor]
+    Dev -->|Edits| CSS[input.css]
+    
+    subgraph "Build Process"
+        CSS -->|@theme directives| TW[Tailwind v4 Engine]
+        TW -->|Compiles| Output[app.css]
+    end
+    
+    Output -->|Link Tag| BlazorApp[Blazor Server App]
+    
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class TW secondary
+    class BlazorApp primary
+    class Dev warning
+```
+
+## Implementation
+
+### 1. The New Input CSS
+
+Delete your `tailwind.config.js`. Create a `Styles/input.css` file. This is now your configuration source.
+
+<CodeFile filename="src/Archives.Web/Styles/input.css" language="css">
+```css
+@import "tailwindcss";
+
+@theme {
+  /* Brand Colors */
+  --color-robin-50: #f0f9ff;
+  --color-robin-500: #0ea5e9;
+  --color-robin-900: #0c4a6e;
+
+  /* Typography */
+  --font-sans: "Inter", system-ui, sans-serif;
+  
+  /* Animations */
+  --animate-fade-in: fade-in 0.3s ease-out;
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+/* Custom Utilities */
+@utility .btn-primary {
+  @apply px-4 py-2 bg-robin-500 text-white rounded hover:bg-robin-600 transition-colors;
+}
+```
+</CodeFile>
+
+### 2. NPM Scripts
+
+We use a simplified `package.json` to run the Tailwind CLI.
+
+<CodeFile filename="package.json" language="json">
+```json
+{
+  "scripts": {
+    "css:build": "tailwindcss -i ./Styles/input.css -o ./wwwroot/css/app.css --minify",
+    "css:watch": "tailwindcss -i ./Styles/input.css -o ./wwwroot/css/app.css --watch"
+  },
+  "devDependencies": {
+    "tailwindcss": "^4.0.0"
+  }
+}
+```
+</CodeFile>
+
+### 3. Blazor Integration
+
+In your `App.razor` (or `_Host.cshtml`), ensure you link to the generated output.
+
+<CodeFile filename="App.razor" language="razor">
+```html
+<head>
+    <link href="css/app.css" rel="stylesheet" />
+</head>
+```
+</CodeFile>
+
+<ImplementationNote title="Hot Reload">
+  Using `npm run css:watch` along with `dotnet watch` gives you the best experience to see UI changes instantly.
+</ImplementationNote>
+
+## Conclusion
+
+Migrating to Tailwind CSS 4 has reduced our configuration boilerplate and improved build speeds. The "CSS-first" approach feels more natural for styling and keeps BlueRobin's architecture clean and focused on standard web technologies.

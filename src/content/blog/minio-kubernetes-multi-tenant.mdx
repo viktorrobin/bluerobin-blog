@@ -5,7 +5,7 @@ pubDate: 2026-02-20
 author: "Victor Robin"
 category: "storage"
 difficulty: "intermediate"
-tags: ["minio", "s3", "object-storage", "kubernetes", "encryption"]
+tags: ["encryption", "kubernetes", "storage"]
 readTime: "20 min"
 toc: true
 ---
@@ -13,6 +13,19 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Modern applications store more than just database rows—they handle PDFs, images, videos, and documents of all kinds. Cloud providers make this easy with S3, but what about self-hosted environments? You need storage that's **scalable**, **secure**, and **tenant-aware**.
+
+**Why Multi-Tenant Object Storage Matters:**
+
+- **Data Isolation**: Each user's files are stored in separate buckets with independent access controls
+- **Encryption at Rest**: Per-user encryption keys ensure that even storage admins can't read user data
+- **Cost Control**: Self-hosted MinIO eliminates per-GB cloud storage fees
+- **S3 Compatibility**: Your existing SDKs and tools just work
+
+For BlueRobin, where users upload sensitive documents, multi-tenancy isn't a feature—it's a requirement. Each user gets their own encrypted bucket, managed by KES (Key Encryption Service), ensuring cryptographic isolation between tenants.
 
 MinIO provides S3-compatible object storage that runs anywhere. This guide covers deploying MinIO on Kubernetes with multi-tenant isolation, per-user encryption keys, and integration with .NET applications.
 
@@ -46,10 +59,13 @@ flowchart TB
         end
     end
 
-    style Cluster fill:#c72c48,color:#fff
-    style KES fill:#1a1a2e,color:#fff
-    style Nodes fill:#c72c48,color:#fff
-    style Storage fill:#2d2d44,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class KES primary
+    class Cluster,Nodes,Storage db
 ```
 
 ## Kubernetes Deployment

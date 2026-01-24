@@ -5,7 +5,7 @@ pubDate: 2026-02-24
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
-tags: ["traefik", "kubernetes", "ingress", "tls", "routing"]
+tags: ["kubernetes", "networking", "security"]
 readTime: "18 min"
 toc: true
 ---
@@ -14,7 +14,35 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Traefik is a modern reverse proxy and ingress controller designed for cloud-native applications. This guide covers deploying Traefik on K3s with automatic TLS, middleware chains, and advanced routing.
+## Introduction
+
+Your Kubernetes cluster runs dozens of services, but they're all hidden behind internal IPs. How do users reach them? The answer is an **Ingress Controller**—the traffic cop that routes external requests to the right service based on hostnames and paths.
+
+**Why Traefik for Ingress:**
+
+- **Dynamic Configuration**: Automatically discovers services as they're deployed—no reload required
+- **Modern Protocol Support**: HTTP/2, gRPC, WebSockets, and TCP/UDP routing out-of-the-box
+- **Middleware Ecosystem**: Authentication, rate limiting, compression as composable building blocks
+- **Dashboard**: Real-time visibility into routes, services, and middleware chains
+
+For BlueRobin, Traefik is the front door to everything—our Blazor web app, REST API, and internal tools. Its CRD-based configuration (IngressRoute) gives us more power than standard Kubernetes Ingress, while the middleware system handles cross-cutting concerns like auth forwarding and security headers.
+
+Traefik is a modern HTTP reverse proxy and load balancer that makes deploying microservices easy. In the Kubernetes ecosystem, it serves as an **Ingress Controller**, managing access to your services from the outside world.
+
+**Why Traefik Matters:**
+
+-   **Kubernetes Native (CRDs)**: While it supports standard Ingress, its custom `IngressRoute` resource offers advanced features like TCP routing and distinct entry points.
+-   **Middleware Chains**: Reusable pipelines for logic like "Compress -> RateLimit -> Authenticate" can be applied declaratively.
+-   **Observability**: Built-in metrics and a realtime dashboard make debugging routing issues significantly easier than with Nginx.
+
+### What We'll Build
+
+In this guide, we will configure the "Front Door" of our cluster. You will learn how to:
+
+1.  **Deploy Traefik**: Install via Helm with MetalLB integration.
+2.  **Secure Traffic**: Force HTTPS redirection and apply TLS certificates.
+3.  **Configure Middleware**: Implement generic security headers and compression.
+4.  **Route Services**: efficient routing for the Blazor Web App vs the API.
 
 ## Architecture Overview
 
@@ -36,7 +64,12 @@ flowchart TB
     Routes --> WebSvc["🖥️ Web Service"]
     Routes --> Workers["⚙️ Workers\n(Internal)"]
 
-    style Traefik fill:#24a1c1,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Traefik secondary
 ```
 
 ## Traefik Installation

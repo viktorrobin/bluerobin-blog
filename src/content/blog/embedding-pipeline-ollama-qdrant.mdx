@@ -5,7 +5,7 @@ pubDate: 2026-01-29
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
-tags: ["embeddings", "ollama", "qdrant", "semantic-search", "dotnet", "ai"]
+tags: ["ai", "dotnet", "qdrant", "search"]
 series:
   name: "AI in Production"
   order: 3
@@ -61,9 +61,14 @@ flowchart LR
         E --> G["✅ Results"]
     end
 
-    style Ingestion fill:#3498db,color:#fff
-    style Storage fill:#27ae60,color:#fff
-    style Query fill:#f39c12,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Ingestion primary
+    class Storage db
+    class Query warning
 ```
 
 **The flow works like this:**

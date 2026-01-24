@@ -5,7 +5,7 @@ pubDate: 2026-03-12
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
-tags: ["dotnet", "caching", "redis", "performance", "memory-cache"]
+tags: ["caching", "dotnet", "performance"]
 readTime: "16 min"
 toc: true
 ---
@@ -14,7 +14,48 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Effective caching reduces database load, improves response times, and enhances scalability. This guide covers implementing multi-tier caching strategies in .NET.
+## Introduction
+
+Effective caching is one of the highest-impact performance optimizations for any distributed system. It reduces database load, improves response times, and enhances overall scalability by serving frequently accessed data from high-speed memory.
+
+This guide covers implementing multi-tier caching strategies in .NET, combining in-memory caching for speed with Redis for distributed consistency.
+
+### What We'll Build
+1.  **Hybrid Cache**: A two-layer cache (L1 Memory + L2 Redis).
+2.  **Cache-Aside Pattern**: A repository decorator that transparently caches database lookups.
+3.  **Stampede Protection**: A mechanism to prevent thousands of requests hitting the database simultaneously when a hot key expires.
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    Client["📱 Client"] -->|Request| API["🚀 API"]
+    
+    subgraph Caching["⚡ Caching Layer"]
+        API -->|1. Check| L1["🧠 L1: Memory\n(In-Process)"]
+        API -->|2. Check| L2["🔴 L2: Redis\n(Distributed)"]
+    end
+    
+    subgraph Data["💾 Data Layer"]
+        L2 -->|3. Fallback| DB[(PostgreSQL)]
+    end
+
+    L1 -.->|Hit| API
+    L2 -.->|Hit| API
+    DB -.->|Miss & Set| L2
+    L2 -.->|Propagate| L1
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Client,API primary
+    class L1 secondary
+    class L2,DB db
+```
+
+## Implementation
 
 ## Cache Configuration
 
@@ -453,7 +494,9 @@ public sealed class MeteredCacheService : ICacheService
 }
 ```
 
-## Cache Patterns Summary
+## Conclusion
+
+Cache Patterns Summary:
 
 | Pattern | Use Case | Invalidation |
 |---------|----------|--------------|

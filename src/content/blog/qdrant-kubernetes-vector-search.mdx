@@ -5,7 +5,7 @@ pubDate: 2026-02-22
 author: "Victor Robin"
 category: "database"
 difficulty: "intermediate"
-tags: ["qdrant", "vector-database", "kubernetes", "semantic-search", "embeddings"]
+tags: ["ai", "database", "kubernetes", "qdrant", "search"]
 readTime: "18 min"
 toc: true
 ---
@@ -14,7 +14,32 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Qdrant is a high-performance vector database designed for similarity search. This guide covers deploying Qdrant on Kubernetes and integrating it with .NET applications for semantic document search.
+## Introduction
+
+Qdrant is a high-performance vector database written in Rust, designed for the next generation of AI applications. Unlike traditional search engines that rely on keywords, Qdrant enables **semantic search**—finding documents based on *meaning* rather than exact text matches.
+
+**Why Vector Databases Matter:**
+
+- **Semantic Understanding**: Find "vacation policy" when the user searches "time off rules"
+- **AI-Native**: Store embeddings from LLMs like OpenAI, Ollama, or sentence-transformers
+- **Hybrid Search**: Combine vector similarity with metadata filters for precise results
+- **Scale**: Handle millions of vectors with sub-millisecond query latency
+
+For BlueRobin's document intelligence features, Qdrant is the backbone of our search. Users can ask natural language questions and find relevant documents even when the exact words don't match.
+
+**Why Qdrant Matters:**
+
+- **Performance**: Built in Rust, it offers incredibly low latency even with millions of vectors.
+- **Filtering**: First-class support for "Payload Filtering", allowing you to combine semantic search with strict conditions (e.g., "Find similar docs *owned by User X*").
+- **Kubernetes Ready**: Cloud-native architecture that scales horizontally.
+
+### What We'll Build
+
+In this guide, we will set up the search engine for our document platform. You will learn how to:
+
+1.  **Deploy Qdrant**: Configure a StatefulSet with persistent storage in Kubernetes.
+2.  **Manage Collections**: Define optimized vector schemas (Distance metrics, Dimensions).
+3.  **Integrate .NET client**: Perform hybrid search (Metadata filters + Vector similarity).
 
 ## Deployment Architecture
 
@@ -40,9 +65,11 @@ flowchart TB
         end
     end
 
-    style Cluster fill:#dc4a38,color:#fff
-    style Nodes fill:#b73a2b,color:#fff
-    style Storage fill:#8b2d22,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+    class Cluster,Nodes,Storage db
 ```
 
 ## Kubernetes Manifests

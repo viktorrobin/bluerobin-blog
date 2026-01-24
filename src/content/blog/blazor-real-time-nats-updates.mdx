@@ -5,7 +5,7 @@ pubDate: 2026-01-28
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
-tags: ["blazor", "nats", "real-time", "dotnet", "event-driven"]
+tags: ["blazor", "dotnet", "event-driven", "nats", "real-time"]
 series:
   name: "Blazor UI Mastery"
   order: 2
@@ -53,13 +53,13 @@ flowchart LR
     Notifier --> CompB["🟣 Component B"]
     Notifier --> CompC["🟣 Component C"]
 
-    style Worker fill:#512bd4,color:#fff
-    style NATS fill:#27aae1,color:#fff
-    style Listener fill:#512bd4,color:#fff
-    style Notifier fill:#512bd4,color:#fff
-    style CompA fill:#9b4dca,color:#fff
-    style CompB fill:#9b4dca,color:#fff
-    style CompC fill:#9b4dca,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Worker,Listener,Notifier,CompA,CompB,CompC primary
+    class NATS secondary
 ```
 
 **Key insight**: The `DocumentProcessingNotifier` acts as an in-process event bus. The NATS listener translates external messages to C# events; components subscribe to only the documents they care about.

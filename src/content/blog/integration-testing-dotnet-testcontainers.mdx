@@ -5,7 +5,7 @@ pubDate: 2026-03-17
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
-tags: ["dotnet", "testing", "testcontainers", "integration-testing", "xunit"]
+tags: ["dotnet", "testcontainers", "testing"]
 readTime: "15 min"
 toc: true
 ---
@@ -14,7 +14,35 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Integration tests verify that components work together correctly. This guide covers building maintainable integration tests with real dependencies using Testcontainers.
+## Introduction
+
+Integration tests verify that components work together correctly. While unit tests verify isolation, integration tests ensure your code works with the database, cache, and other infrastructure.
+
+This guide covers building maintainable integration tests with real dependencies using Testcontainers, avoiding the "it works on my machine" syndrome.
+
+## Architecture Overview
+
+```mermaid
+flowchart TB
+    Test["🧪 Integration Test"] --> Factory["🏭 WebApplicationFactory"]
+    Factory --> API["🚀 In-Memory API"]
+    
+    subgraph Containers["🐳 Docker Testcontainers"]
+        API --> DB[(PostgreSQL)]
+        API --> Cache[(Redis)]
+    end
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Test,API primary
+    class Factory secondary
+    class DB,Cache db
+```
+
+## Implementation
 
 ## Test Infrastructure
 
@@ -474,7 +502,7 @@ public sealed class DatabaseReset : IAsyncLifetime
 Consider using Respawn for faster database cleanup in large test suites. It resets the database by deleting data rather than recreating the schema.
 </Callout>
 
-## Summary
+## Conclusion
 
 Integration testing strategy:
 

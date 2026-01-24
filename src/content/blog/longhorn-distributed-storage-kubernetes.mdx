@@ -5,7 +5,7 @@ pubDate: 2026-03-09
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
-tags: ["longhorn", "kubernetes", "storage", "persistent-volumes", "distributed-storage"]
+tags: ["kubernetes", "storage"]
 readTime: "16 min"
 toc: true
 ---
@@ -13,6 +13,70 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+In a Kubernetes cluster, pods are ephemeral—they can be rescheduled to any node at any time. This creates a fundamental challenge: **where do you store persistent data?** Traditional storage solutions require manual provisioning, don't replicate across nodes, and become a single point of failure.
+
+**Why Distributed Storage Matters:**
+
+- **High Availability**: Data survives node failures through replication
+- **Dynamic Provisioning**: Storage is created on-demand via PersistentVolumeClaims
+- **Data Locality**: Replicas can be placed close to workloads for low latency
+- **Disaster Recovery**: Built-in backup and snapshot capabilities
+
+Longhorn, a CNCF project, solves these problems elegantly. It turns your cluster nodes' local disks into a distributed, replicated block storage system—no external SAN required.
+
+## Architecture Overview
+
+Longhorn deploys a storage controller on each node, managing replicas that span across the cluster:
+
+```mermaid
+flowchart TB
+    subgraph Cluster["☸️ Kubernetes Cluster"]
+        subgraph Node1["🖥️ Node 1"]
+            E1["🔧 Longhorn Engine"]
+            R1A["💾 Replica 1A"]
+        end
+        
+        subgraph Node2["🖥️ Node 2"]
+            E2["🔧 Longhorn Engine"]
+            R1B["💾 Replica 1B"]
+            R2A["💾 Replica 2A"]
+        end
+        
+        subgraph Node3["🖥️ Node 3"]
+            E3["🔧 Longhorn Engine"]
+            R2B["💾 Replica 2B"]
+        end
+        
+        E1 <-->|"Sync"| R1A
+        E1 <-->|"Sync"| R1B
+        E2 <-->|"Sync"| R2A
+        E2 <-->|"Sync"| R2B
+    end
+
+    subgraph Backup["☁️ Backup Target"]
+        S3["🪣 S3/MinIO\nSnapshots"]
+    end
+
+    R1A -.->|"Backup"| S3
+    R2A -.->|"Backup"| S3
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Node1,Node2,Node3 secondary
+    class Backup db
+```
+
+**Key Components**:
+- **Longhorn Engine**: Runs on each node, serves iSCSI volumes to pods
+- **Replicas**: Data copies spread across nodes (configurable count)
+- **Backup Target**: S3-compatible storage for disaster recovery
+- **Manager**: UI and API for volume lifecycle management
 
 Longhorn provides lightweight, reliable distributed block storage for Kubernetes. This guide covers deploying and configuring Longhorn for production workloads.
 

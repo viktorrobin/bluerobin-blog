@@ -5,7 +5,7 @@ pubDate: 2026-03-05
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
-tags: ["chunking", "rag", "embeddings", "nlp", "text-processing"]
+tags: ["ai", "document-processing"]
 readTime: "14 min"
 toc: true
 ---
@@ -32,21 +32,93 @@ In this guide, we'll implement five different chunking strategies in C#:
 
 By the end, you'll have a complete `ChunkingService` that can intelligently split documents based on their structure and your retrieval requirements.
 
+## Architecture Overview
+
+Before diving into strategy details, here's how chunking fits into the broader RAG pipeline:
+
+```mermaid
+flowchart TB
+    subgraph Ingestion["📥 Document Ingestion"]
+        Doc["📄 Raw Document\n(PDF, Markdown, Text)"]
+        OCR["🔍 OCR/Parser"]
+        Text["📝 Extracted Text"]
+    end
+
+    subgraph Chunking["✂️ Chunking Service"]
+        Strategy{"🎯 Strategy\nSelector"}
+        Fixed["📏 Fixed-Size\n512 chars"]
+        Sentence["💬 Sentence\nNatural breaks"]
+        Semantic["🧠 Semantic\nBy headings"]
+        Sliding["🔄 Sliding\nWith overlap"]
+    end
+
+    subgraph Output["📤 Chunk Output"]
+        Chunks["📦 TextChunk[]\nwith metadata"]
+        Embed["🧬 Embedding\nService"]
+        Store[("🔮 Qdrant")]
+    end
+
+    Doc --> OCR --> Text
+    Text --> Strategy
+    Strategy --> Fixed
+    Strategy --> Sentence
+    Strategy --> Semantic
+    Strategy --> Sliding
+    
+    Fixed --> Chunks
+    Sentence --> Chunks
+    Semantic --> Chunks
+    Sliding --> Chunks
+    
+    Chunks --> Embed --> Store
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Chunking primary
+    class Output secondary
+    class Ingestion warning
+```
+
+**Pipeline Flow**:
+1. **Ingestion**: Documents are parsed/OCR'd into plain text
+2. **Strategy Selection**: Choose chunking approach based on document type
+3. **Chunking**: Split text into semantic units with metadata
+4. **Embedding**: Each chunk is converted to a vector
+5. **Storage**: Vectors stored in Qdrant for retrieval
+
 ## Chunking Strategies Overview
 
 Before diving into code, let's visualize the fundamental differences between chunking approaches. Each strategy makes different tradeoffs between simplicity, consistency, and semantic coherence:
 
 ```mermaid
-flowchart TB
-    subgraph Strategies["✂️ Chunking Strategies"]
-        Fixed["📏 Fixed-Size\n|──512──|──512──|\nSimple but breaks mid-sentence"]
-        Sentence["💬 Sentence\n|sent1|sent2|sent3|\nPreserves sentences, variable size"]
-        Paragraph["📄 Paragraph\n|paragraph 1|para 2|\nNatural boundaries, very variable"]
-        Semantic["🧠 Semantic\n|topic 1|topic 2|\nBest quality but complex"]
-        Sliding["🔄 Sliding Window\nwith overlap\nCaptures cross-boundary context"]
-    end
+flowchart LR
+    Doc["📄 Raw Document"] --> Strategy{"✂️ Strategy?"}
+    
+    Strategy -->|"Fixed"| Fixed["📏 Fixed-Size\n512 chars each"]
+    Strategy -->|"Sentence"| Sentence["💬 Sentence\nNatural breaks"]
+    Strategy -->|"Semantic"| Semantic["🧠 Semantic\nBy headings"]
+    
+    Fixed --> Overlap{"🔄 Overlap?"}
+    Sentence --> Overlap
+    Semantic --> Overlap
+    
+    Overlap -->|"Yes (50 chars)"| Chunks1["Chunk 1<br/>(Overlap)<br/>Chunk 2"]
+    Overlap -->|"No"| Chunks2["Chunk 1<br/>Chunk 2"]
+    
+    Chunks1 --> Embed["🧠 Embed\n(Ollama)"]
+    Chunks2 --> Embed
+    Embed --> Store[("🔮 Qdrant")]
 
-    style Strategies fill:#6c5ce7,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Strategy,Embed primary
+    class Store db
 ```
 
 **Fixed-size** chunks are predictable but can cut thoughts in half. **Sentence-based** chunking respects linguistic boundaries but produces variable sizes. **Semantic chunking** is the gold standard for structured documents—it keeps related content together by following the document's inherent organization.

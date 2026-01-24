@@ -5,7 +5,7 @@ pubDate: 2026-03-06
 author: "Victor Robin"
 category: "ci-cd"
 difficulty: "intermediate"
-tags: ["github-actions", "ci-cd", "dotnet", "docker", "kubernetes"]
+tags: ["ci-cd", "containers", "dotnet", "kubernetes"]
 readTime: "18 min"
 toc: true
 series:
@@ -17,9 +17,11 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+## Introduction
+
 GitHub Actions provides powerful CI/CD capabilities integrated directly with your repository. This guide covers building comprehensive pipelines for .NET applications with Docker and Kubernetes deployment.
 
-## Pipeline Architecture
+## Architecture Overview
 
 ```mermaid
 flowchart TB
@@ -39,10 +41,16 @@ flowchart TB
         end
     end
 
-    style Pipeline fill:#24292e,color:#fff
-    style CI fill:#2088ff,color:#fff
-    style CD fill:#28a745,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Pipeline primary
+    class CI,CD secondary
 ```
+
+## Implementation
 
 ## CI Workflow
 

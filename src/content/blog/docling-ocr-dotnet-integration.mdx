@@ -5,7 +5,7 @@ pubDate: 2026-01-23
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
-tags: ["docling", "ocr", "ai", "dotnet", "document-processing"]
+tags: ["ai", "document-processing", "dotnet"]
 series:
   name: "AI in Production"
   order: 2
@@ -17,6 +17,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
 
 Traditional OCR tools extract text but lose document structure. **Docling** is IBM's open-source document understanding library that preserves layout, tables, and semantic structure while converting documents to clean Markdown.
 
@@ -51,11 +53,17 @@ flowchart LR
     Worker --> Docling["📄 Docling\n(Python)"]
     Worker --> NATS["⚡ NATS\n(Events)"]
 
-    style MinIO fill:#c72c48,color:#fff
-    style Worker fill:#512bd4,color:#fff
-    style Docling fill:#3776ab,color:#fff
-    style NATS fill:#27aae1,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Worker primary
+    class Docling secondary
+    class MinIO,NATS db
 ```
+
+## Implementation
 
 ## Setting Up Docling Service
 

@@ -5,7 +5,7 @@ pubDate: 2026-03-16
 author: "Victor Robin"
 category: "observability"
 difficulty: "intermediate"
-tags: ["opentelemetry", "dotnet", "observability", "tracing", "metrics"]
+tags: ["dotnet", "observability"]
 readTime: "16 min"
 toc: true
 ---
@@ -13,6 +13,77 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+When a user reports "the app is slow," where do you start looking? In a distributed system with APIs, workers, databases, and external services, the problem could be anywhere. Without proper instrumentation, you're debugging in the dark.
+
+**Why OpenTelemetry Matters:**
+
+- **Vendor Neutral**: One instrumentation works with any backend (Jaeger, Zipkin, SigNoz, Datadog)
+- **Complete Picture**: Traces, metrics, and logs with correlated context
+- **Automatic Instrumentation**: HTTP clients, EF Core, and ASP.NET Core instrumented out-of-the-box
+- **Custom Spans**: Add business-specific tracing without framework coupling
+
+OpenTelemetry has become the industry standard for observability instrumentation. By adopting it in BlueRobin, we can switch backends without rewriting code, and our traces follow requests across every service boundary.
+
+## Architecture Overview
+
+OpenTelemetry instruments your application and exports telemetry to a collector, which routes it to your observability backend:
+
+```mermaid
+flowchart TB
+    subgraph Apps["🔌 .NET Applications"]
+        API["📡 Archives.Api"]
+        Web["🖼️ Archives.Web"]
+        Workers["⚙️ Archives.Workers"]
+    end
+
+    subgraph SDK["📦 OTel SDK"]
+        Traces["📍 Traces\n(ActivitySource)"]
+        Metrics["📊 Metrics\n(Meter)"]
+        Logs["📋 Logs\n(ILogger)"]
+    end
+
+    subgraph Collector["📡 OTel Collector"]
+        Recv["📥 Receivers\nOTLP gRPC"]
+        Proc["⚙️ Processors\nBatch, Sample"]
+        Exp["📤 Exporters"]
+    end
+
+    subgraph Backends["💾 Backends"]
+        Jaeger["🔍 Jaeger\n(Traces)"]
+        Prom["📈 Prometheus\n(Metrics)"]
+        Loki["📋 Loki\n(Logs)"]
+    end
+
+    API --> SDK
+    Web --> SDK
+    Workers --> SDK
+    
+    Traces --> Recv
+    Metrics --> Recv
+    Logs --> Recv
+    
+    Recv --> Proc --> Exp
+    Exp --> Jaeger
+    Exp --> Prom
+    Exp --> Loki
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+    class Apps primary
+    class SDK,Collector secondary
+    class Backends db
+```
+
+**Data Flow**:
+1. **SDK**: Captures spans, metrics, and logs from your application code
+2. **Exporter**: Sends telemetry via OTLP (OpenTelemetry Protocol)
+3. **Collector**: Batches, samples, and routes to multiple backends
+4. **Backends**: Store and visualize your observability data
 
 OpenTelemetry provides vendor-neutral observability instrumentation. This guide covers implementing comprehensive tracing, metrics, and logging in .NET applications.
 

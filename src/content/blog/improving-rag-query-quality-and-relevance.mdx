@@ -1,0 +1,149 @@
+---
+title: "Improving RAG Query Quality and Relevance"
+description: "Techniques for rewriting user queries (HyDE, Expansion) and reranking results to boost retrieval accuracy in Retrieval-Augmented Generation."
+pubDate: 2026-03-05
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["ai", "rag", "search"]
+readTime: "12 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Retrieval-Augmented Generation (RAG) is only as good as the documents it retrieves. If the user asks a vague question, a naive semantic search will return vague results. In a production system like BlueRobin, we need to bridge the gap between what the user *says* and what the vector database (Qdrant) *understands*.
+
+**Why Query Transformation Matters:**
+
+- **Ambiguity Resolution**: Users often ask "What about the contract?" without specifying *which* contract.
+- **Vocabulary Mismatch**: Users might say "money" while documents say "fiscal compensation".
+- **Context Awareness**: Queries often depend on previous turns in the conversation.
+
+### What We'll Build
+
+In this guide, we will implement a pipeline that sits *before* the semantic search. We will:
+
+1. **Implement Query Expansion**: Use an LLM to generate synonyms or related questions.
+2. **Apply HyDE (Hypothetical Document Embeddings)**: Generate a fake "ideal" answer to search against.
+3. **Add Reranking**: Use a cross-encoder to re-score the top K results from Qdrant.
+
+## Architecture Overview
+
+We are moving from a direct "User -> Embedding -> Search" flow to a more sophisticated pipeline.
+
+```mermaid
+flowchart LR
+    User -->|Query| LLM[LLM Rewriter]
+    LLM -->|HyDE/Expansion| Embed[Embedding Model]
+    Embed -->|Vector Search| Qdrant
+    Qdrant -->|Top 50 Candidates| Reranker[Cross-Encoder]
+    Reranker -->|Top 5 Contexts| Generator[LLM Answer]
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class LLM,Embed,Reranker,Generator primary
+    class Qdrant db
+    class User warning
+```
+
+## Section 1: Query Expansion and Transformations
+
+The first step is to fix the user's input. We don't want to search for the raw query if it's poor quality.
+
+### HyDE (Hypothetical Document Embeddings)
+
+HyDE asks the LLM to hallucinate a plausible answer, then embeds *that answer* to find real documents that look similar.
+
+<Callout type="info" title="Implementation Strategy">
+    HyDE works best for complex knowledge retrieval but adds latency. For simple lookup (e.g., "find invoice #123"), turn it off.
+</Callout>
+
+```csharp
+public async Task<string> GenerateHypotheticalAnswerAsync(string query)
+{
+    var prompt = $@"
+    Please write a passage that answers the question: '{query}'. 
+    Do not answer truthfully, just generate a plausible hypothetical response 
+    containing the relevant keywords and structure.";
+    
+    // Call Ollama or OpenAI
+    return await _aiService.CompleteAsync(prompt);
+}
+```
+
+### Multi-Query Expansion
+
+Sometimes a single angle isn't enough. We can ask the LLM to generate 3 different versions of the query.
+
+1. "How do I terminate the lease?"
+2. "What are the lease cancellation clauses?"
+3. "Legal requirements for ending a rental agreement."
+
+We execute all three searches in parallel against Qdrant and fuse the results (Reciprocal Rank Fusion).
+
+## Section 2: Semantic Search & Reranking
+
+Once we have our better query (or queries), we hit Qdrant. However, vector distance (Cosine Similarity) is a proxy for relevance, not a guarantee.
+
+### The Reranking Step
+
+Vector databases are fast (ANN - Approximate Nearest Neighbor) but can miss nuanced relationships. A Cross-Encoder model is slower but much more accurate because it looks at the query and document *together*.
+
+We fetch 50 documents from Qdrant and pass them through a reranker.
+
+```csharp
+// Using a local reranker or an API
+var rerankRequest = new RerankRequest 
+{
+    Query = userQuery,
+    Documents = candidates.Select(c => c.Content).ToList(),
+    TopN = 5
+};
+
+var topResults = await _reranker.RankAsync(rerankRequest);
+```
+
+<ImplementationNote title="Performance Trade-off">
+    Reranking 50 documents can add 200-500ms. Only use this for "Deep Search" modes where quality trumps speed.
+</ImplementationNote>
+
+## Section 3: Putting It All Together
+
+In our `SearchService`, we orchestrate these steps.
+
+```csharp
+public async Task<List<DocumentChunk>> SearchAsync(string rawQuery)
+{
+    // 1. Transform
+    var expandedQuery = await _queryTransformer.ExpandAsync(rawQuery);
+    
+    // 2. Vector Search (Parallel)
+    var tasks = expandedQuery.Variations.Select(q => _qdrant.SearchAsync(q));
+    var results = await Task.WhenAll(tasks);
+    
+    // 3. Deduplicate & Fuse
+    var candidates = Deduplicate(results.SelectMany(x => x));
+    
+    // 4. Rerank
+    var finalSet = await _reranker.RankAsync(rawQuery, candidates);
+    
+    return finalSet;
+}
+```
+
+## Conclusion
+
+By treating the user's query as a *starting point* rather than a final command, we significantly improve the relevance of our RAG pipeline.
+
+**Next Steps**:
+- Explore [Entity Extraction for Graph Databases](/blog/entity-analysis-and-modeling-graph-database) to enhance search further.
+- Read about [Storage Performance](/blog/infrastructure-performance-ssd-vs-nas) to keep your vector DB fast.

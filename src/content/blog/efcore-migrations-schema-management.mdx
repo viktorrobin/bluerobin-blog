@@ -5,7 +5,7 @@ pubDate: 2026-03-03
 author: "Victor Robin"
 category: "database"
 difficulty: "intermediate"
-tags: ["efcore", "migrations", "postgresql", "schema", "database"]
+tags: ["database", "dotnet", "efcore"]
 readTime: "16 min"
 toc: true
 ---
@@ -14,21 +14,41 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+## Introduction
+
 Database schema evolution is critical for maintaining applications over time. EF Core migrations provide a code-first approach to managing schema changes with full version control integration.
 
-## Migration Workflow
+## Architecture Overview
 
 ```mermaid
-flowchart TB
-    subgraph Lifecycle["🔄 Migration Lifecycle"]
-        Change["📝 Entity Change\n(Code First)"] --> Add["➕ Add-Migration\ndotnet ef migrations add"]
-        Add --> Review["👀 Review & Edit\nCheck generated SQL"]
-        Review --> Commit["📤 Commit to Git\nVersion control"]
-        Commit --> Update["🚀 Update-Database\ndotnet ef database update"]
+flowchart LR
+    subgraph Dev["👩‍💻 Development"]
+        Change["📝 Entity\nChange"] --> Add["➕ Add\nMigration"]
+        Add --> Review["👀 Review\nSQL"]
+    end
+    
+    subgraph VCS["📦 Version Control"]
+        Review --> Commit["📤 Git\nCommit"]
+        Commit --> PR["🔀 PR\nReview"]
+    end
+    
+    subgraph Deploy["🚀 Deployment"]
+        PR --> CI["✅ CI\nBuild"]
+        CI --> Migrate["🗃️ Apply\nMigration"]
+        Migrate --> DB[("🐘 PostgreSQL")]
     end
 
-    style Lifecycle fill:#336791,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Dev primary
+    class VCS secondary
+    class Deploy db
 ```
+
+## Implementation
 
 ## Project Setup
 

@@ -1,0 +1,99 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { CATEGORIES, DIFFICULTIES } from "@/config";
+
+// Get all published posts, sorted by date
+const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+---
+
+<MainLayout title="Blog | BlueRobin Tech Blog" description="All articles on .NET, Kubernetes, LLM integration, and Domain-Driven Design">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <header class="mb-12">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+        All Articles
+      </h1>
+      <p class="text-lg text-slate-600 dark:text-slate-400">
+        Deep dives, cookbooks, and implementation guides from the BlueRobin project.
+      </p>
+    </header>
+
+    <!-- Filters -->
+    <div class="flex flex-wrap gap-4 mb-8">
+      <div class="flex flex-wrap gap-2">
+        <span class="text-sm text-slate-500 dark:text-slate-400 self-center">Category:</span>
+        <a href="/articles/" class="tag">All</a>
+        {Object.entries(CATEGORIES).map(([key, cat]) => (
+          <a href={`/${key}/`} class={`tag category-${key}`}>{cat.icon} {cat.title}</a>
+        ))}
+      </div>
+    </div>
+
+    {sortedPosts.length === 0 ? (
+      <div class="glass-card p-12 text-center">
+        <p class="text-slate-600 dark:text-slate-400 text-lg">
+          🚧 Articles coming soon! The first article in the DDD series is being prepared.
+        </p>
+      </div>
+    ) : (
+      <div class="space-y-6">
+        {sortedPosts.map((post) => {
+          const categoryMeta = CATEGORIES[post.data.category];
+          const difficultyMeta = DIFFICULTIES[post.data.difficulty];
+          const seriesTags = post.data.tags.filter(t => t.endsWith("-series"));
+          const regularTags = post.data.tags.filter(t => !t.endsWith("-series")).slice(0, 3);
+          
+          return (
+            <article class="glass-card p-6 hover:shadow-lg transition-all">
+              <div class="flex flex-col md:flex-row md:items-start gap-4">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2 mb-2">
+                    <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>
+                      {categoryMeta.icon} {post.data.category}
+                    </span>
+                    <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
+                      {difficultyMeta.label}
+                    </span>
+                    {post.data.readTime && (
+                      <span class="text-xs text-slate-500 dark:text-slate-400">
+                        ⏱️ {post.data.readTime}
+                      </span>
+                    )}
+                  </div>
+                  
+                  <a href={`/articles/${post.slug}/`}>
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 hover:text-neural-600 dark:hover:text-neural-400 transition-colors mb-2">
+                      {post.data.title}
+                    </h2>
+                  </a>
+                  
+                  <p class="text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                    {post.data.description}
+                  </p>
+                  
+                  <div class="flex flex-wrap items-center gap-2">
+                    {seriesTags.map((tag) => (
+                      <a href={`/tags/${tag}/`} class="tag tag-series text-xs">{tag.replace("-series", "")}</a>
+                    ))}
+                    {regularTags.map((tag) => (
+                      <a href={`/tags/${tag}/`} class="tag text-xs">{tag}</a>
+                    ))}
+                  </div>
+                </div>
+                
+                <div class="text-sm text-slate-500 dark:text-slate-400 md:text-right">
+                  <time datetime={post.data.pubDate.toISOString()}>
+                    {formatDate(post.data.pubDate)}
+                  </time>
+                </div>
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    )}
+  </div>
+</MainLayout>

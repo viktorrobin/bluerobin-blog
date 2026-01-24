@@ -1,0 +1,336 @@
+---
+// Search component with fuzzy search powered by Fuse.js
+import { getCollection } from "astro:content";
+
+// Get all posts for the search index
+const posts = await getCollection("blog");
+const searchData = posts.map((post) => ({
+  slug: post.slug,
+  title: post.data.title,
+  description: post.data.description,
+  category: post.data.category,
+  tags: post.data.tags,
+  content: post.body.slice(0, 1000), // First 1000 chars for search
+}));
+
+const searchDataJson = JSON.stringify(searchData);
+---
+
+<div class="search-container relative">
+  <button
+    id="search-trigger"
+    class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-colors"
+    aria-label="Open search"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    </svg>
+    <span class="hidden sm:inline">Search</span>
+    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-slate-200 dark:bg-slate-700 rounded">⌘K</kbd>
+  </button>
+</div>
+
+<!-- Search Modal -->
+<div id="search-modal" class="search-modal hidden fixed inset-0 z-50">
+  <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="search-backdrop"></div>
+  <div class="relative flex items-start justify-center pt-[15vh] px-4">
+    <div class="w-full max-w-2xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+      <!-- Search Input -->
+      <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
+        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+        </svg>
+        <input
+          type="text"
+          id="search-input"
+          placeholder="Search articles..."
+          class="flex-1 bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 outline-none text-lg"
+          autocomplete="off"
+        />
+        <button id="search-close" class="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-md transition-colors">
+          <kbd class="px-2 py-0.5 text-xs font-mono text-slate-500 bg-slate-100 dark:bg-slate-800 rounded">ESC</kbd>
+        </button>
+      </div>
+      
+      <!-- Search Results -->
+      <div id="search-results" class="max-h-[60vh] overflow-y-auto">
+        <div class="p-4 text-center text-slate-500 dark:text-slate-400">
+          <p>Start typing to search...</p>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+        <div class="flex items-center gap-4">
+          <span class="flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 dark:bg-slate-800 rounded">↑</kbd>
+            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 dark:bg-slate-800 rounded">↓</kbd>
+            <span>to navigate</span>
+          </span>
+          <span class="flex items-center gap-1">
+            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 dark:bg-slate-800 rounded">↵</kbd>
+            <span>to select</span>
+          </span>
+        </div>
+        <span>Powered by Fuse.js</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Embed search data -->
+<script id="search-data" type="application/json" set:html={searchDataJson}></script>
+
+<script>
+  import Fuse from 'fuse.js';
+  
+  interface SearchItem {
+    slug: string;
+    title: string;
+    description: string;
+    category: string;
+    tags: string[];
+    content: string;
+  }
+  
+  interface FuseResult {
+    item: SearchItem;
+    matches?: Array<{
+      key: string;
+      indices: [number, number][];
+    }>;
+  }
+  
+  // Parse search data from embedded JSON
+  const searchDataElement = document.getElementById('search-data');
+  const searchData: SearchItem[] = searchDataElement ? JSON.parse(searchDataElement.textContent || '[]') : [];
+  
+  // Initialize Fuse with search options
+  const fuse = new Fuse(searchData, {
+    keys: [
+      { name: 'title', weight: 2 },
+      { name: 'description', weight: 1.5 },
+      { name: 'tags', weight: 1 },
+      { name: 'category', weight: 0.8 },
+      { name: 'content', weight: 0.5 },
+    ],
+    threshold: 0.3,
+    includeMatches: true,
+    minMatchCharLength: 2,
+  });
+  
+  // DOM elements
+  const searchTrigger = document.getElementById('search-trigger');
+  const searchModal = document.getElementById('search-modal');
+  const searchBackdrop = document.getElementById('search-backdrop');
+  const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
+  const searchResults = document.getElementById('search-results');
+  const searchClose = document.getElementById('search-close');
+  
+  let selectedIndex = -1;
+  let currentResults: FuseResult[] = [];
+  
+  function openSearch(): void {
+    searchModal?.classList.remove('hidden');
+    searchInput?.focus();
+    document.body.style.overflow = 'hidden';
+  }
+  
+  function closeSearch(): void {
+    searchModal?.classList.add('hidden');
+    document.body.style.overflow = '';
+    if (searchInput) searchInput.value = '';
+    selectedIndex = -1;
+    renderEmptyState();
+  }
+  
+  function renderEmptyState(): void {
+    if (searchResults) {
+      searchResults.innerHTML = `
+        <div class="p-4 text-center text-slate-500 dark:text-slate-400">
+          <p>Start typing to search...</p>
+        </div>
+      `;
+    }
+  }
+  
+  function renderNoResults(): void {
+    if (searchResults) {
+      searchResults.innerHTML = `
+        <div class="p-8 text-center text-slate-500 dark:text-slate-400">
+          <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p class="font-medium">No results found</p>
+          <p class="text-sm mt-1">Try different keywords or check your spelling</p>
+        </div>
+      `;
+    }
+  }
+  
+  function renderResults(results: FuseResult[]): void {
+    currentResults = results;
+    if (!searchResults) return;
+    
+    if (results.length === 0) {
+      renderNoResults();
+      return;
+    }
+    
+    searchResults.innerHTML = results.slice(0, 10).map((result, index) => {
+      const { item, matches } = result;
+      const isSelected = index === selectedIndex;
+      
+      // Highlight matched text in title
+      let highlightedTitle = item.title;
+      const titleMatch = matches?.find((m) => m.key === 'title');
+      if (titleMatch) {
+        highlightedTitle = highlightText(item.title, titleMatch.indices);
+      }
+      
+      return `
+        <a
+          href="/articles/${item.slug}/"
+          class="search-result block px-4 py-3 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors ${isSelected ? 'bg-slate-100 dark:bg-slate-800' : ''}"
+          data-index="${index}"
+        >
+          <div class="flex items-start gap-3">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gradient-to-br from-neural-500 to-quantum-500 text-white text-sm shrink-0">
+              📄
+            </span>
+            <div class="flex-1 min-w-0">
+              <h4 class="font-medium text-slate-900 dark:text-slate-100 truncate">
+                ${highlightedTitle}
+              </h4>
+              <p class="text-sm text-slate-500 dark:text-slate-400 line-clamp-2 mt-0.5">
+                ${item.description}
+              </p>
+              <div class="flex items-center gap-2 mt-1.5">
+                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 capitalize">
+                  ${item.category}
+                </span>
+                ${item.tags.slice(0, 3).map((tag) => `
+                  <span class="text-xs text-slate-400 dark:text-slate-500">#${tag}</span>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        </a>
+      `;
+    }).join('');
+  }
+  
+  function highlightText(text: string, indices: [number, number][]): string {
+    if (!indices || indices.length === 0) return text;
+    
+    let result = '';
+    let lastIndex = 0;
+    
+    for (const [start, end] of indices) {
+      result += text.slice(lastIndex, start);
+      result += `<mark class="bg-neural-200 dark:bg-neural-800 text-neural-900 dark:text-neural-100 rounded px-0.5">${text.slice(start, end + 1)}</mark>`;
+      lastIndex = end + 1;
+    }
+    result += text.slice(lastIndex);
+    
+    return result;
+  }
+  
+  function handleSearch(query: string): void {
+    if (!query || query.length < 2) {
+      renderEmptyState();
+      selectedIndex = -1;
+      return;
+    }
+    
+    const results = fuse.search(query) as FuseResult[];
+    renderResults(results);
+  }
+  
+  function updateSelection(): void {
+    const resultElements = searchResults?.querySelectorAll('.search-result');
+    resultElements?.forEach((el, i) => {
+      if (i === selectedIndex) {
+        el.classList.add('bg-slate-100', 'dark:bg-slate-800');
+      } else {
+        el.classList.remove('bg-slate-100', 'dark:bg-slate-800');
+      }
+    });
+    
+    // Scroll into view
+    const selectedEl = resultElements?.[selectedIndex];
+    selectedEl?.scrollIntoView({ block: 'nearest' });
+  }
+  
+  function navigateToSelected(): void {
+    if (selectedIndex >= 0 && currentResults[selectedIndex]) {
+      const slug = currentResults[selectedIndex].item.slug;
+      window.location.href = `/articles/${slug}/`;
+    }
+  }
+  
+  // Event listeners
+  searchTrigger?.addEventListener('click', openSearch);
+  searchBackdrop?.addEventListener('click', closeSearch);
+  searchClose?.addEventListener('click', closeSearch);
+  
+  searchInput?.addEventListener('input', (e) => {
+    const target = e.target as HTMLInputElement;
+    handleSearch(target.value);
+    selectedIndex = -1;
+  });
+  
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    // Open search with Cmd/Ctrl + K
+    if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      e.preventDefault();
+      openSearch();
+    }
+    
+    // Close with Escape
+    if (e.key === 'Escape' && !searchModal?.classList.contains('hidden')) {
+      closeSearch();
+    }
+    
+    // Navigate results
+    if (!searchModal?.classList.contains('hidden')) {
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        selectedIndex = Math.min(selectedIndex + 1, currentResults.length - 1);
+        updateSelection();
+      }
+      if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        selectedIndex = Math.max(selectedIndex - 1, -1);
+        updateSelection();
+      }
+      if (e.key === 'Enter' && selectedIndex >= 0) {
+        e.preventDefault();
+        navigateToSelected();
+      }
+    }
+  });
+</script>
+
+<style>
+  .search-modal {
+    animation: fadeIn 0.15s ease-out;
+  }
+  
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

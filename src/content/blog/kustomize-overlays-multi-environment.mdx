@@ -5,7 +5,7 @@ pubDate: 2026-03-07
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
-tags: ["kustomize", "kubernetes", "gitops", "configuration", "overlays"]
+tags: ["configuration", "gitops", "kubernetes"]
 readTime: "15 min"
 toc: true
 series:
@@ -17,9 +17,34 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Kustomize enables managing Kubernetes configurations without templates using overlays and patches. This guide covers structuring multi-environment deployments with Kustomize.
+## Introduction
 
-## Directory Structure
+Managing Kubernetes configurations across multiple environments (Dev, Staging, Prod) can quickly become a maintenance nightmare if you're duplicating YAML files. Kustomize offers a template-free way to customize application configuration, preserving the base structure while allowing for environment-specific "overlays" to modify behavior. This guide details how to structure a multi-environment deployment using standard Kustomize patterns.
+
+## Architecture Overview
+
+The Kustomize workflow separates the "Base" definition (shared across all environments) from "Overlays" (environment-specific modifications). When built, Kustomize merges the layers to produce the final manifests.
+
+```mermaid
+flowchart LR
+    Base["📄 Base Configuration<br/>(Deployment, Service)"] --> Build("⚙️ Kustomize Build")
+    Overlaydev["📝 Dev Overlay<br/>(Patches, Config)"] --> Build
+    Overlayprod["📝 Prod Overlay<br/>(Patches, HPA)"] --> Build
+    Build --> Output["📦 Rendered Manifests"]
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Build primary
+    class Overlaydev,Overlayprod secondary
+    class Base,Output db
+```
+
+## Implementation
+
+### Directory Structure
 
 ```
 apps/
@@ -44,9 +69,9 @@ apps/
             └── pdb.yaml
 ```
 
-## Base Configuration
+### Base Configuration
 
-### Base Kustomization
+#### Base Kustomization
 
 ```yaml
 # apps/archives-api/base/kustomization.yaml
@@ -68,7 +93,7 @@ images:
     newTag: latest
 ```
 
-### Base Deployment
+#### Base Deployment
 
 ```yaml
 # apps/archives-api/base/deployment.yaml
@@ -122,7 +147,7 @@ spec:
             periodSeconds: 10
 ```
 
-### Base Service
+#### Base Service
 
 ```yaml
 # apps/archives-api/base/service.yaml
@@ -139,9 +164,9 @@ spec:
       name: http
 ```
 
-## Environment Overlays
+### Environment Overlays
 
-### Staging Overlay
+#### Staging Overlay
 
 ```yaml
 # apps/archives-api/overlays/staging/kustomization.yaml
@@ -180,7 +205,7 @@ configMapGenerator:
       - Otlp__Endpoint=http://signoz-otel-collector.observability.svc.cluster.local:4317
 ```
 
-### Staging Deployment Patch
+#### Staging Deployment Patch
 
 ```yaml
 # apps/archives-api/overlays/staging/deployment-patch.yaml
@@ -206,7 +231,7 @@ spec:
               memory: 1Gi
 ```
 
-### Staging HPA
+#### Staging HPA
 
 ```yaml
 # apps/archives-api/overlays/staging/hpa.yaml
@@ -240,7 +265,7 @@ spec:
 The `namePrefix` in staging overlay prefixes all resource names with `staging-`, but the HPA's `scaleTargetRef.name` is also prefixed automatically by Kustomize.
 </ImplementationNote>
 
-### Production Overlay
+#### Production Overlay
 
 ```yaml
 # apps/archives-api/overlays/prod/kustomization.yaml
@@ -284,7 +309,7 @@ replicas:
     count: 3
 ```
 
-### Production Deployment Patch
+#### Production Deployment Patch
 
 ```yaml
 # apps/archives-api/overlays/prod/deployment-patch.yaml
@@ -321,7 +346,7 @@ spec:
               app.kubernetes.io/name: archives-api
 ```
 
-### Pod Disruption Budget
+#### Pod Disruption Budget
 
 ```yaml
 # apps/archives-api/overlays/prod/pdb.yaml
@@ -340,9 +365,9 @@ spec:
 Always use PodDisruptionBudgets in production to ensure high availability during node drains and cluster upgrades.
 </Callout>
 
-## Strategic Merge Patches
+### Strategic Merge Patches
 
-### JSON Patch
+#### JSON Patch
 
 ```yaml
 # apps/archives-api/overlays/staging/json-patch.yaml
@@ -357,7 +382,7 @@ Always use PodDisruptionBudgets in production to ensure high availability during
   value: 768Mi
 ```
 
-### Using JSON Patch
+#### Using JSON Patch
 
 ```yaml
 # apps/archives-api/overlays/staging/kustomization.yaml
@@ -368,9 +393,9 @@ patches:
       name: archives-api
 ```
 
-## ConfigMap and Secret Generators
+### ConfigMap and Secret Generators
 
-### ConfigMap Generator
+#### ConfigMap Generator
 
 ```yaml
 # apps/archives-api/overlays/staging/kustomization.yaml
@@ -383,7 +408,7 @@ configMapGenerator:
       - NATS_SUBJECT_PREFIX=staging
 ```
 
-### Secret Generator (for dev only)
+#### Secret Generator (for dev only)
 
 ```yaml
 # apps/archives-api/overlays/dev/kustomization.yaml
@@ -395,9 +420,9 @@ secretGenerator:
       disableNameSuffixHash: true
 ```
 
-## Flux Integration
+### Flux Integration
 
-### Kustomization Resource
+#### Kustomization Resource
 
 ```yaml
 # clusters/bluerobin/apps/archives-api-staging.yaml
@@ -424,9 +449,9 @@ spec:
     - name: data-layer
 ```
 
-## Validation
+### Validation
 
-### Build and Preview
+#### Build and Preview
 
 ```bash
 # Preview staging configuration
@@ -439,9 +464,11 @@ kubectl apply --dry-run=client -k apps/archives-api/overlays/staging
 kubectl diff -k apps/archives-api/overlays/staging
 ```
 
-## Summary
+## Conclusion
 
-Kustomize overlays provide:
+Using Kustomize overlays allows us to maintain a clean, DRY (Don't Repeat Yourself) configuration base while accommodating the specific needs of each environment. This approach aligns perfectly with GitOps principles, providing a declarative source of truth that is both flexible and maintainable.
+
+Kustomize structure benefits:
 
 | Feature | Benefit |
 |---------|---------|

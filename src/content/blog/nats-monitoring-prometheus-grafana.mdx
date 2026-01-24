@@ -5,7 +5,7 @@ pubDate: 2026-02-12
 author: "Victor Robin"
 category: "messaging"
 difficulty: "intermediate"
-tags: ["nats", "monitoring", "prometheus", "grafana", "observability"]
+tags: ["monitoring", "nats", "observability"]
 readTime: "18 min"
 toc: true
 series:
@@ -17,9 +17,20 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+## Introduction
+
+Your messaging system is the nervous system of your application. When NATS has problems—slow consumers, stream lag, connection storms—your entire platform feels the pain. But unlike a web server that simply returns errors, messaging failures often manifest as subtle symptoms: delayed notifications, missing events, or mysteriously stale data.
+
+**Why NATS Observability Matters:**
+
+- **Stream Health**: Know when JetStream consumers fall behind before users notice
+- **Capacity Planning**: Track message rates and storage growth to scale proactively
+- **Incident Response**: Correlate application issues with messaging metrics
+- **SLA Compliance**: Measure and alert on end-to-end message latency
+
 Production messaging systems require comprehensive monitoring. In this guide, we'll set up observability for NATS JetStream using Prometheus metrics, Grafana dashboards, and alerting rules.
 
-## NATS Monitoring Architecture
+## Architecture Overview
 
 ```mermaid
 flowchart LR
@@ -44,9 +55,12 @@ flowchart LR
     P2 -->|query| G1
     G1 --> G2
 
-    style NATS fill:#27aae1,color:#fff
-    style Metrics fill:#e6522c,color:#fff
-    style Visualization fill:#f46800,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+    class NATS,Metrics secondary
+    class Visualization db
 ```
 
 ## Enabling NATS Metrics

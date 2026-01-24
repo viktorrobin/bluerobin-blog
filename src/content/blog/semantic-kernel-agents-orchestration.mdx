@@ -5,7 +5,7 @@ pubDate: 2026-02-23
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
-tags: ["semantic-kernel", "ai-agents", "tool-calling", "orchestration", "dotnet"]
+tags: ["ai-agents", "dotnet", "kubernetes", "semantic-kernel", "tool-calling"]
 readTime: "22 min"
 toc: true
 series:
@@ -48,6 +48,69 @@ Microsoft's Semantic Kernel is the .NET-native way to build AI applications:
 - **Production ready**: Used in Microsoft 365 Copilot
 - **Plugin architecture**: Clean separation between AI reasoning and business logic
 
+## Architecture Overview
+
+Our agent system coordinates multiple specialized agents, each with access to specific tools:
+
+```mermaid
+flowchart TB
+    subgraph User["💬 User Interface"]
+        Query["🗣️ Natural Language Query"]
+    end
+
+    subgraph Orchestrator["🎯 Semantic Kernel Runtime"]
+        Planner["🧠 Planner\n(LLM Reasoning)"]
+        Memory["💾 Memory\n(Conversation + Semantic)"]
+    end
+
+    subgraph Agents["🤖 Specialized Agents"]
+        Search["🔍 Search Agent"]
+        Analysis["📊 Analysis Agent"]
+        Summary["📝 Summary Agent"]
+    end
+
+    subgraph Tools["🛠️ Plugins (Tools)"]
+        SearchTools["🔎 SemanticSearch\nKeywordSearch\nFilterDocs"]
+        AnalysisTools["📋 ReadDocument\nExtractEntities\nCompareContent"]
+        SummaryTools["✍️ GenerateText\nCreateReport"]
+    end
+
+    subgraph LLM["🦙 LLM Backend"]
+        Ollama["⚡ Ollama\n(Fast/Local)"]
+        OpenAI["🌐 OpenAI\n(Complex)"]
+    end
+
+    Query --> Planner
+    Planner --> Search
+    Planner --> Analysis
+    Planner --> Summary
+    Planner <--> Memory
+    
+    Search --> SearchTools
+    Analysis --> AnalysisTools
+    Summary --> SummaryTools
+    
+    Planner --> Ollama
+    Planner -.->|"Fallback"| OpenAI
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Orchestrator secondary
+    class Agents,Tools primary
+    class LLM db
+    class User warning
+```
+
+**Agent Coordination Flow**:
+1. **User Query**: Natural language request enters the system
+2. **Planner**: LLM reasons about which agents/tools to invoke
+3. **Agents**: Execute their specialized plugins (search, analyze, summarize)
+4. **Memory**: Maintains conversation context and semantic recall
+5. **Response**: Synthesized answer returned to user
+
 ## Agent Architecture Overview
 
 Before diving into code, let's understand how the pieces fit together:
@@ -68,7 +131,12 @@ flowchart TB
         Memory["🧠 Memory Store\n(Conversation + Semantic)"]
     end
 
-    style System fill:#512bd4,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class System primary
 ```
 
 **The flow**:

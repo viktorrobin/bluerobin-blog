@@ -79,63 +79,322 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
     <script>
       import mermaid from 'mermaid';
       
-      // Initialize Mermaid
+      // BlueRobin Design System colors for Mermaid
+      // Using 'base' theme allows full customization via themeVariables
+      const isDark = document.documentElement.classList.contains('dark');
+      
+      // Design system colors (from global.css @theme)
+      // Neural: Blue-purple (primary)
+      // Aurora: Pink-red (accent)
+      // Quantum: Cyan (info)
+      // Glow: Amber (highlight)
+      
+      const darkThemeVariables = {
+        // Background colors
+        background: '#0f172a',           // slate-900
+        primaryColor: '#7c3aed',         // Neural-500 (vibrant purple)
+        primaryTextColor: '#f8fafc',     // slate-50
+        primaryBorderColor: '#8b5cf6',   // Neural-400
+        
+        // Secondary (for alternate nodes)
+        secondaryColor: '#06b6d4',       // Quantum-500 (cyan)
+        secondaryTextColor: '#0f172a',   // slate-900
+        secondaryBorderColor: '#22d3ee', // Quantum-400
+        
+        // Tertiary (for third-level nodes)
+        tertiaryColor: '#f43f5e',        // Aurora-500 (pink-red)
+        tertiaryTextColor: '#ffffff',
+        tertiaryBorderColor: '#fb7185',  // Aurora-400
+        
+        // Lines and text
+        lineColor: '#94a3b8',            // slate-400
+        textColor: '#e2e8f0',            // slate-200
+        
+        // Flowchart specific
+        mainBkg: '#1e293b',              // slate-800 (node background)
+        nodeBorder: '#6366f1',           // Neural-500
+        clusterBkg: '#334155',           // slate-700
+        clusterBorder: '#475569',        // slate-600
+        
+        // Special nodes
+        errorBkgColor: '#7f1d1d',
+        errorTextColor: '#fca5a5',
+        
+        // Note styling
+        noteBkgColor: '#fef3c7',         // glow-100
+        noteTextColor: '#78350f',        // glow-900
+        noteBorderColor: '#fbbf24',      // glow-400
+        
+        // Actor/class colors
+        actorBkg: '#7c3aed',
+        actorTextColor: '#ffffff',
+        actorBorder: '#8b5cf6',
+        
+        // Label styling
+        labelBoxBkgColor: '#1e293b',
+        labelBoxBorderColor: '#475569',
+        labelTextColor: '#e2e8f0'
+      };
+      
+      const lightThemeVariables = {
+        // Background colors
+        background: '#ffffff',
+        primaryColor: '#8b5cf6',         // Neural-400
+        primaryTextColor: '#1e293b',     // slate-800
+        primaryBorderColor: '#7c3aed',   // Neural-500
+        
+        // Secondary
+        secondaryColor: '#22d3ee',       // Quantum-400
+        secondaryTextColor: '#0f172a',
+        secondaryBorderColor: '#06b6d4', // Quantum-500
+        
+        // Tertiary
+        tertiaryColor: '#fb7185',        // Aurora-400
+        tertiaryTextColor: '#1e293b',
+        tertiaryBorderColor: '#f43f5e',  // Aurora-500
+        
+        // Lines and text
+        lineColor: '#64748b',            // slate-500
+        textColor: '#1e293b',            // slate-800
+        
+        // Flowchart specific
+        mainBkg: '#f8fafc',              // slate-50
+        nodeBorder: '#7c3aed',           // Neural-500
+        clusterBkg: '#f1f5f9',           // slate-100
+        clusterBorder: '#e2e8f0',        // slate-200
+        
+        // Note styling
+        noteBkgColor: '#fef3c7',
+        noteTextColor: '#78350f',
+        noteBorderColor: '#f59e0b',
+        
+        // Actor/class colors
+        actorBkg: '#8b5cf6',
+        actorTextColor: '#ffffff',
+        actorBorder: '#7c3aed',
+        
+        // Label styling
+        labelBoxBkgColor: '#f8fafc',
+        labelBoxBorderColor: '#e2e8f0',
+        labelTextColor: '#1e293b'
+      };
+      
+      // Initialize Mermaid with 'base' theme for full control
       mermaid.initialize({
         startOnLoad: false,
-        theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
+        theme: 'base',
         securityLevel: 'loose',
         flowchart: {
           useMaxWidth: true,
           htmlLabels: true,
-          curve: 'basis'
+          curve: 'basis',
+          padding: 20
         },
         sequence: {
           useMaxWidth: true,
           diagramMarginX: 50,
           diagramMarginY: 10
         },
-        themeVariables: {
-          primaryColor: '#6366f1',
-          primaryTextColor: '#fff',
-          primaryBorderColor: '#4f46e5',
-          lineColor: '#64748b',
-          secondaryColor: '#f1f5f9',
-          tertiaryColor: '#e2e8f0'
-        }
+        themeVariables: isDark ? darkThemeVariables : lightThemeVariables
       });
       
       // Find all code blocks with language-mermaid and render them
       async function renderMermaidDiagrams() {
-        const codeBlocks = document.querySelectorAll('pre > code.language-mermaid, .mermaid');
+        // Select all potential mermaid blocks:
+        // 1. Standard markdown: pre > code.language-mermaid
+        // 2. Shiki/Astro: pre[data-language="mermaid"], pre.language-mermaid, pre.mermaid
+        // 3. Direct div: .mermaid
+        const codeBlocks = document.querySelectorAll('pre[data-language="mermaid"], pre > code.language-mermaid, pre.mermaid, pre.language-mermaid, .mermaid');
         
         for (let i = 0; i < codeBlocks.length; i++) {
-          const codeBlock = codeBlocks[i];
-          const pre = codeBlock.parentElement;
-          const diagramCode = codeBlock.textContent || '';
+          const element = codeBlocks[i] as HTMLElement;
+          
+          // Determine the actual code content
+          // If it's a pre, getting textContent gets all text inside (including code/spans)
+          let diagramCode = element.textContent || '';
+
+          // Skip if already rendered
+          if (element.classList.contains('mermaid-rendered')) continue;
           
           if (diagramCode.trim()) {
             try {
-              const { svg } = await mermaid.render(`mermaid-diagram-${i}`, diagramCode);
+              // Generate a unique ID
+              const id = `mermaid-diagram-${i}-${Date.now()}`;
+              
+              // Render the diagram
+              const { svg } = await mermaid.render(id, diagramCode);
+              
+              // Create outer container for positioning
+              const container = document.createElement('div');
+              container.className = 'mermaid-container relative group my-6';
+              
               const wrapper = document.createElement('div');
-              wrapper.className = 'mermaid-diagram my-6 overflow-x-auto';
+              wrapper.className = 'mermaid-diagram overflow-x-auto flex justify-center p-4 bg-white/50 dark:bg-slate-900/50 rounded-lg';
               wrapper.innerHTML = svg;
               
-              if (pre && pre.tagName === 'PRE') {
-                pre.replaceWith(wrapper);
-              } else {
-                codeBlock.innerHTML = svg;
-                codeBlock.classList.add('mermaid-rendered');
+              // Create fullscreen button
+              const fullscreenBtn = document.createElement('button');
+              fullscreenBtn.className = 'fullscreen-btn absolute top-2 right-2 p-2 rounded-md bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 z-10';
+              fullscreenBtn.setAttribute('aria-label', 'View diagram fullscreen');
+              fullscreenBtn.innerHTML = `
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                </svg>
+              `;
+              
+              fullscreenBtn.addEventListener('click', () => {
+                openDiagramFullscreen(svg);
+              });
+              
+              container.appendChild(wrapper);
+              container.appendChild(fullscreenBtn);
+              
+              // Start transition
+              element.style.display = 'none';
+              element.classList.add('mermaid-rendered');
+
+              // Insert safely
+              // If we found a code block inside a pre, and we selected the code block, we want to replace the pre
+              // If we selected the pre, we replace the pre
+              let target = element;
+              
+              if (element.tagName === 'CODE' && element.parentElement && element.parentElement.tagName === 'PRE') {
+                target = element.parentElement;
+              }
+              
+              if (target.parentNode) {
+                target.parentNode.insertBefore(container, target);
+                target.remove();
               }
             } catch (e) {
               console.error('Mermaid rendering error:', e);
+              // Fallback: make sure it's visible if it failed
+              element.style.display = 'block';
             }
           }
+        }
+      }
+      
+      // Fullscreen modal for diagrams
+      function openDiagramFullscreen(svgContent: string) {
+        const modal = document.createElement('div');
+        modal.className = 'diagram-fullscreen-modal fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm';
+        modal.innerHTML = `
+          <div class="relative w-full h-full flex items-center justify-center p-8">
+            <button class="absolute top-4 right-4 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors" aria-label="Close fullscreen">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div class="diagram-content max-w-full max-h-full overflow-auto bg-white dark:bg-slate-800 rounded-xl p-8 shadow-2xl">
+              ${svgContent}
+            </div>
+          </div>
+        `;
+        
+        // Close on backdrop click
+        modal.addEventListener('click', (e) => {
+          if (e.target === modal || (e.target as Element).closest('button')) {
+            modal.remove();
+            document.body.style.overflow = '';
+          }
+        });
+        
+        // Close on escape key
+        const handleEscape = (e: KeyboardEvent) => {
+          if (e.key === 'Escape') {
+            modal.remove();
+            document.body.style.overflow = '';
+            document.removeEventListener('keydown', handleEscape);
+          }
+        };
+        document.addEventListener('keydown', handleEscape);
+        
+        document.body.style.overflow = 'hidden';
+        document.body.appendChild(modal);
+        
+        // Scale up the SVG in fullscreen
+        const svgElement = modal.querySelector('svg');
+        if (svgElement) {
+          svgElement.style.maxWidth = '100%';
+          svgElement.style.maxHeight = 'calc(100vh - 10rem)';
+          svgElement.style.width = 'auto';
+          svgElement.style.height = 'auto';
         }
       }
       
       // Run on page load and after navigation
       document.addEventListener('DOMContentLoaded', renderMermaidDiagrams);
       document.addEventListener('astro:page-load', renderMermaidDiagrams);
+    </script>
+
+    <!-- Copy to clipboard for code blocks -->
+    <script>
+      function addCopyButtons() {
+        const codeBlocks = document.querySelectorAll('.prose pre:not(.mermaid-rendered)');
+        
+        codeBlocks.forEach((pre) => {
+          // Skip if already has a copy button
+          if (pre.parentElement?.classList.contains('code-block-wrapper')) return;
+          
+          // Create wrapper
+          const wrapper = document.createElement('div');
+          wrapper.className = 'code-block-wrapper relative group';
+          
+          // Create copy button
+          const button = document.createElement('button');
+          button.className = 'copy-button absolute top-2 right-2 p-2 rounded-md bg-slate-700/80 hover:bg-slate-600 text-slate-300 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 text-xs font-medium flex items-center gap-1';
+          button.innerHTML = `
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+            <span>Copy</span>
+          `;
+          button.setAttribute('aria-label', 'Copy code to clipboard');
+          
+          button.addEventListener('click', async () => {
+            const code = pre.querySelector('code')?.textContent || pre.textContent || '';
+            
+            try {
+              await navigator.clipboard.writeText(code);
+              button.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                <span>Copied!</span>
+              `;
+              button.classList.add('bg-green-600/80');
+              
+              setTimeout(() => {
+                button.innerHTML = `
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  <span>Copy</span>
+                `;
+                button.classList.remove('bg-green-600/80');
+              }, 2000);
+            } catch (err) {
+              console.error('Failed to copy:', err);
+              button.innerHTML = `
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                <span>Error</span>
+              `;
+            }
+          });
+          
+          // Wrap the pre element
+          pre.parentNode?.insertBefore(wrapper, pre);
+          wrapper.appendChild(pre);
+          wrapper.appendChild(button);
+        });
+      }
+      
+      // Run on page load and after navigation
+      document.addEventListener('DOMContentLoaded', addCopyButtons);
+      document.addEventListener('astro:page-load', addCopyButtons);
     </script>
   </body>
 </html>

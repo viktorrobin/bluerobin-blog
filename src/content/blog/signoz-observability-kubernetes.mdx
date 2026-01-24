@@ -5,7 +5,7 @@ pubDate: 2026-02-28
 author: "Victor Robin"
 category: "observability"
 difficulty: "advanced"
-tags: ["signoz", "observability", "opentelemetry", "tracing", "metrics", "logs"]
+tags: ["observability"]
 readTime: "22 min"
 toc: true
 type: "cookbook"
@@ -14,6 +14,19 @@ type: "cookbook"
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+Observability is the "three pillars" problem: **traces** show request flow, **metrics** show system health, **logs** show what happened. Most teams end up with three different tools, three different query languages, and no way to correlate data across them.
+
+**Why Unified Observability Matters:**
+
+- **Single Pane of Glass**: Jump from a spike in error metrics to the failing traces to the error logs—all in one UI
+- **Cost Efficiency**: One system to deploy, maintain, and learn instead of three
+- **Correlation**: Automatic linking between traces, metrics, and logs via trace IDs
+- **Open Standards**: Built on OpenTelemetry—no vendor lock-in
+
+SigNoz is an open-source alternative to Datadog and New Relic that delivers all three pillars in a single, self-hosted platform. For teams who want production-grade APM without cloud bills, it's a compelling option.
 
 SigNoz provides an open-source alternative to Datadog and New Relic, offering unified observability with traces, metrics, and logs. This cookbook covers deploying SigNoz and instrumenting .NET applications.
 
@@ -44,9 +57,14 @@ flowchart TB
         UI["🖼️ Frontend UI"]
     end
 
-    style Apps fill:#512bd4,color:#fff
-    style Collector fill:#ff6b35,color:#fff
-    style Backend fill:#00a699,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Apps primary
+    class Collector secondary
+    class Backend db
 ```
 
 ## SigNoz Installation

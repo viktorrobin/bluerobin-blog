@@ -5,7 +5,7 @@ pubDate: 2026-03-13
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
-tags: ["dotnet", "background-jobs", "hosted-services", "channels", "async"]
+tags: ["async", "background-jobs", "dotnet"]
 readTime: "15 min"
 toc: true
 ---
@@ -14,7 +14,39 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Background job processing enables applications to handle long-running tasks asynchronously. This guide covers implementing robust background processing patterns in .NET.
+## Introduction
+
+Background job processing enables applications to handle long-running tasks asynchronously without blocking the main request thread. This is critical for keeping APIs responsive while performing heavy operations like document analysis, video transcoding, or sending emails.
+
+This guide covers implementing robust background processing patterns in .NET using native `BackgroundService`, local channels, and distributed message queues.
+
+### What We'll Build
+1.  **Hosted Service**: A simple loop for periodic tasks.
+2.  **Channel Queue**: An in-memory producer-consumer queue.
+3.  **Job Handlers**: A pattern for decoupling job logic from the execution engine.
+
+## Architecture Overview
+
+```mermaid
+flowchart LR
+    API["🚀 API\n(User Request)"] -->|Enqueues| Queue["📥 Job Queue\n(Channel/NATS)"]
+    
+    subgraph Worker["⚙️ Worker Service"]
+        Queue -->|Dequeues| Handler["👷 Job Handler"]
+        Handler -->|Updates| DB[(Database)]
+        Handler -->|Publishes| Event["📢 Event\n(Completed)"]
+    end
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class API,Worker primary
+    class DB db
+```
+
+## Implementation
 
 ## Hosted Services
 
@@ -456,7 +488,7 @@ public sealed class UploadDocumentEndpoint : Endpoint<UploadDocumentRequest, Doc
 }
 ```
 
-## Summary
+## Conclusion
 
 Background processing patterns:
 

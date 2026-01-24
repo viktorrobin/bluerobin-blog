@@ -5,7 +5,7 @@ pubDate: 2026-02-16
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
-tags: ["semantic-search", "qdrant", "hybrid-search", "elasticsearch", "ai", "embeddings"]
+tags: ["ai", "qdrant", "search"]
 readTime: "25 min"
 toc: true
 series:
@@ -17,9 +17,13 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-Pure semantic search excels at understanding meaning but can miss exact matches. Keyword search finds precise terms but misses semantic relationships. Hybrid search combines both approaches for the best of both worlds.
+## Introduction
 
-## Hybrid Search Architecture
+Pure semantic search excels at understanding meaning but can miss exact matches. Keyword search finds precise terms but misses semantic relationships. Hybrid search combines both approaches for the best of both worlds. This article details the implementation of a hybrid search system in BlueRobin using Qdrant for vector search and PostgreSQL for full-text search, fused with Reciprocal Rank Fusion (RRF).
+
+## Architecture Overview
+
+The following diagram shows the parallel execution of search strategies and their fusion.
 
 ```mermaid
 flowchart TB
@@ -47,20 +51,27 @@ flowchart TB
 
     RRF["⚖️ Reciprocal Rank Fusion"] --> Results["🎯 Combined Results<br/>[doc1, doc3, doc4, ...]"]
 
-    style Semantic fill:#3498db,color:#fff
-    style Keyword fill:#e67e22,color:#fff
-    style RRF fill:#27ae60,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Keyword,RRF primary
+    class Semantic secondary
+    class S2,K2 db
 ```
 
-## Setting Up Full-Text Search
+## Implementation
 
-### PostgreSQL with pg_trgm
+### Setting Up Full-Text Search
+
+#### PostgreSQL with pg_trgm
 
 ```sql
 -- Enable extensions
 CREATE EXTENSION IF NOT EXISTS pg_trgm;
 CREATE EXTENSION IF NOT EXISTS unaccent;
-
+-- ...existing code...
 -- Create search configuration
 CREATE TEXT SEARCH CONFIGURATION english_unaccent (COPY = english);
 ALTER TEXT SEARCH CONFIGURATION english_unaccent
@@ -94,7 +105,7 @@ CREATE TRIGGER documents_search_vector_update
   FOR EACH ROW EXECUTE FUNCTION documents_search_vector_update();
 ```
 
-### EF Core Configuration
+#### EF Core Configuration
 
 ```csharp
 // Infrastructure/Persistence/Configurations/DocumentConfiguration.cs
@@ -113,7 +124,7 @@ public void Configure(EntityTypeBuilder<Document> builder)
 }
 ```
 
-## Keyword Search Implementation
+### Keyword Search Implementation
 
 ```csharp
 // Infrastructure/Search/PostgresKeywordSearch.cs
@@ -229,7 +240,7 @@ public sealed record KeywordSearchResult
 }
 ```
 
-## Semantic Search with Qdrant
+### Semantic Search with Qdrant
 
 ```csharp
 // Infrastructure/Search/QdrantSemanticSearch.cs
@@ -315,7 +326,7 @@ public sealed record SemanticSearchResult
 }
 ```
 
-## Reciprocal Rank Fusion
+### Reciprocal Rank Fusion
 
 RRF combines rankings from multiple sources:
 
@@ -489,7 +500,7 @@ public sealed class HybridSearchService : IHybridSearchService
 The RRF constant (k=60) is the standard value from the original paper. Lower values give more weight to top-ranked results; higher values flatten the distribution.
 </ImplementationNote>
 
-## Search Options
+### Search Options
 
 ```csharp
 // Application/Models/HybridSearchOptions.cs
@@ -535,7 +546,7 @@ public sealed record MatchedChunk
 }
 ```
 
-## API Endpoint
+### API Endpoint
 
 ```csharp
 // Api/Endpoints/Search/HybridSearchEndpoint.cs
@@ -595,7 +606,7 @@ public sealed record HybridSearchRequest
 }
 ```
 
-## Testing Hybrid Search
+### Testing Hybrid Search
 
 ```csharp
 public class HybridSearchServiceTests
@@ -631,7 +642,7 @@ public class HybridSearchServiceTests
 }
 ```
 
-## Summary
+## Conclusion
 
 Hybrid search provides comprehensive retrieval:
 

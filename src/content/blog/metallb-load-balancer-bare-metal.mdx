@@ -5,7 +5,7 @@ pubDate: 2026-03-08
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
-tags: ["metallb", "kubernetes", "load-balancer", "networking", "bare-metal"]
+tags: ["bare-metal", "kubernetes", "networking"]
 readTime: "14 min"
 toc: true
 ---
@@ -13,6 +13,70 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+In cloud environments, creating a `LoadBalancer` Service is trivial—AWS, GCP, and Azure automatically provision external IPs. But in bare-metal Kubernetes? That same Service sits in `Pending` forever, waiting for a load balancer that doesn't exist.
+
+**Why MetalLB Matters:**
+
+- **Real External IPs**: Your Services get actual routable IP addresses
+- **No Cloud Lock-in**: Run production-grade networking on your own hardware
+- **Simple Setup**: L2 mode works with any network—no BGP expertise required
+- **High Availability**: Services failover automatically when nodes go down
+
+MetalLB fills this gap by implementing the LoadBalancer Service type for bare-metal clusters. It's the missing piece that makes homelab Kubernetes feel like a real cloud.
+
+## Architecture Overview
+
+MetalLB assigns IPs from a configured pool and announces them to your network:
+
+```mermaid
+flowchart TB
+    subgraph Network["🌐 Local Network"]
+        Router["📡 Router\n192.168.1.1"]
+        Client["💻 Client"]
+    end
+
+    subgraph MetalLB["⚖️ MetalLB"]
+        Controller["🎛️ Controller\nIP Assignment"]
+        
+        subgraph Speakers["📢 Speakers (DaemonSet)"]
+            S1["🔊 Speaker\nNode 1"]
+            S2["🔊 Speaker\nNode 2"]
+            S3["🔊 Speaker\nNode 3"]
+        end
+        
+        Pool["🏊 IP Pool\n192.168.1.200-250"]
+    end
+
+    subgraph Services["☸️ Kubernetes Services"]
+        Svc1["🔌 Traefik\n192.168.1.200"]
+        Svc2["🔌 API\n192.168.1.201"]
+    end
+
+    Client -->|"Request"| Router
+    Router -->|"ARP"| S1
+    S1 -->|"Traffic"| Svc1
+    Controller --> Pool
+    Pool --> Svc1
+    Pool --> Svc2
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Services primary
+    class MetalLB secondary
+    class Network warning
+```
+
+**How L2 Mode Works**:
+1. **Controller** assigns an IP from the pool to your Service
+2. **Speaker** pods respond to ARP requests for that IP
+3. **Traffic** flows to the elected speaker node, then to your Service
+4. **Failover** happens automatically if the speaker node fails
 
 MetalLB provides network load balancer implementations for bare metal Kubernetes clusters. This guide covers deploying MetalLB with L2 mode for homelab and small deployments.
 

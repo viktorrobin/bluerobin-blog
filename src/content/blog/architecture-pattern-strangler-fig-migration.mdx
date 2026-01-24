@@ -1,0 +1,153 @@
+---
+title: "Modernizing via Strangler Fig Pattern"
+description: "How to safely migrate from a monolithic ASP.NET MVC app to modern microservices using the Strangler Fig Pattern and YARP (Yet Another Reverse Proxy)."
+pubDate: 2026-03-08
+author: "Victor Robin"
+category: "architecture"
+difficulty: "intermediate"
+tags: ["architecture", "database", "patterns"]
+series:
+  name: "Legacy Modernization"
+  order: 1
+readTime: "15 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+## Introduction
+
+Rewriting a legacy system from scratch (the "Big Bang" approach) is almost always a mistake. It takes years, business features freeze, and the cutover day is a high-risk nightmare.
+
+The **Strangler Fig Pattern**, named after the vine that grows around a host tree until it eventually replaces it, offers a safer alternative. You incrementally replace specific functionality with new services while the old system continues to run.
+
+**Why Use Strangler Fig:**
+
+- **Risk Reduction**: You migrate one route at a time. If it fails, you just revert the route config.
+- **Immediate Value**: You deliver new features in the new stack immediately, rather than waiting for a full rewrite.
+- **Coexistence**: The user sees one unified application, unaware that the backend is split.
+
+### What We'll Build
+
+We will set up a Facade using **YARP (Yet Another Reverse Proxy)** in .NET. This proxy will sit in front of both our Legacy Monolith and our New Microservice, routing traffic intelligently.
+
+## Architecture Overview
+
+The key component is the "Facade" or Proxy. It intercepts all incoming traffic.
+
+```mermaid
+flowchart TD
+    User[Clients/Users] --> Proxy[YARP Proxy Facade]
+    
+    Proxy -->|Match /api/v1/orders| New[New Service\n(.NET 10)]
+    Proxy -->|Everything else| Old[Legacy Monolith\n(ASP.NET MVC)]
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class User,Old warning
+    class Proxy secondary
+    class New primary
+```
+
+## Section 1: Setting up YARP
+
+YARP is an incredibly high-performance reverse proxy library from Microsoft. It fits perfectly into a standard ASP.NET Core application.
+
+First, create a new empty Web API project for the proxy and install YARP.
+
+```bash
+dotnet add package Yarp.ReverseProxy
+```
+
+## Section 2: Configuration (The Route Map)
+
+The magic of the Strangler Fig happens in `appsettings.json`. We define **Clusters** (destinations) and **Routes** (matching rules).
+
+```json
+{
+  "ReverseProxy": {
+    "Routes": {
+      "orders-route": {
+        "ClusterId": "new-orders-service",
+        "Match": {
+          "Path": "/api/v1/orders/{**remainder}"
+        },
+        "Transforms": [
+          { "PathPattern": "/orders/{**remainder}" }
+        ]
+      },
+      "legacy-catch-all": {
+        "ClusterId": "legacy-monolith",
+        "Match": {
+          "Path": "{**catch-all}"
+        }
+      }
+    },
+    "Clusters": {
+      "new-orders-service": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://orders-service:8080"
+          }
+        }
+      },
+      "legacy-monolith": {
+        "Destinations": {
+          "destination1": {
+            "Address": "http://legacy-app:80"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+In this configuration:
+1. Traffic to `/api/v1/orders/*` is routed to the new separate service.
+2. **ALL other traffic** falls through to the legacy monolith.
+
+<ImplementationNote>
+**Authentication Sharing**: The biggest challenge is often sharing session state or auth tokens. If the legacy app uses Cookies, you may need to implement a "Ticket Store" (e.g., Redis) that both the Monolith and the YARP proxy can read to validate users before routing.
+</ImplementationNote>
+
+## Section 3: The Program.cs
+
+Wiring it up is simple.
+
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddReverseProxy()
+    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));
+
+var app = builder.Build();
+
+app.MapReverseProxy();
+
+app.Run();
+```
+
+## Section 4: Dealing with Database State
+
+Often, the new service needs data that the legacy service owns. You have a few options:
+
+1.  **Shared Database (Anti-Pattern but Pragmatic)**: Both services talk to the same DB. Dangerous due to locking and schema coupling, but good for initial phases.
+2.  **Double Write**: The proxy or client writes to both. Complicated error handling.
+3.  **Synchronization (CDC)**: Use Debezium or similar to sync data from Legacy DB to New DB asynchronously.
+
+For the Strangler Pattern, we typically start with a Shared Database and slowly peel off tables into the new service's exclusive domain as we refactor.
+
+## Conclusion
+
+The Strangler Fig pattern allows you to modernize "in-flight". By using YARP, you gain a robust, .NET-native way to manage this traffic routing dynamically.
+
+Eventually, as you "strangle" more routes, the Monolith becomes small enough to be decommissioned entirely (or kept as a small service for truly dead-end features).
+
+**Next Steps**:
+- Learn about [Distributed Tracing] to track requests as they jump between Proxy -> Service -> Monolith.
+- Read about [Identity Federation] to unify auth across the stack.

@@ -5,7 +5,7 @@ pubDate: 2026-03-01
 author: "Victor Robin"
 category: "database"
 difficulty: "advanced"
-tags: ["falkordb", "graph-database", "cypher", "knowledge-graph", "redis"]
+tags: ["caching", "falkordb", "database", "knowledge-graph"]
 readTime: "20 min"
 toc: true
 ---
@@ -14,9 +14,11 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+## Introduction
+
 Graph databases excel at modeling relationships between entities. FalkorDB (formerly RedisGraph) provides a high-performance graph database with Cypher query support, ideal for knowledge graphs extracted from documents.
 
-## Knowledge Graph Architecture
+## Architecture Overview
 
 ```mermaid
 graph LR
@@ -35,8 +37,15 @@ graph LR
         Org -->|LOCATED_IN| Loc
     end
 
-    style Graph fill:#e74c3c,color:#fff
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Graph db
 ```
+
+## Implementation
 
 ## Kubernetes Deployment
 

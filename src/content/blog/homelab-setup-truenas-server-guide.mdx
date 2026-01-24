@@ -1,0 +1,179 @@
+---
+title: "Homelab Server & NAS Setup with TrueNAS Scale"
+description: "A comprehensive guide to the hardware powering BlueRobin. From Ryzen processors and 128GB RAM to configuring TrueNAS Scale for Kubernetes storage via iSCSI and NFS."
+pubDate: 2026-03-05
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "advanced"
+tags: ["infrastructure", "hardware", "storage"]
+readTime: "15 min"
+toc: true
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+## Introduction
+
+High-performance software needs high-performance hardware. When we decided to bring BlueRobin on-premise, we needed a foundation that could handle the simultaneous demands of Kubernetes virtualization, massive storage throughput for MinIO, and spare cycles for build agents. We chose a consolidated approach using a powerful workstation build running TrueNAS Scale.
+
+**Why Proper Hardware Matters:**
+
+- **Reliability**: ECC memory and ZFS protect against bit rot.
+- **Bandwidth**: 10GbE overcomes the "network bottleneck," making remote storage feel local.
+- **Density**: Running everything on one optimized rig saves power vs. a rack of noisy 1U servers.
+
+### What We'll Build
+
+In this guide, we will walk through the specifications and configuration of the BlueRobin homelab server. You will learn how to:
+
+1. **Select Hardware**: Balancing CPU cores vs. PCIe lanes.
+2. **Configure ZFS**: Setting up pools for speed (NVMe) and capacity (HDD).
+3. **Expose Storage**: Connecting TrueNAS to Kubernetes via NFS and iSCSI.
+
+## Architecture Overview
+
+The homelab infrastructure connects enterprise-grade hardware with a Kubernetes cluster for seamless storage provisioning:
+
+```mermaid
+flowchart TB
+    subgraph Hardware["🖥️ Server Hardware"]
+        CPU["⚡ Ryzen 9 5950X\n16C/32T"]
+        RAM["🧠 128GB DDR4 ECC"]
+        NIC["🔌 Intel X520-DA2\n10GbE SFP+"]
+    end
+
+    subgraph ZFS["💾 ZFS Pools"]
+        Fast["⚡ tank-fast\nNVMe Mirror\nVMs & Databases"]
+        Bulk["📦 tank-bulk\nHDD RaidZ1\nArchives & Backups"]
+    end
+
+    subgraph Network["🌐 Network (10GbE)"]
+        DAC["🔗 DAC Cable\n9.4 Gbps"]
+        Switch["📡 10GbE Switch"]
+    end
+
+    subgraph K3s["☸️ K3s Cluster"]
+        CSI["🔧 Democratic-CSI"]
+        NFS["📂 NFS Volumes\n(ReadWriteMany)"]
+        iSCSI["💽 iSCSI Volumes\n(ReadWriteOnce)"]
+    end
+
+    CPU --> RAM
+    RAM --> ZFS
+    Fast --> NIC
+    Bulk --> NIC
+    NIC --> DAC
+    DAC --> Switch
+    Switch --> CSI
+    CSI --> NFS
+    CSI --> iSCSI
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class Hardware primary
+    class K3s secondary
+    class ZFS db
+    class Network warning
+```
+
+**Data Flow**:
+1. **Hardware Layer**: High-core-count CPU and ECC RAM provide reliability
+2. **Storage Layer**: ZFS pools tiered by performance (NVMe) and capacity (HDD)
+3. **Network Layer**: 10GbE eliminates the storage bottleneck
+4. **Kubernetes Layer**: Democratic-CSI dynamically provisions volumes via NFS/iSCSI
+
+## Hardware Architecture
+
+Our build centers on the AMD Ryzen platform, utilizing its high core count and ECC memory support (unofficial but functional on AsRock Rack boards).
+
+```mermaid
+graph TD
+    subgraph Server["Home Server (TrueNAS Scale)"]
+        CPU[Ryzen 9 5950X<br/>16 Cores / 32 Threads]
+        RAM[128GB DDR4 ECC UDIMM]
+        HBA[LSI 9300-8i HBA]
+        NIC[Intel X520-DA2<br/>Dual 10GbE SFP+]
+        
+        subgraph Storage["ZFS Pools"]
+            PoolSpeed[NVMe Pool<br/>2x 2TB Gen4 Mirror<br/>VMs & Databases]
+            PoolBulk[HDD Pool<br/>4x 14TB RaidZ1<br/>Archives & Backups]
+        end
+        
+        CPU --- RAM
+        CPU --- HBA
+        HBA --- PoolBulk
+        CPU --- PoolSpeed
+        CPU --- NIC
+    end
+
+    classDef primary fill:#7c3aed,color:#fff
+    classDef secondary fill:#06b6d4,color:#fff
+    classDef db fill:#f43f5e,color:#fff
+    classDef warning fill:#fbbf24,color:#000
+
+    class CPU,RAM,HBA,NIC primary
+    class Server secondary
+    class PoolSpeed,PoolBulk db
+```
+
+## Section 1: The Hardware Selection
+
+### The Brain: CPU & RAM
+We chose the **Ryzen 9 5950X** for its incredible multi-threaded performance. Kubernetes creates many small containers, and having 32 threads allows us to over-provision efficiently. 
+
+**128GB of RAM** is critical. ZFS loves RAM for its Adaptive Replacement Cache (ARC), and running a K3s cluster, Postgres, Qdrant, and local AI models eats memory for breakfast.
+
+### The Spine: Networking
+**10GbE is non-negotiable.** We use standardized Intel X520 cards with DAC (Direct Attach Copper) cables. This provides a steady 9.4 Gbps link between the server and our main workstation, enabling us to edit video directly off the NAS or restore gigantic database backups in seconds.
+
+<Callout type="warning" title="PCIe Lanes">
+    On consumer platforms like Ryzen (AM4), PCIe lanes are limited. We had to carefully bifurcate slots to ensure the GPU, HBA, and 10GbE card all received sufficient bandwidth.
+</Callout>
+
+## Section 2: TrueNAS Scale Configuration
+
+TrueNAS Scale (Linux-based) was preferred over Core (BSD-based) for better Docker/Kubernetes compatibility and KVM support.
+
+### Storage Tiers
+We split our storage into two distinct pools:
+
+1.  **`tank-fast` (NVMe Mirror)**:
+    -   **Use Case**: Docker volumes, Postgres DB files, Qdrant vectors.
+    -   **Why**: IOPS. Random I/O on HDDs kills database performance.
+2.  **`tank-bulk` (HDD RaidZ1)**:
+    -   **Use Case**: MinIO objects, Backups, Media.
+    -   **Why**: Cost-effective bulk storage.
+
+## Section 3: Connecting to Kubernetes
+
+We use **Democratic-CSI** (configured via Flux) to automatically provision storage on TrueNAS from our K3s cluster.
+
+### NFS vs iSCSI
+- **NFS**: Used for `ReadWriteMany` volumes (e.g., shared configs, web assets). Faster to set up, easier to debug.
+- **iSCSI**: Used for `ReadWriteOnce` volumes (e.g., Databases). Block-level access provides better performance and consistency guarantees for PostgreSQL.
+
+```yaml
+# Example StorageClass for TrueNAS iSCSI
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: truenas-iscsi
+provisioner: org.democratic-csi.iscsi
+parameters:
+  fsType: ext4
+  # ... configuration linking to TrueNAS API
+```
+
+## Conclusion
+
+This hardware setup provides the bedrock for the entire BlueRobin platform. By investing in quality components like ECC RAM and 10GbE, we've built a "private cloud" that outperforms standard cloud instances at a fraction of the long-term cost.
+
+**Next Steps**:
+- See how we [automated our workflows](/blog/workflow-automation-n8n-kubernetes) on this cluster.
+- Read about our [observability stack](/blog/observability-lessons-why-we-dropped-signoz).
