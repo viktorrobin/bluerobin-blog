@@ -84,7 +84,7 @@ public interface IEventSubjectProvider
     string EnvironmentPrefix { get; }
     
     // Document lifecycle subjects
-    string DocumentUploaded { get; }
+    string OcrRequested { get; }
     string OcrCompleted { get; }
     string EmbeddingsCompleted { get; }
     
@@ -109,7 +109,7 @@ public class EventSubjectProvider : IEventSubjectProvider
         _options = options.Value;
 
         // Pre-compute all static subjects for performance
-        DocumentUploaded = _options.ApplySubjectPrefix("archives.documents.uploaded");
+        OcrRequested = _options.ApplySubjectPrefix("archives.documents.ocr.requested");
         OcrCompleted = _options.ApplySubjectPrefix("archives.documents.ocr.completed");
         EmbeddingsCompleted = _options.ApplySubjectPrefix("archives.documents.embeddings.completed");
         
@@ -128,7 +128,7 @@ public class EventSubjectProvider : IEventSubjectProvider
     public string ApplyPrefix(string subject) => _options.ApplySubjectPrefix(subject);
     
     // Cached properties...
-    public string DocumentUploaded { get; }
+    public string OcrRequested { get; }
     public string NotificationTelegram { get; }
     public string TelegramLinkTokenValidate { get; }
     public string TelegramPushLinkRequest { get; }
@@ -467,12 +467,12 @@ sequenceDiagram
     participant TG as Telegram
     
     User->>API: Upload document
-    API->>NATS: staging.archives.documents.uploaded
+    API->>NATS: staging.archives.documents.ocr.requested
     API-->>User: 202 Accepted
     
     Note over Worker: Processing begins...
     Worker->>NATS: Subscribe staging.archives.documents.>
-    NATS->>Worker: Document uploaded event
+    NATS->>Worker: OCR requested event
     Worker->>Worker: OCR, classify, extract...
     
     alt Success

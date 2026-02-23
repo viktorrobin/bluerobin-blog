@@ -451,7 +451,7 @@ public sealed class OcrWorkerService : BackgroundService
         
         _logger.LogInformation("OCR Worker subscribing to {Subject}", subject);
         
-        await foreach (var msg in _nats.SubscribeAsync<DocumentUploadedEvent>(
+        await foreach (var msg in _nats.SubscribeAsync<DocumentProcessingRequestedEvent>(
             subject, cancellationToken: stoppingToken))
         {
             try
@@ -469,7 +469,7 @@ public sealed class OcrWorkerService : BackgroundService
     }
     
     private async Task ProcessDocumentAsync(
-        DocumentUploadedEvent evt, 
+        DocumentProcessingRequestedEvent evt, 
         CancellationToken ct)
     {
         _logger.LogInformation(
@@ -545,7 +545,7 @@ Define strongly-typed events for the pipeline:
 // Application/Events/DocumentEvents.cs
 namespace Archives.Application.Events;
 
-public sealed record DocumentUploadedEvent
+public sealed record DocumentProcessingRequestedEvent
 {
     public required string DocumentId { get; init; }
     public required string Bucket { get; init; }

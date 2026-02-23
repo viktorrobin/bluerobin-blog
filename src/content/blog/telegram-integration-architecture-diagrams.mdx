@@ -375,7 +375,7 @@ sequenceDiagram
     Bot->>API: POST /internal/documents/upload<br/>X-Service-Token + X-BlueRobin-UserId<br/>multipart/form-data
     API->>MinIO: PUT staging-{userId}/uploads/{filename}
     MinIO-->>API: Success
-    API->>NATS: Publish staging.archives.documents.uploaded
+    API->>NATS: Publish staging.archives.documents.ocr.requested
     API-->>Bot: {documentId, status: "uploaded"}
     
     Bot->>TG: "✅ Uploaded! Processing..."

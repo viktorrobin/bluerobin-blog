@@ -304,7 +304,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                     await _notifier.NotifyDocumentUpdatedAsync(
                         envelope.DocumentId,
                         DocumentStatus.Uploaded,
-                        "Document uploaded successfully");
+                        "Document queued for processing");
                     break;
                 
                 case "ocr-started":

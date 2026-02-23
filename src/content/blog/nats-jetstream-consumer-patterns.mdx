@@ -64,7 +64,7 @@ This is ideal for expensive tasks like OCR or Video Transcoding. You can scale f
 var consumerConfig = new ConsumerConfig("ocr_processor_group")
 {
     // Filter only what we need
-    FilterSubject = "archives.documents.uploaded",
+    FilterSubject = "archives.documents.ocr.requested",
     
     // Explicit Ack is MANDATORY for work queues
     AckPolicy = ConsumerConfigAckPolicy.Explicit,

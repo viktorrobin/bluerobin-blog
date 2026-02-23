@@ -140,7 +140,7 @@ stateDiagram-v2
 
 | Subject | Publisher | Consumer | Payload |
 |---------|-----------|----------|---------|
-| `archives.documents.uploaded` | API | OcrEventConsumer | DocumentId, FileName, Bucket |
+| `archives.documents.ocr.requested` | API | OcrEventConsumer | DocumentId, FileName, Bucket |
 | `archives.documents.ocr.completed` | OcrWorker | AnalysisEventConsumer | DocumentId, TextLength |
 | `archives.documents.analysis.completed` | AnalysisWorker | ChunkingWorker | DocumentId, Summary, Keywords |
 | `archives.documents.chunks.created` | ChunkingWorker | EmbeddingFanout | ChunkId, Text, Index |
