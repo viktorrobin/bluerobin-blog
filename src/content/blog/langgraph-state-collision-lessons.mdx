@@ -1,0 +1,46 @@
+---
+title: "LangGraph State Collisions: Lessons from a Real Production Fix"
+description: "What happens when agent graph node names collide with state keys, and how to design LangGraph flows that remain safe under change."
+pubDate: 2026-02-25
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "intermediate"
+tags: ["langgraph", "agentic", "state-management", "llm", "production"]
+readTime: "8 min"
+ogImage: "/og/langgraph-state-collision-lessons.png"
+canonicalURL: "https://blog.bluerobin.io/langgraph-state-collision-lessons"
+toc: true
+---
+
+## Introduction
+
+Agent workflows fail in subtle ways when orchestration metadata and payload state are not separated. BlueRobin hit this directly and fixed it with explicit node naming and cleaner state boundaries.
+
+## Commit That Triggered This Post
+
+- `6c2be22`: renamed a route node to avoid LangGraph state key conflict.
+
+## Design Rule
+
+Use distinct namespaces for:
+
+- orchestration nodes,
+- persisted state keys,
+- computed outputs.
+
+Never rely on implicit name reuse across these layers.
+
+## Checklist for Agent Graph Safety
+
+- Add a naming convention (`node_*`, `state_*`, `result_*`).
+- Validate graph compilation in CI.
+- Include regression tests around branch routing and state merges.
+
+## Conclusion
+
+Most agent bugs are orchestration bugs, not model bugs. Fixing state boundaries early saves significant debugging time later.
+
+**Related reading**:
+- `/graphrag-routing-dotnet-langgraph-fallback/`
+- `/semantic-kernel-agents-orchestration/`

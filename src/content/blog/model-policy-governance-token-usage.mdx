@@ -1,0 +1,40 @@
+---
+title: "Model Policy Governance and Token Usage at Platform Scale"
+description: "Implementing model policy management and global token accounting so agentic features remain cost-aware and governable."
+pubDate: 2026-02-22
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "intermediate"
+tags: ["llm", "governance", "model-policy", "tokens", "platform"]
+readTime: "8 min"
+ogImage: "/og/model-policy-governance-token-usage.png"
+canonicalURL: "https://blog.bluerobin.io/model-policy-governance-token-usage"
+toc: true
+---
+
+## Introduction
+
+As LLM usage grows, governance becomes mandatory: which models can run, where they run, and how token costs are tracked per feature path.
+
+## Commit Signal
+
+- `8fdca88`: added model policy management and global token usage tracking.
+
+## Governance Pattern
+
+- Central policy controls allowed models and execution constraints.
+- Runtime checks enforce policy before model execution.
+- Token counters provide global visibility for cost and usage trends.
+
+## Why This Matters for Agentic Systems
+
+Agentic pipelines can call multiple tools and models per request. Without policy and accounting, cost and risk both scale faster than feature value.
+
+## Conclusion
+
+Model governance should ship with agentic capabilities, not after them.
+
+**Related reading**:
+- `/semantic-kernel-agents-orchestration/`
+- `/graphrag-routing-dotnet-langgraph-fallback/`

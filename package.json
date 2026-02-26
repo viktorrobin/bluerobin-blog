@@ -13,11 +13,11 @@
     "format": "prettier --write ."
   },
   "dependencies": {
-    "@astrojs/check": "^0.9.4",
-    "@astrojs/mdx": "^4.0.2",
-    "@astrojs/rss": "^4.0.9",
-    "@astrojs/sitemap": "^3.2.1",
-    "astro": "^5.1.1",
+    "@astrojs/check": "^0.9.6",
+    "@astrojs/mdx": "^4.3.13",
+    "@astrojs/rss": "^4.0.15",
+    "@astrojs/sitemap": "^3.7.0",
+    "astro": "^5.18.0",
     "fuse.js": "^7.0.0",
     "github-slugger": "^2.0.0",
     "marked": "^17.0.1",

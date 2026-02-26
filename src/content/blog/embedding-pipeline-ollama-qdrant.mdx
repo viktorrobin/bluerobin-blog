@@ -2,6 +2,7 @@
 title: "Building a Semantic Embedding Pipeline with Ollama and Qdrant"
 description: "Create a production-ready embedding pipeline in .NET that generates vector embeddings with Ollama and stores them in Qdrant for semantic search."
 pubDate: 2026-01-29
+updatedDate: 2026-02-26
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -10,12 +11,18 @@ series:
   name: "AI in Production"
   order: 3
 readTime: "22 min"
+ogImage: "/og/embedding-pipeline-ollama-qdrant.png"
+canonicalURL: "https://blog.bluerobin.io/embedding-pipeline-ollama-qdrant"
 toc: true
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## 2026 Upgrade Note
+
+This article was upgraded on **2026-02-26** with the latest production context: multi-model embedding fanout, model-specific completion events, and stronger alignment with ensemble retrieval strategies introduced in recent worker and infra updates.
 
 ## Introduction
 

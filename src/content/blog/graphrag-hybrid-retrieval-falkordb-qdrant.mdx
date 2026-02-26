@@ -1,0 +1,45 @@
+---
+title: "Hybrid Retrieval with Graph Filters: FalkorDB + Qdrant in GraphRAG"
+description: "A production blueprint for combining graph traversal and vector search to improve recall and precision in medical document retrieval."
+pubDate: 2026-02-26
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["graphrag", "qdrant", "falkordb", "hybrid-search", "ensembling"]
+readTime: "11 min"
+ogImage: "/og/graphrag-hybrid-retrieval-falkordb-qdrant.png"
+canonicalURL: "https://blog.bluerobin.io/graphrag-hybrid-retrieval-falkordb-qdrant"
+toc: true
+---
+
+## Introduction
+
+Vector search alone can miss structural relationships, while graph search alone can miss semantic nuance. BlueRobin’s GraphRAG path combines both to retrieve context that is both meaningful and connected.
+
+## What Changed in the Codebase
+
+- `35a98e7`: Introduced GraphRAG hybrid retriever and graph orchestration nodes.
+- `64a1c53` (infra): Fixed Qdrant endpoint to REST port `6333` for stable runtime integration.
+- `f05595f` (infra): Added full GraphRAG deployment overlays.
+
+## Retrieval Flow
+
+1. Parse the user query into semantic + entity-focused intents.
+2. Use graph traversal to discover related entities and neighborhoods.
+3. Query Qdrant with enriched terms.
+4. Fuse candidate lists and rank final contexts.
+
+## Practical Benefits
+
+- Better retrieval when documents reference the same concept using different vocabulary.
+- Reduced hallucination risk because the answer context is graph-constrained.
+- Cleaner explainability: you can show both vector score and graph path.
+
+## Conclusion
+
+Graph-filtered vector retrieval is a strong middle ground between pure vector RAG and expensive symbolic-only reasoning. It improves context quality without requiring a full architecture rewrite.
+
+**Related reading**:
+- `/hybrid-search-semantic-keyword/`
+- `/falkordb-graph-database-knowledge-graph/`

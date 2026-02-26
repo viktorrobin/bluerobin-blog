@@ -7,9 +7,9 @@ import remarkCollapse from "remark-collapse";
 
 // https://astro.build/config
 export default defineConfig({
-  site: "https://bluerobin.io",
-  // Pages are now under src/pages/blog/ to output to /blog/*
-  // Landing page is served from public/index.html at root
+  site: "https://blog.bluerobin.io",
+  // Pages are served from src/pages at root (/)
+  // Blog content lives at /articles/*, /tags/*, /architecture/*, etc.
   integrations: [
     mdx(),
     sitemap(),

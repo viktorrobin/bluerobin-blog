@@ -1,0 +1,38 @@
+---
+title: "Idempotent Workers with NATS KV CAS"
+description: "How BlueRobin uses compare-and-swap semantics in NATS KV to prevent duplicate event processing across multiple worker instances."
+pubDate: 2026-02-20
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "messaging"
+difficulty: "advanced"
+tags: ["nats", "workers", "idempotency", "cas", "distributed-systems"]
+readTime: "10 min"
+ogImage: "/og/nats-kv-idempotent-workers-cas.png"
+canonicalURL: "https://blog.bluerobin.io/nats-kv-idempotent-workers-cas"
+toc: true
+---
+
+## Introduction
+
+At-least-once delivery is great for reliability but creates duplicate-processing risk. BlueRobin mitigates this with NATS KV compare-and-swap (CAS) state transitions.
+
+## State Machine
+
+- `in_progress`
+- `completed`
+- `failed`
+
+Combined with a stuck timeout, this enables safe retries without duplicate side effects.
+
+## Where It Lives
+
+The pattern is implemented in infrastructure and consumed by workers that process OCR, analysis, and embedding completion events.
+
+## Conclusion
+
+Idempotency should be enforced at the event-processing boundary. NATS KV CAS is a simple and effective primitive for that boundary.
+
+**Related reading**:
+- `/nats-advanced-patterns-kv-objectstore/`
+- `/nats-event-contract-migration-strategy/`

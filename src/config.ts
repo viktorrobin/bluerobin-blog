@@ -1,5 +1,5 @@
 export const SITE = {
-  website: "https://bluerobin.io",
+  website: "https://blog.bluerobin.io",
   author: "Victor Robin",
   desc: "BlueRobin Technical Blog - A homelab journey from medical document search to production AI. Deep dives into .NET, Kubernetes, LLM integration, and Domain-Driven Design.",
   title: "BlueRobin",

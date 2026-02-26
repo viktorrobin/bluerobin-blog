@@ -1,0 +1,46 @@
+---
+title: "Kubernetes Cluster Setup for Agentic AI Workloads"
+description: "A practical cluster setup guide for running BlueRobin-style agentic services with reliable data, messaging, and observability foundations."
+pubDate: 2026-02-26
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "advanced"
+tags: ["kubernetes", "cluster", "ai", "graphrag", "gitops"]
+readTime: "12 min"
+ogImage: "/og/kubernetes-cluster-setup-for-agentic-ai-workloads.png"
+canonicalURL: "https://blog.bluerobin.io/kubernetes-cluster-setup-for-agentic-ai-workloads"
+toc: true
+---
+
+## Introduction
+
+Agentic and LLM-heavy systems are infrastructure-heavy systems. To run them reliably, your cluster needs clear boundaries between app workloads, data services, messaging, and platform controls.
+
+## Baseline Topology
+
+- `archives-*` namespaces for API, workers, web, and AI services.
+- `data-layer` for Postgres, MinIO, Qdrant, and NATS.
+- `ai` for model-serving components like Ollama.
+- `monitoring` for observability and telemetry pipelines.
+
+## Critical Setup Decisions
+
+1. Use GitOps (`base + overlays`) as the only deployment path.
+2. Keep secrets in ExternalSecrets/Infisical flows.
+3. Use FQDN service addressing across namespaces.
+4. Validate health checks and endpoint ports per environment.
+
+## Operational Lessons from Recent Changes
+
+- GraphRAG service deployment required overlay and secret fixes before stabilization.
+- Incorrect service ports and OTEL endpoints caused avoidable runtime failures.
+- CI integration for new services is required from day one to avoid drift.
+
+## Conclusion
+
+Cluster setup is the main determinant of reliability for agentic systems. Start with strong namespace boundaries, declarative deployment, and explicit secrets/runtime wiring.
+
+**Related reading**:
+- `/gitops-flux-cd-introduction/`
+- `/graphrag-gitops-kustomize-externalsecrets/`

@@ -2,11 +2,14 @@
 title: "NATS-Powered Telegram Notification System"
 description: "Building a real-time notification pipeline from document processing events to Telegram messages using NATS Core, environment-prefixed subjects, and the publisher-subscriber pattern."
 pubDate: 2026-01-22
+updatedDate: 2026-02-26
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
 tags: ["nats", "messaging", "telegram", "dotnet", "event-driven"]
 readTime: "15 min"
+ogImage: "/og/telegram-nats-notification-flow.png"
+canonicalURL: "https://blog.bluerobin.io/telegram-nats-notification-flow"
 toc: true
 series: "telegram-integration"
 seriesOrder: 3
@@ -16,6 +19,10 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## 2026 Upgrade Note
+
+This article was upgraded on **2026-02-26** to reflect the event contract rename from upload-based wording to **OCR requested** semantics. The examples and narrative now align with the current document lifecycle subjects used across API, workers, and Telegram notification flows.
 
 ## Introduction
 

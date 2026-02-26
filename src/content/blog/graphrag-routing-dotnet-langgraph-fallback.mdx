@@ -1,0 +1,49 @@
+---
+title: "GraphRAG Routing in .NET: Safe Fallback Between Classic RAG and LangGraph"
+description: "How BlueRobin introduced a GraphRAG routing layer with health-aware fallback to keep agentic retrieval reliable in production."
+pubDate: 2026-02-26
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["agentic", "graphrag", "langgraph", "rag", "dotnet"]
+readTime: "10 min"
+ogImage: "/og/graphrag-routing-dotnet-langgraph-fallback.png"
+canonicalURL: "https://blog.bluerobin.io/graphrag-routing-dotnet-langgraph-fallback"
+toc: true
+---
+
+## Introduction
+
+Agentic retrieval is powerful, but production reliability still wins over novelty. BlueRobin added a routing layer so GraphRAG can be enabled safely while preserving a deterministic fallback path to the existing .NET RAG pipeline.
+
+## What Changed in the Codebase
+
+- `35a98e7`: GraphRAG Python service introduced with LangGraph + hybrid retrieval nodes.
+- `1bc3d89`: CI updated so GraphRAG is built and shipped in shared service pipelines.
+- Application routing added in `src/Archives.Application/Services/GraphRagRoutingService.cs`.
+
+## Routing Pattern
+
+The production pattern is simple:
+
+1. Check GraphRAG feature flag and health.
+2. Route query to GraphRAG when healthy.
+3. Fall back to classic RAG when unavailable or timed out.
+4. Emit telemetry for route decisions.
+
+This keeps rollout risk low while collecting real traffic signals.
+
+## Why This Matters
+
+- You can launch agentic features without a full migration freeze.
+- Incidents stay contained because fallback behavior is explicit.
+- Teams get measurable adoption before hard-cutting to new pipelines.
+
+## Conclusion
+
+GraphRAG adoption should be incremental, not all-or-nothing. A health-aware router creates the safety rail needed to evolve toward agentic systems in production.
+
+**Related reading**:
+- `/semantic-kernel-agents-orchestration/`
+- `/improving-rag-query-quality-and-relevance/`

@@ -1,18 +1,25 @@
 ---
 title: "OpenTelemetry Instrumentation for .NET"
 description: "Implement distributed tracing, metrics, and logging with OpenTelemetry in .NET applications for full observability."
-pubDate: 2026-03-16
+pubDate: 2026-02-20
+updatedDate: 2026-02-26
 author: "Victor Robin"
 category: "observability"
 difficulty: "intermediate"
 tags: ["dotnet", "observability"]
 readTime: "16 min"
+ogImage: "/og/opentelemetry-instrumentation-dotnet.png"
+canonicalURL: "https://blog.bluerobin.io/opentelemetry-instrumentation-dotnet"
 toc: true
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+## 2026 Upgrade Note
+
+This article was upgraded on **2026-02-26** to reflect the current observability migration path after SigNoz deprecation work in GraphRAG and related services. The guidance now emphasizes stable OTEL endpoints, backend-agnostic instrumentation, and configuration drift prevention.
 
 ## Introduction
 

@@ -1,0 +1,38 @@
+---
+title: "Distributed API Rate Limiting with NATS KV"
+description: "Moving from local in-memory limits to cluster-aware NATS KV partitions for fair, durable API throttling in distributed deployments."
+pubDate: 2026-02-19
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "backend"
+difficulty: "advanced"
+tags: ["rate-limiting", "nats", "api", "distributed-systems", "dotnet"]
+readTime: "9 min"
+ogImage: "/og/distributed-rate-limiting-nats-kv.png"
+canonicalURL: "https://blog.bluerobin.io/distributed-rate-limiting-nats-kv"
+toc: true
+---
+
+## Introduction
+
+In-memory limiters break down once traffic spans multiple pods. BlueRobin uses NATS KV-backed rate limiter components to keep enforcement consistent across instances.
+
+## Core Idea
+
+- Prefer user-based keys when authenticated.
+- Fall back to anonymized network identity when not authenticated.
+- Store and update counters in distributed storage rather than pod memory.
+
+## Operational Benefits
+
+- Consistent throttling under horizontal scale.
+- Better fairness for multi-instance APIs.
+- Easier reasoning during incident response.
+
+## Conclusion
+
+Distributed rate limiting is a platform concern, not just an API concern. Centralizing limiter state makes policy behavior predictable.
+
+**Related reading**:
+- `/nats-kv-idempotent-workers-cas/`
+- `/error-handling-resilience-patterns-dotnet/`

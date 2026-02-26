@@ -1,0 +1,38 @@
+---
+title: "Migrating NATS Event Contracts Without Breaking Consumers"
+description: "A practical strategy for evolving NATS subjects and event naming while keeping producers and consumers compatible during transition windows."
+pubDate: 2026-02-21
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "messaging"
+difficulty: "advanced"
+tags: ["nats", "event-driven", "contracts", "workers", "migration"]
+readTime: "9 min"
+ogImage: "/og/nats-event-contract-migration-strategy.png"
+canonicalURL: "https://blog.bluerobin.io/nats-event-contract-migration-strategy"
+toc: true
+---
+
+## Introduction
+
+Event names are contracts. BlueRobin recently migrated subject semantics and split processing subjects, which required careful compatibility handling across API, workers, and web notifier paths.
+
+## Commit Signals
+
+- `8afa106`: split document processing subjects and fixed notifier tests.
+- `e8d8532` (blog): renamed upload wording to OCR requested naming.
+
+## Migration Pattern
+
+1. Introduce provider-driven subject resolution.
+2. Keep old/new subjects in a transition window.
+3. Add contract tests around publish/subscribe paths.
+4. Remove legacy constants after consumers converge.
+
+## Conclusion
+
+Contract migrations work when naming, rollout windows, and tests are treated as one delivery unit.
+
+**Related reading**:
+- `/telegram-nats-notification-flow/`
+- `/nats-kv-idempotent-workers-cas/`

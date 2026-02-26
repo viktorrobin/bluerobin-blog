@@ -1,0 +1,44 @@
+---
+title: "From Single-Model NER to Ensemble NER: Adding spaCy + LLM Voting"
+description: "How BlueRobin evolved entity extraction by combining deterministic and LLM-based providers with confidence-aware ensembling."
+pubDate: 2026-02-24
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["ner", "spacy", "ensembling", "llm", "information-extraction"]
+readTime: "10 min"
+ogImage: "/og/ensemble-ner-spacy-llm-voting.png"
+canonicalURL: "https://blog.bluerobin.io/ensemble-ner-spacy-llm-voting"
+toc: true
+---
+
+## Introduction
+
+A single NER model is rarely enough in noisy real-world documents. BlueRobin improved extraction quality by introducing spaCy as an additional provider and combining outputs with confidence-aware aggregation.
+
+## What Changed
+
+- `bc7c191`: spaCy added to ensemble NER providers.
+- `c0d3a8a` + `fdf0e61` (infra): restored spaCy deployment and enabled worker access.
+
+## Ensembling Strategy
+
+1. Run multiple NER providers in parallel.
+2. Normalize entities into a shared schema.
+3. Merge by entity type and surface form.
+4. Keep high-confidence consensus entities first.
+
+## Why This Works
+
+- Deterministic models improve stability for known patterns.
+- LLM-based extraction catches long-tail entities.
+- Aggregation reduces provider-specific blind spots.
+
+## Conclusion
+
+Entity quality improves most when extraction is treated as an ensemble problem, not a single-model selection problem.
+
+**Related reading**:
+- `/spacy-ner-document-analysis/`
+- `/agentic-rrf-ensembling-production-search/`

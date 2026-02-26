@@ -5,16 +5,16 @@ import Search from "./Search.astro";
 const currentPath = Astro.url.pathname;
 
 const navLinks = [
-  { href: "/blog/", label: "Blog" },
-  { href: "/blog/articles/", label: "Articles" },
-  { href: "/blog/cookbook/", label: "Cookbook" },
-  { href: "/blog/architecture/", label: "Architecture" },
-  { href: "/blog/tags/", label: "Tags" },
-  { href: "/blog/about/", label: "About" },
+  { href: "/", label: "Home" },
+  { href: "/articles/", label: "Articles" },
+  { href: "/cookbook/", label: "Cookbook" },
+  { href: "/architecture/", label: "Architecture" },
+  { href: "/tags/", label: "Tags" },
+  { href: "/about/", label: "About" },
 ];
 
 const isActive = (href: string) => {
-  if (href === "/blog/") return currentPath === "/blog/" || currentPath === "/blog";
+  if (href === "/") return currentPath === "/";
   return currentPath.startsWith(href);
 };
 ---

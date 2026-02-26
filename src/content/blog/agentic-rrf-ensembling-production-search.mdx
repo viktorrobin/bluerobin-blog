@@ -1,0 +1,39 @@
+---
+title: "Agentic RRF Ensembling for Production Search"
+description: "How BlueRobin combines multiple retrieval strategies and uses reciprocal rank fusion to produce more stable, high-quality contexts for LLM responses."
+pubDate: 2026-02-23
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["rag", "rrf", "ensembling", "agentic", "retrieval"]
+readTime: "9 min"
+ogImage: "/og/agentic-rrf-ensembling-production-search.png"
+canonicalURL: "https://blog.bluerobin.io/agentic-rrf-ensembling-production-search"
+toc: true
+---
+
+## Introduction
+
+Different retrieval methods fail differently. BlueRobin uses ensembling with reciprocal rank fusion (RRF) so semantic, keyword, and graph-biased candidates contribute to final ranking.
+
+## Practical Pattern
+
+1. Generate candidate lists from each retriever.
+2. Normalize candidate IDs across sources.
+3. Apply weighted RRF scoring.
+4. Return top contexts with source metadata.
+
+## Signals from Recent Work
+
+- GraphRAG and hybrid retriever rollout increased retrieval path diversity.
+- Event contract updates stabilized downstream indexing and retrieval freshness.
+- NER ensembling improved entity-aware query expansion quality.
+
+## Conclusion
+
+RRF is a pragmatic way to ensemble heterogeneous retrievers while keeping ranking interpretable and robust in production.
+
+**Related reading**:
+- `/hybrid-search-semantic-keyword/`
+- `/improving-rag-query-quality-and-relevance/`

@@ -1,0 +1,48 @@
+---
+title: "Remote VS Code Dev Setup on Kubernetes: BlueRobin Dev Container Workflow"
+description: "How to run a full .NET + AI development environment remotely with VS Code, Kubernetes, and a persistent dev container pod."
+pubDate: 2026-02-26
+updatedDate: 2026-02-26
+author: "Victor Robin"
+category: "infrastructure"
+difficulty: "intermediate"
+tags: ["vscode", "remote-development", "kubernetes", "devcontainer", "dotnet"]
+readTime: "10 min"
+ogImage: "/og/remote-vscode-dev-setup-kubernetes-devcontainer.png"
+canonicalURL: "https://blog.bluerobin.io/remote-vscode-dev-setup-kubernetes-devcontainer"
+toc: true
+---
+
+## Introduction
+
+When your stack depends on cluster-only services (Postgres, NATS, MinIO, Qdrant, Ollama), local-only development causes drift. BlueRobin solves this with a Kubernetes-hosted dev container and VS Code remote attach.
+
+## Why This Setup
+
+- Keeps local machines thin while preserving full toolchains.
+- Provides consistent network access to in-cluster dependencies.
+- Reduces “works on my machine” differences between engineers.
+
+## Workflow
+
+1. Connect to the dev pod using the project helper script.
+2. Open VS Code attached to the remote workspace.
+3. Start app services and Tailwind watchers via tasks.
+4. Run tests in the same environment used for day-to-day development.
+
+## Recommended Task Set
+
+- `🐳 DC: Connect`
+- `🐳 DC: Start Services`
+- `🐳 DC: Start API`
+- `🐳 DC: Start Web`
+- `🐳 DC: Start Workers`
+- `🐳 DC: Run Tests`
+
+## Conclusion
+
+Remote dev on Kubernetes gives a shared, reproducible engineering surface for backend, web, and AI services. It is especially valuable in multi-service systems where dependencies are cluster-native.
+
+**Related reading**:
+- `/local-development-setup-guide/`
+- `/graphrag-gitops-kustomize-externalsecrets/`
