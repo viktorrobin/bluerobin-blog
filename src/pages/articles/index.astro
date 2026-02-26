@@ -13,10 +13,10 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 <MainLayout title="Blog | BlueRobin Tech Blog" description="All articles on .NET, Kubernetes, LLM integration, and Domain-Driven Design">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         All Articles
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400">
+      <p class="text-lg text-slate-600">
         Deep dives, cookbooks, and implementation guides from the BlueRobin project.
       </p>
     </header>
@@ -24,7 +24,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
     <!-- Filters -->
     <div class="flex flex-wrap gap-4 mb-8">
       <div class="flex flex-wrap gap-2">
-        <span class="text-sm text-slate-500 dark:text-slate-400 self-center">Category:</span>
+        <span class="text-sm text-slate-500 self-center">Category:</span>
         <a href="/articles/" class="tag">All</a>
         {Object.entries(CATEGORIES).map(([key, cat]) => (
           <a href={`/${key}/`} class={`tag category-${key}`}>{cat.icon} {cat.title}</a>
@@ -34,7 +34,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 dark:text-slate-400 text-lg">
+        <p class="text-slate-600 text-lg">
           🚧 Articles coming soon! The first article in the DDD series is being prepared.
         </p>
       </div>
@@ -58,19 +58,19 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                       {difficultyMeta.label}
                     </span>
                     {post.data.readTime && (
-                      <span class="text-xs text-slate-500 dark:text-slate-400">
+                      <span class="text-xs text-slate-500">
                         ⏱️ {post.data.readTime}
                       </span>
                     )}
                   </div>
                   
                   <a href={`/articles/${post.slug}/`}>
-                    <h2 class="text-xl font-bold text-slate-900 dark:text-slate-100 hover:text-neural-600 dark:hover:text-neural-400 transition-colors mb-2">
+                    <h2 class="text-xl font-bold text-slate-900 hover:text-neural-600 transition-colors mb-2">
                       {post.data.title}
                     </h2>
                   </a>
                   
-                  <p class="text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                  <p class="text-slate-600 mb-3 line-clamp-2">
                     {post.data.description}
                   </p>
                   
@@ -84,7 +84,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   </div>
                 </div>
                 
-                <div class="text-sm text-slate-500 dark:text-slate-400 md:text-right">
+                <div class="text-sm text-slate-500 md:text-right">
                   <time datetime={post.data.pubDate.toISOString()}>
                     {formatDate(post.data.pubDate)}
                   </time>

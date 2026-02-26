@@ -3,6 +3,7 @@
 /* ============================================
    BLUEROBIN BLOG DESIGN SYSTEM
    Based on BlueRobin App v5.4 Design Tokens
+   Light-only theme optimized for blog readability
    Floating Glass Interface with Neural Colors
    ============================================ */
 
@@ -82,7 +83,7 @@
     --glass-dark-40: rgba(15, 23, 42, 0.40);
     --glass-dark-60: rgba(15, 23, 42, 0.60);
 
-    /* Semantic border color — overridden in dark mode */
+    /* Semantic border color */
     --glass-border: rgba(148, 163, 184, 0.35);
 
     /* Backdrop blur scale */
@@ -155,16 +156,11 @@
             oklch(52% 0.18 250) 40%,
             oklch(68% 0.15 195) 100%);
 
-    /* Mesh Background - subtle color wash */
-    --gradient-mesh-light: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
+    /* Mesh Background - subtle color wash for light theme */
+    --gradient-mesh: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
         radial-gradient(at 100% 0%, var(--color-quantum-alpha-10) 0px, transparent 50%),
         radial-gradient(at 100% 100%, var(--color-aurora-alpha-10) 0px, transparent 50%),
         radial-gradient(at 0% 100%, var(--color-glow-alpha-10) 0px, transparent 50%);
-
-    --gradient-mesh-dark: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.10) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.10) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.10) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
     --radius-sm: 0.5rem;
@@ -197,6 +193,14 @@
     --glow-aurora: 0 0 32px var(--color-aurora-alpha-40), 0 0 64px var(--color-aurora-alpha-20);
     --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
 
+    /* ==================== CODE BLOCK TOKENS ==================== */
+    --code-bg: var(--color-slate-50);
+    --code-text: var(--color-slate-800);
+    --code-border: var(--color-slate-200);
+    --code-shadow: var(--color-slate-alpha-5);
+    --code-inline-bg: var(--color-neural-alpha-10);
+    --code-inline-text: var(--color-neural-700);
+
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
@@ -209,6 +213,17 @@
     --duration-fast: 150ms;
     --duration-normal: 250ms;
     --duration-slow: 350ms;
+
+    /* ==================== LAVA BLOB TOKENS ==================== */
+    /* Using design system oklch colors instead of raw rgba blue */
+    --lava-color-1: oklch(58% 0.20 275 / 0.25);
+    --lava-color-1-outer: oklch(52% 0.22 280 / 0.15);
+    --lava-color-2: oklch(68% 0.15 195 / 0.20);
+    --lava-color-2-outer: oklch(58% 0.13 195 / 0.12);
+    --lava-color-3: oklch(60% 0.26 10 / 0.15);
+    --lava-color-3-outer: oklch(52% 0.25 5 / 0.08);
+    --lava-color-4: oklch(52% 0.18 250 / 0.15);
+    --lava-color-4-outer: oklch(46% 0.21 280 / 0.08);
 }
 
 /* ==================== BASE STYLES ==================== */
@@ -220,25 +235,25 @@ html {
 body {
     @apply bg-slate-50 text-slate-800 antialiased;
     font-family: var(--font-sans);
-    background-image: var(--gradient-mesh-light);
+    background-image: var(--gradient-mesh);
     background-attachment: fixed;
     background-size: 100% 100%;
 }
 
-/* Dark mode */
-html.dark body {
-    @apply bg-slate-900 text-slate-100;
-    background-image: var(--gradient-mesh-dark);
-}
-
 /* ==================== TYPOGRAPHY ==================== */
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
     font-family: var(--font-display);
     @apply font-bold tracking-tight;
 }
 
-code, pre {
+code,
+pre {
     font-family: var(--font-mono);
 }
 
@@ -249,10 +264,6 @@ code, pre {
     @apply max-w-none text-slate-700 leading-relaxed;
     font-size: 1rem;
     line-height: 1.7;
-}
-
-html.dark .prose {
-    @apply text-slate-300;
 }
 
 /* Paragraphs */
@@ -285,33 +296,13 @@ html.dark .prose {
     font-family: var(--font-display);
 }
 
-html.dark .prose h1,
-html.dark .prose h2,
-html.dark .prose h3,
-html.dark .prose h4 {
-    @apply text-slate-100;
-}
-
-html.dark .prose h2 {
-    @apply border-slate-700;
-}
-
 /* Links */
 .prose a {
-    @apply text-neural-600 underline decoration-neural-300/50 
-           underline-offset-2 transition-all duration-200;
+    @apply text-neural-600 underline decoration-neural-300/50 underline-offset-2 transition-all duration-200;
 }
 
 .prose a:hover {
     @apply text-neural-500 decoration-neural-500;
-}
-
-html.dark .prose a {
-    @apply text-neural-400 decoration-neural-600/50;
-}
-
-html.dark .prose a:hover {
-    @apply text-neural-300 decoration-neural-400;
 }
 
 /* Lists */
@@ -327,8 +318,8 @@ html.dark .prose a:hover {
     @apply pl-2;
 }
 
-.prose li > ul,
-.prose li > ol {
+.prose li>ul,
+.prose li>ol {
     @apply my-2 ml-4;
 }
 
@@ -342,17 +333,9 @@ html.dark .prose a:hover {
     @apply mb-0;
 }
 
-html.dark .prose blockquote {
-    @apply text-slate-400 border-neural-400;
-}
-
 /* Horizontal Rules */
 .prose hr {
     @apply my-10 border-slate-200;
-}
-
-html.dark .prose hr {
-    @apply border-slate-700;
 }
 
 /* Images */
@@ -369,100 +352,53 @@ html.dark .prose hr {
     @apply bg-slate-100;
 }
 
-html.dark .prose thead {
-    @apply bg-slate-800;
-}
-
 .prose th {
     @apply px-4 py-3 text-left font-semibold text-slate-900 border-b-2 border-slate-300;
-}
-
-html.dark .prose th {
-    @apply text-slate-100 border-slate-600;
 }
 
 .prose td {
     @apply px-4 py-3 border-b border-slate-200;
 }
 
-html.dark .prose td {
-    @apply border-slate-700;
-}
-
 .prose tbody tr:hover {
     @apply bg-slate-50;
 }
 
-html.dark .prose tbody tr:hover {
-    @apply bg-slate-800/50;
-}
-
-/* Inline Code */
+/* Inline Code - tokenized */
 .prose code:not(pre code) {
     @apply px-1.5 py-0.5 rounded text-sm font-medium;
-    background-color: rgba(112, 105, 245, 0.1);
-    color: var(--color-neural-700);
+    background-color: var(--code-inline-bg);
+    color: var(--code-inline-text);
 }
 
-html.dark .prose code:not(pre code) {
-    background-color: rgba(112, 105, 245, 0.15);
-    color: var(--color-neural-300);
-}
-
-/* Code Blocks - Soothing dark theme inspired by One Dark Pro */
+/* Code Blocks - tokenized light theme */
 .prose pre {
     @apply my-6 rounded-lg overflow-hidden;
-    background-color: #1e2330 !important; /* Soft slate-blue dark */
-    border: 1px solid rgba(99, 110, 140, 0.25);
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    background-color: var(--code-bg);
+    border: 1px solid var(--code-border);
+    box-shadow: 0 1px 4px var(--code-shadow);
+    line-height: 1.4;
 }
 
 .prose pre code {
     @apply block px-4 py-3 overflow-x-auto text-xs;
-    background: transparent !important;
-    color: #abb2bf; /* One Dark text - easy on eyes */
+    background: transparent;
+    color: var(--code-text);
     font-family: var(--font-mono);
     tab-size: 2;
-    line-height: 1.4; /* Compact line spacing */
+    line-height: 1.4;
 }
 
-/* Shiki dual-theme: only swap text colors, not backgrounds */
-html.dark .astro-code {
-    background-color: #1e2330 !important;
-}
-
-html.dark .astro-code span {
-    color: var(--shiki-dark) !important;
+/* Shiki code highlighting - ensure transparent backgrounds */
+.astro-code span {
     background-color: transparent !important;
 }
 
 /* Line styling - compact and clean */
 .prose pre code .line {
     display: block;
-    min-height: 1.25em; /* Reduced for compactness */
+    min-height: 1.25em;
     background: transparent !important;
-}
-
-/* All code blocks - compact line height */
-.prose pre {
-    line-height: 1.4 !important;
-}
-
-/* Light mode code blocks - soft warm light */
-html:not(.dark) .prose pre {
-    background-color: #fafbfc !important;
-    border: 1px solid #e1e4e8;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
-}
-
-html:not(.dark) .prose pre code {
-    color: #383a42;
-    background: transparent !important;
-    line-height: 1.4;
-}
-
-html:not(.dark) .astro-code span {
-    background-color: transparent !important;
 }
 
 /* Strong and Emphasis */
@@ -470,25 +406,16 @@ html:not(.dark) .astro-code span {
     @apply font-bold text-slate-900;
 }
 
-html.dark .prose strong {
-    @apply text-slate-100;
-}
-
 .prose em {
     @apply italic;
 }
 
 /* First paragraph styling (lead) */
-.prose > p:first-of-type {
+.prose>p:first-of-type {
     @apply text-base text-slate-600 leading-relaxed;
 }
 
-html.dark .prose > p:first-of-type {
-    @apply text-slate-400;
-}
-
 /* ==================== GLASS CARD ==================== */
-/* Glass card styles - use directly in classes, not with @apply */
 
 .glass-card {
     background-color: var(--glass-white-70);
@@ -506,50 +433,14 @@ html.dark .prose > p:first-of-type {
     transform: translateY(-2px);
 }
 
-html.dark .glass-card {
-    background-color: var(--glass-dark-60);
-    border-color: rgba(51, 65, 85, 0.5);
-}
-
-html.dark .glass-card:hover {
-    border-color: var(--color-neural-alpha-30);
-}
-
-/* Dark glass card for dark hero sections */
-.glass-card-dark {
-    background-color: var(--glass-dark-40);
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
-    border-radius: var(--radius-xl);
-    border: 1px solid rgba(100, 116, 139, 0.2);
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s var(--ease-smooth);
-}
-
-.glass-card-dark:hover {
-    background-color: var(--glass-dark-60);
-    border-color: var(--color-neural-alpha-30);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), var(--shadow-neural-sm);
-}
-
 /* ==================== TAG STYLES ==================== */
 
 .tag {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
-           bg-neural-100 text-neural-700 transition-colors;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neural-100 text-neural-700 transition-colors;
 }
 
 .tag:hover {
     @apply bg-neural-200;
-}
-
-html.dark .tag {
-    @apply bg-neural-900 text-neural-300;
-}
-
-html.dark .tag:hover {
-    @apply bg-neural-800;
 }
 
 .tag-series {
@@ -558,14 +449,6 @@ html.dark .tag:hover {
 
 .tag-series:hover {
     @apply bg-aurora-200;
-}
-
-html.dark .tag-series {
-    @apply bg-aurora-900 text-aurora-300;
-}
-
-html.dark .tag-series:hover {
-    @apply bg-aurora-800;
 }
 
 /* ==================== NAVIGATION ==================== */
@@ -578,38 +461,14 @@ html.dark .tag-series:hover {
     @apply text-neural-600;
 }
 
-html.dark .nav-link {
-    @apply text-slate-400;
-}
-
-html.dark .nav-link:hover {
-    @apply text-neural-400;
-}
-
 .nav-link-active {
     @apply text-neural-600;
 }
 
-html.dark .nav-link-active {
-    @apply text-neural-400;
-}
-
 /* ==================== BUTTONS ==================== */
 
-/* Header dark-mode glass override */
-html.dark header.sticky {
-    background: var(--glass-dark-60) !important;
-    border-bottom-color: rgba(51, 65, 85, 0.5) !important;
-}
-
-/* Footer dark-mode glass override */
-html.dark footer {
-    background: var(--glass-dark-40) !important;
-}
-
 .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg
-           text-white font-medium transition-all shadow-md;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-white font-medium transition-all shadow-md;
     background: linear-gradient(to right, var(--color-neural-600), var(--color-neural-700));
 }
 
@@ -619,20 +478,11 @@ html.dark footer {
 }
 
 .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg
-           bg-slate-200 text-slate-800 font-medium transition-colors;
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-medium transition-colors;
 }
 
 .btn-secondary:hover {
     @apply bg-slate-300;
-}
-
-html.dark .btn-secondary {
-    @apply bg-slate-700 text-slate-200;
-}
-
-html.dark .btn-secondary:hover {
-    @apply bg-slate-600;
 }
 
 /* ==================== ARTICLE CARD ==================== */
@@ -654,16 +504,6 @@ html.dark .btn-secondary:hover {
     transform: translateY(-4px);
 }
 
-html.dark .article-card {
-    background-color: var(--glass-dark-60);
-    border-color: rgba(51, 65, 85, 0.5);
-}
-
-html.dark .article-card:hover {
-    border-color: var(--color-neural-alpha-30);
-    box-shadow: var(--shadow-lg), var(--shadow-neural);
-}
-
 .article-card h2 {
     @apply text-xl font-bold text-slate-900 mb-2 transition-colors;
 }
@@ -672,30 +512,14 @@ html.dark .article-card:hover {
     @apply text-neural-600;
 }
 
-html.dark .article-card h2 {
-    @apply text-slate-100;
-}
-
-html.dark .article-card h2:hover {
-    @apply text-neural-400;
-}
-
 .article-card p {
     @apply text-slate-600 line-clamp-3;
-}
-
-html.dark .article-card p {
-    @apply text-slate-400;
 }
 
 /* ==================== CITATION STYLES ==================== */
 
 .citation {
     @apply text-sm text-slate-500 mt-4 pt-4 border-t border-slate-200;
-}
-
-html.dark .citation {
-    @apply border-slate-700;
 }
 
 .citation a {
@@ -706,35 +530,26 @@ html.dark .citation {
     @apply underline;
 }
 
-html.dark .citation a {
-    @apply text-neural-400;
-}
-
 .implementation-note {
     @apply text-sm italic text-glow-700;
-}
-
-html.dark .implementation-note {
-    @apply text-glow-400;
 }
 
 .external-cite {
     @apply text-quantum-600;
 }
 
-html.dark .external-cite {
-    @apply text-quantum-400;
-}
-
 /* ==================== CODE BLOCKS ==================== */
 
 .code-filename {
-    @apply bg-slate-800 text-slate-400 px-4 py-2 text-sm rounded-t-lg border-b border-slate-700;
+    @apply bg-slate-100 text-slate-600 px-4 py-2 text-sm rounded-t-lg border-b border-slate-200;
     font-family: var(--font-mono);
 }
 
 .code-block {
     @apply rounded-b-lg;
+    background: linear-gradient(145deg, var(--color-slate-50) 0%, var(--color-slate-100) 100%);
+    border: 1px solid var(--color-neural-alpha-15);
+    box-shadow: 0 2px 12px -4px var(--color-slate-alpha-10);
 }
 
 /* ==================== SERIES NAVIGATION ==================== */
@@ -750,17 +565,8 @@ html.dark .external-cite {
     margin: 2rem 0;
 }
 
-html.dark .series-nav {
-    background-color: var(--glass-dark-60);
-    border-color: rgba(51, 65, 85, 0.5);
-}
-
 .series-nav-title {
     @apply text-sm font-semibold text-aurora-600 uppercase tracking-wide mb-2;
-}
-
-html.dark .series-nav-title {
-    @apply text-aurora-400;
 }
 
 .series-nav-list {
@@ -775,20 +581,8 @@ html.dark .series-nav-title {
     @apply text-neural-600;
 }
 
-html.dark .series-nav-item {
-    @apply text-slate-400;
-}
-
-html.dark .series-nav-item:hover {
-    @apply text-neural-400;
-}
-
 .series-nav-item-active {
     @apply text-neural-600 font-medium;
-}
-
-html.dark .series-nav-item-active {
-    @apply text-neural-400;
 }
 
 /* ==================== TABLE OF CONTENTS ==================== */
@@ -805,17 +599,8 @@ html.dark .series-nav-item-active {
     top: 1rem;
 }
 
-html.dark .toc {
-    background-color: var(--glass-dark-60);
-    border-color: rgba(51, 65, 85, 0.5);
-}
-
 .toc-title {
     @apply text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3;
-}
-
-html.dark .toc-title {
-    @apply text-slate-100;
 }
 
 .toc a {
@@ -826,46 +611,22 @@ html.dark .toc-title {
     @apply text-neural-600 border-neural-500;
 }
 
-html.dark .toc a {
-    @apply text-slate-400;
-}
-
-html.dark .toc a:hover {
-    @apply text-neural-400;
-}
-
 .toc a.active {
     @apply text-neural-600 border-neural-500;
-}
-
-html.dark .toc a.active {
-    @apply text-neural-400;
 }
 
 /* ==================== DIFFICULTY BADGES ==================== */
 
 .difficulty-beginner {
-    @apply bg-emerald-100 text-emerald-700;
-}
-
-html.dark .difficulty-beginner {
-    @apply bg-emerald-900 text-emerald-300;
+    @apply bg-quantum-100 text-quantum-700;
 }
 
 .difficulty-intermediate {
     @apply bg-glow-100 text-glow-700;
 }
 
-html.dark .difficulty-intermediate {
-    @apply bg-glow-900 text-glow-300;
-}
-
 .difficulty-advanced {
     @apply bg-aurora-100 text-aurora-700;
-}
-
-html.dark .difficulty-advanced {
-    @apply bg-aurora-900 text-aurora-300;
 }
 
 /* ==================== CATEGORY BADGES ==================== */
@@ -874,32 +635,16 @@ html.dark .difficulty-advanced {
     @apply bg-quantum-100 text-quantum-700;
 }
 
-html.dark .category-cookbook {
-    @apply bg-quantum-900 text-quantum-300;
-}
-
 .category-guide {
     @apply bg-neural-100 text-neural-700;
-}
-
-html.dark .category-guide {
-    @apply bg-neural-900 text-neural-300;
 }
 
 .category-architecture {
     @apply bg-aurora-100 text-aurora-700;
 }
 
-html.dark .category-architecture {
-    @apply bg-aurora-900 text-aurora-300;
-}
-
 .category-troubleshooting {
     @apply bg-glow-100 text-glow-700;
-}
-
-html.dark .category-troubleshooting {
-    @apply bg-glow-900 text-glow-300;
 }
 
 /* ==================== CALLOUT STYLES ==================== */
@@ -912,59 +657,21 @@ html.dark .category-troubleshooting {
     @apply bg-neural-50 border-neural-500 text-neural-900;
 }
 
-html.dark .callout-info {
-    @apply bg-neural-900/50 text-neural-100;
-}
-
 .callout-warning {
     @apply bg-glow-50 border-glow-500 text-glow-900;
-}
-
-html.dark .callout-warning {
-    @apply bg-glow-900/50 text-glow-100;
 }
 
 .callout-tip {
     @apply bg-quantum-50 border-quantum-500 text-quantum-900;
 }
 
-html.dark .callout-tip {
-    @apply bg-quantum-900/50 text-quantum-100;
-}
-
 .callout-danger {
     @apply bg-aurora-50 border-aurora-500 text-aurora-900;
 }
 
-html.dark .callout-danger {
-    @apply bg-aurora-900/50 text-aurora-100;
-}
-
 /* ==================== LAVA BLOB BACKGROUND ==================== */
-/* Animated organic blobs from BlueRobin App design system */
-/* Reduced opacity for blog readability */
-
-:root {
-    --lava-color-1: rgba(59, 130, 246, 0.40);
-    --lava-color-1-outer: rgba(37, 99, 235, 0.25);
-    --lava-color-2: rgba(96, 165, 250, 0.30);
-    --lava-color-2-outer: rgba(59, 130, 246, 0.20);
-    --lava-color-3: rgba(29, 78, 216, 0.25);
-    --lava-color-3-outer: rgba(30, 64, 175, 0.15);
-    --lava-color-4: rgba(56, 117, 224, 0.25);
-    --lava-color-4-outer: rgba(37, 99, 235, 0.15);
-}
-
-html.dark {
-    --lava-color-1: rgba(59, 130, 246, 0.50);
-    --lava-color-1-outer: rgba(37, 99, 235, 0.30);
-    --lava-color-2: rgba(96, 165, 250, 0.40);
-    --lava-color-2-outer: rgba(59, 130, 246, 0.25);
-    --lava-color-3: rgba(29, 78, 216, 0.35);
-    --lava-color-3-outer: rgba(30, 64, 175, 0.20);
-    --lava-color-4: rgba(56, 117, 224, 0.35);
-    --lava-color-4-outer: rgba(37, 99, 235, 0.20);
-}
+/* Animated organic blobs using design system oklch color tokens */
+/* Reduced opacity for light-theme readability */
 
 .lava-background-global {
     position: fixed;
@@ -990,10 +697,6 @@ html.dark {
     will-change: transform, border-radius;
     opacity: 0.25;
     transition: background 0.8s ease;
-}
-
-html.dark .lava-blob {
-    opacity: 0.35;
 }
 
 .lava-blob-1 {
@@ -1033,10 +736,13 @@ html.dark .lava-blob {
 }
 
 @keyframes lava-move-1 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
         border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     }
+
     50% {
         transform: translate(10%, 10%) scale(1.1);
         border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%;
@@ -1044,10 +750,13 @@ html.dark .lava-blob {
 }
 
 @keyframes lava-move-2 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
         border-radius: 40% 60% 60% 40% / 70% 30% 50% 50%;
     }
+
     50% {
         transform: translate(-10%, -10%) scale(1.05);
         border-radius: 60% 40% 40% 60% / 30% 70% 50% 50%;
@@ -1055,10 +764,13 @@ html.dark .lava-blob {
 }
 
 @keyframes lava-move-3 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(-50%, -50%) scale(1);
         border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%;
     }
+
     50% {
         transform: translate(-50%, -50%) translate(-5%, 5%) scale(0.95);
         border-radius: 60% 40% 60% 40% / 60% 40% 50% 50%;
@@ -1066,10 +778,13 @@ html.dark .lava-blob {
 }
 
 @keyframes lava-move-4 {
-    0%, 100% {
+
+    0%,
+    100% {
         transform: translate(0, 0) scale(1);
         border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
     }
+
     50% {
         transform: translate(-10%, 5%) scale(1.08);
         border-radius: 45% 55% 40% 60% / 55% 45% 55% 45%;
@@ -1093,64 +808,37 @@ html.dark .lava-blob {
     margin: 0 !important;
     padding: 0 !important;
     line-height: normal !important;
-    font-size: 14px !important; 
+    font-size: 14px !important;
 }
 
 .mermaid-diagram foreignObject {
     overflow: visible !important;
-    line-height: normal !important; 
+    line-height: normal !important;
 }
 
-/* Force correct colors based on theme, ignoring Mermaid's inline styles */
-html:not(.dark) .mermaid-diagram text,
-html:not(.dark) .mermaid-diagram .nodeLabel, 
-html:not(.dark) .mermaid-diagram .edgeLabel, 
-html:not(.dark) .mermaid-diagram .label {
+/* Mermaid light theme overrides using design tokens */
+.mermaid-diagram text,
+.mermaid-diagram .nodeLabel,
+.mermaid-diagram .edgeLabel,
+.mermaid-diagram .label {
     fill: var(--color-slate-900) !important;
     color: var(--color-slate-900) !important;
 }
 
-html:not(.dark) .mermaid-diagram .node rect,
-html:not(.dark) .mermaid-diagram .node circle,
-html:not(.dark) .mermaid-diagram .node polygon,
-html:not(.dark) .mermaid-diagram .node path {
+.mermaid-diagram .node rect,
+.mermaid-diagram .node circle,
+.mermaid-diagram .node polygon,
+.mermaid-diagram .node path {
     fill: var(--color-slate-50) !important;
     stroke: var(--color-slate-400) !important;
 }
 
-html:not(.dark) .mermaid-diagram .flowchart-link,
-html:not(.dark) .mermaid-diagram .relation {
+.mermaid-diagram .flowchart-link,
+.mermaid-diagram .relation {
     stroke: var(--color-slate-500) !important;
 }
 
-html:not(.dark) .mermaid-diagram .marker {
+.mermaid-diagram .marker {
     fill: var(--color-slate-500) !important;
     stroke: var(--color-slate-500) !important;
-}
-
-/* Dark Mode Overrides */
-html.dark .mermaid-diagram text,
-html.dark .mermaid-diagram .nodeLabel, 
-html.dark .mermaid-diagram .edgeLabel, 
-html.dark .mermaid-diagram .label {
-    fill: var(--color-slate-200) !important;
-    color: var(--color-slate-200) !important;
-}
-
-html.dark .mermaid-diagram .node rect,
-html.dark .mermaid-diagram .node circle,
-html.dark .mermaid-diagram .node polygon,
-html.dark .mermaid-diagram .node path {
-    fill: var(--color-slate-800) !important;
-    stroke: var(--color-slate-500) !important;
-}
-
-html.dark .mermaid-diagram .flowchart-link,
-html.dark .mermaid-diagram .relation {
-    stroke: var(--color-slate-400) !important;
-}
-
-html.dark .mermaid-diagram .marker {
-    fill: var(--color-slate-400) !important;
-    stroke: var(--color-slate-400) !important;
 }

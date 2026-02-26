@@ -150,15 +150,10 @@
             oklch(68% 0.15 195) 100%);
 
     /* Mesh Background */
-    --gradient-mesh-light: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
+    --gradient-mesh: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
         radial-gradient(at 100% 0%, var(--color-quantum-alpha-10) 0px, transparent 50%),
         radial-gradient(at 100% 100%, var(--color-aurora-alpha-10) 0px, transparent 50%),
         radial-gradient(at 0% 100%, var(--color-glow-alpha-10) 0px, transparent 50%);
-
-    --gradient-mesh-dark: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.10) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.10) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.10) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
     --radius-sm: 0.5rem;
@@ -198,20 +193,10 @@
     --duration-slow: 350ms;
 }
 
-/* ==================== DARK MODE UTILITIES ==================== */
+/* ==================== CODE BLOCKS ==================== */
 
-html.dark {
-    color-scheme: dark;
-}
-
-/* Code blocks shared styling */
+/* Code blocks shared styling (light-only) */
 .code-block {
-    background: linear-gradient(145deg, #1a1f36 0%, #0d1117 100%);
-    border: 1px solid rgba(99, 102, 241, 0.2);
-    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-html:not(.dark) .code-block {
     background: linear-gradient(145deg, #fafbfc 0%, #f1f5f9 100%);
     border: 1px solid rgba(99, 102, 241, 0.15);
     box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.1);

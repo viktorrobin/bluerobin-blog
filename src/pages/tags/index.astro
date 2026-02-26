@@ -21,10 +21,10 @@ const tagCounts = allTags.reduce((acc, tag) => {
 <MainLayout title="Tags | BlueRobin Tech Blog" description="Browse articles by topic">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         Browse by Tag
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400">
+      <p class="text-lg text-slate-600">
         Find articles by topic or explore a complete series.
       </p>
     </header>
@@ -32,7 +32,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
     {/* Series Section */}
     {seriesTags.length > 0 && (
       <section class="mb-12">
-        <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-slate-100 mb-6">
+        <h2 class="text-2xl font-display font-bold text-slate-900 mb-6">
           📚 Article Series
         </h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -42,15 +42,15 @@ const tagCounts = allTags.reduce((acc, tag) => {
             return (
               <a href={`/tags/${tag}/`} class="glass-card p-6 hover:shadow-lg transition-all hover:-translate-y-1">
                 <div class="flex justify-between items-start mb-2">
-                  <h3 class="font-semibold text-slate-900 dark:text-slate-100">
+                  <h3 class="font-semibold text-slate-900">
                     {seriesMeta?.title || tag.replace("-series", "")}
                   </h3>
-                  <span class="text-sm text-slate-500 dark:text-slate-400">
+                  <span class="text-sm text-slate-500">
                     {tagCounts[tag]} articles
                   </span>
                 </div>
                 {seriesMeta && (
-                  <p class="text-sm text-slate-600 dark:text-slate-400">
+                  <p class="text-sm text-slate-600">
                     {seriesMeta.description}
                   </p>
                 )}
@@ -63,12 +63,12 @@ const tagCounts = allTags.reduce((acc, tag) => {
 
     {/* All Tags */}
     <section>
-      <h2 class="text-2xl font-display font-bold text-slate-900 dark:text-slate-100 mb-6">
+      <h2 class="text-2xl font-display font-bold text-slate-900 mb-6">
         🏷️ All Tags
       </h2>
       {regularTags.length === 0 ? (
         <div class="glass-card p-8 text-center">
-          <p class="text-slate-600 dark:text-slate-400">
+          <p class="text-slate-600">
             Tags will appear here once articles are published.
           </p>
         </div>
@@ -77,7 +77,7 @@ const tagCounts = allTags.reduce((acc, tag) => {
           {regularTags.map((tag) => (
             <a href={`/tags/${tag}/`} class="tag">
               {tag}
-              <span class="ml-2 text-xs text-slate-500 dark:text-slate-400">
+              <span class="ml-2 text-xs text-slate-500">
                 ({tagCounts[tag]})
               </span>
             </a>

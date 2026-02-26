@@ -16,10 +16,10 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
       <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-cookbook mb-4">
         📋 Cookbook
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         Cookbook Recipes
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+      <p class="text-lg text-slate-600 max-w-2xl">
         Quick, copy-paste ready solutions to specific problems. 
         Each recipe includes complete working code you can adapt for your own projects.
       </p>
@@ -27,7 +27,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 dark:text-slate-400 text-lg">
+        <p class="text-slate-600 text-lg">
           🚧 Cookbook recipes coming soon! Check back after the foundational DDD articles.
         </p>
       </div>
@@ -45,7 +45,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   {difficultyMeta.label}
                 </span>
                 {post.data.readTime && (
-                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                  <span class="text-xs text-slate-500">
                     ⏱️ {post.data.readTime}
                   </span>
                 )}
@@ -66,7 +66,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                 ))}
               </div>
               
-              <div class="mt-4 text-sm text-slate-500 dark:text-slate-400">
+              <div class="mt-4 text-sm text-slate-500">
                 <time datetime={post.data.pubDate.toISOString()}>
                   {formatDate(post.data.pubDate)}
                 </time>

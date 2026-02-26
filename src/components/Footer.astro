@@ -16,11 +16,11 @@ const activeSocials = SOCIALS.filter((social) => social.active);
           <div class="w-8 h-8 bg-gradient-to-br from-neural-500 to-neural-700 rounded-lg flex items-center justify-center">
             <span class="text-white font-bold text-sm">BR</span>
           </div>
-          <span class="font-display font-bold text-lg text-slate-900 dark:text-slate-100">
+          <span class="font-display font-bold text-lg text-slate-900">
             {SITE.title}
           </span>
         </a>
-        <p class="text-slate-600 dark:text-slate-400 max-w-md">
+        <p class="text-slate-600 max-w-md">
           A homelab journey from medical document search to production AI. 
           Sharing lessons learned building BlueRobin—a personal document management system 
           with .NET, Kubernetes, and LLM integration.
@@ -29,29 +29,29 @@ const activeSocials = SOCIALS.filter((social) => social.active);
 
       <!-- Quick Links -->
       <div>
-        <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-4">Quick Links</h3>
-        <ul class="space-y-2 text-slate-600 dark:text-slate-400">
-          <li><a href="/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">All Articles</a></li>
-          <li><a href="/cookbook/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">Cookbook</a></li>
-          <li><a href="/tags/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">Browse by Tag</a></li>
-          <li><a href="/about/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">About</a></li>
+        <h3 class="font-semibold text-slate-900 mb-4">Quick Links</h3>
+        <ul class="space-y-2 text-slate-600">
+          <li><a href="/" class="hover:text-neural-600 transition-colors">All Articles</a></li>
+          <li><a href="/cookbook/" class="hover:text-neural-600 transition-colors">Cookbook</a></li>
+          <li><a href="/tags/" class="hover:text-neural-600 transition-colors">Browse by Tag</a></li>
+          <li><a href="/about/" class="hover:text-neural-600 transition-colors">About</a></li>
         </ul>
       </div>
 
       <!-- Series -->
       <div>
-        <h3 class="font-semibold text-slate-900 dark:text-slate-100 mb-4">Series</h3>
-        <ul class="space-y-2 text-slate-600 dark:text-slate-400">
-          <li><a href="/tags/ddd-series/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">DDD in .NET</a></li>
-          <li><a href="/tags/nats-series/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">NATS Messaging</a></li>
-          <li><a href="/tags/ai-series/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">AI/LLM Integration</a></li>
-          <li><a href="/tags/gitops-series/" class="hover:text-neural-600 dark:hover:text-neural-400 transition-colors">GitOps with Flux</a></li>
+        <h3 class="font-semibold text-slate-900 mb-4">Series</h3>
+        <ul class="space-y-2 text-slate-600">
+          <li><a href="/tags/ddd-series/" class="hover:text-neural-600 transition-colors">DDD in .NET</a></li>
+          <li><a href="/tags/nats-series/" class="hover:text-neural-600 transition-colors">NATS Messaging</a></li>
+          <li><a href="/tags/ai-series/" class="hover:text-neural-600 transition-colors">AI/LLM Integration</a></li>
+          <li><a href="/tags/gitops-series/" class="hover:text-neural-600 transition-colors">GitOps with Flux</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-8 pt-8 border-t border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
-      <p class="text-slate-500 dark:text-slate-500 text-sm">
+    <div class="mt-8 pt-8 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p class="text-slate-500 text-sm">
         © {currentYear} {SITE.author}. All rights reserved.
       </p>
 
@@ -61,7 +61,7 @@ const activeSocials = SOCIALS.filter((social) => social.active);
           <a
             href={href}
             title={linkTitle}
-            class="text-slate-400 hover:text-neural-600 dark:hover:text-neural-400 transition-colors"
+            class="text-slate-400 hover:text-neural-600 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >

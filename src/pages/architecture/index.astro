@@ -16,10 +16,10 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
       <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-architecture mb-4">
         🏗️ Architecture
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         Architecture Deep Dives
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400 max-w-2xl">
+      <p class="text-lg text-slate-600 max-w-2xl">
         In-depth exploration of system design, patterns, and architectural decisions. 
         Learn the "why" behind BlueRobin's architecture with detailed diagrams and trade-off analysis.
       </p>
@@ -27,7 +27,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 dark:text-slate-400 text-lg">
+        <p class="text-slate-600 text-lg">
           🚧 Architecture deep dives coming soon! The DDD SharedKernel article is first in the queue.
         </p>
       </div>
@@ -45,22 +45,22 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   {difficultyMeta.label}
                 </span>
                 {post.data.readTime && (
-                  <span class="text-xs text-slate-500 dark:text-slate-400">
+                  <span class="text-xs text-slate-500">
                     ⏱️ {post.data.readTime}
                   </span>
                 )}
-                <time class="text-xs text-slate-500 dark:text-slate-400" datetime={post.data.pubDate.toISOString()}>
+                <time class="text-xs text-slate-500" datetime={post.data.pubDate.toISOString()}>
                   {formatDate(post.data.pubDate)}
                 </time>
               </div>
               
               <a href={`/articles/${post.slug}/`}>
-                <h2 class="text-2xl font-bold text-slate-900 dark:text-slate-100 hover:text-neural-600 dark:hover:text-neural-400 transition-colors mb-3">
+                <h2 class="text-2xl font-bold text-slate-900 hover:text-neural-600 transition-colors mb-3">
                   {post.data.title}
                 </h2>
               </a>
               
-              <p class="text-slate-600 dark:text-slate-400 mb-4 text-lg">
+              <p class="text-slate-600 mb-4 text-lg">
                 {post.data.description}
               </p>
               

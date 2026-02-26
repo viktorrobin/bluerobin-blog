@@ -63,11 +63,11 @@ marked.setOptions({ renderer });
 const htmlContent = marked.parse(markdownContent);
 
 const topicColors: Record<string, string> = {
-  "ai": "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
-  "architecture": "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  "infrastructure": "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  "ddd": "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200",
-  "devops": "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+  "ai": "bg-neural-100 text-neural-800",
+  "architecture": "bg-quantum-100 text-quantum-800",
+  "infrastructure": "bg-quantum-100 text-quantum-800",
+  "ddd": "bg-glow-100 text-glow-800",
+  "devops": "bg-aurora-100 text-aurora-800"
 };
 ---
 
@@ -75,14 +75,14 @@ const topicColors: Record<string, string> = {
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Breadcrumb -->
     <nav class="text-sm mb-8">
-      <ol class="flex items-center space-x-2 text-slate-500 dark:text-slate-400">
-        <li><a href="/" class="hover:text-indigo-600 dark:hover:text-indigo-400">Home</a></li>
+      <ol class="flex items-center space-x-2 text-slate-500">
+        <li><a href="/" class="hover:text-neural-600">Home</a></li>
         <li>/</li>
-        <li><a href="/architecture" class="hover:text-indigo-600 dark:hover:text-indigo-400">Architecture</a></li>
+        <li><a href="/architecture" class="hover:text-neural-600">Architecture</a></li>
         <li>/</li>
-        <li><a href="/architecture/diagrams" class="hover:text-indigo-600 dark:hover:text-indigo-400">Diagrams</a></li>
+        <li><a href="/architecture/diagrams" class="hover:text-neural-600">Diagrams</a></li>
         <li>/</li>
-        <li class="text-slate-900 dark:text-slate-100">{title}</li>
+        <li class="text-slate-900">{title}</li>
       </ol>
     </nav>
 
@@ -92,21 +92,21 @@ const topicColors: Record<string, string> = {
         <span class={`text-xs px-2 py-1 rounded-full ${topicColors[topic.toLowerCase()] || topicColors['architecture']}`}>
           {topic}
         </span>
-        <span class="text-xs text-slate-500 dark:text-slate-500">
+        <span class="text-xs text-slate-500">
           {diagramType}
         </span>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 dark:text-slate-100 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         {title}
       </h1>
-      <p class="text-lg text-slate-600 dark:text-slate-400">
+      <p class="text-lg text-slate-600">
         {description}
       </p>
     </header>
 
     <!-- Diagram Content -->
     <article class="glass-card p-8">
-      <div class="prose prose-lg dark:prose-invert max-w-none prose-pre:bg-slate-900 prose-pre:text-slate-100" set:html={htmlContent}>
+      <div class="prose prose-lg max-w-none prose-pre:bg-slate-100 prose-pre:text-slate-800" set:html={htmlContent}>
       </div>
     </article>
 
@@ -114,13 +114,13 @@ const topicColors: Record<string, string> = {
     <nav class="mt-8 flex justify-between">
       <a 
         href="/architecture/diagrams"
-        class="text-indigo-600 dark:text-indigo-400 hover:underline"
+        class="text-neural-600 hover:underline"
       >
         ← Back to All Diagrams
       </a>
       <a 
         href="/architecture"
-        class="text-indigo-600 dark:text-indigo-400 hover:underline"
+        class="text-neural-600 hover:underline"
       >
         View Architecture Articles →
       </a>
