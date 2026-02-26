@@ -73,13 +73,98 @@
     --glass-white-10: rgba(255, 255, 255, 0.10);
     --glass-white-20: rgba(255, 255, 255, 0.20);
     --glass-white-30: rgba(255, 255, 255, 0.30);
+    --glass-white-40: rgba(255, 255, 255, 0.40);
+    --glass-white-60: rgba(255, 255, 255, 0.60);
+    --glass-white-70: rgba(255, 255, 255, 0.70);
+    --glass-white-80: rgba(255, 255, 255, 0.80);
     --glass-dark-10: rgba(15, 23, 42, 0.10);
     --glass-dark-20: rgba(15, 23, 42, 0.20);
+    --glass-dark-40: rgba(15, 23, 42, 0.40);
+    --glass-dark-60: rgba(15, 23, 42, 0.60);
+
+    /* Semantic border color — overridden in dark mode */
+    --glass-border: rgba(148, 163, 184, 0.35);
+
+    /* Backdrop blur scale */
+    --blur-xs: blur(4px);
+    --blur-sm: blur(8px);
+    --blur-md: blur(16px);
+    --blur-lg: blur(24px);
+    --blur-xl: blur(32px);
+    --blur-2xl: blur(48px);
+
+    /* ==================== COLOR OPACITY TOKENS ==================== */
+    /* Neural color with opacity variants - for shadows, glows, rings */
+    --color-neural-alpha-10: oklch(58% 0.20 275 / 0.10);
+    --color-neural-alpha-15: oklch(58% 0.20 275 / 0.15);
+    --color-neural-alpha-20: oklch(58% 0.20 275 / 0.20);
+    --color-neural-alpha-30: oklch(58% 0.20 275 / 0.30);
+    --color-neural-alpha-40: oklch(58% 0.20 275 / 0.40);
+    --color-neural-alpha-50: oklch(58% 0.20 275 / 0.50);
+
+    /* Aurora color with opacity variants */
+    --color-aurora-alpha-10: oklch(60% 0.26 10 / 0.10);
+    --color-aurora-alpha-15: oklch(60% 0.26 10 / 0.15);
+    --color-aurora-alpha-20: oklch(60% 0.26 10 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.26 10 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.26 10 / 0.40);
+
+    /* Quantum color with opacity variants */
+    --color-quantum-alpha-10: oklch(68% 0.15 195 / 0.10);
+    --color-quantum-alpha-15: oklch(68% 0.15 195 / 0.15);
+    --color-quantum-alpha-20: oklch(68% 0.15 195 / 0.20);
+    --color-quantum-alpha-30: oklch(68% 0.15 195 / 0.30);
+    --color-quantum-alpha-40: oklch(68% 0.15 195 / 0.40);
+
+    /* Glow color with opacity variants */
+    --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
+    --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+
+    /* Slate color with opacity variants */
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
 
     /* ==================== GRADIENTS ==================== */
-    --gradient-neural: linear-gradient(135deg, #7069f5 0%, #6147ea 50%, #5337d5 100%);
-    --gradient-aurora: linear-gradient(135deg, #ff6a8d 0%, #f83b69 50%, #e51e54 100%);
-    --gradient-quantum: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
+    /* Gradients using oklch for perceptual uniformity */
+    --gradient-neural: linear-gradient(135deg,
+            oklch(58% 0.20 275) 0%,
+            oklch(52% 0.22 280) 50%,
+            oklch(46% 0.21 280) 100%);
+    --gradient-aurora: linear-gradient(135deg,
+            oklch(68% 0.22 10) 0%,
+            oklch(60% 0.26 10) 50%,
+            oklch(52% 0.25 5) 100%);
+    --gradient-quantum: linear-gradient(135deg,
+            oklch(76% 0.16 195) 0%,
+            oklch(68% 0.15 195) 50%,
+            oklch(58% 0.13 195) 100%);
+    --gradient-glow: linear-gradient(135deg,
+            oklch(80% 0.18 80) 0%,
+            oklch(74% 0.17 70) 50%,
+            oklch(65% 0.16 60) 100%);
+
+    /* Signature gradient - neural to quantum (purple to cyan) */
+    --gradient-signature: linear-gradient(135deg,
+            oklch(58% 0.20 275) 0%,
+            oklch(52% 0.18 250) 40%,
+            oklch(68% 0.15 195) 100%);
+
+    /* Mesh Background - subtle color wash */
+    --gradient-mesh-light: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, var(--color-quantum-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, var(--color-aurora-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, var(--color-glow-alpha-10) 0px, transparent 50%);
+
+    --gradient-mesh-dark: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.10) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.10) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.10) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
     --radius-sm: 0.5rem;
@@ -89,10 +174,28 @@
     --radius-2xl: 1.5rem;
 
     /* ==================== SHADOWS ==================== */
-    --shadow-sm: 0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
-    --shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08), 0 2px 4px 0 rgba(15, 23, 42, 0.04);
-    --shadow-lg: 0 8px 24px 0 rgba(15, 23, 42, 0.10), 0 4px 8px 0 rgba(15, 23, 42, 0.05);
-    --shadow-neural: 0 8px 32px -4px rgba(112, 105, 245, 0.3);
+    --shadow-sm: 0 2px 4px 0 var(--color-slate-alpha-6), 0 1px 2px 0 var(--color-slate-alpha-3);
+    --shadow-md: 0 4px 12px 0 var(--color-slate-alpha-8), 0 2px 4px 0 var(--color-slate-alpha-5);
+    --shadow-lg: 0 8px 24px 0 var(--color-slate-alpha-10), 0 4px 8px 0 var(--color-slate-alpha-5);
+    --shadow-xl: 0 16px 48px 0 var(--color-slate-alpha-12), 0 8px 16px 0 var(--color-slate-alpha-6);
+    --shadow-2xl: 0 24px 64px 0 var(--color-slate-alpha-15), 0 12px 24px 0 var(--color-slate-alpha-8);
+
+    /* Colored shadows */
+    --shadow-neural: 0 8px 32px -4px var(--color-neural-alpha-30);
+    --shadow-neural-sm: 0 4px 16px -2px var(--color-neural-alpha-20);
+    --shadow-aurora: 0 8px 32px -4px var(--color-aurora-alpha-30);
+    --shadow-quantum: 0 8px 32px -4px var(--color-quantum-alpha-30);
+    --shadow-glow-colored: 0 8px 32px -4px var(--color-glow-alpha-30);
+
+    /* Focus ring tokens */
+    --ring-neural: 0 0 0 4px var(--color-neural-alpha-20);
+    --ring-aurora: 0 0 0 4px var(--color-aurora-alpha-20);
+    --ring-quantum: 0 0 0 4px var(--color-quantum-alpha-20);
+
+    /* Glow effect tokens - for hover states */
+    --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
+    --glow-aurora: 0 0 32px var(--color-aurora-alpha-40), 0 0 64px var(--color-aurora-alpha-20);
+    --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -101,7 +204,11 @@
 
     /* ==================== ANIMATIONS ==================== */
     --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
+    --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-gentle: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --duration-fast: 150ms;
     --duration-normal: 250ms;
+    --duration-slow: 350ms;
 }
 
 /* ==================== BASE STYLES ==================== */
@@ -113,11 +220,15 @@ html {
 body {
     @apply bg-slate-50 text-slate-800 antialiased;
     font-family: var(--font-sans);
+    background-image: var(--gradient-mesh-light);
+    background-attachment: fixed;
+    background-size: 100% 100%;
 }
 
 /* Dark mode */
 html.dark body {
     @apply bg-slate-900 text-slate-100;
+    background-image: var(--gradient-mesh-dark);
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -380,33 +491,46 @@ html.dark .prose > p:first-of-type {
 /* Glass card styles - use directly in classes, not with @apply */
 
 .glass-card {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.5);
+    background-color: var(--glass-white-70);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
+    transition: all 0.3s var(--ease-smooth);
+}
+
+.glass-card:hover {
+    box-shadow: var(--shadow-lg), var(--shadow-neural-sm);
+    border-color: var(--color-neural-alpha-20);
+    transform: translateY(-2px);
 }
 
 html.dark .glass-card {
-    background-color: rgba(30, 41, 59, 0.8);
+    background-color: var(--glass-dark-60);
     border-color: rgba(51, 65, 85, 0.5);
+}
+
+html.dark .glass-card:hover {
+    border-color: var(--color-neural-alpha-30);
 }
 
 /* Dark glass card for dark hero sections */
 .glass-card-dark {
-    background-color: rgba(30, 41, 59, 0.6);
-    backdrop-filter: blur(16px);
-    border-radius: 1rem;
+    background-color: var(--glass-dark-40);
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border-radius: var(--radius-xl);
     border: 1px solid rgba(100, 116, 139, 0.2);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -2px rgba(0, 0, 0, 0.2);
-    transition: all 0.3s ease;
+    transition: all 0.3s var(--ease-smooth);
 }
 
 .glass-card-dark:hover {
-    background-color: rgba(30, 41, 59, 0.8);
-    border-color: rgba(100, 116, 139, 0.4);
-    transform: translateY(-2px);
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+    background-color: var(--glass-dark-60);
+    border-color: var(--color-neural-alpha-30);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), var(--shadow-neural-sm);
 }
 
 /* ==================== TAG STYLES ==================== */
@@ -472,6 +596,17 @@ html.dark .nav-link-active {
 
 /* ==================== BUTTONS ==================== */
 
+/* Header dark-mode glass override */
+html.dark header.sticky {
+    background: var(--glass-dark-60) !important;
+    border-bottom-color: rgba(51, 65, 85, 0.5) !important;
+}
+
+/* Footer dark-mode glass override */
+html.dark footer {
+    background: var(--glass-dark-40) !important;
+}
+
 .btn-primary {
     @apply inline-flex items-center justify-center px-4 py-2 rounded-lg
            text-white font-medium transition-all shadow-md;
@@ -503,23 +638,30 @@ html.dark .btn-secondary:hover {
 /* ==================== ARTICLE CARD ==================== */
 
 .article-card {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.5);
+    background-color: var(--glass-white-70);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
     padding: 1.5rem;
-    transition: all 0.3s ease;
+    transition: all 0.3s var(--ease-smooth);
 }
 
 .article-card:hover {
-    box-shadow: var(--shadow-lg);
-    transform: translateY(-0.25rem);
+    box-shadow: var(--shadow-lg), var(--shadow-neural-sm);
+    border-color: var(--color-neural-alpha-20);
+    transform: translateY(-4px);
 }
 
 html.dark .article-card {
-    background-color: rgba(30, 41, 59, 0.8);
+    background-color: var(--glass-dark-60);
     border-color: rgba(51, 65, 85, 0.5);
+}
+
+html.dark .article-card:hover {
+    border-color: var(--color-neural-alpha-30);
+    box-shadow: var(--shadow-lg), var(--shadow-neural);
 }
 
 .article-card h2 {
@@ -598,17 +740,18 @@ html.dark .external-cite {
 /* ==================== SERIES NAVIGATION ==================== */
 
 .series-nav {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.5);
+    background-color: var(--glass-white-70);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
     padding: 1rem;
     margin: 2rem 0;
 }
 
 html.dark .series-nav {
-    background-color: rgba(30, 41, 59, 0.8);
+    background-color: var(--glass-dark-60);
     border-color: rgba(51, 65, 85, 0.5);
 }
 
@@ -651,10 +794,11 @@ html.dark .series-nav-item-active {
 /* ==================== TABLE OF CONTENTS ==================== */
 
 .toc {
-    background-color: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(12px);
-    border-radius: 0.75rem;
-    border: 1px solid rgba(226, 232, 240, 0.5);
+    background-color: var(--glass-white-70);
+    backdrop-filter: blur(16px) saturate(1.3);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-md);
     padding: 1rem;
     position: sticky;
@@ -662,7 +806,7 @@ html.dark .series-nav-item-active {
 }
 
 html.dark .toc {
-    background-color: rgba(30, 41, 59, 0.8);
+    background-color: var(--glass-dark-60);
     border-color: rgba(51, 65, 85, 0.5);
 }
 
@@ -794,6 +938,149 @@ html.dark .callout-tip {
 
 html.dark .callout-danger {
     @apply bg-aurora-900/50 text-aurora-100;
+}
+
+/* ==================== LAVA BLOB BACKGROUND ==================== */
+/* Animated organic blobs from BlueRobin App design system */
+/* Reduced opacity for blog readability */
+
+:root {
+    --lava-color-1: rgba(59, 130, 246, 0.40);
+    --lava-color-1-outer: rgba(37, 99, 235, 0.25);
+    --lava-color-2: rgba(96, 165, 250, 0.30);
+    --lava-color-2-outer: rgba(59, 130, 246, 0.20);
+    --lava-color-3: rgba(29, 78, 216, 0.25);
+    --lava-color-3-outer: rgba(30, 64, 175, 0.15);
+    --lava-color-4: rgba(56, 117, 224, 0.25);
+    --lava-color-4-outer: rgba(37, 99, 235, 0.15);
+}
+
+html.dark {
+    --lava-color-1: rgba(59, 130, 246, 0.50);
+    --lava-color-1-outer: rgba(37, 99, 235, 0.30);
+    --lava-color-2: rgba(96, 165, 250, 0.40);
+    --lava-color-2-outer: rgba(59, 130, 246, 0.25);
+    --lava-color-3: rgba(29, 78, 216, 0.35);
+    --lava-color-3-outer: rgba(30, 64, 175, 0.20);
+    --lava-color-4: rgba(56, 117, 224, 0.35);
+    --lava-color-4-outer: rgba(37, 99, 235, 0.20);
+}
+
+.lava-background-global {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;
+    isolation: isolate;
+}
+
+.lava-container {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+}
+
+.lava-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(80px);
+    mix-blend-mode: normal;
+    will-change: transform, border-radius;
+    opacity: 0.25;
+    transition: background 0.8s ease;
+}
+
+html.dark .lava-blob {
+    opacity: 0.35;
+}
+
+.lava-blob-1 {
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, var(--lava-color-1) 0%, var(--lava-color-1-outer) 50%, transparent 70%);
+    top: -25%;
+    left: -20%;
+    animation: lava-move-1 18s ease-in-out infinite;
+}
+
+.lava-blob-2 {
+    width: 550px;
+    height: 550px;
+    background: radial-gradient(circle, var(--lava-color-2) 0%, var(--lava-color-2-outer) 50%, transparent 70%);
+    bottom: -30%;
+    right: -25%;
+    animation: lava-move-2 16s ease-in-out infinite;
+}
+
+.lava-blob-3 {
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, var(--lava-color-3) 0%, var(--lava-color-3-outer) 50%, transparent 70%);
+    bottom: 15%;
+    left: 15%;
+    animation: lava-move-3 20s ease-in-out infinite;
+}
+
+.lava-blob-4 {
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, var(--lava-color-4) 0%, var(--lava-color-4-outer) 50%, transparent 70%);
+    top: 20%;
+    right: 30%;
+    animation: lava-move-4 17s ease-in-out infinite;
+}
+
+@keyframes lava-move-1 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    50% {
+        transform: translate(10%, 10%) scale(1.1);
+        border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%;
+    }
+}
+
+@keyframes lava-move-2 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        border-radius: 40% 60% 60% 40% / 70% 30% 50% 50%;
+    }
+    50% {
+        transform: translate(-10%, -10%) scale(1.05);
+        border-radius: 60% 40% 40% 60% / 30% 70% 50% 50%;
+    }
+}
+
+@keyframes lava-move-3 {
+    0%, 100% {
+        transform: translate(-50%, -50%) scale(1);
+        border-radius: 50% 50% 40% 60% / 40% 60% 50% 50%;
+    }
+    50% {
+        transform: translate(-50%, -50%) translate(-5%, 5%) scale(0.95);
+        border-radius: 60% 40% 60% 40% / 60% 40% 50% 50%;
+    }
+}
+
+@keyframes lava-move-4 {
+    0%, 100% {
+        transform: translate(0, 0) scale(1);
+        border-radius: 55% 45% 60% 40% / 45% 55% 45% 55%;
+    }
+    50% {
+        transform: translate(-10%, 5%) scale(1.08);
+        border-radius: 45% 55% 40% 60% / 55% 45% 55% 45%;
+    }
+}
+
+/* Reduced motion: disable lava animations */
+@media (prefers-reduced-motion: reduce) {
+    .lava-blob {
+        animation: none !important;
+    }
 }
 
 /* ==================== MERMAID DIAGRAM FIXES ==================== */

@@ -1,6 +1,6 @@
 /* ============================================
    BLUEROBIN SHARED DESIGN TOKENS
-   v5.4 - January 2026
+   v5.4 - February 2026
    
    This file contains the core design tokens shared
    between the BlueRobin Blog (Astro) and Web App (Blazor).
@@ -79,28 +79,86 @@
     --glass-white-30: rgba(255, 255, 255, 0.30);
     --glass-white-40: rgba(255, 255, 255, 0.40);
     --glass-white-60: rgba(255, 255, 255, 0.60);
+    --glass-white-70: rgba(255, 255, 255, 0.70);
     --glass-white-80: rgba(255, 255, 255, 0.80);
     --glass-dark-10: rgba(15, 23, 42, 0.10);
     --glass-dark-20: rgba(15, 23, 42, 0.20);
     --glass-dark-40: rgba(15, 23, 42, 0.40);
     --glass-dark-60: rgba(15, 23, 42, 0.60);
 
+    /* Semantic border color */
+    --glass-border: rgba(148, 163, 184, 0.35);
+
+    /* Backdrop blur scale */
+    --blur-xs: blur(4px);
+    --blur-sm: blur(8px);
+    --blur-md: blur(16px);
+    --blur-lg: blur(24px);
+    --blur-xl: blur(32px);
+    --blur-2xl: blur(48px);
+
+    /* ==================== COLOR OPACITY TOKENS ==================== */
+    --color-neural-alpha-10: oklch(58% 0.20 275 / 0.10);
+    --color-neural-alpha-20: oklch(58% 0.20 275 / 0.20);
+    --color-neural-alpha-30: oklch(58% 0.20 275 / 0.30);
+    --color-neural-alpha-40: oklch(58% 0.20 275 / 0.40);
+
+    --color-aurora-alpha-10: oklch(60% 0.26 10 / 0.10);
+    --color-aurora-alpha-20: oklch(60% 0.26 10 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.26 10 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.26 10 / 0.40);
+
+    --color-quantum-alpha-10: oklch(68% 0.15 195 / 0.10);
+    --color-quantum-alpha-20: oklch(68% 0.15 195 / 0.20);
+    --color-quantum-alpha-30: oklch(68% 0.15 195 / 0.30);
+    --color-quantum-alpha-40: oklch(68% 0.15 195 / 0.40);
+
+    --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
+    --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+
     /* ==================== GRADIENTS ==================== */
-    --gradient-neural: linear-gradient(135deg, #7069f5 0%, #6147ea 50%, #5337d5 100%);
-    --gradient-aurora: linear-gradient(135deg, #ff6a8d 0%, #f83b69 50%, #e51e54 100%);
-    --gradient-quantum: linear-gradient(135deg, #22d3ee 0%, #06b6d4 50%, #0891b2 100%);
-    --gradient-glow: linear-gradient(135deg, #fbbf24 0%, #f59e0b 50%, #d97706 100%);
+    --gradient-neural: linear-gradient(135deg,
+            oklch(58% 0.20 275) 0%,
+            oklch(52% 0.22 280) 50%,
+            oklch(46% 0.21 280) 100%);
+    --gradient-aurora: linear-gradient(135deg,
+            oklch(68% 0.22 10) 0%,
+            oklch(60% 0.26 10) 50%,
+            oklch(52% 0.25 5) 100%);
+    --gradient-quantum: linear-gradient(135deg,
+            oklch(76% 0.16 195) 0%,
+            oklch(68% 0.15 195) 50%,
+            oklch(58% 0.13 195) 100%);
+    --gradient-glow: linear-gradient(135deg,
+            oklch(80% 0.18 80) 0%,
+            oklch(74% 0.17 70) 50%,
+            oklch(65% 0.16 60) 100%);
+
+    /* Signature gradient - neural to quantum (purple to cyan) */
+    --gradient-signature: linear-gradient(135deg,
+            oklch(58% 0.20 275) 0%,
+            oklch(52% 0.18 250) 40%,
+            oklch(68% 0.15 195) 100%);
 
     /* Mesh Background */
-    --gradient-mesh-light: radial-gradient(at 0% 0%, rgba(112, 105, 245, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(248, 59, 105, 0.08) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.08) 0px, transparent 50%);
+    --gradient-mesh-light: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, var(--color-quantum-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, var(--color-aurora-alpha-10) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, var(--color-glow-alpha-10) 0px, transparent 50%);
 
-    --gradient-mesh-dark: radial-gradient(at 0% 0%, rgba(112, 105, 245, 0.15) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, rgba(34, 211, 238, 0.1) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(248, 59, 105, 0.1) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, rgba(251, 191, 36, 0.1) 0px, transparent 50%);
+    --gradient-mesh-dark: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.10) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.10) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.10) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
     --radius-sm: 0.5rem;
@@ -110,11 +168,21 @@
     --radius-2xl: 1.5rem;
 
     /* ==================== SHADOWS ==================== */
-    --shadow-sm: 0 2px 4px 0 rgba(15, 23, 42, 0.06), 0 1px 2px 0 rgba(15, 23, 42, 0.03);
-    --shadow-md: 0 4px 12px 0 rgba(15, 23, 42, 0.08), 0 2px 4px 0 rgba(15, 23, 42, 0.04);
-    --shadow-lg: 0 8px 24px 0 rgba(15, 23, 42, 0.10), 0 4px 8px 0 rgba(15, 23, 42, 0.05);
-    --shadow-xl: 0 16px 48px 0 rgba(15, 23, 42, 0.12), 0 8px 16px 0 rgba(15, 23, 42, 0.06);
-    --shadow-neural: 0 8px 32px -4px rgba(112, 105, 245, 0.3);
+    --shadow-sm: 0 2px 4px 0 var(--color-slate-alpha-6), 0 1px 2px 0 var(--color-slate-alpha-3);
+    --shadow-md: 0 4px 12px 0 var(--color-slate-alpha-8), 0 2px 4px 0 var(--color-slate-alpha-5);
+    --shadow-lg: 0 8px 24px 0 var(--color-slate-alpha-10), 0 4px 8px 0 var(--color-slate-alpha-5);
+    --shadow-xl: 0 16px 48px 0 var(--color-slate-alpha-12), 0 8px 16px 0 var(--color-slate-alpha-6);
+
+    /* Colored shadows */
+    --shadow-neural: 0 8px 32px -4px var(--color-neural-alpha-30);
+    --shadow-neural-sm: 0 4px 16px -2px var(--color-neural-alpha-20);
+    --shadow-aurora: 0 8px 32px -4px var(--color-aurora-alpha-30);
+    --shadow-quantum: 0 8px 32px -4px var(--color-quantum-alpha-30);
+
+    /* Glow effect tokens */
+    --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
+    --glow-aurora: 0 0 32px var(--color-aurora-alpha-40), 0 0 64px var(--color-aurora-alpha-20);
+    --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -124,15 +192,14 @@
     /* ==================== ANIMATIONS ==================== */
     --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --ease-gentle: cubic-bezier(0.25, 0.1, 0.25, 1);
     --duration-fast: 150ms;
     --duration-normal: 250ms;
     --duration-slow: 350ms;
 }
 
 /* ==================== DARK MODE UTILITIES ==================== */
-/* Shared dark mode patterns */
 
-/* Text colors in dark mode */
 html.dark {
     color-scheme: dark;
 }
