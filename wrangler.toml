@@ -1,21 +1,14 @@
 name = "bluerobin-blog"
-compatibility_date = "2024-01-01"
+compatibility_date = "2026-02-26"
 
-# Cloudflare Pages configuration
-# The site is built with Astro and outputs to ./dist
-# Root landing page is served from public/index.html
-# Blog content is at /blog/* with base path configured in Astro
+# Cloudflare Workers with static assets (migrated from Pages)
+# Astro static build outputs to ./dist
+# Deployed via Workers Builds (GitHub push → auto build & deploy)
+# Custom domain: blog.bluerobin.io
 
-[site]
-bucket = "./dist"
+[assets]
+directory = "./dist"
+not_found_handling = "404-page"
 
-# Environment variables for build
-[vars]
-NODE_VERSION = "20"
-
-# Custom domain: bluerobin.io
-# Configure in Cloudflare Pages dashboard:
-# 1. Connect GitHub repository
-# 2. Build command: npm run build
-# 3. Build output directory: dist
-# 4. Add custom domain: bluerobin.io
+# Preview URLs for non-production branches
+preview_urls = true
