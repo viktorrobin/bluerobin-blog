@@ -22,31 +22,31 @@ const { type = "info", title } = Astro.props;
 
 const styles = {
   tip: {
-    bg: "bg-quantum-50",
-    border: "border-quantum-500",
-    icon: "💡",
-    text: "text-quantum-800",
+    bg: "bg-slate-50",
+    border: "border-slate-400",
+    icon: "",
+    text: "text-slate-800",
     defaultTitle: "Tip",
   },
   warning: {
     bg: "bg-glow-50",
     border: "border-glow-500",
-    icon: "⚠️",
-    text: "text-glow-800",
+    icon: "",
+    text: "text-slate-800",
     defaultTitle: "Warning",
   },
   info: {
-    bg: "bg-quantum-50",
-    border: "border-quantum-500",
-    icon: "ℹ️",
-    text: "text-quantum-800",
-    defaultTitle: "Info",
+    bg: "bg-slate-50",
+    border: "border-slate-400",
+    icon: "",
+    text: "text-slate-800",
+    defaultTitle: "Note",
   },
   danger: {
     bg: "bg-aurora-50",
-    border: "border-aurora-500",
-    icon: "🚨",
-    text: "text-aurora-800",
+    border: "border-aurora-400",
+    icon: "",
+    text: "text-slate-800",
     defaultTitle: "Danger",
   },
 };
@@ -55,10 +55,9 @@ const style = styles[type];
 const displayTitle = title || style.defaultTitle;
 ---
 
-<aside class={`callout not-prose my-6 p-4 ${style.bg} rounded-lg border-l-4 ${style.border}`}>
+<aside class={`callout not-prose my-6 p-4 ${style.bg} rounded-lg border-l-2 ${style.border}`}>
   <div class="flex items-center gap-2 mb-2">
-    <span>{style.icon}</span>
-    <span class={`font-semibold ${style.text}`}>{displayTitle}</span>
+    <span class={`font-semibold text-sm uppercase tracking-wide ${style.text}`}>{displayTitle}</span>
   </div>
   <div class={`text-sm ${style.text}`}>
     <slot />

@@ -1,46 +1,199 @@
 ---
-title: "Kubernetes Cluster Setup for Agentic AI Workloads"
-description: "A practical cluster setup guide for running BlueRobin-style agentic services with reliable data, messaging, and observability foundations."
+title: "Kubernetes Cluster Setup for AI Workloads"
+description: "A practical cluster setup guide for running AI services alongside traditional backends with reliable data, messaging, and observability."
 pubDate: 2026-01-29
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
-tags: ["kubernetes", "cluster", "ai", "graphrag", "gitops"]
+tags: ["kubernetes", "cluster", "ai", "gitops"]
 readTime: "12 min"
-ogImage: "/og/kubernetes-cluster-setup-for-agentic-ai-workloads.png"
-canonicalURL: "https://blog.bluerobin.io/kubernetes-cluster-setup-for-agentic-ai-workloads"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Agentic and LLM-heavy systems are infrastructure-heavy systems. To run them reliably, your cluster needs clear boundaries between app workloads, data services, messaging, and platform controls.
+Running AI workloads on Kubernetes isn't just about deploying a model behind an API. You need GPU scheduling, large model storage, health probes for inference services, and namespace isolation between AI and transactional workloads. This guide covers the practical decisions for setting up a cluster that handles both.
 
-## Baseline Topology
+## Namespace Topology
 
-- `archives-*` namespaces for API, workers, web, and AI services.
-- `data-layer` for Postgres, MinIO, Qdrant, and NATS.
-- `ai` for model-serving components like Ollama.
-- `monitoring` for observability and telemetry pipelines.
+Organize workloads by concern, not by team:
 
-## Critical Setup Decisions
+```
+data-layer          PostgreSQL, MinIO, Qdrant, FalkorDB
+messaging           NATS JetStream
+ai                  Ollama, Docling, spaCy
+apps-staging        API, Workers, Web (staging)
+apps-production     API, Workers, Web (production)
+monitoring          SigNoz, Grafana, Prometheus
+flux-system         Flux CD controllers
+```
 
-1. Use GitOps (`base + overlays`) as the only deployment path.
-2. Keep secrets in ExternalSecrets/Infisical flows.
-3. Use FQDN service addressing across namespaces.
-4. Validate health checks and endpoint ports per environment.
+<Callout type="tip" title="Why not per-team namespaces?">
+AI services often share data layer connections (Qdrant, PostgreSQL). Organizing by concern makes network policies simpler — the ai namespace can reach data-layer, and apps-* can reach both ai and data-layer.
+</Callout>
 
-## Operational Lessons from Recent Changes
+## AI Service Requirements
 
-- GraphRAG service deployment required overlay and secret fixes before stabilization.
-- Incorrect service ports and OTEL endpoints caused avoidable runtime failures.
-- CI integration for new services is required from day one to avoid drift.
+### Ollama (LLM Inference)
 
-## Conclusion
+Ollama needs persistent storage for model files (7-30 GB per model):
 
-Cluster setup is the main determinant of reliability for agentic systems. Start with strong namespace boundaries, declarative deployment, and explicit secrets/runtime wiring.
+<CodeFile filename="ollama-statefulset.yaml">
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+  namespace: ai
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ollama
+  template:
+    spec:
+      containers:
+        - name: ollama
+          image: ollama/ollama:latest
+          ports:
+            - containerPort: 11434
+          volumeMounts:
+            - name: models
+              mountPath: /root/.ollama
+          resources:
+            requests:
+              cpu: "2"
+              memory: 8Gi
+            limits:
+              memory: 16Gi
+          readinessProbe:
+            httpGet:
+              path: /api/tags
+              port: 11434
+            initialDelaySeconds: 30
+            periodSeconds: 30
+  volumeClaimTemplates:
+    - metadata:
+        name: models
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 50Gi
+```
+</CodeFile>
 
-**Related reading**:
-- `/gitops-flux-cd-introduction/`
-- `/graphrag-gitops-kustomize-externalsecrets/`
+### Health Probes for AI Services
+
+AI services have longer startup times and can become unresponsive under load. Configure probes accordingly:
+
+| Service | Ready Probe | Live Probe | Initial Delay |
+|---------|------------|------------|---------------|
+| Ollama | GET /api/tags | GET /api/tags | 30s |
+| Docling | GET /health | GET /health | 60s |
+| spaCy | GET /health | GET /health | 20s |
+
+## Data Layer
+
+### Vector Store (Qdrant)
+
+Qdrant stores embeddings and needs persistent storage. Size the storage based on your collection count and vector dimensions:
+
+```
+Storage = vectors x dimensions x 4 bytes x 1.5 (overhead)
+```
+
+For 100K documents with 8 embedding models averaging 800 dimensions:
+
+```
+100,000 x 800 x 4 x 1.5 x 8 = 3.8 GB
+```
+
+### Graph Database (FalkorDB)
+
+FalkorDB runs as a Redis-compatible server with graph extensions. It needs minimal resources for moderate graph sizes (under 1M nodes):
+
+```yaml
+resources:
+  requests:
+    cpu: 500m
+    memory: 1Gi
+  limits:
+    memory: 2Gi
+```
+
+## GitOps with Flux
+
+### Source of Truth
+
+The infra repository contains all Kubernetes manifests. Flux watches for changes and reconciles:
+
+```
+clusters/
+  production/
+    flux-system/
+      gotk-components.yaml
+      gotk-sync.yaml
+    apps.yaml           # Kustomization pointing to apps/
+    infrastructure.yaml # Kustomization pointing to platform/
+```
+
+### Force Reconciliation
+
+When you need a change applied immediately:
+
+```bash
+flux reconcile source git flux-system --timeout=2m
+flux reconcile kustomization apps --timeout=5m
+```
+
+## Service Discovery
+
+Always use fully qualified domain names (FQDNs) for cross-namespace communication:
+
+```
+postgres-rw.data-layer.svc.cluster.local:5432
+ollama.ai.svc.cluster.local:11434
+qdrant.data-layer.svc.cluster.local:6334
+nats.messaging.svc.cluster.local:4222
+```
+
+<Callout type="warning" title="Short names break across namespaces">
+`postgres-rw:5432` works only within the same namespace. From the ai namespace, you must use the FQDN. Make this a hard rule from day one.
+</Callout>
+
+## Network Policies
+
+Restrict traffic to the minimum necessary:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-apps-to-ai
+  namespace: ai
+spec:
+  podSelector: {}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              purpose: apps
+      ports:
+        - port: 11434  # Ollama
+        - port: 8080   # Docling
+```
+
+## Key Takeaways
+
+- Organize namespaces by **concern** (data, messaging, ai, apps) not by team
+- AI services need **persistent storage**, **generous health probe timeouts**, and **memory limits**
+- Always use **FQDNs** for cross-namespace service discovery
+- **GitOps** keeps your cluster state reproducible and auditable
+- Size vector store storage based on `vectors x dimensions x 4 bytes x 1.5`
+
+## Related Reading
+
+- [Flux CD Documentation](https://fluxcd.io/flux/)
+- [Kubernetes Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)

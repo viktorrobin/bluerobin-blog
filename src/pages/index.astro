@@ -20,14 +20,14 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
 // Tech stack icons
 const techStack = [
-  { name: ".NET 10", icon: "🟣", color: "bg-neural-500/15 text-neural-700" },
-  { name: "Blazor Server", icon: "🌐", color: "bg-neural-500/15 text-neural-700" },
-  { name: "NATS JetStream", icon: "⚡", color: "bg-quantum-500/15 text-quantum-700" },
-  { name: "PostgreSQL", icon: "🐘", color: "bg-quantum-500/15 text-quantum-700" },
-  { name: "Qdrant", icon: "🔮", color: "bg-aurora-500/15 text-aurora-700" },
-  { name: "MinIO", icon: "🪣", color: "bg-aurora-500/15 text-aurora-700" },
-  { name: "Ollama", icon: "🦙", color: "bg-glow-500/15 text-glow-700" },
-  { name: "Kubernetes", icon: "☸️", color: "bg-quantum-500/15 text-quantum-700" },
+  { name: ".NET 10", color: "bg-slate-100 text-slate-700" },
+  { name: "Blazor Server", color: "bg-slate-100 text-slate-700" },
+  { name: "NATS JetStream", color: "bg-slate-100 text-slate-700" },
+  { name: "PostgreSQL", color: "bg-slate-100 text-slate-700" },
+  { name: "Qdrant", color: "bg-slate-100 text-slate-700" },
+  { name: "MinIO", color: "bg-slate-100 text-slate-700" },
+  { name: "Ollama", color: "bg-slate-100 text-slate-700" },
+  { name: "Kubernetes", color: "bg-slate-100 text-slate-700" },
 ];
 ---
 
@@ -63,10 +63,10 @@ const techStack = [
         
         <div class="flex flex-wrap justify-center gap-4">
           <a href="/architecture/" class="btn-primary">
-            🏗️ Architecture
+            Architecture
           </a>
           <a href="/articles/" class="btn-secondary">
-            📚 All Articles
+            All Articles
           </a>
         </div>
       </div>
@@ -74,8 +74,7 @@ const techStack = [
       <!-- Tech Stack Pills -->
       <div class="flex flex-wrap justify-center gap-3 mb-16">
         {techStack.map((tech) => (
-          <span class={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium ${tech.color} border border-slate-200/50`}>
-            <span>{tech.icon}</span>
+          <span class={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium ${tech.color} border border-slate-200/50`}>
             {tech.name}
           </span>
         ))}
@@ -83,43 +82,37 @@ const techStack = [
 
       <!-- Key Features / Pain Points Grid -->
       <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">🔍</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">Semantic Search</h3>
           <p class="text-slate-500 text-sm">
             Find documents by meaning, not just keywords. RAG-powered Q&A over your entire archive.
           </p>
         </div>
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">📄</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">AI-Powered OCR</h3>
           <p class="text-slate-500 text-sm">
             Docling extracts text with layout preservation. Tables, headings, and structure intact.
           </p>
         </div>
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">🔐</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">Per-User Encryption</h3>
           <p class="text-slate-500 text-sm">
             Every user gets isolated storage with dedicated KMS keys. Zero-trust architecture.
           </p>
         </div>
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">⚡</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">Event-Driven</h3>
           <p class="text-slate-500 text-sm">
             NATS JetStream for reliable async processing. Real-time UI updates without polling.
           </p>
         </div>
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">🕸️</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">Knowledge Graph</h3>
           <p class="text-slate-500 text-sm">
             FalkorDB connects entities across documents. Discover relationships automatically.
           </p>
         </div>
-        <div class="glass-card p-6 text-center">
-          <div class="text-4xl mb-4">🏠</div>
+        <div class="glass-card p-6">
           <h3 class="text-lg font-semibold text-slate-900 mb-2">Self-Hosted</h3>
           <p class="text-slate-500 text-sm">
             Runs on a homelab K3s cluster. Local AI with Ollama. Your data stays yours.
@@ -134,7 +127,7 @@ const techStack = [
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
         <h2 class="text-3xl font-display font-bold text-slate-900 mb-4">
-          🏗️ System Architecture
+          System Architecture
         </h2>
         <p class="text-slate-600 max-w-2xl mx-auto">
           A cloud-native document intelligence platform built on DDD principles with event-driven microservices.
@@ -146,68 +139,58 @@ const techStack = [
         <div class="grid grid-cols-3 gap-4 text-center text-sm">
           <!-- Frontend Row -->
           <div class="col-span-3 mb-4">
-            <div class="inline-flex items-center gap-4 p-4 rounded-xl bg-neural-100 border border-neural-200">
-              <span class="text-2xl">🌐</span>
+            <div class="inline-flex items-center gap-4 p-4 rounded-xl bg-slate-100 border border-slate-200">
               <div class="text-left">
-                <div class="font-semibold text-neural-900">Blazor Server</div>
-                <div class="text-xs text-neural-700">Interactive UI with real-time updates</div>
+                <div class="font-semibold text-slate-900">Blazor Server</div>
+                <div class="text-xs text-slate-600">Interactive UI with real-time updates</div>
               </div>
             </div>
           </div>
           
           <!-- API & Workers Row -->
           <div class="col-span-3 grid grid-cols-2 gap-4 mb-4">
-            <div class="p-4 rounded-xl bg-neural-100 border border-neural-200">
-              <span class="text-2xl">🔌</span>
-              <div class="font-semibold text-neural-900">FastEndpoints API</div>
-              <div class="text-xs text-neural-700">REST + OpenAPI</div>
+            <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="font-semibold text-slate-900">FastEndpoints API</div>
+              <div class="text-xs text-slate-600">REST + OpenAPI</div>
             </div>
-            <div class="p-4 rounded-xl bg-glow-100 border border-glow-200">
-              <span class="text-2xl">⚙️</span>
-              <div class="font-semibold text-glow-900">Background Workers</div>
-              <div class="text-xs text-glow-700">OCR, Embeddings, NER</div>
+            <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="font-semibold text-slate-900">Background Workers</div>
+              <div class="text-xs text-slate-600">OCR, Embeddings, NER</div>
             </div>
           </div>
           
           <!-- Messaging Row -->
           <div class="col-span-3 mb-4">
-            <div class="p-4 rounded-xl bg-quantum-100 border border-quantum-200">
-              <span class="text-2xl">⚡</span>
-              <span class="font-semibold text-quantum-900 ml-2">NATS JetStream</span>
-              <span class="text-xs text-quantum-700 ml-2">Event-Driven Messaging</span>
+            <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+              <span class="font-semibold text-slate-900">NATS JetStream</span>
+              <span class="text-xs text-slate-600 ml-2">Event-Driven Messaging</span>
             </div>
           </div>
           
           <!-- Data Layer Row -->
-          <div class="p-4 rounded-xl bg-quantum-100 border border-quantum-200">
-            <span class="text-2xl">🐘</span>
-            <div class="font-semibold text-quantum-900">PostgreSQL</div>
-            <div class="text-xs text-quantum-700">Metadata</div>
+          <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="font-semibold text-slate-900">PostgreSQL</div>
+            <div class="text-xs text-slate-600">Metadata</div>
           </div>
-          <div class="p-4 rounded-xl bg-aurora-100 border border-aurora-200">
-            <span class="text-2xl">🔮</span>
-            <div class="font-semibold text-aurora-900">Qdrant</div>
-            <div class="text-xs text-aurora-700">Vectors</div>
+          <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="font-semibold text-slate-900">Qdrant</div>
+            <div class="text-xs text-slate-600">Vectors</div>
           </div>
-          <div class="p-4 rounded-xl bg-aurora-100 border border-aurora-200">
-            <span class="text-2xl">🪣</span>
-            <div class="font-semibold text-aurora-900">MinIO</div>
-            <div class="text-xs text-aurora-700">Documents</div>
+          <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="font-semibold text-slate-900">MinIO</div>
+            <div class="text-xs text-slate-600">Documents</div>
           </div>
           
           <!-- AI Services Row -->
           <div class="col-span-3 mt-4 grid grid-cols-3 gap-4">
-            <div class="p-3 rounded-xl bg-glow-100 border border-glow-200">
-              <span class="text-xl">🦙</span>
-              <div class="font-semibold text-glow-900 text-xs">Ollama</div>
+            <div class="p-3 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="font-semibold text-slate-900 text-xs">Ollama</div>
             </div>
-            <div class="p-3 rounded-xl bg-quantum-100 border border-quantum-200">
-              <span class="text-xl">📄</span>
-              <div class="font-semibold text-quantum-900 text-xs">Docling OCR</div>
+            <div class="p-3 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="font-semibold text-slate-900 text-xs">Docling OCR</div>
             </div>
-            <div class="p-3 rounded-xl bg-quantum-100 border border-quantum-200">
-              <span class="text-xl">🐍</span>
-              <div class="font-semibold text-quantum-900 text-xs">spaCy NER</div>
+            <div class="p-3 rounded-xl bg-slate-100 border border-slate-200">
+              <div class="font-semibold text-slate-900 text-xs">spaCy NER</div>
             </div>
           </div>
         </div>
@@ -218,7 +201,7 @@ const techStack = [
   <!-- Series Overview -->
   <section class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
     <h2 class="text-2xl font-display font-bold text-slate-900 mb-8">
-      📚 Article Series
+      Article Series
     </h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {Object.entries(SERIES).map(([key, series]) => (
@@ -244,7 +227,7 @@ const techStack = [
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
         <p class="text-slate-600 text-lg">
-          🚧 Articles coming soon! The first article in the DDD series is being prepared.
+          Articles coming soon. The first article in the DDD series is being prepared.
         </p>
       </div>
     ) : (
@@ -256,7 +239,7 @@ const techStack = [
             <article class="article-card">
               <div class="flex items-center gap-2 mb-3">
                 <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>
-                  {categoryMeta.icon} {post.data.category}
+                  {post.data.category}
                 </span>
                 <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
                   {difficultyMeta.label}
@@ -287,8 +270,7 @@ const techStack = [
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {Object.entries(CATEGORIES).map(([key, category]) => (
-          <a href={`/${key}/`} class="glass-card p-6 hover:shadow-lg transition-all hover:-translate-y-1 text-center">
-            <div class="text-3xl mb-3">{category.icon}</div>
+          <a href={`/${key}/`} class="glass-card p-6 hover:shadow-lg transition-all hover:-translate-y-1">
             <h3 class="font-semibold text-slate-900 mb-1">{category.title}</h3>
             <p class="text-sm text-slate-600">{category.description}</p>
           </a>

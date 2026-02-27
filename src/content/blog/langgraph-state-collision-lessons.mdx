@@ -7,40 +7,118 @@ category: "ai"
 difficulty: "intermediate"
 tags: ["langgraph", "agentic", "state-management", "llm", "production"]
 readTime: "8 min"
-ogImage: "/og/langgraph-state-collision-lessons.png"
-canonicalURL: "https://blog.bluerobin.io/langgraph-state-collision-lessons"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Agent workflows fail in subtle ways when orchestration metadata and payload state are not separated. BlueRobin hit this directly and fixed it with explicit node naming and cleaner state boundaries.
+LangGraph lets you build agentic workflows as directed graphs where nodes are processing steps and edges are conditional transitions. It's powerful, but there's a subtle trap: **node names and state keys share the same namespace**. A collision silently corrupts your agent's state.
 
-## Commit That Triggered This Post
+## The Problem
 
-- `6c2be22`: renamed a route node to avoid LangGraph state key conflict.
+Consider a graph with a node named `"summary"` that produces a summary of retrieved documents. You also have a state key called `"summary"` that stores the final output:
 
-## Design Rule
+```python
+class AgentState(TypedDict):
+    query: str
+    documents: list[str]
+    summary: str  # <-- collision with node name
 
-Use distinct namespaces for:
+graph.add_node("summary", summarize_docs)  # <-- same name
+```
 
-- orchestration nodes,
-- persisted state keys,
-- computed outputs.
+LangGraph uses the node name to track execution state internally. When the node name matches a state key, writes to the state dictionary can be overwritten by internal bookkeeping, or vice versa. The result: the state silently contains wrong data, and you discover the bug only when the LLM generates a nonsensical response.
 
-Never rely on implicit name reuse across these layers.
+## Why It's Dangerous
 
-## Checklist for Agent Graph Safety
+- **No error message** — LangGraph doesn't validate for collisions
+- **Intermittent failures** — depends on execution order and graph topology
+- **Hard to debug** — the state *looks* correct in logs until you trace the exact mutation sequence
 
-- Add a naming convention (`node_*`, `state_*`, `result_*`).
-- Validate graph compilation in CI.
-- Include regression tests around branch routing and state merges.
+## The Fix: Distinct Namespaces
 
-## Conclusion
+Adopt a naming convention that ensures node names and state keys never collide:
 
-Most agent bugs are orchestration bugs, not model bugs. Fixing state boundaries early saves significant debugging time later.
+| Element | Convention | Example |
+|---------|-----------|---------|
+| Node names | `verb_noun` | `generate_summary`, `retrieve_docs` |
+| State keys | `noun` or `adj_noun` | `summary`, `retrieved_docs` |
+| Output keys | `final_noun` | `final_answer` |
 
-**Related reading**:
-- `/graphrag-routing-dotnet-langgraph-fallback/`
-- `/semantic-kernel-agents-orchestration/`
+<CodeFile filename="agent_state.py">
+```python
+from typing import TypedDict
+
+class AgentState(TypedDict):
+    query: str
+    retrieved_docs: list[str]     # State key: noun phrase
+    doc_summary: str              # State key: adj_noun
+    final_answer: str             # State key: prefixed
+
+# Node names: verb_noun
+graph.add_node("retrieve_documents", retrieve_docs_fn)
+graph.add_node("generate_summary", summarize_fn)
+graph.add_node("compose_answer", compose_fn)
+```
+</CodeFile>
+
+## Prevention Checklist
+
+Add a validation step that runs at graph build time:
+
+<CodeFile filename="validate_graph.py">
+```python
+def validate_no_collisions(graph, state_class):
+    """Ensure no node name matches a state key."""
+    state_keys = set(state_class.__annotations__.keys())
+    node_names = set(graph.nodes.keys())
+
+    collisions = state_keys & node_names
+    if collisions:
+        raise ValueError(
+            f"Node names collide with state keys: {collisions}. "
+            "Rename nodes to use verb_noun convention."
+        )
+
+# Run at build time
+validate_no_collisions(graph, AgentState)
+compiled = graph.compile()
+```
+</CodeFile>
+
+<Callout type="warning" title="Run validation in CI">
+Add the validation call to your test suite so it runs on every commit. This catches collisions introduced when someone adds a new node or state key.
+</Callout>
+
+## Regression Test
+
+```python
+def test_no_state_node_collisions():
+    """Verify node names and state keys are disjoint."""
+    state_keys = set(AgentState.__annotations__.keys())
+    node_names = set(graph.nodes.keys())
+
+    assert state_keys.isdisjoint(node_names), (
+        f"Collision detected: {state_keys & node_names}"
+    )
+```
+
+## Broader Design Rules
+
+1. **Separate concerns**: Node names describe **actions** (verbs). State keys describe **data** (nouns).
+2. **Prefix outputs**: Use `final_` for the graph's terminal output to distinguish it from intermediate state.
+3. **Document the schema**: Keep a `STATE_SCHEMA.md` that maps each state key to its type, producer node, and consumer nodes.
+4. **Immutable state updates**: Return new state dictionaries from nodes rather than mutating in place — this makes the mutation sequence traceable.
+
+## Key Takeaways
+
+- LangGraph **does not validate** for node name / state key collisions
+- Collisions cause **silent state corruption** that's hard to reproduce
+- Use **verb_noun** for nodes, **noun** for state keys — never overlap
+- Add **build-time validation** and **CI regression tests**
+
+## Related Reading
+
+- [LangGraph State Management](https://python.langchain.com/docs/langgraph)
+- [Agent Design Patterns](https://www.anthropic.com/research/building-effective-agents)

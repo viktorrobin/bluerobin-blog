@@ -27,7 +27,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
         <span class="text-sm text-slate-500 self-center">Category:</span>
         <a href="/articles/" class="tag">All</a>
         {Object.entries(CATEGORIES).map(([key, cat]) => (
-          <a href={`/${key}/`} class={`tag category-${key}`}>{cat.icon} {cat.title}</a>
+          <a href={`/${key}/`} class={`tag category-${key}`}>{cat.title}</a>
         ))}
       </div>
     </div>
@@ -35,7 +35,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
         <p class="text-slate-600 text-lg">
-          🚧 Articles coming soon! The first article in the DDD series is being prepared.
+          Articles coming soon. The first article in the DDD series is being prepared.
         </p>
       </div>
     ) : (
@@ -52,14 +52,14 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                 <div class="flex-1">
                   <div class="flex items-center gap-2 mb-2">
                     <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>
-                      {categoryMeta.icon} {post.data.category}
+                      {post.data.category}
                     </span>
                     <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
                       {difficultyMeta.label}
                     </span>
                     {post.data.readTime && (
                       <span class="text-xs text-slate-500">
-                        ⏱️ {post.data.readTime}
+                        {post.data.readTime}
                       </span>
                     )}
                   </div>

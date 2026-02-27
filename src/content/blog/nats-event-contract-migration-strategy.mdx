@@ -7,32 +7,202 @@ category: "messaging"
 difficulty: "advanced"
 tags: ["nats", "event-driven", "contracts", "workers", "migration"]
 readTime: "9 min"
-ogImage: "/og/nats-event-contract-migration-strategy.png"
-canonicalURL: "https://blog.bluerobin.io/nats-event-contract-migration-strategy"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Event names are contracts. BlueRobin recently migrated subject semantics and split processing subjects, which required careful compatibility handling across API, workers, and web notifier paths.
+Event-driven architectures rely on implicit contracts: producers publish to a subject, consumers subscribe to it, and the payload schema connects them. When you need to rename subjects, restructure payloads, or consolidate event streams, you face a distributed coordination problem. This article presents a safe migration strategy using transition windows and subject resolution.
 
-## Commit Signals
+## Why Event Contracts Break
 
-- `8afa106`: split document processing subjects and fixed notifier tests.
-- `e8d8532` (blog): renamed upload wording to OCR requested naming.
+Unlike REST APIs with versioned URLs, messaging contracts are often implicit. A producer publishes to `documents.ocr.completed` and a consumer subscribes to the same subject. Rename the subject, and the consumer silently stops receiving messages — no compile error, no 404, just silence.
 
-## Migration Pattern
+Common triggers for contract changes:
 
-1. Introduce provider-driven subject resolution.
-2. Keep old/new subjects in a transition window.
-3. Add contract tests around publish/subscribe paths.
-4. Remove legacy constants after consumers converge.
+- Reorganizing subject namespaces (`documents.*` to `archives.documents.*`)
+- Splitting a catch-all subject into granular ones
+- Changing payload shapes (adding/removing fields)
+- Consolidating multiple subjects into one with a discriminator field
 
-## Conclusion
+## The Transition Window Pattern
 
-Contract migrations work when naming, rollout windows, and tests are treated as one delivery unit.
+Instead of a hard cutover, run **parallel subjects** during a transition window:
 
-**Related reading**:
-- `/telegram-nats-notification-flow/`
-- `/nats-kv-idempotent-workers-cas/`
+```
+Phase 1: Producer writes to OLD and NEW subjects
+Phase 2: Consumers migrate to NEW subjects
+Phase 3: Producer stops writing to OLD subjects
+Phase 4: Remove OLD subject configuration
+```
+
+This is the distributed equivalent of a database migration with zero downtime.
+
+## Subject Resolution Service
+
+Centralize subject names behind a resolution service so consumers don't hardcode strings:
+
+<CodeFile filename="NatsSubjectResolver.cs">
+```csharp
+public interface INatsSubjectResolver
+{
+    string Resolve(string logicalName);
+}
+
+public class NatsSubjectResolver : INatsSubjectResolver
+{
+    private readonly Dictionary<string, string> _mappings;
+
+    public NatsSubjectResolver(IConfiguration config)
+    {
+        _mappings = config.GetSection("Nats:SubjectMappings")
+            .Get<Dictionary<string, string>>() ?? new();
+    }
+
+    public string Resolve(string logicalName)
+    {
+        return _mappings.TryGetValue(logicalName, out var mapped)
+            ? mapped
+            : logicalName; // Fallback to logical name
+    }
+}
+```
+</CodeFile>
+
+Configuration drives the mapping:
+
+```json
+{
+  "Nats": {
+    "SubjectMappings": {
+      "ocr.completed": "archives.documents.ocr.completed",
+      "analysis.completed": "archives.documents.analysis.completed"
+    }
+  }
+}
+```
+
+## Dual-Publish During Transition
+
+During phase 1, the producer writes to both old and new subjects:
+
+<CodeFile filename="DualPublishEventPublisher.cs">
+```csharp
+public class DualPublishEventPublisher : IEventPublisher
+{
+    private readonly INatsConnection _nats;
+    private readonly INatsSubjectResolver _resolver;
+    private readonly TransitionConfig _config;
+
+    public async Task PublishAsync<T>(
+        string logicalSubject, T payload, CancellationToken ct)
+    {
+        var newSubject = _resolver.Resolve(logicalSubject);
+
+        // Always publish to new subject
+        await _nats.PublishAsync(newSubject, payload, ct);
+
+        // During transition, also publish to legacy subject
+        if (_config.IsInTransition(logicalSubject))
+        {
+            await _nats.PublishAsync(logicalSubject, payload, ct);
+        }
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Feature flag the transition">
+Use a configuration flag per subject to control which phase you're in. This lets you migrate subjects independently rather than all at once.
+</Callout>
+
+## Contract Testing
+
+Add contract tests that verify both producer and consumer agree on the payload shape:
+
+<CodeFile filename="EventContractTests.cs">
+```csharp
+public class EventContractTests
+{
+    [Fact]
+    public void OcrCompleted_contract_matches()
+    {
+        var payload = new OcrCompletedEvent
+        {
+            DocumentId = "doc-123",
+            ObjectKey = "uploads/file.pdf",
+            ExtractedText = "Sample text",
+            PageCount = 5,
+            CompletedAt = DateTime.UtcNow,
+        };
+
+        var json = JsonSerializer.Serialize(payload);
+        var deserialized = JsonSerializer
+            .Deserialize<OcrCompletedEvent>(json);
+
+        Assert.NotNull(deserialized);
+        Assert.Equal(payload.DocumentId, deserialized.DocumentId);
+        Assert.Equal(payload.PageCount, deserialized.PageCount);
+    }
+
+    [Fact]
+    public void OcrCompleted_tolerates_extra_fields()
+    {
+        // Simulates a producer adding a new field
+        var json = @"{
+            ""DocumentId"": ""doc-123"",
+            ""ObjectKey"": ""uploads/file.pdf"",
+            ""ExtractedText"": ""text"",
+            ""PageCount"": 5,
+            ""NewField"": ""ignored"",
+            ""CompletedAt"": ""2025-01-01T00:00:00Z""
+        }";
+
+        var deserialized = JsonSerializer
+            .Deserialize<OcrCompletedEvent>(json);
+
+        Assert.NotNull(deserialized);
+        Assert.Equal("doc-123", deserialized.DocumentId);
+    }
+}
+```
+</CodeFile>
+
+## Payload Evolution Rules
+
+To maintain backward compatibility during transitions:
+
+1. **Additive only**: New fields are optional with defaults
+2. **Never rename**: Add a new field, deprecate the old one
+3. **Tolerant reader**: Consumers ignore unknown fields
+4. **Envelope pattern**: Wrap payloads with metadata (version, timestamp, source)
+
+```csharp
+public record EventEnvelope<T>(
+    string Version,
+    string Source,
+    DateTime Timestamp,
+    T Payload);
+```
+
+## Migration Checklist
+
+1. **Add new subject to resolver** — consumers reference logical names, not raw strings
+2. **Enable dual-publish** — producer writes to both old and new subjects
+3. **Migrate consumers one by one** — update subscriptions to new subject
+4. **Verify all consumers migrated** — check NATS consumer info for old subject
+5. **Disable dual-publish** — stop writing to old subject
+6. **Remove old subject config** — clean up resolver mappings
+
+## Key Takeaways
+
+- Never do hard subject renames — use a **transition window** with dual publishing
+- Centralize subject names behind a **resolver** so changes are configuration-driven
+- Write **contract tests** that verify payload compatibility bidirectionally
+- Follow **additive-only** schema evolution to maintain backward compatibility
+
+## Related Reading
+
+- [NATS Subject Naming Best Practices](https://docs.nats.io/nats-concepts/subjects)
+- [Tolerant Reader Pattern](https://martinfowler.com/bliki/TolerantReader.html)

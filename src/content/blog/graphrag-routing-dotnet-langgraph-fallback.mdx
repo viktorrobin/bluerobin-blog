@@ -1,49 +1,179 @@
 ---
-title: "GraphRAG Routing in .NET: Safe Fallback Between Classic RAG and LangGraph"
-description: "How BlueRobin introduced a GraphRAG routing layer with health-aware fallback to keep agentic retrieval reliable in production."
+title: "GraphRAG Routing in .NET: Safe Fallback Between Classic RAG and Agent Retrieval"
+description: "How to introduce an agent-based retrieval routing layer with health-aware fallback to keep retrieval reliable in production."
 pubDate: 2026-01-22
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
-tags: ["agentic", "graphrag", "langgraph", "rag", "dotnet"]
+tags: ["agentic", "graphrag", "rag", "dotnet"]
 readTime: "10 min"
-ogImage: "/og/graphrag-routing-dotnet-langgraph-fallback.png"
-canonicalURL: "https://blog.bluerobin.io/graphrag-routing-dotnet-langgraph-fallback"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Agentic retrieval is powerful, but production reliability still wins over novelty. BlueRobin added a routing layer so GraphRAG can be enabled safely while preserving a deterministic fallback path to the existing .NET RAG pipeline.
+Agentic retrieval (where the LLM decides which tools and retrievers to invoke) can produce dramatically better results than simple vector search. But it's also slower, more expensive, and more fragile. In production, you need a **routing layer** that can fall back to classic RAG when the agentic pipeline is unhealthy.
 
-## What Changed in the Codebase
+## The Reliability Problem
 
-- `35a98e7`: GraphRAG Python service introduced with LangGraph + hybrid retrieval nodes.
-- `1bc3d89`: CI updated so GraphRAG is built and shipped in shared service pipelines.
-- Application routing added in `src/Archives.Application/Services/GraphRagRoutingService.cs`.
+An agentic retrieval pipeline has more moving parts:
 
-## Routing Pattern
+- LLM for query classification
+- Graph database for traversal
+- Multiple vector stores for ensemble search
+- Tool-calling infrastructure
 
-The production pattern is simple:
+If any component is unhealthy, the entire agentic path fails. But classic RAG (embed query, vector search, return results) still works fine. The routing layer decides which path to use at query time.
 
-1. Check GraphRAG feature flag and health.
-2. Route query to GraphRAG when healthy.
-3. Fall back to classic RAG when unavailable or timed out.
-4. Emit telemetry for route decisions.
+## Routing Architecture
 
-This keeps rollout risk low while collecting real traffic signals.
+```
+Query --> RoutingService
+              |
+              |-- Is agentic enabled? (feature flag)
+              |-- Is graph DB healthy?
+              |-- Is LLM responsive?
+              |
+              |-- YES to all --> Agentic Pipeline
+              |                      |
+              |                      |-- Timeout? --> Fallback
+              |                      +-- Success --> Return
+              |
+              +-- NO to any --> Classic RAG Pipeline
+```
 
-## Why This Matters
+## Implementation
 
-- You can launch agentic features without a full migration freeze.
-- Incidents stay contained because fallback behavior is explicit.
-- Teams get measurable adoption before hard-cutting to new pipelines.
+<CodeFile filename="RetrievalRoutingService.cs">
+```csharp
+public class RetrievalRoutingService
+{
+    private readonly IClassicRagService _classicRag;
+    private readonly IAgenticRagService _agenticRag;
+    private readonly IHealthChecker _health;
+    private readonly RetrievalOptions _options;
 
-## Conclusion
+    public async Task<SearchResult> SearchAsync(
+        string query, CancellationToken ct)
+    {
+        if (!_options.AgenticEnabled)
+            return await _classicRag.SearchAsync(query, ct);
 
-GraphRAG adoption should be incremental, not all-or-nothing. A health-aware router creates the safety rail needed to evolve toward agentic systems in production.
+        var isHealthy = await _health.CheckAgenticHealthAsync(ct);
+        if (!isHealthy)
+        {
+            _logger.LogWarning(
+                "Agentic pipeline unhealthy, falling back to classic RAG");
+            return await _classicRag.SearchAsync(query, ct);
+        }
 
-**Related reading**:
-- `/semantic-kernel-agents-orchestration/`
-- `/improving-rag-query-quality-and-relevance/`
+        try
+        {
+            using var cts = CancellationTokenSource
+                .CreateLinkedTokenSource(ct);
+            cts.CancelAfter(_options.AgenticTimeout);
+
+            return await _agenticRag.SearchAsync(query, cts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            _logger.LogWarning(
+                "Agentic retrieval timed out after {Timeout}ms",
+                _options.AgenticTimeout.TotalMilliseconds);
+            return await _classicRag.SearchAsync(query, ct);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Agentic retrieval failed");
+            return await _classicRag.SearchAsync(query, ct);
+        }
+    }
+}
+```
+</CodeFile>
+
+## Health Checking
+
+The health checker probes each component of the agentic pipeline:
+
+<CodeFile filename="AgenticHealthChecker.cs">
+```csharp
+public class AgenticHealthChecker : IHealthChecker
+{
+    private readonly IGraphClient _graph;
+    private readonly IOllamaService _ollama;
+
+    public async Task<bool> CheckAgenticHealthAsync(
+        CancellationToken ct)
+    {
+        try
+        {
+            using var cts = CancellationTokenSource
+                .CreateLinkedTokenSource(ct);
+            cts.CancelAfter(TimeSpan.FromSeconds(5));
+
+            var graphTask = _graph.PingAsync(cts.Token);
+            var ollamaTask = _ollama.PingAsync(cts.Token);
+
+            await Task.WhenAll(graphTask, ollamaTask);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Cache health status">
+Don't check health on every request. Cache the result for 30 seconds and refresh in the background. This avoids adding latency to every query while still detecting failures within a reasonable window.
+</Callout>
+
+## Configuration
+
+```json
+{
+  "Retrieval": {
+    "AgenticEnabled": true,
+    "AgenticTimeoutMs": 15000,
+    "HealthCacheDurationSeconds": 30
+  }
+}
+```
+
+The feature flag (`AgenticEnabled`) lets you disable the entire agentic path without a deployment — useful during incidents.
+
+## Telemetry
+
+Track which path each query takes:
+
+```csharp
+_telemetry.TrackEvent("retrieval.routed", new
+{
+    Path = usedAgentic ? "agentic" : "classic",
+    QueryLength = query.Length,
+    DurationMs = stopwatch.ElapsedMilliseconds,
+    ResultCount = results.Count,
+});
+```
+
+This gives you data on:
+- What percentage of queries use the agentic path
+- Agentic vs classic latency comparison
+- Fallback frequency (indicates reliability issues)
+
+## Key Takeaways
+
+- **Always have a fallback** — agentic pipelines have more failure modes than classic RAG
+- Use **feature flags** to disable agentic retrieval without redeploying
+- **Timeout per request** with `CancellationTokenSource.CreateLinkedTokenSource`
+- **Health check with caching** — probe every 30 seconds, not every request
+- **Track the routing decision** in telemetry to measure reliability
+
+## Related Reading
+
+- [Circuit Breaker Pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/circuit-breaker)
+- [Feature Flags in .NET](https://learn.microsoft.com/en-us/azure/azure-app-configuration/use-feature-flags-dotnet-core)

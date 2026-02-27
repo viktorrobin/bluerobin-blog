@@ -1,45 +1,181 @@
 ---
-title: "Hybrid Retrieval with Graph Filters: FalkorDB + Qdrant in GraphRAG"
-description: "A production blueprint for combining graph traversal and vector search to improve recall and precision in medical document retrieval."
+title: "Hybrid Retrieval with Graph Filters: FalkorDB + Qdrant"
+description: "A production blueprint for combining graph traversal and vector search to improve recall and precision in document retrieval."
 pubDate: 2026-01-15
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
 tags: ["graphrag", "qdrant", "falkordb", "hybrid-search", "ensembling"]
 readTime: "11 min"
-ogImage: "/og/graphrag-hybrid-retrieval-falkordb-qdrant.png"
-canonicalURL: "https://blog.bluerobin.io/graphrag-hybrid-retrieval-falkordb-qdrant"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Vector search alone can miss structural relationships, while graph search alone can miss semantic nuance. BlueRobin’s GraphRAG path combines both to retrieve context that is both meaningful and connected.
+Vector search finds semantically similar documents. Graph traversal finds structurally connected ones. Combining both in a **hybrid retrieval** pipeline gives you the precision of graph relationships with the flexibility of dense embeddings.
 
-## What Changed in the Codebase
+## The Limitation of Vector-Only Search
 
-- `35a98e7`: Introduced GraphRAG hybrid retriever and graph orchestration nodes.
-- `64a1c53` (infra): Fixed Qdrant endpoint to REST port `6333` for stable runtime integration.
-- `f05595f` (infra): Added full GraphRAG deployment overlays.
+Vector search excels at "find documents about X." But it struggles with relational queries:
 
-## Retrieval Flow
+- "Show me all lab results for the same patient as this report"
+- "What documents reference the same organization?"
+- "Find related documents within two hops of this entity"
 
-1. Parse the user query into semantic + entity-focused intents.
-2. Use graph traversal to discover related entities and neighborhoods.
-3. Query Qdrant with enriched terms.
-4. Fuse candidate lists and rank final contexts.
+These require **structural knowledge** — which entities appear in which documents, and how they relate. That's where a knowledge graph comes in.
 
-## Practical Benefits
+## Architecture
 
-- Better retrieval when documents reference the same concept using different vocabulary.
-- Reduced hallucination risk because the answer context is graph-constrained.
-- Cleaner explainability: you can show both vector score and graph path.
+```
+Query
+  |-->  Vector Search (Qdrant).....Top-K by similarity
+  |
+  |-->  Entity Extraction (NER)
+  |                    |
+  |-->  Graph Traversal (FalkorDB)..Connected documents
+                       |
+                       v
+                RRF Fusion --> Final ranked results
+```
 
-## Conclusion
+## Graph Schema
 
-Graph-filtered vector retrieval is a strong middle ground between pure vector RAG and expensive symbolic-only reasoning. It improves context quality without requiring a full architecture rewrite.
+A minimal schema for document-entity relationships in FalkorDB:
 
-**Related reading**:
-- `/hybrid-search-semantic-keyword/`
-- `/falkordb-graph-database-knowledge-graph/`
+```cypher
+// Nodes
+(:Document {id, title, created_at})
+(:Entity {text, label, normalized_text})
+(:User {id})
+
+// Relationships
+(:Document)-[:CONTAINS]->(:Entity)
+(:Entity)-[:SAME_AS]->(:Entity)
+(:User)-[:OWNS]->(:Document)
+```
+
+## Step 1: Extract Entities and Build the Graph
+
+When a document is processed, NER extracts entities and creates graph relationships:
+
+<CodeFile filename="GraphSyncService.cs">
+```csharp
+public class GraphSyncService
+{
+    private readonly IGraphClient _graph;
+
+    public async Task SyncDocumentAsync(
+        string docId, IReadOnlyList<ExtractedEntity> entities,
+        CancellationToken ct)
+    {
+        // Upsert document node
+        await _graph.ExecuteAsync(
+            "MERGE (d:Document {id: $id})",
+            new { id = docId }, ct);
+
+        foreach (var entity in entities)
+        {
+            var normalized = entity.Text.ToLowerInvariant().Trim();
+
+            // Upsert entity and link to document
+            await _graph.ExecuteAsync(@"
+                MERGE (e:Entity {normalized_text: $normalized})
+                ON CREATE SET e.text = $text, e.label = $label
+                WITH e
+                MATCH (d:Document {id: $docId})
+                MERGE (d)-[:CONTAINS]->(e)",
+                new { normalized, text = entity.Text,
+                      label = entity.Label, docId }, ct);
+        }
+    }
+}
+```
+</CodeFile>
+
+## Step 2: Hybrid Query
+
+For a search query, run vector search and graph traversal in parallel, then fuse results:
+
+<CodeFile filename="HybridSearchService.cs">
+```csharp
+public class HybridSearchService
+{
+    private readonly IVectorStore _vectors;
+    private readonly IGraphClient _graph;
+    private readonly RrfEnsembleSearch _rrf;
+
+    public async Task<List<ScoredDocument>> SearchAsync(
+        string query, string userId, CancellationToken ct)
+    {
+        // Vector search
+        var vectorTask = _vectors.SearchAsync(query, topK: 20, ct);
+
+        // Graph: find entities in query, traverse to documents
+        var graphTask = GraphSearchAsync(query, userId, ct);
+
+        await Task.WhenAll(vectorTask, graphTask);
+
+        return _rrf.Fuse(new[]
+        {
+            new RankedList(await vectorTask, Weight: 1.0),
+            new RankedList(await graphTask, Weight: 0.7),
+        });
+    }
+
+    private async Task<List<RetrievedDocument>> GraphSearchAsync(
+        string query, string userId, CancellationToken ct)
+    {
+        // Extract entities from query text
+        var queryEntities = await _ner.ExtractAsync(query, ct);
+        if (queryEntities.Count == 0) return new();
+
+        var normalized = queryEntities
+            .Select(e => e.Text.ToLowerInvariant().Trim())
+            .ToList();
+
+        // Find documents containing these entities (max 2 hops)
+        var result = await _graph.ExecuteAsync<GraphDoc>(@"
+            MATCH (e:Entity)
+            WHERE e.normalized_text IN $entities
+            MATCH (d:Document)-[:CONTAINS]->(e)
+            MATCH (u:User {id: $userId})-[:OWNS]->(d)
+            RETURN DISTINCT d.id AS id, d.title AS title,
+                   count(e) AS entity_overlap
+            ORDER BY entity_overlap DESC
+            LIMIT 20",
+            new { entities = normalized, userId }, ct);
+
+        return result.Select(r => new RetrievedDocument(
+            r.Id, r.Title, Score: r.EntityOverlap
+        )).ToList();
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="User scoping">
+Always filter graph traversals by the authenticated user. Without the `OWNS` relationship filter, a user could discover documents belonging to other users through shared entities.
+</Callout>
+
+## When to Use Hybrid vs Vector-Only
+
+| Scenario | Best approach |
+|----------|--------------|
+| Free-form semantic search | Vector-only |
+| Entity-specific queries | Graph + vector |
+| "Related documents" features | Graph traversal |
+| Cold-start (no graph data yet) | Vector with graceful fallback |
+
+## Key Takeaways
+
+- **Vector search** finds semantically similar content; **graph traversal** finds structurally connected content
+- Combine both via **RRF** for the best of both worlds
+- Always **scope graph queries** to the authenticated user
+- Build the graph **incrementally** during document processing
+- **Fallback gracefully** when graph data is sparse
+
+## Related Reading
+
+- [FalkorDB Cypher Reference](https://docs.falkordb.com/)
+- [Qdrant Hybrid Search](https://qdrant.tech/documentation/concepts/hybrid-queries/)

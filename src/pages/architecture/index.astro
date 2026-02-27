@@ -14,7 +14,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
       <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-architecture mb-4">
-        🏗️ Architecture
+        Architecture
       </div>
       <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
         Architecture Deep Dives
@@ -28,7 +28,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
         <p class="text-slate-600 text-lg">
-          🚧 Architecture deep dives coming soon! The DDD SharedKernel article is first in the queue.
+          Architecture deep dives coming soon. The DDD SharedKernel article is first in the queue.
         </p>
       </div>
     ) : (
@@ -46,7 +46,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                 </span>
                 {post.data.readTime && (
                   <span class="text-xs text-slate-500">
-                    ⏱️ {post.data.readTime}
+                    {post.data.readTime}
                   </span>
                 )}
                 <time class="text-xs text-slate-500" datetime={post.data.pubDate.toISOString()}>

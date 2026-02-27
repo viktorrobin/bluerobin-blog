@@ -7,32 +7,190 @@ category: "backend"
 difficulty: "advanced"
 tags: ["rate-limiting", "nats", "api", "distributed-systems", "dotnet"]
 readTime: "9 min"
-ogImage: "/og/distributed-rate-limiting-nats-kv.png"
-canonicalURL: "https://blog.bluerobin.io/distributed-rate-limiting-nats-kv"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-In-memory limiters break down once traffic spans multiple pods. BlueRobin uses NATS KV-backed rate limiter components to keep enforcement consistent across instances.
+Rate limiting in a single-instance API is straightforward — an in-memory counter per user, a sliding window, done. But when you scale to multiple replicas behind a load balancer, each instance has its own counter. A user can effectively multiply their quota by the number of replicas. This article shows how to use NATS KV as a shared, cluster-aware rate limit store.
 
-## Core Idea
+## The Multi-Instance Problem
 
-- Prefer user-based keys when authenticated.
-- Fall back to anonymized network identity when not authenticated.
-- Store and update counters in distributed storage rather than pod memory.
+With `N` API replicas and local rate limiting:
 
-## Operational Benefits
+- User quota: 100 requests/minute
+- Actual effective quota: `100 * N` requests/minute
+- Each replica only sees `1/N` of the user's traffic
 
-- Consistent throttling under horizontal scale.
-- Better fairness for multi-instance APIs.
-- Easier reasoning during incident response.
+This defeats the purpose of rate limiting entirely. You need a **shared counter** that all replicas can read and write atomically.
 
-## Conclusion
+## Why NATS KV?
 
-Distributed rate limiting is a platform concern, not just an API concern. Centralizing limiter state makes policy behavior predictable.
+If you already run NATS JetStream for messaging, NATS KV gives you a distributed key-value store with:
 
-**Related reading**:
-- `/nats-kv-idempotent-workers-cas/`
-- `/error-handling-resilience-patterns-dotnet/`
+- **Atomic operations** via compare-and-swap (CAS)
+- **TTL support** for automatic window expiry
+- **No extra infrastructure** — it's built into NATS
+- **Replication** matching your NATS cluster topology
+
+## Implementation
+
+### Rate Limit Key Strategy
+
+The key encodes the user identity and time window:
+
+```
+rate:{policyName}:{userId}:{windowStart}
+```
+
+For authenticated users, use their user ID. For anonymous requests, hash the IP address to avoid storing raw IPs:
+
+<CodeFile filename="RateLimitKeyGenerator.cs">
+```csharp
+public static class RateLimitKeyGenerator
+{
+    public static string Generate(
+        HttpContext context, string policyName, TimeSpan window)
+    {
+        var userId = context.User?.FindFirst("sub")?.Value;
+        var windowStart = DateTime.UtcNow.Ticks / window.Ticks;
+
+        if (!string.IsNullOrEmpty(userId))
+            return $"rate:{policyName}:{userId}:{windowStart}";
+
+        var ip = context.Connection.RemoteIpAddress;
+        var hash = ip?.GetHashCode().ToString("X8") ?? "unknown";
+        return $"rate:{policyName}:anon:{hash}:{windowStart}";
+    }
+}
+```
+</CodeFile>
+
+### Atomic Increment with CAS
+
+The core operation: read the current count, increment it, and write back atomically. If another replica modified the value between read and write, the CAS fails and we retry:
+
+<CodeFile filename="NatsKvRateLimiter.cs">
+```csharp
+public class NatsKvRateLimiter
+{
+    private readonly INatsKVStore _store;
+    private readonly int _maxRetries = 3;
+
+    public async Task<RateLimitResult> CheckAsync(
+        string key, int limit, CancellationToken ct)
+    {
+        for (int attempt = 0; attempt < _maxRetries; attempt++)
+        {
+            try
+            {
+                var entry = await _store.GetEntryAsync<int>(key, ct);
+                if (entry.Value >= limit)
+                {
+                    return RateLimitResult.Exceeded(
+                        entry.Value, limit);
+                }
+
+                await _store.UpdateAsync(
+                    key, entry.Value + 1, entry.Revision, ct);
+                return RateLimitResult.Allowed(
+                    entry.Value + 1, limit);
+            }
+            catch (NatsKVKeyNotFoundException)
+            {
+                // First request in this window
+                try
+                {
+                    await _store.CreateAsync(key, 1, ct);
+                    return RateLimitResult.Allowed(1, limit);
+                }
+                catch (NatsKVCreateException)
+                {
+                    continue; // Another replica created it first
+                }
+            }
+            catch (NatsKVWrongLastRevisionException)
+            {
+                continue; // CAS conflict, retry
+            }
+        }
+
+        // After max retries, allow the request (fail open)
+        return RateLimitResult.Allowed(0, limit);
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Fail open vs fail closed">
+The example fails **open** after CAS retries are exhausted — the request is allowed. For security-critical endpoints, you might prefer failing **closed** (rejecting the request). Choose based on the cost of false positives vs false negatives.
+</Callout>
+
+### ASP.NET Core Middleware Integration
+
+Wire the rate limiter into the ASP.NET Core pipeline. The middleware runs **after authentication** so the user identity is available:
+
+<CodeFile filename="Program.cs">
+```csharp
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter(); // Must be after auth
+
+// Configuration
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddPolicy("api", context =>
+    {
+        var key = RateLimitKeyGenerator.Generate(
+            context, "api", TimeSpan.FromMinutes(1));
+        return RateLimitPartition.GetFixedWindowLimiter(key,
+            _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 100,
+                Window = TimeSpan.FromMinutes(1),
+            });
+    });
+});
+```
+</CodeFile>
+
+### Bucket Configuration
+
+```csharp
+var store = await kvContext.CreateStoreAsync(
+    new NatsKVConfig("rate-limits")
+    {
+        MaxAge = TimeSpan.FromMinutes(5), // Auto-expire old windows
+        Storage = NatsKVStorageType.Memory, // Speed over durability
+        Replicas = 3,
+    });
+```
+
+Using `Memory` storage instead of `File` trades durability for speed — rate limit counters don't need to survive full cluster restarts.
+
+## Response Headers
+
+Always include rate limit headers so clients can self-throttle:
+
+```csharp
+context.Response.Headers["X-RateLimit-Limit"] = limit.ToString();
+context.Response.Headers["X-RateLimit-Remaining"] =
+    Math.Max(0, limit - count).ToString();
+context.Response.Headers["X-RateLimit-Reset"] =
+    windowEnd.ToUnixTimeSeconds().ToString();
+```
+
+## Key Takeaways
+
+- Local in-memory rate limiting is **ineffective** with multiple replicas
+- NATS KV provides **atomic counters** with CAS — no extra infrastructure needed
+- Use **memory storage** with short TTL for rate limit buckets
+- Place middleware **after authentication** so user identity is available
+- Prefer **user ID** over IP for rate limit keys when authenticated
+- **Fail open** for most APIs, **fail closed** for security-critical endpoints
+
+## Related Reading
+
+- [ASP.NET Core Rate Limiting](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)
+- [NATS KV Documentation](https://docs.nats.io/nats-concepts/jetstream/key-value-store)

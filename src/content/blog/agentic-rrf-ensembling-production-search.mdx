@@ -1,39 +1,173 @@
 ---
 title: "Agentic RRF Ensembling for Production Search"
-description: "How BlueRobin combines multiple retrieval strategies and uses reciprocal rank fusion to produce more stable, high-quality contexts for LLM responses."
+description: "How to combine multiple retrieval strategies with reciprocal rank fusion to produce stable, high-quality contexts for LLM responses."
 pubDate: 2025-10-30
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
 tags: ["rag", "rrf", "ensembling", "agentic", "retrieval"]
 readTime: "9 min"
-ogImage: "/og/agentic-rrf-ensembling-production-search.png"
-canonicalURL: "https://blog.bluerobin.io/agentic-rrf-ensembling-production-search"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-Different retrieval methods fail differently. BlueRobin uses ensembling with reciprocal rank fusion (RRF) so semantic, keyword, and graph-biased candidates contribute to final ranking.
+Single-model retrieval is brittle. A dense embedding model might miss lexical matches, while BM25 misses semantic similarity. In production RAG systems, combining multiple retrieval signals through **reciprocal rank fusion (RRF)** produces more stable, higher-quality contexts for LLM generation.
 
-## Practical Pattern
+## Why Ensemble Retrieval?
 
-1. Generate candidate lists from each retriever.
-2. Normalize candidate IDs across sources.
-3. Apply weighted RRF scoring.
-4. Return top contexts with source metadata.
+Each retrieval model has blind spots:
 
-## Signals from Recent Work
+| Model Type | Strength | Weakness |
+|-----------|----------|----------|
+| Dense embeddings | Semantic similarity | Exact keyword matches |
+| Sparse/BM25 | Lexical precision | Synonyms, paraphrases |
+| Graph traversal | Relational context | Cold-start entities |
+| NER-filtered | Domain entity precision | Free-form queries |
 
-- GraphRAG and hybrid retriever rollout increased retrieval path diversity.
-- Event contract updates stabilized downstream indexing and retrieval freshness.
-- NER ensembling improved entity-aware query expansion quality.
+By combining their outputs, you get **coverage** (fewer misses) and **stability** (less sensitivity to any single model's quirks).
 
-## Conclusion
+## Reciprocal Rank Fusion
 
-RRF is a pragmatic way to ensemble heterogeneous retrievers while keeping ranking interpretable and robust in production.
+RRF is a rank aggregation algorithm that combines ranked lists without needing score normalization. For each document appearing in any result list:
 
-**Related reading**:
-- `/hybrid-search-semantic-keyword/`
-- `/improving-rag-query-quality-and-relevance/`
+```
+RRF(d) = sum over all rankers r of: weight_r / (k + rank_r(d))
+```
+
+Where:
+- **R** is the set of rankers (retrieval models)
+- **weight_r** is the weight for ranker r
+- **k** is a constant (typically 60) that dampens the impact of high ranks
+- **rank_r(d)** is the position of document d in ranker r's list
+
+## Implementation
+
+<CodeFile filename="RrfEnsembleSearch.cs">
+```csharp
+public class RrfEnsembleSearch
+{
+    private const int K = 60;
+
+    public List<ScoredDocument> Fuse(
+        IReadOnlyList<RankedList> rankedLists)
+    {
+        var scores = new Dictionary<string, double>();
+
+        foreach (var list in rankedLists)
+        {
+            for (int rank = 0; rank < list.Documents.Count; rank++)
+            {
+                var docId = list.Documents[rank].Id;
+                scores.TryGetValue(docId, out var current);
+                scores[docId] = current
+                    + list.Weight * (1.0 / (K + rank + 1));
+            }
+        }
+
+        return scores
+            .OrderByDescending(kv => kv.Value)
+            .Select(kv => new ScoredDocument(kv.Key, kv.Value))
+            .ToList();
+    }
+}
+
+public record RankedList(
+    List<RetrievedDocument> Documents,
+    double Weight);
+```
+</CodeFile>
+
+## Building the Retrieval Pipeline
+
+The ensemble search coordinates multiple retrievers in parallel:
+
+<CodeFile filename="EnsembleSearchService.cs">
+```csharp
+public class EnsembleSearchService
+{
+    private readonly IVectorStore _vectorStore;
+    private readonly IGraphStore _graphStore;
+    private readonly RrfEnsembleSearch _rrf;
+
+    public async Task<List<ScoredDocument>> SearchAsync(
+        string query, SearchOptions options, CancellationToken ct)
+    {
+        // Run retrievers in parallel
+        var denseTask = _vectorStore.SearchAsync(
+            query, model: "nomic-embed-text", topK: 20, ct);
+        var sparseTask = _vectorStore.SearchAsync(
+            query, model: "bge-m3", topK: 20, ct);
+        var graphTask = _graphStore.TraverseAsync(
+            query, maxHops: 2, ct);
+
+        await Task.WhenAll(denseTask, sparseTask, graphTask);
+
+        // Assign weights per retriever
+        var rankedLists = new List<RankedList>
+        {
+            new(await denseTask, Weight: 1.0),
+            new(await sparseTask, Weight: 0.8),
+            new(await graphTask, Weight: 0.6),
+        };
+
+        return _rrf.Fuse(rankedLists)
+            .Take(options.MaxResults)
+            .ToList();
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Weight tuning">
+Start with equal weights (1.0) and adjust based on offline evaluation. Dense embeddings typically deserve the highest weight for general queries, while graph traversal shines for entity-specific questions.
+</Callout>
+
+## Agentic Retrieval
+
+In an agentic setup, the LLM itself decides **which retrievers to invoke** based on the query type:
+
+```csharp
+public class AgenticRetriever
+{
+    public async Task<List<ScoredDocument>> RetrieveAsync(
+        string query, CancellationToken ct)
+    {
+        var queryType = await ClassifyQueryAsync(query, ct);
+
+        var retrievers = queryType switch
+        {
+            QueryType.Factual => new[] { "dense", "sparse" },
+            QueryType.Relational => new[] { "dense", "graph" },
+            QueryType.EntityLookup => new[] { "graph", "ner" },
+            _ => new[] { "dense", "sparse", "graph" },
+        };
+
+        var lists = await RunRetrieversAsync(
+            retrievers, query, ct);
+        return _rrf.Fuse(lists);
+    }
+}
+```
+
+This reduces latency — if a graph traversal isn't needed, don't run it.
+
+## Production Considerations
+
+- **Timeout individual retrievers**: If one model is slow, don't block the entire pipeline. Use `Task.WhenAll` with per-task cancellation.
+- **Deduplication**: RRF handles duplicate documents across lists naturally by summing their scores.
+- **Score normalization**: RRF doesn't need it — that's the whole point. Avoid mixing raw similarity scores, which aren't comparable across models.
+- **Caching**: Cache retrieval results for identical queries within a short window (30 seconds).
+
+## Key Takeaways
+
+- Single-model retrieval has blind spots — **ensemble** multiple signals for coverage
+- **RRF** aggregates ranked lists without score normalization
+- Run retrievers in **parallel** and use weights to balance contributions
+- In agentic setups, let the LLM **select which retrievers** to invoke per query
+
+## Related Reading
+
+- [Reciprocal Rank Fusion (Cormack et al., 2009)](https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf)
+- [Qdrant Hybrid Search](https://qdrant.tech/documentation/concepts/hybrid-queries/)

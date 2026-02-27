@@ -1,48 +1,192 @@
 ---
-title: "Remote VS Code Dev Setup on Kubernetes: BlueRobin Dev Container Workflow"
-description: "How to run a full .NET + AI development environment remotely with VS Code, Kubernetes, and a persistent dev container pod."
+title: "Remote VS Code Development on Kubernetes with Dev Containers"
+description: "How to run a full development environment remotely with VS Code, Kubernetes, and a persistent dev container pod."
 pubDate: 2026-02-15
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
 tags: ["vscode", "remote-development", "kubernetes", "devcontainer", "dotnet"]
 readTime: "10 min"
-ogImage: "/og/remote-vscode-dev-setup-kubernetes-devcontainer.png"
-canonicalURL: "https://blog.bluerobin.io/remote-vscode-dev-setup-kubernetes-devcontainer"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-When your stack depends on cluster-only services (Postgres, NATS, MinIO, Qdrant, Ollama), local-only development causes drift. BlueRobin solves this with a Kubernetes-hosted dev container and VS Code remote attach.
+Developing against a Kubernetes cluster from a local machine means port-forwarding, VPN tunnels, and environment variable gymnastics. An alternative: run your IDE's backend **inside the cluster** as a persistent pod. VS Code connects remotely via the Kubernetes extension, and your code has native access to every cluster service.
 
-## Why This Setup
+## Why Remote Development?
 
-- Keeps local machines thin while preserving full toolchains.
-- Provides consistent network access to in-cluster dependencies.
-- Reduces “works on my machine” differences between engineers.
+| Concern | Local Dev | Remote (in-cluster) |
+|---------|----------|-------------------|
+| Service access | Port-forward each service | Native DNS resolution |
+| Secrets | Export from vault manually | Mounted via ExternalSecrets |
+| Build speed | Depends on laptop | Cluster resources (8+ cores) |
+| Environment drift | "Works on my machine" | Same image as CI |
+| Network latency to services | High (through VPN) | Sub-millisecond |
 
-## Workflow
+## Pod Specification
 
-1. Connect to the dev pod using the project helper script.
-2. Open VS Code attached to the remote workspace.
-3. Start app services and Tailwind watchers via tasks.
-4. Run tests in the same environment used for day-to-day development.
+A dev container pod with persistent storage and access to cluster services:
 
-## Recommended Task Set
+<CodeFile filename="dev-container.yaml">
+```yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dev-container
+  namespace: dev
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: dev-container
+  template:
+    metadata:
+      labels:
+        app: dev-container
+    spec:
+      containers:
+        - name: dev
+          image: mcr.microsoft.com/dotnet/sdk:10.0
+          command: ["sleep", "infinity"]
+          volumeMounts:
+            - name: workspace
+              mountPath: /workspace
+          envFrom:
+            - secretRef:
+                name: dev-secrets
+          resources:
+            requests:
+              cpu: "2"
+              memory: 4Gi
+            limits:
+              cpu: "4"
+              memory: 8Gi
+  volumeClaimTemplates:
+    - metadata:
+        name: workspace
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi
+```
+</CodeFile>
 
-- `🐳 DC: Connect`
-- `🐳 DC: Start Services`
-- `🐳 DC: Start API`
-- `🐳 DC: Start Web`
-- `🐳 DC: Start Workers`
-- `🐳 DC: Run Tests`
+<Callout type="tip" title="Use sleep infinity">
+The container just needs to stay alive. VS Code handles the IDE server lifecycle. Don't run a shell or SSH daemon — sleep infinity with kubectl exec is simpler and more secure.
+</Callout>
 
-## Conclusion
+## VS Code Connection
 
-Remote dev on Kubernetes gives a shared, reproducible engineering surface for backend, web, and AI services. It is especially valuable in multi-service systems where dependencies are cluster-native.
+### Option 1: Kubernetes Extension
 
-**Related reading**:
-- `/local-development-setup-guide/`
-- `/graphrag-gitops-kustomize-externalsecrets/`
+1. Install the [Kubernetes extension](https://marketplace.visualstudio.com/items?itemName=ms-kubernetes-tools.vscode-kubernetes-tools)
+2. Right-click the pod and select "Attach Visual Studio Code"
+3. VS Code installs its server binary in the container and opens a remote window
+
+### Option 2: Remote SSH with kubectl exec
+
+For a more stable connection, use the VS Code Remote - SSH extension with a ProxyCommand:
+
+```
+# ~/.ssh/config
+Host dev-container
+  ProxyCommand kubectl exec -i -n dev dev-container-0 -c dev -- sh -c "cat"
+  User root
+  StrictHostKeyChecking no
+```
+
+## Workspace Sync
+
+Keep your code in sync between local and remote using rsync or git:
+
+```bash
+# Push local changes to the pod
+rsync -avz --exclude='bin/' --exclude='obj/' \
+  ./src/ dev-container-0:/workspace/src/
+
+# Or use git — clone inside the pod
+kubectl exec -n dev dev-container-0 -c dev -- \
+  git clone https://github.com/org/repo.git /workspace/repo
+```
+
+## VS Code Tasks
+
+Define tasks that run inside the container:
+
+<CodeFile filename=".vscode/tasks.json">
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "kubectl exec -n dev dev-container-0 -c dev -- dotnet build /workspace/src/MyApp.sln"
+    },
+    {
+      "label": "Run Tests",
+      "type": "shell",
+      "command": "kubectl exec -n dev dev-container-0 -c dev -- dotnet test /workspace/src/MyApp.sln"
+    },
+    {
+      "label": "Start API",
+      "type": "shell",
+      "command": "kubectl exec -n dev dev-container-0 -c dev -- dotnet run --project /workspace/src/MyApp.Api/MyApp.Api.csproj",
+      "isBackground": true
+    }
+  ]
+}
+```
+</CodeFile>
+
+## Service Access
+
+Inside the dev pod, all cluster services are reachable via DNS:
+
+```bash
+# From inside the dev container:
+curl http://ollama.ai.svc.cluster.local:11434/api/tags
+psql -h postgres-rw.data-layer.svc.cluster.local -U myapp
+nats sub -s nats://nats.messaging.svc.cluster.local:4222 ">"
+```
+
+No port forwarding, no VPN, no environment variable juggling.
+
+## Secrets
+
+Mount secrets from your vault using ExternalSecrets, just like production:
+
+```yaml
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: dev-secrets
+  namespace: dev
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    name: infisical-store
+    kind: ClusterSecretStore
+  target:
+    name: dev-secrets
+  data:
+    - secretKey: ConnectionStrings__PostgresDB
+      remoteRef:
+        key: DEV_POSTGRES_CONNECTION_STRING
+```
+
+## Key Takeaways
+
+- Run your dev environment **inside the cluster** for native service access
+- Use a **StatefulSet** with persistent storage so your workspace survives restarts
+- Connect via **VS Code Kubernetes extension** or **Remote SSH with kubectl exec**
+- Mount secrets with **ExternalSecrets** — same mechanism as staging/production
+- Define **VS Code tasks** that kubectl exec into the pod for build/test/run
+
+## Related Reading
+
+- [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
+- [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)

@@ -1,38 +1,243 @@
 ---
 title: "Idempotent Workers with NATS KV CAS"
-description: "How BlueRobin uses compare-and-swap semantics in NATS KV to prevent duplicate event processing across multiple worker instances."
+description: "How compare-and-swap semantics in NATS KV can prevent duplicate event processing across multiple worker instances."
 pubDate: 2025-07-17
 author: "Victor Robin"
 category: "messaging"
 difficulty: "advanced"
 tags: ["nats", "workers", "idempotency", "cas", "distributed-systems"]
 readTime: "10 min"
-ogImage: "/og/nats-kv-idempotent-workers-cas.png"
-canonicalURL: "https://blog.bluerobin.io/nats-kv-idempotent-workers-cas"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-At-least-once delivery is great for reliability but creates duplicate-processing risk. BlueRobin mitigates this with NATS KV compare-and-swap (CAS) state transitions.
+When you run multiple instances of a background worker consuming the same event stream, you quickly discover that "at-least-once" delivery means "probably-more-than-once" processing. This article shows how to use NATS KV with compare-and-swap (CAS) semantics to build idempotent event processing that works reliably across a distributed deployment.
 
-## State Machine
+## The Duplicate Processing Problem
 
-- `in_progress`
-- `completed`
-- `failed`
+Most messaging systems guarantee at-least-once delivery. In practice, this means your consumer **will** receive the same message more than once — during rebalances, network partitions, or crashes mid-processing. Without deduplication, this leads to:
 
-Combined with a stuck timeout, this enables safe retries without duplicate side effects.
+- Documents processed twice, wasting compute
+- Duplicate side effects (emails, notifications, writes)
+- Inconsistent state across services
 
-## Where It Lives
+The usual solutions — database unique constraints or Redis locks — add external dependencies. If you already run NATS JetStream, you can use **NATS KV** as a lightweight distributed lock with CAS semantics.
 
-The pattern is implemented in infrastructure and consumed by workers that process OCR, analysis, and embedding completion events.
+## Design: A Three-State Machine
 
-## Conclusion
+Each event is tracked through a simple state machine stored as a NATS KV entry:
 
-Idempotency should be enforced at the event-processing boundary. NATS KV CAS is a simple and effective primitive for that boundary.
+```
+┌─────────────┐     ┌──────────────┐     ┌─────────────┐
+│ (no entry)  │────▶│ in_progress  │────▶│  completed   │
+└─────────────┘     └──────────────┘     └─────────────┘
+                           │
+                           ▼
+                    ┌─────────────┐
+                    │   failed    │
+                    └─────────────┘
+```
 
-**Related reading**:
-- `/nats-advanced-patterns-kv-objectstore/`
-- `/nats-event-contract-migration-strategy/`
+**Key**: `{documentId}:{eventType}` — for example, `doc-abc123:ocr`
+
+- **No entry** → event never seen before
+- **in_progress** → a worker claimed it
+- **completed** → processing finished successfully
+- **failed** → processing failed, eligible for retry
+
+## NATS KV CAS in Practice
+
+The critical operation is `Create` — it atomically sets a key **only if it does not already exist**. This is atomic across all NATS cluster nodes, so two workers racing to claim the same event will have exactly one winner.
+
+<CodeFile filename="EventDeduplicationService.cs">
+```csharp
+public class NatsKvEventDeduplicationService : IEventDeduplicationService
+{
+    private readonly INatsKVStore _store;
+    private readonly TimeSpan _stuckTimeout = TimeSpan.FromMinutes(10);
+
+    public async Task<bool> TryStartProcessingAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        var key = $"{eventKey}:{eventType}";
+        try
+        {
+            // Create fails if key already exists — atomic CAS
+            await _store.CreateAsync(key, "in_progress", ct);
+            return true;
+        }
+        catch (NatsKVCreateException)
+        {
+            // Key exists — check if it's stuck
+            var entry = await _store.GetEntryAsync<string>(key, ct);
+            if (entry.Value == "in_progress"
+                && DateTime.UtcNow - entry.Created > _stuckTimeout)
+            {
+                // Use Update with revision for CAS retry
+                await _store.UpdateAsync(key, "in_progress",
+                    entry.Revision, ct);
+                return true;
+            }
+            return false; // Already processed or in progress
+        }
+    }
+
+    public async Task MarkCompletedAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        var key = $"{eventKey}:{eventType}";
+        var entry = await _store.GetEntryAsync<string>(key, ct);
+        await _store.UpdateAsync(key, "completed", entry.Revision, ct);
+    }
+
+    public async Task MarkFailedAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        var key = $"{eventKey}:{eventType}";
+        var entry = await _store.GetEntryAsync<string>(key, ct);
+        await _store.UpdateAsync(key, "failed", entry.Revision, ct);
+    }
+}
+```
+</CodeFile>
+
+## Setting Up the KV Bucket
+
+The bucket is configured once at startup with a TTL that automatically cleans up old entries:
+
+<CodeFile filename="Program.cs">
+```csharp
+var kvContext = new NatsKVContext(new NatsJSContext(natsConnection));
+var store = await kvContext.CreateStoreAsync(new NatsKVConfig("event-dedup")
+{
+    MaxAge = TimeSpan.FromHours(24), // Auto-expire after 24h
+    Storage = NatsKVStorageType.File, // Survive restarts
+    Replicas = 3,                     // Match cluster size
+});
+```
+</CodeFile>
+
+The 24-hour TTL is essential — without it, the bucket grows unbounded. Events older than 24 hours are assumed to have either completed or need fresh processing anyway.
+
+## Worker Integration Pattern
+
+In your message consumer, wrap every handler in the deduplication guard:
+
+<CodeFile filename="OcrWorker.cs">
+```csharp
+public class OcrWorker : BackgroundService
+{
+    private readonly IEventDeduplicationService _dedup;
+
+    protected override async Task ExecuteAsync(CancellationToken ct)
+    {
+        await foreach (var msg in _consumer.ConsumeAsync<OcrEvent>(ct))
+        {
+            string? eventKey = null;
+            try
+            {
+                eventKey = $"{msg.Data.DocumentId}:{msg.Data.ObjectKey}";
+
+                if (!await _dedup.TryStartProcessingAsync(
+                    eventKey, "ocr", ct))
+                {
+                    await msg.AckAsync(ct); // Skip duplicate
+                    continue;
+                }
+
+                await ProcessOcrAsync(msg.Data, ct);
+                await _dedup.MarkCompletedAsync(eventKey, "ocr", ct);
+                await msg.AckAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                if (eventKey != null)
+                    await _dedup.MarkFailedAsync(eventKey, "ocr", ct);
+                // NakAsync triggers redelivery after backoff
+                await msg.NakAsync(delay: TimeSpan.FromSeconds(30), ct);
+            }
+        }
+    }
+}
+```
+</CodeFile>
+
+<Callout type="warning" title="Declare eventKey outside try">
+Declare `eventKey` as nullable outside the `try` block so the `catch` block can null-check it. If the deduplication check itself throws, you don't want to call `MarkFailed` with a null key.
+</Callout>
+
+## Handling Stuck Events
+
+Events stuck in `in_progress` for longer than the timeout (default: 10 minutes) are considered abandoned — the worker probably crashed. The `TryStartProcessingAsync` method automatically reclaims these using CAS:
+
+1. Read the current entry and its revision number
+2. Verify the value is `in_progress` and older than the timeout
+3. Atomically update it using `UpdateAsync` with the revision — this fails if another worker already reclaimed it
+
+This gives you distributed lock recovery without a separate reaper process.
+
+## Testing
+
+For unit tests, swap in an in-memory implementation:
+
+<CodeFile filename="InMemoryEventDeduplicationService.cs">
+```csharp
+public class InMemoryEventDeduplicationService : IEventDeduplicationService
+{
+    private readonly ConcurrentDictionary<string, string> _states = new();
+
+    public Task<bool> TryStartProcessingAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        var key = $"{eventKey}:{eventType}";
+        return Task.FromResult(
+            _states.TryAdd(key, "in_progress"));
+    }
+
+    public Task MarkCompletedAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        _states[$"{eventKey}:{eventType}"] = "completed";
+        return Task.CompletedTask;
+    }
+
+    public Task MarkFailedAsync(
+        string eventKey, string eventType, CancellationToken ct)
+    {
+        _states[$"{eventKey}:{eventType}"] = "failed";
+        return Task.CompletedTask;
+    }
+}
+```
+</CodeFile>
+
+## Configuration
+
+```json
+{
+  "Deduplication": {
+    "NatsKv": {
+      "Enabled": true,
+      "BucketName": "event-dedup",
+      "TtlHours": 24,
+      "StuckTimeoutMinutes": 10
+    }
+  }
+}
+```
+
+Set `Enabled: false` in local development to use the in-memory fallback.
+
+## Key Takeaways
+
+- **CAS is your friend**: `Create` for first-claim atomicity, `Update` with revision for safe reclaim
+- **TTL prevents unbounded growth**: 24-hour expiry keeps the bucket manageable
+- **Stuck detection**: 10-minute timeout + CAS reclaim eliminates the need for a reaper
+- **Interface abstraction**: Swap NATS KV for in-memory during testing
+
+## Related Reading
+
+- [NATS KV Documentation](https://docs.nats.io/nats-concepts/jetstream/key-value-store)
+- [Idempotent Consumer Pattern](https://www.enterpriseintegrationpatterns.com/patterns/messaging/IdempotentReceiver.html)

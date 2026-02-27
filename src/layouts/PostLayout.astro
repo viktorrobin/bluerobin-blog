@@ -43,14 +43,14 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
         <!-- Category & Difficulty badges -->
         <div class="flex flex-wrap items-center gap-2 mb-4">
           <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-${category}`}>
-            {categoryMeta.icon} {categoryMeta.title}
+            {categoryMeta.title}
           </span>
           <span class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium difficulty-${difficulty}`}>
             {difficultyMeta.label}
           </span>
           {readTime && (
             <span class="text-sm text-slate-500">
-              ⏱️ {readTime}
+              {readTime}
             </span>
           )}
         </div>
@@ -93,7 +93,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
       {seriesMeta && (
         <div class="series-nav">
           <div class="series-nav-title">
-            📚 Part of the "{seriesMeta.title}" series
+            Part of the "{seriesMeta.title}" series
           </div>
           <p class="text-sm text-slate-600">
             {seriesMeta.description}

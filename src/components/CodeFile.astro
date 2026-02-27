@@ -19,9 +19,9 @@ export interface Props {
 const { filename } = Astro.props;
 ---
 
-<div class="code-container not-prose my-6 rounded-lg overflow-hidden shadow-md">
+<div class="code-container not-prose my-6 rounded-lg overflow-hidden">
   <div class="code-filename">
-    📄 {filename}
+    {filename}
   </div>
   <div class="code-block">
     <slot />

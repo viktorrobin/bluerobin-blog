@@ -156,18 +156,18 @@
             oklch(52% 0.18 250) 40%,
             oklch(68% 0.15 195) 100%);
 
-    /* Mesh Background - subtle color wash for light theme */
-    --gradient-mesh: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, var(--color-quantum-alpha-10) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, var(--color-aurora-alpha-10) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, var(--color-glow-alpha-10) 0px, transparent 50%);
+    /* Mesh Background - barely perceptible color wash */
+    --gradient-mesh: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.03) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.03) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
-    --radius-sm: 0.5rem;
-    --radius-md: 0.75rem;
-    --radius-lg: 1rem;
-    --radius-xl: 1.25rem;
-    --radius-2xl: 1.5rem;
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.25rem;
 
     /* ==================== SHADOWS ==================== */
     --shadow-sm: 0 2px 4px 0 var(--color-slate-alpha-6), 0 1px 2px 0 var(--color-slate-alpha-3);
@@ -198,12 +198,12 @@
     --code-text: var(--color-slate-800);
     --code-border: var(--color-slate-200);
     --code-shadow: var(--color-slate-alpha-5);
-    --code-inline-bg: var(--color-neural-alpha-10);
-    --code-inline-text: var(--color-neural-700);
+    --code-inline-bg: oklch(25% 0.02 260 / 0.06);
+    --code-inline-text: var(--color-slate-700);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
+    --font-display: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
     /* ==================== ANIMATIONS ==================== */
@@ -215,15 +215,15 @@
     --duration-slow: 350ms;
 
     /* ==================== LAVA BLOB TOKENS ==================== */
-    /* Using design system oklch colors instead of raw rgba blue */
-    --lava-color-1: oklch(58% 0.20 275 / 0.25);
-    --lava-color-1-outer: oklch(52% 0.22 280 / 0.15);
-    --lava-color-2: oklch(68% 0.15 195 / 0.20);
-    --lava-color-2-outer: oklch(58% 0.13 195 / 0.12);
-    --lava-color-3: oklch(60% 0.26 10 / 0.15);
-    --lava-color-3-outer: oklch(52% 0.25 5 / 0.08);
-    --lava-color-4: oklch(52% 0.18 250 / 0.15);
-    --lava-color-4-outer: oklch(46% 0.21 280 / 0.08);
+    /* Barely-visible moving tint — professional subtlety */
+    --lava-color-1: oklch(58% 0.20 275 / 0.06);
+    --lava-color-1-outer: oklch(52% 0.22 280 / 0.03);
+    --lava-color-2: oklch(68% 0.15 195 / 0.05);
+    --lava-color-2-outer: oklch(58% 0.13 195 / 0.02);
+    --lava-color-3: oklch(60% 0.26 10 / 0.04);
+    --lava-color-3-outer: oklch(52% 0.25 5 / 0.02);
+    --lava-color-4: oklch(52% 0.18 250 / 0.04);
+    --lava-color-4-outer: oklch(46% 0.21 280 / 0.02);
 }
 
 /* ==================== BASE STYLES ==================== */
@@ -233,7 +233,7 @@ html {
 }
 
 body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply bg-white text-slate-800 antialiased;
     font-family: var(--font-sans);
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
@@ -428,27 +428,27 @@ pre {
 }
 
 .glass-card:hover {
-    box-shadow: var(--shadow-lg), var(--shadow-neural-sm);
-    border-color: var(--color-neural-alpha-20);
-    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-slate-alpha-15);
+    transform: translateY(-1px);
 }
 
 /* ==================== TAG STYLES ==================== */
 
 .tag {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neural-100 text-neural-700 transition-colors;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-600 transition-colors;
 }
 
 .tag:hover {
-    @apply bg-neural-200;
+    @apply bg-slate-200;
 }
 
 .tag-series {
-    @apply bg-aurora-100 text-aurora-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .tag-series:hover {
-    @apply bg-aurora-200;
+    @apply bg-slate-200;
 }
 
 /* ==================== NAVIGATION ==================== */
@@ -499,9 +499,9 @@ pre {
 }
 
 .article-card:hover {
-    box-shadow: var(--shadow-lg), var(--shadow-neural-sm);
-    border-color: var(--color-neural-alpha-20);
-    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-slate-alpha-15);
+    transform: translateY(-2px);
 }
 
 .article-card h2 {
@@ -531,11 +531,11 @@ pre {
 }
 
 .implementation-note {
-    @apply text-sm italic text-glow-700;
+    @apply text-sm italic text-slate-600;
 }
 
 .external-cite {
-    @apply text-quantum-600;
+    @apply text-slate-600;
 }
 
 /* ==================== CODE BLOCKS ==================== */
@@ -566,7 +566,7 @@ pre {
 }
 
 .series-nav-title {
-    @apply text-sm font-semibold text-aurora-600 uppercase tracking-wide mb-2;
+    @apply text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2;
 }
 
 .series-nav-list {
@@ -616,57 +616,100 @@ pre {
 }
 
 /* ==================== DIFFICULTY BADGES ==================== */
+/* All muted — professional, not rainbow */
 
 .difficulty-beginner {
-    @apply bg-quantum-100 text-quantum-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .difficulty-intermediate {
-    @apply bg-glow-100 text-glow-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .difficulty-advanced {
-    @apply bg-aurora-100 text-aurora-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 /* ==================== CATEGORY BADGES ==================== */
+/* Uniform muted badges — category distinguished by text, not color */
 
 .category-cookbook {
-    @apply bg-quantum-100 text-quantum-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .category-guide {
-    @apply bg-neural-100 text-neural-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .category-architecture {
-    @apply bg-aurora-100 text-aurora-700;
+    @apply bg-slate-100 text-slate-600;
 }
 
 .category-troubleshooting {
-    @apply bg-glow-100 text-glow-700;
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-messaging {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-infrastructure {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-security {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-ai {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-frontend {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-backend {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-database {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-ci-cd {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-observability {
+    @apply bg-slate-100 text-slate-600;
+}
+
+.category-storage {
+    @apply bg-slate-100 text-slate-600;
 }
 
 /* ==================== CALLOUT STYLES ==================== */
+/* Restrained palette — border-l-2, subtle backgrounds */
 
 .callout {
-    @apply rounded-lg p-4 my-4 border-l-4;
+    @apply rounded-lg p-4 my-4 border-l-2;
 }
 
 .callout-info {
-    @apply bg-neural-50 border-neural-500 text-neural-900;
+    @apply bg-slate-50 border-slate-400 text-slate-800;
 }
 
 .callout-warning {
-    @apply bg-glow-50 border-glow-500 text-glow-900;
+    @apply bg-glow-50 border-glow-500 text-slate-800;
 }
 
 .callout-tip {
-    @apply bg-quantum-50 border-quantum-500 text-quantum-900;
+    @apply bg-slate-50 border-slate-400 text-slate-800;
 }
 
 .callout-danger {
-    @apply bg-aurora-50 border-aurora-500 text-aurora-900;
+    @apply bg-aurora-50 border-aurora-400 text-slate-800;
 }
 
 /* ==================== LAVA BLOB BACKGROUND ==================== */
@@ -695,7 +738,7 @@ pre {
     filter: blur(80px);
     mix-blend-mode: normal;
     will-change: transform, border-radius;
-    opacity: 0.25;
+    opacity: 0.15;
     transition: background 0.8s ease;
 }
 

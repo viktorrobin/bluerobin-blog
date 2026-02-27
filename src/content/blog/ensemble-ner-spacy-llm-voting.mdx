@@ -1,44 +1,225 @@
 ---
 title: "From Single-Model NER to Ensemble NER: Adding spaCy + LLM Voting"
-description: "How BlueRobin evolved entity extraction by combining deterministic and LLM-based providers with confidence-aware ensembling."
+description: "How to evolve entity extraction by combining deterministic and LLM-based providers with confidence-aware ensembling."
 pubDate: 2025-11-06
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
 tags: ["ner", "spacy", "ensembling", "llm", "information-extraction"]
 readTime: "10 min"
-ogImage: "/og/ensemble-ner-spacy-llm-voting.png"
-canonicalURL: "https://blog.bluerobin.io/ensemble-ner-spacy-llm-voting"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-A single NER model is rarely enough in noisy real-world documents. BlueRobin improved extraction quality by introducing spaCy as an additional provider and combining outputs with confidence-aware aggregation.
+Named entity recognition (NER) is a core building block for document intelligence. A single NER model — whether a transformer or a rule-based system — inevitably has blind spots. By combining multiple NER providers into an **ensemble with voting**, you dramatically improve precision and recall while gaining confidence scores for downstream filtering.
 
-## What Changed
+## The Single-Provider Problem
 
-- `bc7c191`: spaCy added to ensemble NER providers.
-- `c0d3a8a` + `fdf0e61` (infra): restored spaCy deployment and enabled worker access.
+spaCy's `en_core_web_trf` is fast and reliable for common entities (person names, organizations, dates). But it struggles with:
 
-## Ensembling Strategy
+- **Domain-specific terms** (medical conditions, financial instruments)
+- **Ambiguous spans** ("Apple" as company vs. fruit)
+- **Nested entities** (location within organization name)
 
-1. Run multiple NER providers in parallel.
-2. Normalize entities into a shared schema.
-3. Merge by entity type and surface form.
-4. Keep high-confidence consensus entities first.
+An LLM-based extractor handles ambiguity better but hallucinates entities and is slower. Combine them, and their weaknesses cancel out.
 
-## Why This Works
+## Architecture: Parallel NER with Voting
 
-- Deterministic models improve stability for known patterns.
-- LLM-based extraction catches long-tail entities.
-- Aggregation reduces provider-specific blind spots.
+```
+Input Text
+    |-->  spaCy NER --------->  Entities + spans
+    |-->  LLM NER (Ollama) -->  Entities + spans
+    |-->  Rule-based NER ----->  Entities + spans
+              |
+              v
+      Normalize + Align
+              |
+              v
+      Consensus Voting
+              |
+              v
+      Merged Entities (with confidence)
+```
 
-## Conclusion
+## Provider Interface
 
-Entity quality improves most when extraction is treated as an ensemble problem, not a single-model selection problem.
+Each NER provider implements a common interface:
 
-**Related reading**:
-- `/spacy-ner-document-analysis/`
-- `/agentic-rrf-ensembling-production-search/`
+<CodeFile filename="INerProvider.cs">
+```csharp
+public interface INerProvider
+{
+    string Name { get; }
+    Task<IReadOnlyList<ExtractedEntity>> ExtractAsync(
+        string text, CancellationToken ct);
+}
+
+public record ExtractedEntity(
+    string Text,
+    string Label,
+    int StartChar,
+    int EndChar,
+    double Confidence,
+    string Source);
+```
+</CodeFile>
+
+### spaCy Provider (via HTTP API)
+
+<CodeFile filename="SpacyNerProvider.cs">
+```csharp
+public class SpacyNerProvider : INerProvider
+{
+    public string Name => "spacy";
+    private readonly HttpClient _http;
+
+    public async Task<IReadOnlyList<ExtractedEntity>> ExtractAsync(
+        string text, CancellationToken ct)
+    {
+        var response = await _http.PostAsJsonAsync(
+            "/ner", new { text }, ct);
+        var result = await response.Content
+            .ReadFromJsonAsync<SpacyResponse>(ct);
+
+        return result!.Entities.Select(e => new ExtractedEntity(
+            e.Text, e.Label, e.Start, e.End,
+            Confidence: 0.85, Source: Name
+        )).ToList();
+    }
+}
+```
+</CodeFile>
+
+### LLM Provider (via Ollama)
+
+<CodeFile filename="OllamaNerProvider.cs">
+```csharp
+public class OllamaNerProvider : INerProvider
+{
+    public string Name => "ollama";
+
+    public async Task<IReadOnlyList<ExtractedEntity>> ExtractAsync(
+        string text, CancellationToken ct)
+    {
+        var prompt = $@"Extract named entities from this text.
+Return JSON array: [{{""text"":"".."",""label"":"".."",""start"":0,""end"":5}}]
+Labels: PERSON, ORG, DATE, LOCATION, MEDICAL, FINANCIAL
+Text: {text[..Math.Min(text.Length, 2000)]}";
+
+        var response = await _ollama.GenerateAsync(prompt, ct);
+        var entities = JsonSerializer
+            .Deserialize<List<LlmEntity>>(response);
+
+        return entities?.Select(e => new ExtractedEntity(
+            e.Text, e.Label, e.Start, e.End,
+            Confidence: 0.7, Source: Name
+        )).ToList() ?? [];
+    }
+}
+```
+</CodeFile>
+
+## Ensemble: Normalize, Align, Vote
+
+<CodeFile filename="EnsembleNerService.cs">
+```csharp
+public class EnsembleNerService
+{
+    private readonly IReadOnlyList<INerProvider> _providers;
+
+    public async Task<IReadOnlyList<ExtractedEntity>> ExtractAsync(
+        string text, CancellationToken ct)
+    {
+        // 1. Run providers in parallel
+        var tasks = _providers.Select(
+            p => p.ExtractAsync(text, ct));
+        var results = await Task.WhenAll(tasks);
+        var allEntities = results.SelectMany(r => r).ToList();
+
+        // 2. Normalize labels
+        var normalized = allEntities.Select(Normalize).ToList();
+
+        // 3. Group by overlapping spans
+        var groups = GroupByOverlappingSpans(normalized);
+
+        // 4. Vote within each group
+        return groups.Select(VoteOnGroup).ToList();
+    }
+
+    private ExtractedEntity VoteOnGroup(
+        List<ExtractedEntity> group)
+    {
+        // Majority label wins
+        var bestLabel = group
+            .GroupBy(e => e.Label)
+            .OrderByDescending(g => g.Count())
+            .ThenByDescending(g => g.Max(e => e.Confidence))
+            .First().Key;
+
+        // Confidence = fraction of providers that agree
+        var agreement = group
+            .Count(e => e.Label == bestLabel) / (double)_providers.Count;
+
+        var representative = group
+            .First(e => e.Label == bestLabel);
+
+        return representative with
+        {
+            Confidence = agreement,
+            Source = string.Join("+",
+                group.Select(e => e.Source).Distinct())
+        };
+    }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Confidence thresholding">
+Set a minimum confidence threshold (e.g., 0.5 = majority agreement) for downstream consumers. Entities below the threshold can be stored but flagged for human review.
+</Callout>
+
+## Span Overlap Detection
+
+Two entities "overlap" if their character ranges intersect:
+
+```csharp
+private List<List<ExtractedEntity>> GroupByOverlappingSpans(
+    List<ExtractedEntity> entities)
+{
+    var sorted = entities.OrderBy(e => e.StartChar).ToList();
+    var groups = new List<List<ExtractedEntity>>();
+    var current = new List<ExtractedEntity>();
+
+    foreach (var entity in sorted)
+    {
+        if (current.Count == 0
+            || entity.StartChar <= current.Max(e => e.EndChar))
+        {
+            current.Add(entity);
+        }
+        else
+        {
+            groups.Add(current);
+            current = new List<ExtractedEntity> { entity };
+        }
+    }
+
+    if (current.Count > 0) groups.Add(current);
+    return groups;
+}
+```
+
+## Key Takeaways
+
+- **Single NER models have blind spots** — domain terms, ambiguity, nested entities
+- Run providers in **parallel** for latency parity with a single model
+- **Normalize labels** before voting (PER to PERSON, LOC to LOCATION)
+- **Confidence = agreement ratio** — simple, interpretable, filterable
+- Use the **Source** field to trace which providers contributed to each entity
+
+## Related Reading
+
+- [spaCy NER Pipeline](https://spacy.io/usage/linguistic-features#named-entities)
+- [Ensemble Methods for NLP (Jurafsky and Martin)](https://web.stanford.edu/~jurafsky/slp3/)

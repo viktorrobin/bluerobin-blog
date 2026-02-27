@@ -1,40 +1,177 @@
 ---
-title: "Model Policy Governance and Token Usage at Platform Scale"
-description: "Implementing model policy management and global token accounting so agentic features remain cost-aware and governable."
+title: "Model Policy Governance and Token Usage Tracking"
+description: "Implementing model policy management and token accounting so LLM features remain cost-aware and governable at platform scale."
 pubDate: 2026-02-01
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
 tags: ["llm", "governance", "model-policy", "tokens", "platform"]
 readTime: "8 min"
-ogImage: "/og/model-policy-governance-token-usage.png"
-canonicalURL: "https://blog.bluerobin.io/model-policy-governance-token-usage"
 toc: true
-draft: true
 ---
 
-## Introduction
+import Callout from "@components/Callout.astro";
+import CodeFile from "@components/CodeFile.astro";
 
-As LLM usage grows, governance becomes mandatory: which models can run, where they run, and how token costs are tracked per feature path.
+As you add more LLM-powered features — summarization, entity extraction, embeddings, RAG queries — token consumption grows unpredictably. Without governance, a single runaway feature can exhaust your model quota or blow your budget. This article shows how to implement model policies and token accounting.
 
-## Commit Signal
+## The Problem
 
-- `8fdca88`: added model policy management and global token usage tracking.
+Without governance:
+- No visibility into which feature consumes the most tokens
+- No per-user or per-feature limits
+- A misbehaving agent can loop indefinitely, consuming thousands of tokens
+- Cost allocation across teams or features is impossible
 
-## Governance Pattern
+## Model Policy Configuration
 
-- Central policy controls allowed models and execution constraints.
-- Runtime checks enforce policy before model execution.
-- Token counters provide global visibility for cost and usage trends.
+Define policies that specify which model each feature uses and its token limits:
 
-## Why This Matters for Agentic Systems
+<CodeFile filename="ModelPolicyOptions.cs">
+```csharp
+public class ModelPolicyOptions
+{
+    public Dictionary<string, ModelPolicy> Policies { get; set; } = new();
+}
 
-Agentic pipelines can call multiple tools and models per request. Without policy and accounting, cost and risk both scale faster than feature value.
+public class ModelPolicy
+{
+    public string ModelName { get; set; } = "llama3.2";
+    public int MaxInputTokens { get; set; } = 4096;
+    public int MaxOutputTokens { get; set; } = 2048;
+    public int MaxRequestsPerMinute { get; set; } = 60;
+    public bool Enabled { get; set; } = true;
+}
+```
+</CodeFile>
 
-## Conclusion
+```json
+{
+  "ModelPolicies": {
+    "Policies": {
+      "summarization": {
+        "ModelName": "llama3.2",
+        "MaxInputTokens": 8192,
+        "MaxOutputTokens": 1024,
+        "MaxRequestsPerMinute": 30,
+        "Enabled": true
+      },
+      "entity-extraction": {
+        "ModelName": "llama3.2",
+        "MaxInputTokens": 4096,
+        "MaxOutputTokens": 512,
+        "MaxRequestsPerMinute": 60,
+        "Enabled": true
+      },
+      "rag-query": {
+        "ModelName": "llama3.2",
+        "MaxInputTokens": 16384,
+        "MaxOutputTokens": 4096,
+        "MaxRequestsPerMinute": 20,
+        "Enabled": true
+      }
+    }
+  }
+}
+```
 
-Model governance should ship with agentic capabilities, not after them.
+## Policy Enforcement
 
-**Related reading**:
-- `/semantic-kernel-agents-orchestration/`
-- `/graphrag-routing-dotnet-langgraph-fallback/`
+A middleware checks the policy before every LLM call:
+
+<CodeFile filename="PolicyEnforcingLlmService.cs">
+```csharp
+public class PolicyEnforcingLlmService : ILlmService
+{
+    private readonly ILlmService _inner;
+    private readonly ModelPolicyOptions _policies;
+    private readonly ITokenCounter _tokenCounter;
+
+    public async Task<string> GenerateAsync(
+        string feature, string prompt, CancellationToken ct)
+    {
+        var policy = _policies.Policies.GetValueOrDefault(feature)
+            ?? throw new InvalidOperationException(
+                $"No model policy defined for feature '{feature}'");
+
+        if (!policy.Enabled)
+            throw new FeatureDisabledException(feature);
+
+        // Check input token limit
+        var inputTokens = EstimateTokenCount(prompt);
+        if (inputTokens > policy.MaxInputTokens)
+            throw new TokenLimitExceededException(
+                feature, inputTokens, policy.MaxInputTokens);
+
+        // Check rate limit
+        if (!await _tokenCounter.TryConsumeAsync(
+            feature, 1, policy.MaxRequestsPerMinute, ct))
+            throw new RateLimitExceededException(feature);
+
+        var result = await _inner.GenerateAsync(
+            feature, prompt, ct);
+
+        // Record actual usage
+        var outputTokens = EstimateTokenCount(result);
+        await _tokenCounter.RecordUsageAsync(
+            feature, inputTokens, outputTokens, ct);
+
+        return result;
+    }
+}
+```
+</CodeFile>
+
+## Token Accounting
+
+Track cumulative token usage per feature for cost allocation and monitoring:
+
+<CodeFile filename="TokenUsageRecord.cs">
+```csharp
+public class TokenUsageRecord
+{
+    public string Feature { get; init; } = "";
+    public string Model { get; init; } = "";
+    public int InputTokens { get; init; }
+    public int OutputTokens { get; init; }
+    public DateTime Timestamp { get; init; }
+    public string? UserId { get; init; }
+}
+```
+</CodeFile>
+
+<Callout type="tip" title="Approximate token counting">
+For local models (Ollama), use a simple heuristic: tokens is approximately characters divided by 4. For OpenAI-compatible APIs, use the tiktoken library or parse the usage field from API responses.
+</Callout>
+
+## Dashboard Metrics
+
+Expose token usage as OpenTelemetry metrics:
+
+```csharp
+var meter = new Meter("ai.token-usage");
+var inputCounter = meter.CreateCounter<long>("ai.tokens.input");
+var outputCounter = meter.CreateCounter<long>("ai.tokens.output");
+var requestCounter = meter.CreateCounter<long>("ai.requests");
+
+// After each LLM call
+inputCounter.Add(inputTokens,
+    new("feature", feature), new("model", model));
+outputCounter.Add(outputTokens,
+    new("feature", feature), new("model", model));
+requestCounter.Add(1,
+    new("feature", feature), new("model", model));
+```
+
+## Key Takeaways
+
+- Define **per-feature model policies** — different features need different limits
+- **Enforce policies** before every LLM call with a decorator/middleware
+- **Track token usage** with OpenTelemetry for cost visibility
+- Use a **kill switch** (`Enabled: false`) to disable runaway features instantly
+- Estimate tokens with **characters / 4** for local models
+
+## Related Reading
+
+- [OpenTelemetry .NET Metrics](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics)
+- [Ollama API Reference](https://github.com/ollama/ollama/blob/main/docs/api.md)
