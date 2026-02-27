@@ -63,24 +63,24 @@ marked.setOptions({ renderer });
 const htmlContent = marked.parse(markdownContent);
 
 const topicColors: Record<string, string> = {
-  "ai": "bg-neural-100 text-neural-800",
-  "architecture": "bg-quantum-100 text-quantum-800",
-  "infrastructure": "bg-quantum-100 text-quantum-800",
-  "ddd": "bg-glow-100 text-glow-800",
-  "devops": "bg-aurora-100 text-aurora-800"
+  "ai": "bg-neural-100 text-neural-700",
+  "architecture": "bg-neural-100 text-neural-700",
+  "infrastructure": "bg-quantum-100 text-quantum-700",
+  "ddd": "bg-glow-100 text-glow-700",
+  "devops": "bg-glow-100 text-glow-700"
 };
 ---
 
 <MainLayout title={`${title} | BlueRobin Architecture`} description={description}>
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Breadcrumb -->
-    <nav class="text-sm mb-8">
+    <nav class="text-sm mb-8" aria-label="Breadcrumb">
       <ol class="flex items-center space-x-2 text-slate-500">
-        <li><a href="/" class="hover:text-neural-600">Home</a></li>
+        <li><a href="/" class="hover:text-neural-600 transition-colors">Home</a></li>
         <li>/</li>
-        <li><a href="/architecture" class="hover:text-neural-600">Architecture</a></li>
+        <li><a href="/architecture" class="hover:text-neural-600 transition-colors">Architecture</a></li>
         <li>/</li>
-        <li><a href="/architecture/diagrams" class="hover:text-neural-600">Diagrams</a></li>
+        <li><a href="/architecture/diagrams" class="hover:text-neural-600 transition-colors">Diagrams</a></li>
         <li>/</li>
         <li class="text-slate-900">{title}</li>
       </ol>
@@ -96,7 +96,7 @@ const topicColors: Record<string, string> = {
           {diagramType}
         </span>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
         {title}
       </h1>
       <p class="text-lg text-slate-600">

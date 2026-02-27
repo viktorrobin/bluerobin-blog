@@ -72,13 +72,18 @@
 
     /* ==================== GLASSMORPHISM ==================== */
     --glass-white-10: rgba(255, 255, 255, 0.10);
+    --glass-white-12: rgba(255, 255, 255, 0.12);
+    --glass-white-15: rgba(255, 255, 255, 0.15);
     --glass-white-20: rgba(255, 255, 255, 0.20);
+    --glass-white-25: rgba(255, 255, 255, 0.25);
     --glass-white-30: rgba(255, 255, 255, 0.30);
+    --glass-white-35: rgba(255, 255, 255, 0.35);
     --glass-white-40: rgba(255, 255, 255, 0.40);
     --glass-white-60: rgba(255, 255, 255, 0.60);
     --glass-white-70: rgba(255, 255, 255, 0.70);
     --glass-white-80: rgba(255, 255, 255, 0.80);
     --glass-dark-10: rgba(15, 23, 42, 0.10);
+    --glass-dark-15: rgba(15, 23, 42, 0.15);
     --glass-dark-20: rgba(15, 23, 42, 0.20);
     --glass-dark-40: rgba(15, 23, 42, 0.40);
     --glass-dark-60: rgba(15, 23, 42, 0.60);
@@ -97,9 +102,12 @@
     /* ==================== COLOR OPACITY TOKENS ==================== */
     /* Neural color with opacity variants - for shadows, glows, rings */
     --color-neural-alpha-10: oklch(58% 0.20 275 / 0.10);
+    --color-neural-alpha-12: oklch(58% 0.20 275 / 0.12);
     --color-neural-alpha-15: oklch(58% 0.20 275 / 0.15);
     --color-neural-alpha-20: oklch(58% 0.20 275 / 0.20);
+    --color-neural-alpha-25: oklch(58% 0.20 275 / 0.25);
     --color-neural-alpha-30: oklch(58% 0.20 275 / 0.30);
+    --color-neural-alpha-35: oklch(58% 0.20 275 / 0.35);
     --color-neural-alpha-40: oklch(58% 0.20 275 / 0.40);
     --color-neural-alpha-50: oklch(58% 0.20 275 / 0.50);
 
@@ -111,11 +119,19 @@
     --color-aurora-alpha-40: oklch(60% 0.26 10 / 0.40);
 
     /* Quantum color with opacity variants */
+    --color-quantum-alpha-08: oklch(68% 0.15 195 / 0.08);
     --color-quantum-alpha-10: oklch(68% 0.15 195 / 0.10);
+    --color-quantum-alpha-12: oklch(68% 0.15 195 / 0.12);
     --color-quantum-alpha-15: oklch(68% 0.15 195 / 0.15);
     --color-quantum-alpha-20: oklch(68% 0.15 195 / 0.20);
+    --color-quantum-alpha-25: oklch(68% 0.15 195 / 0.25);
     --color-quantum-alpha-30: oklch(68% 0.15 195 / 0.30);
     --color-quantum-alpha-40: oklch(68% 0.15 195 / 0.40);
+
+    /* Signature-mid (neural→quantum bridge, hue 250) with opacity variants */
+    --color-signature-mid: oklch(52% 0.18 250);
+    --color-signature-mid-alpha-15: oklch(52% 0.18 250 / 0.15);
+    --color-signature-mid-alpha-20: oklch(52% 0.18 250 / 0.20);
 
     /* Glow color with opacity variants */
     --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
@@ -215,15 +231,15 @@
     --duration-slow: 350ms;
 
     /* ==================== LAVA BLOB TOKENS ==================== */
-    /* Vivid lava tint — visible on every page, matching main app energy */
-    --lava-color-1: oklch(58% 0.20 275 / 0.20);
-    --lava-color-1-outer: oklch(52% 0.22 280 / 0.10);
-    --lava-color-2: oklch(68% 0.15 195 / 0.18);
-    --lava-color-2-outer: oklch(58% 0.13 195 / 0.08);
-    --lava-color-3: oklch(60% 0.26 10 / 0.14);
-    --lava-color-3-outer: oklch(52% 0.25 5 / 0.06);
-    --lava-color-4: oklch(52% 0.18 250 / 0.14);
-    --lava-color-4-outer: oklch(46% 0.21 280 / 0.06);
+    /* BlueRobin brand palette: neural purple + quantum cyan + aurora accents */
+    --lava-color-1: oklch(58% 0.20 275 / 0.30);
+    --lava-color-1-outer: oklch(52% 0.22 280 / 0.12);
+    --lava-color-2: oklch(68% 0.15 195 / 0.25);
+    --lava-color-2-outer: oklch(58% 0.13 195 / 0.10);
+    --lava-color-3: oklch(60% 0.22 10 / 0.18);
+    --lava-color-3-outer: oklch(52% 0.25 5 / 0.07);
+    --lava-color-4: oklch(52% 0.18 250 / 0.22);
+    --lava-color-4-outer: oklch(46% 0.21 280 / 0.08);
 }
 
 /* ==================== BASE STYLES ==================== */
@@ -233,11 +249,23 @@ html {
 }
 
 body {
-    @apply bg-white text-slate-800 antialiased;
+    @apply bg-slate-50 text-slate-800 antialiased;
     font-family: var(--font-sans);
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
     background-size: 100% 100%;
+}
+
+/* ==================== FOCUS VISIBLE ==================== */
+/* WCAG 2.1 AA compliant focus indicators for keyboard navigation */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-white rounded-sm;
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -249,7 +277,8 @@ h4,
 h5,
 h6 {
     font-family: var(--font-display);
-    @apply font-bold tracking-tight;
+    @apply font-semibold tracking-tight;
+    text-wrap: balance;
 }
 
 code,
@@ -261,7 +290,7 @@ pre {
 /* Comprehensive typography for blog articles */
 
 .prose {
-    @apply max-w-none text-slate-700 leading-relaxed;
+    @apply max-w-none text-slate-800 leading-relaxed;
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -277,22 +306,22 @@ pre {
 
 /* Headings */
 .prose h1 {
-    @apply text-2xl sm:text-3xl font-bold text-slate-900 mt-10 mb-5;
+    @apply text-2xl sm:text-3xl font-semibold text-slate-900 mt-10 mb-5;
     font-family: var(--font-display);
 }
 
 .prose h2 {
-    @apply text-xl sm:text-2xl font-bold text-slate-900 mt-8 mb-3 pb-2 border-b border-slate-200;
+    @apply text-xl sm:text-2xl font-semibold text-slate-900 mt-8 mb-3 pb-2 border-b border-slate-200;
     font-family: var(--font-display);
 }
 
 .prose h3 {
-    @apply text-lg sm:text-xl font-semibold text-slate-800 mt-6 mb-2;
+    @apply text-lg sm:text-xl font-semibold text-slate-900 mt-6 mb-2;
     font-family: var(--font-display);
 }
 
 .prose h4 {
-    @apply text-base sm:text-lg font-semibold text-slate-800 mt-5 mb-2;
+    @apply text-base sm:text-lg font-semibold text-slate-900 mt-5 mb-2;
     font-family: var(--font-display);
 }
 
@@ -403,7 +432,7 @@ pre {
 
 /* Strong and Emphasis */
 .prose strong {
-    @apply font-bold text-slate-900;
+    @apply font-semibold text-slate-900;
 }
 
 .prose em {
@@ -418,19 +447,179 @@ pre {
 /* ==================== GLASS CARD ==================== */
 
 .glass-card {
-    background-color: var(--glass-white-40);
-    backdrop-filter: blur(32px) saturate(1.4);
-    -webkit-backdrop-filter: blur(32px) saturate(1.4);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
-    transition: all 0.3s var(--ease-smooth);
+    background-color: var(--glass-white-20);
+    backdrop-filter: var(--blur-2xl) saturate(1.8);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-white-15);
+    transition: background-color 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
 }
 
 .glass-card:hover {
-    box-shadow: var(--shadow-neural-sm);
-    border-color: var(--color-neural-alpha-15);
-    transform: translateY(-3px);
+    background-color: var(--glass-white-25);
+    border-color: var(--glass-white-25);
+}
+
+/* ==================== BENTO FEATURE GRID ==================== */
+
+.bento-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .bento-grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+
+    .bento-lg {
+        grid-column: span 3;
+    }
+
+    .bento-card:not(.bento-lg):not(.bento-full) {
+        grid-column: span 2;
+    }
+
+    .bento-full {
+        grid-column: 1 / -1;
+    }
+}
+
+.bento-card {
+    position: relative;
+    border-radius: var(--radius-2xl);
+    padding: 2rem;
+    overflow: hidden;
+    background-color: var(--glass-white-25);
+    border: 1px solid var(--glass-white-15);
+    transition: background-color 0.3s var(--ease-smooth);
+}
+
+.bento-card:hover {
+    background-color: var(--glass-white-35);
+}
+
+.bento-card h3 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--color-slate-800);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.01em;
+}
+
+.bento-card p {
+    font-size: 0.9375rem;
+    line-height: 1.65;
+    color: var(--color-slate-500);
+}
+
+.bento-lg {
+    padding: 2.5rem;
+}
+
+.bento-lg h3 {
+    font-size: 1.5rem;
+    letter-spacing: -0.015em;
+}
+
+.bento-full {
+    display: flex;
+    align-items: center;
+    gap: 1.75rem;
+    padding: 2rem 2.5rem;
+}
+
+.bento-full h3 {
+    margin-bottom: 0.25rem;
+}
+
+.bento-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-bottom: 1rem;
+    color: var(--color-slate-400);
+    transition: color 0.3s var(--ease-smooth);
+}
+
+.bento-card:hover .bento-icon {
+    color: var(--color-slate-500);
+}
+
+.bento-icon svg {
+    width: 1.5rem;
+    height: 1.5rem;
+}
+
+.bento-full .bento-icon {
+    width: 3rem;
+    height: 3rem;
+    margin-bottom: 0;
+}
+
+.bento-full .bento-icon svg {
+    width: 1.75rem;
+    height: 1.75rem;
+}
+
+/* Color variants — flat tinted backgrounds, no shadows or glows */
+.bento-neural .bento-icon {
+    color: var(--color-neural-400);
+}
+
+.bento-neural:hover .bento-icon {
+    color: var(--color-neural-500);
+}
+
+.bento-signature .bento-icon {
+    color: var(--color-neural-400);
+}
+
+.bento-signature:hover .bento-icon {
+    color: var(--color-neural-500);
+}
+
+.bento-aurora .bento-icon {
+    color: var(--color-aurora-400);
+}
+
+.bento-aurora:hover .bento-icon {
+    color: var(--color-aurora-500);
+}
+
+.bento-glow .bento-icon {
+    color: var(--color-glow-500);
+}
+
+.bento-glow:hover .bento-icon {
+    color: var(--color-glow-600);
+}
+
+.bento-quantum .bento-icon {
+    color: var(--color-quantum-400);
+}
+
+.bento-quantum:hover .bento-icon {
+    color: var(--color-quantum-500);
+}
+
+.bento-slate .bento-icon {
+    color: var(--color-slate-400);
+}
+
+.bento-slate:hover .bento-icon {
+    color: var(--color-slate-500);
 }
 
 /* ==================== TAG STYLES ==================== */
@@ -464,22 +653,22 @@ pre {
     color: white;
     background: var(--gradient-signature);
     background-size: 200% 200%;
-    border: 1px solid oklch(68% 0.15 195 / 0.25);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid var(--color-quantum-alpha-25);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
-        0 2px 8px oklch(58% 0.20 275 / 0.15),
-        0 1px 3px oklch(68% 0.15 195 / 0.10);
+        0 2px 8px var(--color-neural-alpha-15),
+        0 1px 3px var(--color-quantum-alpha-10);
 }
 
 .tech-pill:hover {
     background-position: 100% 100%;
-    border-color: oklch(68% 0.15 195 / 0.40);
+    border-color: var(--color-quantum-alpha-40);
     box-shadow:
-        0 0 18px oklch(58% 0.20 275 / 0.30),
-        0 0 40px oklch(68% 0.15 195 / 0.12),
-        0 4px 12px oklch(52% 0.18 250 / 0.20);
+        0 0 18px var(--color-neural-alpha-30),
+        0 0 40px var(--color-quantum-alpha-12),
+        0 4px 12px var(--color-signature-mid-alpha-20);
     transform: translateY(-2px);
 }
 
@@ -489,6 +678,192 @@ pre {
 
 .tech-pill:hover svg {
     opacity: 1;
+}
+
+/* ==================== ARCHITECTURE DIAGRAM NODES ==================== */
+
+.arch-layer-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--color-signature-mid);
+    padding: 0.25rem 0;
+}
+
+.arch-node {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.625rem;
+    padding: 0.75rem 1.25rem;
+    border-radius: 0.75rem;
+    color: white;
+    background: var(--gradient-signature);
+    background-size: 200% 200%;
+    border: 1px solid var(--color-quantum-alpha-25);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow:
+        0 2px 8px var(--color-neural-alpha-12),
+        0 1px 3px var(--color-quantum-alpha-08);
+    text-align: left;
+}
+
+.arch-node:hover {
+    background-position: 100% 100%;
+    box-shadow:
+        0 0 18px var(--color-neural-alpha-25),
+        0 0 40px var(--color-quantum-alpha-10),
+        0 4px 12px var(--color-signature-mid-alpha-15);
+    transform: translateY(-2px);
+}
+
+.arch-node svg {
+    opacity: 0.9;
+}
+
+.arch-node:hover svg {
+    opacity: 1;
+}
+
+/* Per-layer color variants */
+.arch-node-neural {
+    background: var(--gradient-neural);
+    border-color: var(--color-neural-alpha-25);
+}
+
+.arch-node-neural:hover {
+    box-shadow:
+        0 0 18px var(--color-neural-alpha-30),
+        0 0 40px var(--color-neural-alpha-12),
+        0 4px 12px var(--color-neural-alpha-20);
+}
+
+.arch-node-aurora {
+    background: var(--gradient-aurora);
+    border-color: var(--color-aurora-alpha-20);
+}
+
+.arch-node-aurora:hover {
+    box-shadow:
+        0 0 18px var(--color-aurora-alpha-30),
+        0 0 40px var(--color-aurora-alpha-10),
+        0 4px 12px var(--color-aurora-alpha-20);
+}
+
+.arch-node-glow {
+    background: var(--gradient-glow);
+    border-color: var(--color-glow-alpha-20);
+}
+
+.arch-node-glow:hover {
+    box-shadow:
+        0 0 18px var(--color-glow-alpha-30),
+        0 0 40px var(--color-glow-alpha-10),
+        0 4px 12px var(--color-glow-alpha-20);
+}
+
+.arch-node-quantum {
+    background: var(--gradient-quantum);
+    border-color: var(--color-quantum-alpha-25);
+}
+
+.arch-node-quantum:hover {
+    box-shadow:
+        0 0 18px var(--color-quantum-alpha-30),
+        0 0 40px var(--color-quantum-alpha-12),
+        0 4px 12px var(--color-quantum-alpha-20);
+}
+
+.arch-node-signature {
+    background: var(--gradient-signature);
+    border-color: var(--color-neural-alpha-20);
+}
+
+.arch-node-signature:hover {
+    box-shadow:
+        0 0 18px var(--color-neural-alpha-25),
+        0 0 40px var(--color-quantum-alpha-10),
+        0 4px 12px var(--color-signature-mid-alpha-15);
+}
+
+.arch-node-slate {
+    background: linear-gradient(135deg, var(--color-slate-600), var(--color-slate-700), var(--color-slate-800));
+    border-color: var(--color-slate-alpha-15);
+}
+
+.arch-node-slate:hover {
+    box-shadow:
+        0 0 18px var(--color-slate-alpha-15),
+        0 0 40px var(--color-slate-alpha-10),
+        0 4px 12px var(--color-slate-alpha-12);
+}
+
+/* Per-layer label colors */
+.arch-label-neural {
+    color: var(--color-neural-600);
+}
+
+.arch-label-aurora {
+    color: var(--color-aurora-600);
+}
+
+.arch-label-glow {
+    color: var(--color-glow-600);
+}
+
+.arch-label-quantum {
+    color: var(--color-quantum-600);
+}
+
+.arch-label-signature {
+    color: var(--color-signature-mid);
+}
+
+.arch-label-slate {
+    color: var(--color-slate-500);
+}
+
+/* Per-layer arrow colors */
+.arch-arrow-neural {
+    color: var(--color-neural-alpha-35);
+}
+
+.arch-arrow-aurora {
+    color: var(--color-aurora-alpha-30);
+}
+
+.arch-arrow-glow {
+    color: var(--color-glow-alpha-30);
+}
+
+.arch-arrow-quantum {
+    color: var(--color-quantum-alpha-30);
+}
+
+.arch-arrow-signature {
+    color: var(--color-signature-mid-alpha-20);
+}
+
+.arch-node-wide {
+    width: 100%;
+    max-width: 28rem;
+}
+
+.arch-node-compact {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 0.375rem;
+    padding: 0.75rem;
+}
+
+.arch-arrow {
+    color: var(--color-neural-alpha-35);
+    font-size: 1.25rem;
+    line-height: 1;
+    padding: 0.125rem 0;
 }
 
 /* ==================== NAVIGATION ==================== */
@@ -508,44 +883,69 @@ pre {
 /* ==================== BUTTONS ==================== */
 
 .btn-primary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg text-white font-medium transition-all shadow-md;
-    background: linear-gradient(to right, var(--color-neural-600), var(--color-neural-700));
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-white font-medium text-sm tracking-wide transition-all gap-2;
+    background: var(--gradient-neural);
+    box-shadow: var(--shadow-sm);
 }
 
 .btn-primary:hover {
-    @apply shadow-lg;
-    background: linear-gradient(to right, var(--color-neural-500), var(--color-neural-600));
+    box-shadow: var(--shadow-neural-sm);
+    transform: translateY(-2px);
+    background: linear-gradient(135deg, var(--color-neural-400), var(--color-neural-600), var(--color-neural-700));
+}
+
+.btn-primary:active {
+    transform: scale(0.98) translateY(0);
+}
+
+.btn-primary:focus-visible {
+    @apply ring-2 ring-neural-400 ring-offset-2;
+}
+
+.btn-primary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
 }
 
 .btn-secondary {
-    @apply inline-flex items-center justify-center px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-medium transition-colors;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium text-sm tracking-wide transition-all gap-2;
 }
 
 .btn-secondary:hover {
     @apply bg-slate-300;
+    transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+    transform: scale(0.98) translateY(0);
+}
+
+.btn-secondary:disabled {
+    @apply opacity-50 cursor-not-allowed;
+    transform: none;
 }
 
 /* ==================== ARTICLE CARD ==================== */
 
 .article-card {
-    background-color: var(--glass-white-40);
-    backdrop-filter: blur(32px) saturate(1.4);
-    -webkit-backdrop-filter: blur(32px) saturate(1.4);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
+    background-color: var(--glass-white-20);
+    backdrop-filter: var(--blur-2xl) saturate(1.8);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-white-15);
+    box-shadow: var(--shadow-sm);
     padding: 1.5rem;
     transition: all 0.3s var(--ease-smooth);
 }
 
 .article-card:hover {
-    box-shadow: var(--shadow-neural-sm);
-    border-color: var(--color-neural-alpha-15);
+    box-shadow: var(--shadow-neural-sm), 0 0 20px var(--color-neural-alpha-10);
+    border-color: var(--glass-white-25);
     transform: translateY(-3px);
 }
 
 .article-card h2 {
-    @apply text-xl font-bold text-slate-900 mb-2 transition-colors;
+    @apply text-lg font-medium text-slate-800 mb-2 transition-colors;
 }
 
 .article-card h2:hover {
@@ -554,28 +954,6 @@ pre {
 
 .article-card p {
     @apply text-slate-600 line-clamp-3;
-}
-
-/* ==================== CITATION STYLES ==================== */
-
-.citation {
-    @apply text-sm text-slate-500 mt-4 pt-4 border-t border-slate-200;
-}
-
-.citation a {
-    @apply text-neural-600;
-}
-
-.citation a:hover {
-    @apply underline;
-}
-
-.implementation-note {
-    @apply text-sm italic text-slate-600;
-}
-
-.external-cite {
-    @apply text-slate-600;
 }
 
 /* ==================== CODE BLOCKS ==================== */
@@ -595,12 +973,12 @@ pre {
 /* ==================== SERIES NAVIGATION ==================== */
 
 .series-nav {
-    background-color: var(--glass-white-40);
-    backdrop-filter: blur(32px) saturate(1.4);
-    -webkit-backdrop-filter: blur(32px) saturate(1.4);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
+    background-color: var(--glass-white-20);
+    backdrop-filter: var(--blur-2xl) saturate(1.8);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-white-15);
+    box-shadow: var(--shadow-sm);
     padding: 1rem;
     margin: 2rem 0;
 }
@@ -613,27 +991,15 @@ pre {
     @apply space-y-1;
 }
 
-.series-nav-item {
-    @apply text-sm text-slate-600 transition-colors;
-}
-
-.series-nav-item:hover {
-    @apply text-neural-600;
-}
-
-.series-nav-item-active {
-    @apply text-neural-600 font-medium;
-}
-
 /* ==================== TABLE OF CONTENTS ==================== */
 
 .toc {
-    background-color: var(--glass-white-40);
-    backdrop-filter: blur(32px) saturate(1.4);
-    -webkit-backdrop-filter: blur(32px) saturate(1.4);
-    border-radius: var(--radius-xl);
-    border: 1px solid var(--glass-border);
-    box-shadow: var(--shadow-md);
+    background-color: var(--glass-white-20);
+    backdrop-filter: var(--blur-2xl) saturate(1.8);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    border-radius: var(--radius-2xl);
+    border: 1px solid var(--glass-white-15);
+    box-shadow: var(--shadow-sm);
     padding: 1rem;
     position: sticky;
     top: 1rem;
@@ -734,26 +1100,10 @@ pre {
 }
 
 /* ==================== CALLOUT STYLES ==================== */
-/* Restrained palette — border-l-2, subtle backgrounds */
+/* Base callout — variant colors applied inline in Callout.astro */
 
 .callout {
     @apply rounded-lg p-4 my-4 border-l-2;
-}
-
-.callout-info {
-    @apply bg-quantum-50 border-quantum-400 text-slate-800;
-}
-
-.callout-warning {
-    @apply bg-glow-50 border-glow-500 text-slate-800;
-}
-
-.callout-tip {
-    @apply bg-neural-50 border-neural-400 text-slate-800;
-}
-
-.callout-danger {
-    @apply bg-aurora-50 border-aurora-400 text-slate-800;
 }
 
 /* ==================== LAVA BLOB BACKGROUND ==================== */
@@ -782,34 +1132,34 @@ pre {
     filter: blur(80px);
     mix-blend-mode: normal;
     will-change: transform, border-radius;
-    opacity: 0.35;
+    opacity: 0.55;
     transition: background 0.8s ease;
 }
 
 .lava-blob-1 {
-    width: 600px;
-    height: 600px;
+    width: 700px;
+    height: 700px;
     background: radial-gradient(circle, var(--lava-color-1) 0%, var(--lava-color-1-outer) 50%, transparent 70%);
-    top: -25%;
-    left: -20%;
+    top: -15%;
+    left: -15%;
     animation: lava-move-1 18s ease-in-out infinite;
 }
 
 .lava-blob-2 {
-    width: 550px;
-    height: 550px;
+    width: 650px;
+    height: 650px;
     background: radial-gradient(circle, var(--lava-color-2) 0%, var(--lava-color-2-outer) 50%, transparent 70%);
-    bottom: -30%;
-    right: -25%;
+    bottom: -20%;
+    left: 5%;
     animation: lava-move-2 16s ease-in-out infinite;
 }
 
 .lava-blob-3 {
-    width: 400px;
-    height: 400px;
+    width: 500px;
+    height: 500px;
     background: radial-gradient(circle, var(--lava-color-3) 0%, var(--lava-color-3-outer) 50%, transparent 70%);
-    bottom: 15%;
-    left: 15%;
+    bottom: -10%;
+    right: -5%;
     animation: lava-move-3 20s ease-in-out infinite;
 }
 
@@ -817,8 +1167,8 @@ pre {
     width: 450px;
     height: 450px;
     background: radial-gradient(circle, var(--lava-color-4) 0%, var(--lava-color-4-outer) 50%, transparent 70%);
-    top: 20%;
-    right: 30%;
+    top: 30%;
+    right: 20%;
     animation: lava-move-4 17s ease-in-out infinite;
 }
 
@@ -903,32 +1253,19 @@ pre {
     line-height: normal !important;
 }
 
-/* Mermaid light theme overrides using design tokens */
+/* Mermaid text readability — ensure dark text on light fills */
 .mermaid-diagram text,
 .mermaid-diagram .nodeLabel,
 .mermaid-diagram .edgeLabel,
 .mermaid-diagram .label {
-    fill: var(--color-slate-900) !important;
-    color: var(--color-slate-900) !important;
+    fill: var(--color-slate-800) !important;
+    color: var(--color-slate-800) !important;
 }
 
-.mermaid-diagram .node rect,
-.mermaid-diagram .node circle,
-.mermaid-diagram .node polygon,
-.mermaid-diagram .node path {
-    fill: var(--color-slate-50) !important;
-    stroke: var(--color-slate-400) !important;
-}
-
-.mermaid-diagram .flowchart-link,
-.mermaid-diagram .relation {
-    stroke: var(--color-slate-500) !important;
-}
-
-.mermaid-diagram .marker {
-    fill: var(--color-slate-500) !important;
-    stroke: var(--color-slate-500) !important;
-}
+/* Note: Node fills, link strokes, and markers are controlled by the
+   Mermaid JS theme config (BaseLayout.astro) and inline style directives
+   in diagram .md files. Blanket !important overrides were removed to
+   allow per-node BlueRobin palette colors to render correctly. */
 
 /* ==================== PAGE ENTRY ANIMATIONS ==================== */
 /* Staggered fade-in-up for page sections and card grids */

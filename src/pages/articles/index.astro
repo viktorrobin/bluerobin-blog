@@ -1,7 +1,7 @@
 ---
 import MainLayout from "@layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
-import { CATEGORIES, DIFFICULTIES } from "@/config";
+import { CATEGORIES, DIFFICULTIES, SERIES } from "@/config";
 
 // Get all published posts, sorted by date
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
@@ -13,7 +13,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 <MainLayout title="Blog | BlueRobin Tech Blog" description="All articles on .NET, Kubernetes, LLM integration, and Domain-Driven Design">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
         All Articles
       </h1>
       <p class="text-lg text-slate-600">
@@ -21,16 +21,51 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
       </p>
     </header>
 
-    <!-- Filters -->
-    <div class="flex flex-wrap gap-4 mb-8">
-      <div class="flex flex-wrap gap-2">
-        <span class="text-sm text-slate-500 self-center">Category:</span>
-        <a href="/articles/" class="tag">All</a>
-        {Object.entries(CATEGORIES).map(([key, cat]) => (
-          <a href={`/${key}/`} class={`tag category-${key}`}>{cat.title}</a>
-        ))}
+    <!-- Article Series -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+        Article Series
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.entries(SERIES).map(([key, series]) => {
+          const borderColor = {
+            neural: "border-neural-400",
+            quantum: "border-quantum-400",
+            aurora: "border-aurora-400",
+            glow: "border-glow-400",
+          }[series.color] ?? "border-neural-400";
+          return (
+            <a href={`/tags/${key}/`} class={`glass-card p-5 hover:shadow-lg transition-all hover:-translate-y-1 border-l-4 ${borderColor}`}>
+              <h3 class="font-medium text-slate-800 mb-1">{series.title}</h3>
+              <p class="text-sm text-slate-600">{series.description}</p>
+            </a>
+          );
+        })}
       </div>
-    </div>
+    </section>
+
+    <!-- Browse by Category -->
+    <section class="mb-12">
+      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+        Browse by Category
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Object.entries(CATEGORIES).map(([key, cat]) => {
+          const borderColor = {
+            neural: "border-neural-400",
+            quantum: "border-quantum-400",
+            aurora: "border-aurora-400",
+            glow: "border-glow-400",
+          }[cat.color] ?? "border-neural-400";
+          return (
+            <a href={`/${key}/`} class={`glass-card p-5 transition-all border-l-4 ${borderColor}`}>
+              <h3 class="font-medium text-slate-800 mb-1">{cat.title}</h3>
+              <p class="text-sm text-slate-600">{cat.description}</p>
+            </a>
+          );
+        })}
+      </div>
+    </section>
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
@@ -50,22 +85,8 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
             <article class="glass-card p-6 hover:shadow-lg transition-all">
               <div class="flex flex-col md:flex-row md:items-start gap-4">
                 <div class="flex-1">
-                  <div class="flex items-center gap-2 mb-2">
-                    <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>
-                      {post.data.category}
-                    </span>
-                    <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>
-                      {difficultyMeta.label}
-                    </span>
-                    {post.data.readTime && (
-                      <span class="text-xs text-slate-500">
-                        {post.data.readTime}
-                      </span>
-                    )}
-                  </div>
-                  
                   <a href={`/articles/${post.slug}/`}>
-                    <h2 class="text-xl font-bold text-slate-900 hover:text-neural-600 transition-colors mb-2">
+                    <h2 class="text-xl font-medium text-slate-800 hover:text-neural-600 transition-colors mb-2">
                       {post.data.title}
                     </h2>
                   </a>
@@ -84,10 +105,13 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   </div>
                 </div>
                 
-                <div class="text-sm text-slate-500 md:text-right">
+                <div class="text-sm text-slate-500 md:text-right space-y-1">
                   <time datetime={post.data.pubDate.toISOString()}>
                     {formatDate(post.data.pubDate)}
                   </time>
+                  {post.data.readTime && (
+                    <p class="text-xs">{post.data.readTime}</p>
+                  )}
                 </div>
               </div>
             </article>

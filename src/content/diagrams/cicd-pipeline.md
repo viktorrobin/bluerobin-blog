@@ -70,11 +70,11 @@ flowchart TB
         end
     end
 
-    style Developer fill:#e3f2fd
-    style CI fill:#fff3e0
-    style Merge fill:#f3e5f5
-    style Build fill:#e8f5e9
-    style GitOps fill:#fce4ec
+    style Developer fill:#eee9f5
+    style CI fill:#fdf8ea
+    style Merge fill:#ddd4ed
+    style Build fill:#edf5f6
+    style GitOps fill:#f8eded
 ```
 
 ## GitHub Actions Workflow Detail
@@ -194,9 +194,9 @@ flowchart TB
     Runner -->|Builds| DinD
     DinD -->|Pushes| LocalRegistry
 
-    style ARC fill:#e3f2fd
-    style Runner fill:#fff3e0
-    style Registry fill:#e8f5e9
+    style ARC fill:#eee9f5
+    style Runner fill:#fdf8ea
+    style Registry fill:#edf5f6
 ```
 
 ## Deployment Manifest Structure

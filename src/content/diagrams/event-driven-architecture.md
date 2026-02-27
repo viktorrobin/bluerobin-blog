@@ -29,13 +29,13 @@ sequenceDiagram
 
     Note over NATS: Stream: ARCHIVES-DOCUMENTS<br/>Retention: WorkQueue<br/>MaxDeliver: 3
 
-    rect rgb(230, 245, 255)
+    rect rgb(238, 233, 245)
         Note right of API: Upload Phase
         API->>NATS: Publish: documents.uploaded<br/>{docId, bucket, fileName}
         NATS-->>OCR: Deliver (ack required)
     end
 
-    rect rgb(255, 243, 224)
+    rect rgb(253, 248, 234)
         Note right of OCR: OCR Phase
         OCR->>OCR: Process with Docling
         OCR->>NATS: Ack: documents.uploaded
@@ -43,7 +43,7 @@ sequenceDiagram
         NATS-->>Analysis: Deliver
     end
 
-    rect rgb(243, 229, 245)
+    rect rgb(221, 212, 237)
         Note right of Analysis: Analysis Phase
         Analysis->>Analysis: Generate summary, keywords<br/>via Ollama LLM
         Analysis->>NATS: Ack: documents.ocr.completed
@@ -51,7 +51,7 @@ sequenceDiagram
         NATS-->>Chunking: Deliver
     end
 
-    rect rgb(232, 245, 233)
+    rect rgb(237, 245, 246)
         Note right of Chunking: Chunking Phase
         Chunking->>Chunking: Split into semantic chunks
         Chunking->>NATS: Ack: documents.analysis.completed
@@ -63,7 +63,7 @@ sequenceDiagram
         NATS-->>Fanout: Deliver chunk events
     end
 
-    rect rgb(252, 228, 236)
+    rect rgb(248, 237, 237)
         Note right of Fanout: Embedding Fanout Phase
         Fanout->>Fanout: Read chunk event
         
@@ -79,7 +79,7 @@ sequenceDiagram
         NATS-->>Embed: Deliver to model workers
     end
 
-    rect rgb(224, 242, 241)
+    rect rgb(213, 238, 240)
         Note right of Embed: Embedding Phase (parallel)
         par 8 model workers processing
             Embed->>Embed: Generate vector via Ollama
@@ -91,7 +91,7 @@ sequenceDiagram
         NATS-->>Agg: Deliver completion events
     end
 
-    rect rgb(224, 247, 250)
+    rect rgb(213, 238, 240)
         Note right of Agg: Aggregation Phase
         loop Until all 8 models complete
             Agg->>Agg: Track completion per doc
@@ -102,7 +102,7 @@ sequenceDiagram
         NATS-->>NER: Deliver
     end
 
-    rect rgb(255, 248, 225)
+    rect rgb(253, 248, 234)
         Note right of NER: Entity Extraction Phase
         NER->>NER: Extract via Spacy NER
         NER->>NATS: Ack: embeddings.completed
@@ -110,7 +110,7 @@ sequenceDiagram
         NATS-->>Graph: Deliver
     end
 
-    rect rgb(241, 248, 233)
+    rect rgb(237, 245, 246)
         Note right of Graph: Graph Sync Phase
         Graph->>Graph: Sync to FalkorDB
         Graph->>NATS: Ack: entities.extracted
@@ -118,14 +118,14 @@ sequenceDiagram
         NATS-->>Class: Deliver
     end
 
-    rect rgb(232, 234, 246)
+    rect rgb(238, 233, 245)
         Note right of Class: Classification Phase
         Class->>Class: Classify via LLM
         Class->>NATS: Ack: graph.synced
         Class->>NATS: Publish: documents.classified<br/>{docId, category}
     end
 
-    rect rgb(179, 229, 252)
+    rect rgb(213, 238, 240)
         Note right of Blazor: Real-time Update
         NATS-->>Blazor: Deliver: documents.classified
         Blazor->>Blazor: Update UI component state

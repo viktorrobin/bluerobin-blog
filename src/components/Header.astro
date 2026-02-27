@@ -19,7 +19,7 @@ const isActive = (href: string) => {
 };
 ---
 
-<header class="sticky top-0 z-50 border-b border-slate-200/30" style="background: var(--glass-white-40); backdrop-filter: blur(32px) saturate(1.5); -webkit-backdrop-filter: blur(32px) saturate(1.5);">
+<header class="sticky top-0 z-50 border-b border-slate-200/30" style="background: var(--glass-white-40); backdrop-filter: var(--blur-xl) saturate(1.5); -webkit-backdrop-filter: var(--blur-xl) saturate(1.5);">
   <!-- Gradient accent line at top -->
   <div class="h-[2px] w-full" style="background: var(--gradient-signature);"></div>
   <nav class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -29,7 +29,7 @@ const isActive = (href: string) => {
         <div class="w-8 h-8 bg-gradient-to-br from-neural-500 to-neural-700 rounded-lg flex items-center justify-center">
           <span class="text-white font-bold text-sm">BR</span>
         </div>
-        <span class="font-display font-bold text-lg text-slate-900 group-hover:text-neural-600 transition-colors">
+        <span class="font-display font-semibold text-lg text-slate-900 group-hover:text-neural-600 transition-colors">
           {SITE.title}
         </span>
       </a>
@@ -56,7 +56,7 @@ const isActive = (href: string) => {
           href="https://web.bluerobin.io"
           class="hidden sm:flex items-center space-x-1.5 px-3 py-1.5 rounded-lg bg-neural-600 hover:bg-neural-700 text-white text-sm font-medium transition-colors"
         >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
           </svg>
           <span>Login</span>
@@ -67,8 +67,9 @@ const isActive = (href: string) => {
           id="mobile-menu-toggle"
           class="md:hidden p-2 rounded-lg hover:bg-slate-200 transition-colors"
           aria-label="Toggle menu"
+          aria-expanded="false"
         >
-          <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-6 h-6 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -88,7 +89,7 @@ const isActive = (href: string) => {
         ))}
         <a
           href="https://web.bluerobin.io"
-          class="px-3 py-2 rounded-lg bg-neural-600 text-white text-center font-medium"
+          class="px-3 py-2 rounded-lg bg-neural-600 hover:bg-neural-700 text-white text-center font-medium transition-colors"
         >
           Login to BlueRobin
         </a>
@@ -103,5 +104,7 @@ const isActive = (href: string) => {
   const mobileMenu = document.getElementById("mobile-menu");
   mobileMenuToggle?.addEventListener("click", () => {
     mobileMenu?.classList.toggle("hidden");
+    const isExpanded = !mobileMenu?.classList.contains("hidden");
+    mobileMenuToggle.setAttribute("aria-expanded", String(isExpanded));
   });
 </script>

@@ -113,13 +113,13 @@ flowchart TB
     Flux -->|Deploy| AppsStaging
     ARC -->|Build| AppsProd
 
-    style Gateway fill:#e3f2fd
-    style Auth fill:#fff3e0
-    style AppsProd fill:#e8f5e9
-    style AppsStaging fill:#f3e5f5
-    style DataLayer fill:#fce4ec
-    style AI fill:#fff8e1
-    style Platform fill:#e0f2f1
+    style Gateway fill:#eee9f5
+    style Auth fill:#fdf8ea
+    style AppsProd fill:#edf5f6
+    style AppsStaging fill:#ddd4ed
+    style DataLayer fill:#f8eded
+    style AI fill:#faf2d0
+    style Platform fill:#d5eef0
 ```
 
 ## Network Topology

@@ -85,46 +85,46 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
       // Palettes: Neural (blue-purple), Aurora (pink-red), Quantum (cyan), Glow (amber)
       
       const themeVariables = {
-        // Background colors
+        // Background colors — BlueRobin oklch palette hex approximations
         background: '#ffffff',
-        primaryColor: '#8b5cf6',         // Neural-400
-        primaryTextColor: '#1e293b',     // slate-800
-        primaryBorderColor: '#7c3aed',   // Neural-500
+        primaryColor: '#eee9f5',         // Neural-50
+        primaryTextColor: '#334155',     // slate-700
+        primaryBorderColor: '#9b83d8',   // Neural-400
         
-        // Secondary
-        secondaryColor: '#22d3ee',       // Quantum-400
-        secondaryTextColor: '#0f172a',
-        secondaryBorderColor: '#06b6d4', // Quantum-500
+        // Secondary — Quantum (cyan)
+        secondaryColor: '#edf5f6',       // Quantum-50
+        secondaryTextColor: '#334155',
+        secondaryBorderColor: '#4db8c2', // Quantum-500
         
-        // Tertiary
-        tertiaryColor: '#fb7185',        // Aurora-400
-        tertiaryTextColor: '#1e293b',
-        tertiaryBorderColor: '#f43f5e',  // Aurora-500
+        // Tertiary — Aurora (pink-red)
+        tertiaryColor: '#f8eded',        // Aurora-50
+        tertiaryTextColor: '#334155',
+        tertiaryBorderColor: '#e05c73',  // Aurora-500
         
         // Lines and text
         lineColor: '#64748b',            // slate-500
-        textColor: '#1e293b',            // slate-800
+        textColor: '#334155',            // slate-700
         
         // Flowchart specific
         mainBkg: '#f8fafc',              // slate-50
-        nodeBorder: '#7c3aed',           // Neural-500
+        nodeBorder: '#9b83d8',           // Neural-400
         clusterBkg: '#f1f5f9',           // slate-100
         clusterBorder: '#e2e8f0',        // slate-200
         
-        // Note styling
-        noteBkgColor: '#fef3c7',
+        // Note styling — Glow palette
+        noteBkgColor: '#fdf8ea',         // Glow-50
         noteTextColor: '#78350f',
-        noteBorderColor: '#f59e0b',
+        noteBorderColor: '#c4a028',      // Glow-500
         
-        // Actor/class colors
-        actorBkg: '#8b5cf6',
+        // Actor/class colors — Neural palette
+        actorBkg: '#9b83d8',             // Neural-400 (lighter for text contrast)
         actorTextColor: '#ffffff',
-        actorBorder: '#7c3aed',
+        actorBorder: '#7c5cbf',          // Neural-500
         
         // Label styling
         labelBoxBkgColor: '#f8fafc',
         labelBoxBorderColor: '#e2e8f0',
-        labelTextColor: '#1e293b'
+        labelTextColor: '#334155'
       };
       
       // Initialize Mermaid with 'base' theme for full control
@@ -226,7 +226,7 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
       // Fullscreen modal for diagrams
       function openDiagramFullscreen(svgContent: string) {
         const modal = document.createElement('div');
-        modal.className = 'diagram-fullscreen-modal fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-sm';
+        modal.className = 'diagram-fullscreen-modal fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 backdrop-blur-sm';
         modal.innerHTML = `
           <div class="relative w-full h-full flex items-center justify-center p-8">
             <button class="absolute top-4 right-4 p-3 rounded-full bg-white/20 hover:bg-white/30 text-white transition-colors" aria-label="Close fullscreen">

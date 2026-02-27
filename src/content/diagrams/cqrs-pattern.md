@@ -57,9 +57,9 @@ flowchart TB
     Projections --> VectorDB
     Projections --> GraphDB
 
-    style Commands fill:#ffcdd2
-    style Queries fill:#c8e6c9
-    style Sync fill:#fff9c4
+    style Commands fill:#f0dbd8
+    style Queries fill:#d5eef0
+    style Sync fill:#faf2d0
 ```
 
 ## Command Flow Detail
@@ -78,7 +78,7 @@ sequenceDiagram
     UI->>API: POST /api/documents<br/>{file, metadata}
     API->>Endpoint: Route to handler
     
-    rect rgb(255, 235, 238)
+    rect rgb(248, 237, 237)
         Note over Endpoint,Domain: Command Processing
         Endpoint->>Service: UploadAsync(request)
         Service->>Domain: Document.Create(...)
@@ -86,7 +86,7 @@ sequenceDiagram
         Domain->>Domain: RaiseDomainEvent(DocumentAdded)
     end
 
-    rect rgb(232, 245, 233)
+    rect rgb(237, 245, 246)
         Note over Service,NATS: Persistence & Event Publishing
         Service->>DB: SaveChangesAsync()
         DB-->>Service: Committed
@@ -114,7 +114,7 @@ sequenceDiagram
     UI->>API: POST /api/rag/search<br/>{query, filters}
     API->>Endpoint: Route to handler
     
-    rect rgb(232, 245, 233)
+    rect rgb(237, 245, 246)
         Note over Endpoint,MinIO: Query Processing (No DB Writes)
         Endpoint->>Service: SearchAsync(query)
         Service->>Service: Generate query embedding
@@ -162,9 +162,9 @@ flowchart LR
     P2 --> RM2
     P3 --> RM3
 
-    style Source fill:#ffcdd2
-    style Workers fill:#fff9c4
-    style ReadModels fill:#c8e6c9
+    style Source fill:#f0dbd8
+    style Workers fill:#faf2d0
+    style ReadModels fill:#d5eef0
 ```
 
 ## Read Model Optimization
@@ -193,8 +193,8 @@ flowchart TB
     Q5 --> DB3
     Q5 --> DB1
 
-    style Queries fill:#e3f2fd
-    style Optimized fill:#e8f5e9
+    style Queries fill:#eee9f5
+    style Optimized fill:#edf5f6
 ```
 
 ## CQRS Benefits in BlueRobin

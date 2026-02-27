@@ -111,12 +111,12 @@ flowchart TB
     
     GraphW -->|Cypher| FalkorDB
 
-    style Frontend fill:#e3f2fd
-    style API fill:#fff3e0
-    style Workers fill:#f3e5f5
-    style Data fill:#e8f5e9
-    style Messaging fill:#fce4ec
-    style AI fill:#fff8e1
+    style Frontend fill:#eee9f5
+    style API fill:#fdf8ea
+    style Workers fill:#ddd4ed
+    style Data fill:#edf5f6
+    style Messaging fill:#f8eded
+    style AI fill:#faf2d0
 ```
 
 ## Protocol Details
@@ -160,9 +160,9 @@ flowchart LR
         C5[Query] -->|Read| C4
     end
 
-    style Sync fill:#e3f2fd
-    style Async fill:#fff3e0
-    style Hybrid fill:#e8f5e9
+    style Sync fill:#eee9f5
+    style Async fill:#fdf8ea
+    style Hybrid fill:#edf5f6
 ```
 
 ## Service Dependencies
@@ -187,9 +187,9 @@ graph TD
         Workers -.-> Spacy
     end
 
-    style Critical fill:#ffcdd2
-    style Processing fill:#fff9c4
-    style Optional fill:#c8e6c9
+    style Critical fill:#f0dbd8
+    style Processing fill:#faf2d0
+    style Optional fill:#d5eef0
 ```
 
 ## Resilience Patterns

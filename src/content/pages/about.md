@@ -86,4 +86,4 @@ The best way to learn is to build, and the second best way is to teach. This blo
 
 ---
 
-*Have questions about BlueRobin or want to discuss patterns? Reach out on [GitHub](https://github.com/victorrentea) or [LinkedIn](https://linkedin.com/in/victorrentea).*
+*Have questions about BlueRobin or want to discuss patterns? Reach out on [LinkedIn](https://www.linkedin.com/in/dr-victor-robin/).*

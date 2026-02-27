@@ -69,11 +69,11 @@ const diagrams = [
 ];
 
 const topicColors: Record<string, string> = {
-  "AI": "bg-neural-100 text-neural-800",
-  "Architecture": "bg-quantum-100 text-quantum-800",
-  "Infrastructure": "bg-quantum-100 text-quantum-800",
-  "DDD": "bg-glow-100 text-glow-800",
-  "DevOps": "bg-aurora-100 text-aurora-800"
+  "AI": "bg-neural-100 text-neural-700",
+  "Architecture": "bg-neural-100 text-neural-700",
+  "Infrastructure": "bg-quantum-100 text-quantum-700",
+  "DDD": "bg-glow-100 text-glow-700",
+  "DevOps": "bg-glow-100 text-glow-700"
 };
 ---
 
@@ -83,7 +83,7 @@ const topicColors: Record<string, string> = {
       <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neural-100 text-neural-800 mb-4">
         📊 Architecture Diagrams
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-bold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
         System Architecture Diagrams
       </h1>
       <p class="text-lg text-slate-600 max-w-2xl">
@@ -93,8 +93,8 @@ const topicColors: Record<string, string> = {
     </header>
 
     <!-- Structurizr DSL Notice -->
-    <div class="glass-card p-6 mb-8 border-l-4 border-indigo-500">
-      <h3 class="font-semibold text-slate-900 mb-2">
+    <div class="glass-card p-6 mb-8 border-l-4 border-neural-500">
+      <h3 class="font-medium text-slate-800 mb-2">
         📐 Full C4 Model Available
       </h3>
       <p class="text-slate-600 text-sm mb-3">
@@ -121,7 +121,7 @@ const topicColors: Record<string, string> = {
             </span>
           </div>
           
-          <h2 class="text-xl font-semibold text-slate-900 mb-2 group-hover:text-neural-600 transition-colors">
+          <h2 class="text-xl font-medium text-slate-800 mb-2 group-hover:text-neural-600 transition-colors">
             <a href={`/architecture/diagrams/${diagram.slug}`}>
               {diagram.title}
             </a>
@@ -148,25 +148,25 @@ const topicColors: Record<string, string> = {
 
     <!-- Diagram Types Legend -->
     <section class="mt-12">
-      <h2 class="text-2xl font-display font-bold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
         Diagram Types Used
       </h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass-card p-4">
-          <h3 class="font-semibold text-slate-900 mb-1">Sequence Diagrams</h3>
+          <h3 class="font-medium text-slate-800 mb-1">Sequence Diagrams</h3>
           <p class="text-sm text-slate-600">Show interactions between components over time</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-semibold text-slate-900 mb-1">Flowcharts</h3>
+          <h3 class="font-medium text-slate-800 mb-1">Flowcharts</h3>
           <p class="text-sm text-slate-600">Illustrate process flows and decision points</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-semibold text-slate-900 mb-1">Class Diagrams</h3>
+          <h3 class="font-medium text-slate-800 mb-1">Class Diagrams</h3>
           <p class="text-sm text-slate-600">Model domain entities and relationships</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-semibold text-slate-900 mb-1">C4 Diagrams</h3>
+          <h3 class="font-medium text-slate-800 mb-1">C4 Diagrams</h3>
           <p class="text-sm text-slate-600">Multi-level architecture visualization</p>
         </div>
       </div>
@@ -174,7 +174,7 @@ const topicColors: Record<string, string> = {
 
     <!-- Usage Instructions -->
     <section class="mt-12">
-      <h2 class="text-2xl font-display font-bold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
         Using These Diagrams
       </h2>
       

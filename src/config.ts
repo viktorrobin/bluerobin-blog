@@ -18,14 +18,8 @@ export const LOGO_IMAGE = {
 
 export const SOCIALS = [
   {
-    name: "Github",
-    href: "https://github.com/victorrentea",
-    linkTitle: `Victor on Github`,
-    active: true,
-  },
-  {
     name: "LinkedIn",
-    href: "https://linkedin.com/in/victorrentea",
+    href: "https://www.linkedin.com/in/dr-victor-robin/",
     linkTitle: `Victor on LinkedIn`,
     active: true,
   },
@@ -146,7 +140,7 @@ export const DIFFICULTIES = {
   beginner: {
     label: "Beginner",
     description: "Basic concepts, minimal prerequisites",
-    color: "emerald",
+    color: "quantum",
   },
   intermediate: {
     label: "Intermediate",

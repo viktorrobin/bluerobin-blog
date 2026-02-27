@@ -111,16 +111,16 @@ flowchart TB
         AS --> AT[✅ Document ready<br/>for search]
     end
 
-    style Upload fill:#e3f2fd
-    style OCR fill:#fff3e0
-    style Analysis fill:#f3e5f5
-    style Chunking fill:#e8f5e9
-    style Embedding fill:#fce4ec
-    style Aggregation fill:#e0f2f1
-    style EntityExtraction fill:#fff8e1
-    style GraphSync fill:#f1f8e9
-    style Classification fill:#e8eaf6
-    style Notification fill:#e0f7fa
+    style Upload fill:#eee9f5
+    style OCR fill:#fdf8ea
+    style Analysis fill:#ddd4ed
+    style Chunking fill:#edf5f6
+    style Embedding fill:#f8eded
+    style Aggregation fill:#d5eef0
+    style EntityExtraction fill:#faf2d0
+    style GraphSync fill:#edf5f6
+    style Classification fill:#eee9f5
+    style Notification fill:#d5eef0
 ```
 
 ## Processing States

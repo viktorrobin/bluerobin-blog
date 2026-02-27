@@ -27,7 +27,7 @@ sequenceDiagram
     User->>Blazor: Ask question about documents
     Blazor->>API: POST /api/rag/ask<br/>{ question, options }
     
-    rect rgb(240, 248, 255)
+    rect rgb(238, 233, 245)
         Note over API,RAG: Query Preprocessing Phase
         API->>RAG: AskAsync(userId, question, options)
         RAG->>QP: PreprocessAsync(question)
@@ -36,7 +36,7 @@ sequenceDiagram
         QP-->>RAG: RewrittenQuery
     end
 
-    rect rgb(255, 248, 240)
+    rect rgb(253, 248, 234)
         Note over RAG,Qdrant: Retrieval Phase
         RAG->>Ollama: Generate query embedding<br/>(nomic-embed-text)
         Ollama-->>RAG: Query vector [1024d]
@@ -44,20 +44,20 @@ sequenceDiagram
         Qdrant-->>RAG: Matching chunks with scores
     end
 
-    rect rgb(240, 255, 240)
+    rect rgb(237, 245, 246)
         Note over RAG,MinIO: Context Building Phase
         RAG->>MinIO: Fetch full document content<br/>processed/{docId}/content.md
         MinIO-->>RAG: Document text
         RAG->>RAG: Build context with<br/>document headers
     end
 
-    rect rgb(255, 240, 245)
+    rect rgb(248, 237, 237)
         Note over RAG,LLM: Relevance Filtering Phase
         RAG->>LLM: FilterRelevantChunksAsync()<br/>"Which chunks answer this question?"
         LLM-->>RAG: Filtered relevant chunks
     end
 
-    rect rgb(248, 248, 255)
+    rect rgb(238, 233, 245)
         Note over RAG,LLM: Generation Phase
         RAG->>LLM: Generate answer with context<br/>(structured output format)
         
