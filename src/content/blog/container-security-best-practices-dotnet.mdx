@@ -1,7 +1,7 @@
 ---
 title: "Hardening .NET Containers for Production"
 description: "Stop running as root. Build secure, minimal container images for .NET applications using multi-stage builds and distroless/alpine bases."
-pubDate: 2024-10-24
+pubDate: 2024-09-04
 author: "Victor Robin"
 category: "security"
 difficulty: "intermediate"
@@ -88,7 +88,7 @@ USER 1000
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-ENTRYPOINT ["dotnet", "Archives.Api.dll"]
+ENTRYPOINT ["dotnet", "MyApp.Api.dll"]
 ```
 
 ## Section 2: Kubernetes Security Context
@@ -109,7 +109,7 @@ spec:
         fsGroup: 1000
       containers:
         - name: api
-          image: archives-api:latest
+          image: myapp-api:latest
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

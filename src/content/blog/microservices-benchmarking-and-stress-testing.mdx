@@ -1,7 +1,7 @@
 ---
 title: "Benchmarking and Stress Testing Microservices"
 description: "Using NBomber and k6 to find the breaking points of our .NET API. Analysis of CPU vs Memory vs I/O bottlenecks."
-pubDate: 2026-02-24
+pubDate: 2026-01-05
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -110,7 +110,7 @@ We integrated this into our CI/CD pipeline. We don't run the full stress test on
 
 ```yaml
 - name: Run Performance Smoke Test
-  run: dotnet run --project tests/Archives.Performance
+  run: dotnet run --project tests/MyApp.Performance
 ```
 
 ## Conclusion

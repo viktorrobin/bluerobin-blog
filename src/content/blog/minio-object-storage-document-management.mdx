@@ -1,7 +1,7 @@
 ---
 title: "MinIO Object Storage for Document Management"
 description: "Deploy and integrate MinIO for S3-compatible object storage with per-user buckets, encryption, and lifecycle policies."
-pubDate: 2025-07-10
+pubDate: 2025-08-15
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -187,7 +187,7 @@ public class MinioStorageService : IObjectStorageService
 {
     // ... constructor ...
 
-    public async Task UploadDocumentAsync(BlueRobinId userId, string documentId, Stream content)
+    public async Task UploadDocumentAsync(CustomId userId, string documentId, Stream content)
     {
         var bucketName = GetBucketName(userId);
         
@@ -212,20 +212,20 @@ public class MinioStorageService : IObjectStorageService
         await _s3Client.PutObjectAsync(request);
     }
 
-    private string GetBucketName(BlueRobinId userId) => $"user-{userId.Value.ToLower()}";
+    private string GetBucketName(CustomId userId) => $"user-{userId.Value.ToLower()}";
 }
 ```
 
 ## Section 4: Per-User Encryption Data Flow
 
-In BlueRobin, we take security seriously. We don't just encrypt at rest with a single disk key; we use **SSE-KMS** (Server-Side Encryption with Key Management Service) to ensure each user's data is encrypted with a unique cryptographic key.
+In our project, we take security seriously. We don't just encrypt at rest with a single disk key; we use **SSE-KMS** (Server-Side Encryption with Key Management Service) to ensure each user's data is encrypted with a unique cryptographic key.
 
 ### How it Works (MinIO + KES + Vault/Infisical)
 
 1.  **KES (Key Encryption Service)**: MinIO doesn't manage keys itself. It talks to KES.
-2.  **Key Generation**: When a user registers, we trigger a KES API call to generate a specific key: `key-{BlueRobinId}`.
+2.  **Key Generation**: When a user registers, we trigger a KES API call to generate a specific key: `key-{CustomId}`.
 3.  **Upload**: When uploading, the .NET client requests `ServerSideEncryptionMethod.AWSKMS` and specifies the user's Key ID.
-4.  **MinIO Action**: MinIO asks KES for the data encryption key (DEK) associated with `key-{BlueRobinId}`, encrypts the object, and stores the encrypted bytes on disk.
+4.  **MinIO Action**: MinIO asks KES for the data encryption key (DEK) associated with `key-{CustomId}`, encrypts the object, and stores the encrypted bytes on disk.
 
 ```mermaid
 sequenceDiagram

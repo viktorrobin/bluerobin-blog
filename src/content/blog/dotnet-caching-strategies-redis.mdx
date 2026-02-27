@@ -1,7 +1,7 @@
 ---
 title: "Caching Strategies in .NET with Redis and Memory Cache"
 description: "Implement distributed and in-memory caching patterns in .NET applications for improved performance and reduced database load."
-pubDate: 2025-02-06
+pubDate: 2025-01-16
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -72,7 +72,7 @@ builder.Services.AddMemoryCache(options =>
 builder.Services.AddStackExchangeRedisCache(options =>
 {
     options.Configuration = builder.Configuration.GetConnectionString("Redis");
-    options.InstanceName = "BlueRobin:";
+    options.InstanceName = "MyApp:";
 });
 
 // Custom cache service
@@ -230,12 +230,12 @@ The hybrid cache uses memory cache as L1 (fastest, per-instance) and Redis as L2
 // Infrastructure/Repositories/CachedDocumentRepository.cs
 public sealed class CachedDocumentRepository : IDocumentRepository
 {
-    private readonly BlueRobinDbContext _context;
+    private readonly AppDbContext _context;
     private readonly ICacheService _cache;
     private readonly ILogger<CachedDocumentRepository> _logger;
 
     public CachedDocumentRepository(
-        BlueRobinDbContext context,
+        AppDbContext context,
         ICacheService cache,
         ILogger<CachedDocumentRepository> logger)
     {
@@ -283,18 +283,18 @@ public sealed class CachedDocumentRepository : IDocumentRepository
 // Application/Caching/CacheKeys.cs
 public static class CacheKeys
 {
-    private const string Prefix = "bluerobin";
+    private const string Prefix = "myapp";
 
     public static string Document(DocumentId id) 
         => $"{Prefix}:documents:{id.Value}";
 
-    public static string UserDocuments(BlueRobinId userId) 
+    public static string UserDocuments(CustomId userId) 
         => $"{Prefix}:users:{userId.Value}:documents";
 
     public static string SearchResults(string query, int page) 
         => $"{Prefix}:search:{ComputeHash(query)}:page:{page}";
 
-    public static string UserProfile(BlueRobinId userId) 
+    public static string UserProfile(CustomId userId) 
         => $"{Prefix}:users:{userId.Value}:profile";
 
     private static string ComputeHash(string input)
@@ -465,7 +465,7 @@ public sealed class MeteredCacheService : ICacheService
         _inner = inner;
         _metrics = metrics;
         
-        var meter = new Meter("BlueRobin.Cache");
+        var meter = new Meter("MyApp.Cache");
         _cacheHits = meter.CreateCounter<long>("cache_hits");
         _cacheMisses = meter.CreateCounter<long>("cache_misses");
         _cacheLatency = meter.CreateHistogram<double>("cache_latency_ms");

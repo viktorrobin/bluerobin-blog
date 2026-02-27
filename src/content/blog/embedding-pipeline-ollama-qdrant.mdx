@@ -1,7 +1,7 @@
 ---
 title: "Building a Semantic Embedding Pipeline with Ollama and Qdrant"
 description: "Create a production-ready embedding pipeline in .NET that generates vector embeddings with Ollama and stores them in Qdrant for semantic search."
-pubDate: 2025-08-21
+pubDate: 2025-10-08
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -108,7 +108,7 @@ Let's start with the interface. Defining a clean abstraction allows us to swap i
 
 ```csharp
 // Application/Services/IEmbeddingService.cs
-namespace Archives.Application.Services;
+namespace MyApp.Application.Services;
 
 public interface IEmbeddingService
 {
@@ -135,7 +135,7 @@ The Ollama API is straightforward—send text, receive a vector. The complexity 
 
 ```csharp
 // Infrastructure/AI/OllamaEmbeddingService.cs
-namespace Archives.Infrastructure.AI;
+namespace MyApp.Infrastructure.AI;
 
 public sealed class OllamaEmbeddingService : IEmbeddingService
 {
@@ -260,7 +260,7 @@ Embedding models work best on focused, coherent text. A 10,000 word document emb
 
 ```csharp
 // Application/Services/ITextChunker.cs
-namespace Archives.Application.Services;
+namespace MyApp.Application.Services;
 
 public interface ITextChunker
 {
@@ -289,7 +289,7 @@ Our documents are markdown from OCR output, so we should respect heading boundar
 
 ```csharp
 // Infrastructure/Text/SemanticTextChunker.cs
-namespace Archives.Infrastructure.Text;
+namespace MyApp.Infrastructure.Text;
 
 public sealed class SemanticTextChunker : ITextChunker
 {
@@ -468,7 +468,7 @@ We abstract Qdrant behind an interface for testability:
 
 ```csharp
 // Application/Services/IVectorStore.cs
-namespace Archives.Application.Services;
+namespace MyApp.Application.Services;
 
 public interface IVectorStore
 {
@@ -513,7 +513,7 @@ The implementation handles collection creation, upserts, search, and deletion:
 
 ```csharp
 // Infrastructure/VectorStore/QdrantVectorStore.cs
-namespace Archives.Infrastructure.VectorStore;
+namespace MyApp.Infrastructure.VectorStore;
 
 public sealed class QdrantVectorStore : IVectorStore
 {
@@ -704,7 +704,7 @@ Now we orchestrate everything in a background worker. This worker:
 
 ```csharp
 // Workers/EmbeddingWorker.cs
-namespace Archives.Workers;
+namespace MyApp.Workers;
 
 public sealed class EmbeddingWorker : BackgroundService
 {
@@ -856,7 +856,7 @@ Finally, the search service that makes it all useful. At query time, we:
 
 ```csharp
 // Application/Services/SemanticSearchService.cs
-namespace Archives.Application.Services;
+namespace MyApp.Application.Services;
 
 public sealed class SemanticSearchService : ISemanticSearchService
 {

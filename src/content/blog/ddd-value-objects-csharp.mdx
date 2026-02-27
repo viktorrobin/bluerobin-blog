@@ -1,7 +1,7 @@
 ---
 title: "Value Objects: Immutability and Self-Validation in C#"
 description: "Learn how to implement value objects with built-in validation, equality semantics, and EF Core persistence for a cleaner, more expressive domain model."
-pubDate: 2024-11-13
+pubDate: 2024-10-04
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -36,7 +36,7 @@ Value Objects solve this by:
 | Identity | Unique identifier | No identity—defined by attributes |
 | Equality | Same ID = same entity | Same attributes = same value |
 | Mutability | Can change over time | Immutable after creation |
-| Examples | User, Document, Order | Email, Money, Address, BlueRobinId |
+| Examples | User, Document, Order | Email, Money, Address, CustomId |
 
 ## Architecture Overview
 
@@ -49,12 +49,12 @@ classDiagram
     class AuditLog {
         <<Aggregate Root>>
         +Guid Id
-        +BlueRobinId UserId
+        +CustomId UserId
         +AuditAction Action
         +Timestamp OccurredAt
     }
     
-    class BlueRobinId {
+    class CustomId {
         <<Value Object>>
         -string Value
         +static Create(string) Result
@@ -73,7 +73,7 @@ classDiagram
         +static Create(string, string) Result
     }
 
-    AuditLog *-- BlueRobinId : Composes
+    AuditLog *-- CustomId : Composes
     AuditLog *-- Timestamp : Composes
     AuditLog *-- AuditAction : Composes
 
@@ -83,7 +83,7 @@ classDiagram
     classDef warning fill:#fbbf24,color:#000
 
     class AuditLog primary
-    class BlueRobinId,Timestamp,AuditAction secondary
+    class CustomId,Timestamp,AuditAction secondary
 ```
 
 ## Implementation
@@ -94,7 +94,7 @@ To implement structural equality (equality based on values, not references), we 
 
 ```csharp
 // Core/Common/ValueObject.cs
-namespace Archives.Core.Common;
+namespace MyApp.Core.Common;
 
 public abstract class ValueObject : IEquatable<ValueObject>
 {
@@ -134,28 +134,28 @@ public abstract class ValueObject : IEquatable<ValueObject>
 
 ## Implementing a Value Object
 
-Here is a concrete example of a `BlueRobinId`, a custom identifier format used throughout the system. It enforces length and character set rules at creation.
+Here is a concrete example of a `CustomId`, a custom identifier format used throughout the system. It enforces length and character set rules at creation.
 
 ```csharp
-// Core/Domain/Common/BlueRobinId.cs
-public class BlueRobinId : ValueObject
+// Core/Domain/Common/CustomId.cs
+public class CustomId : ValueObject
 {
     public string Value { get; }
 
     // Private constructor ensures enforcement of the factory method
-    private BlueRobinId(string value) => Value = value;
+    private CustomId(string value) => Value = value;
 
-    public static Result<BlueRobinId> Create(string? value)
+    public static Result<CustomId> Create(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return Result.Failure<BlueRobinId>(DomainErrors.General.Required("BlueRobinId"));
+            return Result.Failure<CustomId>(DomainErrors.General.Required("CustomId"));
 
         var normalized = value.Trim().ToLowerInvariant();
 
         if (normalized.Length != 8 || !normalized.All(char.IsLetterOrDigit))
-            return Result.Failure<BlueRobinId>(DomainErrors.BlueRobinId.InvalidFormat);
+            return Result.Failure<CustomId>(DomainErrors.CustomId.InvalidFormat);
 
-        return Result.Success(new BlueRobinId(normalized));
+        return Result.Success(new CustomId(normalized));
     }
 
     // Structural equality component
@@ -165,14 +165,14 @@ public class BlueRobinId : ValueObject
     }
 
     // Implicit conversion for ease of use (optional)
-    public static implicit operator string(BlueRobinId id) => id.Value;
+    public static implicit operator string(CustomId id) => id.Value;
     
     public override string ToString() => Value;
 }
 ```
 
 <ImplementationNote>
-We use a **Factory Method** (`Create`) and a **Private Constructor**. This ensures that no instance of `BlueRobinId` can ever exist in an invalid state.
+We use a **Factory Method** (`Create`) and a **Private Constructor**. This ensures that no instance of `CustomId` can ever exist in an invalid state.
 </ImplementationNote>
 
 ## Complex Value Objects
@@ -219,11 +219,11 @@ To map Value Objects to the database, we use the `OwnsOne` configuration in EF C
 // Infrastructure/Persistence/Configurations/DocumentConfiguration.cs
 public void Configure(EntityTypeBuilder<Document> builder)
 {
-    // Mapping BlueRobinId
+    // Mapping CustomId
     builder.Property(d => d.OwnerId)
         .HasConversion(
             id => id.Value,                  // To Database
-            value => BlueRobinId.Create(value).Value) // From Database
+            value => CustomId.Create(value).Value) // From Database
         .HasColumnName("owner_id")
         .IsRequired();
 

@@ -1,7 +1,7 @@
 ---
 title: "Managing Kubernetes Clusters with MCP Server"
 description: "Revolutionizing cluster operations by replacing kubectl with natural language interaction using the Kubernetes MCP Server."
-pubDate: 2026-02-12
+pubDate: 2026-02-25
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -27,7 +27,7 @@ Command-line tools like `kubectl` are powerful but verbose. Debugging a failing 
 
 ### What We'll Build
 
-We will demonstrate a debugging session where we identify a crash loop in the BlueRobin worker using only natural language.
+We will demonstrate a debugging session where we identify a crash loop in the Production worker using only natural language.
 
 ## Architecture Overview
 
@@ -38,7 +38,7 @@ flowchart LR
     User[Developer] -->|Chat| LLM[AI Agent]
     LLM -->|call tool| MCP[Kubernetes MCP Server]
     MCP -->|KubeConfig| API[K8s API Server]
-    API -->|Status| Cluster[BlueRobin Cluster]
+    API -->|Status| Cluster[Production Cluster]
     
     classDef primary fill:#7c3aed,color:#fff
     classDef secondary fill:#06b6d4,color:#fff

@@ -1,7 +1,7 @@
 ---
 title: "Integration Testing in .NET with Testcontainers"
 description: "Build reliable integration tests for .NET applications using Testcontainers, WebApplicationFactory, and real database instances."
-pubDate: 2025-03-13
+pubDate: 2025-03-07
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -101,14 +101,14 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
         {
             // Remove existing DbContext registration
             var descriptor = services.SingleOrDefault(
-                d => d.ServiceType == typeof(DbContextOptions<BlueRobinDbContext>));
+                d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
             if (descriptor is not null)
             {
                 services.Remove(descriptor);
             }
 
             // Add test database
-            services.AddDbContext<BlueRobinDbContext>(options =>
+            services.AddDbContext<AppDbContext>(options =>
             {
                 options.UseNpgsql(_postgres.GetConnectionString());
             });
@@ -122,7 +122,7 @@ public sealed class CustomWebApplicationFactory : WebApplicationFactory<Program>
             // Apply migrations
             var sp = services.BuildServiceProvider();
             using var scope = sp.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<BlueRobinDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.Migrate();
         });
 
@@ -158,14 +158,14 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
     protected readonly HttpClient Client;
     protected readonly CustomWebApplicationFactory Factory;
     protected readonly IServiceScope Scope;
-    protected readonly BlueRobinDbContext DbContext;
+    protected readonly AppDbContext DbContext;
 
     protected IntegrationTestBase(CustomWebApplicationFactory factory)
     {
         Factory = factory;
         Client = factory.CreateClient();
         Scope = factory.Services.CreateScope();
-        DbContext = Scope.ServiceProvider.GetRequiredService<BlueRobinDbContext>();
+        DbContext = Scope.ServiceProvider.GetRequiredService<AppDbContext>();
     }
 
     protected async Task<T> GetServiceAsync<T>() where T : notnull
@@ -185,7 +185,7 @@ public abstract class IntegrationTestBase : IClassFixture<CustomWebApplicationFa
         var claims = new[]
         {
             new Claim("sub", userId),
-            new Claim("bluerobin_id", "testuser1"),
+            new Claim("app_user_id", "testuser1"),
             new Claim("email", "test@example.com")
         };
 
@@ -282,7 +282,7 @@ public sealed class DocumentEndpointTests : IntegrationTestBase
 
     private async Task SeedDocumentsAsync(int count)
     {
-        var userId = BlueRobinId.From("testuser1");
+        var userId = CustomId.From("testuser1");
         var documents = Enumerable.Range(0, count)
             .Select(_ => Document.Create(_requestFaker.Generate().Name, userId))
             .ToList();
@@ -317,7 +317,7 @@ public sealed class DocumentRepositoryTests : IntegrationTestBase
     public async Task AddAsync_WithValidDocument_PersistsToDatabase()
     {
         // Arrange
-        var userId = BlueRobinId.From("testuser1");
+        var userId = CustomId.From("testuser1");
         var document = Document.Create("test-document.pdf", userId);
 
         // Act
@@ -336,8 +336,8 @@ public sealed class DocumentRepositoryTests : IntegrationTestBase
     public async Task GetByOwnerAsync_ReturnsOnlyUserDocuments()
     {
         // Arrange
-        var user1 = BlueRobinId.From("user1111");
-        var user2 = BlueRobinId.From("user2222");
+        var user1 = CustomId.From("user1111");
+        var user2 = CustomId.From("user2222");
         
         await _repository.AddAsync(Document.Create("doc1.pdf", user1), CancellationToken.None);
         await _repository.AddAsync(Document.Create("doc2.pdf", user1), CancellationToken.None);
@@ -355,7 +355,7 @@ public sealed class DocumentRepositoryTests : IntegrationTestBase
     public async Task UpdateAsync_WithOptimisticConcurrency_ThrowsOnConflict()
     {
         // Arrange
-        var userId = BlueRobinId.From("testuser1");
+        var userId = CustomId.From("testuser1");
         var document = Document.Create("test.pdf", userId);
         await _repository.AddAsync(document, CancellationToken.None);
 
@@ -392,7 +392,7 @@ public sealed class DocumentProcessingServiceTests : IntegrationTestBase
     public async Task ProcessDocumentAsync_WithValidDocument_UpdatesStatus()
     {
         // Arrange
-        var userId = BlueRobinId.From("testuser1");
+        var userId = CustomId.From("testuser1");
         var document = Document.Create("test.pdf", userId);
         DbContext.Documents.Add(document);
         await DbContext.SaveChangesAsync();
@@ -417,7 +417,7 @@ public sealed class DocumentProcessingServiceTests : IntegrationTestBase
 public sealed class DocumentBuilder
 {
     private string _name = "default.pdf";
-    private BlueRobinId _ownerId = BlueRobinId.From("testuser1");
+    private CustomId _ownerId = CustomId.From("testuser1");
     private DocumentStatus _status = DocumentStatus.Pending;
     private string? _content;
 
@@ -429,7 +429,7 @@ public sealed class DocumentBuilder
 
     public DocumentBuilder WithOwner(string ownerId)
     {
-        _ownerId = BlueRobinId.From(ownerId);
+        _ownerId = CustomId.From(ownerId);
         return this;
     }
 
@@ -482,9 +482,9 @@ var document = new DocumentBuilder()
 // Tests/Integration/Infrastructure/DatabaseReset.cs
 public sealed class DatabaseReset : IAsyncLifetime
 {
-    private readonly BlueRobinDbContext _context;
+    private readonly AppDbContext _context;
 
-    public DatabaseReset(BlueRobinDbContext context) => _context = context;
+    public DatabaseReset(AppDbContext context) => _context = context;
 
     public Task InitializeAsync() => Task.CompletedTask;
 

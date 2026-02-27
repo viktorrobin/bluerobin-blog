@@ -1,7 +1,7 @@
 ---
 title: "Building a Private PKI: Root CA to Certificates"
 description: "A step-by-step guide to bootstrapping a private PKI, from generating a Root CA to signing leaf certificates for internal microservices using OpenSSL."
-pubDate: 2024-08-25
+pubDate: 2024-07-06
 author: "Victor Robin"
 category: "security"
 difficulty: "advanced"
@@ -83,7 +83,7 @@ openssl req -config root-ca.conf \
     -key root-ca.key \
     -new -x509 -days 3650 -sha256 -extensions v3_ca \
     -out root-ca.crt \
-    -subj "/C=US/O=BlueRobin/CN=BlueRobin Root CA"
+    -subj "/C=US/O=MyOrg/CN=MyOrg Root CA"
 ```
 
 ## Section 2: The Intermediate CA
@@ -122,7 +122,7 @@ openssl genrsa -out postgres.key 2048
 
 # 2. Create CSR
 openssl req -new -key postgres.key -out postgres.csr \
-    -subj "/C=US/O=BlueRobin/CN=postgres.bluerobin.local"
+    -subj "/C=US/O=MyOrg/CN=postgres.bluerobin.local"
 
 # 3. Sign with Intermediate CA
 openssl x509 -req -in postgres.csr \
@@ -141,7 +141,7 @@ sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keyc
 
 ### Linux (Ubuntu/Debian)
 ```bash
-sudo cp root-ca.crt /usr/local/share/ca-certificates/bluerobin-root.crt
+sudo cp root-ca.crt /usr/local/share/ca-certificates/myorg-root.crt
 sudo update-ca-certificates
 ```
 

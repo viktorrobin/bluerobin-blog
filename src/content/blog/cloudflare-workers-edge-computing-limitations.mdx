@@ -1,7 +1,7 @@
 ---
 title: "Cloudflare Workers: A \"Love-Hate\" Relationship"
 description: "Exploring the highs of global distribution and the lows of execution limits. A candid look at when to embrace Cloudflare Workers and when to stick with containers."
-pubDate: 2026-02-18
+pubDate: 2024-09-11
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -19,7 +19,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 "I love you, me neither." It's a phrase that perfectly captures our relationship with Cloudflare Workers. In the quest for lower latency and higher availability, moving compute to the edge seems like the holy grail. And often, it is. But like any powerful tool, it comes with tradeoffs that can range from mild annoyances to architectural roadblocks.
 
-We use Cloudflare Workers extensively at BlueRobin for handling lightweight requests, authentication checks, and fast routing decisions. However, we've also learned—sometimes the hard way—where they fall short compared to traditional containerized services.
+We use Cloudflare Workers extensively in production for handling lightweight requests, authentication checks, and fast routing decisions. However, we've also learned—sometimes the hard way—where they fall short compared to traditional containerized services.
 
 **Why This Matters:**
 

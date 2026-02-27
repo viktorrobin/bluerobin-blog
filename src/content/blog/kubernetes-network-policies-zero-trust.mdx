@@ -1,7 +1,7 @@
 ---
 title: "Kubernetes Network Policies for Zero Trust Security"
 description: "Implement network segmentation and micro-segmentation in Kubernetes using Network Policies for defense in depth."
-pubDate: 2024-09-24
+pubDate: 2024-08-05
 author: "Victor Robin"
 category: "security"
 difficulty: "advanced"
@@ -57,7 +57,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-ingress
-  namespace: archives-staging
+  namespace: myapp-staging
 spec:
   podSelector: {}
   policyTypes:
@@ -72,7 +72,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-egress
-  namespace: archives-staging
+  namespace: myapp-staging
 spec:
   podSelector: {}
   policyTypes:
@@ -87,7 +87,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: default-deny-all
-  namespace: archives-staging
+  namespace: myapp-staging
 spec:
   podSelector: {}
   policyTypes:
@@ -104,16 +104,16 @@ Always deploy default-deny policies **after** allow policies are in place, or yo
 #### API to Database
 
 ```yaml
-# apps/archives-api/network-policy.yaml
+# apps/myapp-api/network-policy.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: archives-api-allow
-  namespace: archives-staging
+  name: myapp-api-allow
+  namespace: myapp-staging
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: archives-api
+      app.kubernetes.io/name: myapp-api
   policyTypes:
     - Ingress
     - Egress
@@ -171,16 +171,16 @@ Always include DNS egress rules (port 53) or pods won't be able to resolve servi
 #### Worker to Services
 
 ```yaml
-# apps/archives-workers/network-policy.yaml
+# apps/myapp-workers/network-policy.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: archives-workers-allow
-  namespace: archives-staging
+  name: myapp-workers-allow
+  namespace: myapp-staging
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: archives-workers
+      app.kubernetes.io/name: myapp-workers
   policyTypes:
     - Egress
   egress:
@@ -254,16 +254,16 @@ spec:
 #### Web to API
 
 ```yaml
-# apps/bluerobin-web/network-policy.yaml
+# apps/my-web-client/network-policy.yaml
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: bluerobin-web-allow
-  namespace: archives-staging
+  name: my-web-client-allow
+  namespace: myapp-staging
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: bluerobin-web
+      app.kubernetes.io/name: my-web-client
   policyTypes:
     - Ingress
     - Egress
@@ -281,7 +281,7 @@ spec:
     - to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/name: archives-api
+              app.kubernetes.io/name: myapp-api
       ports:
         - protocol: TCP
           port: 8080
@@ -328,15 +328,15 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: archives-staging
+              kubernetes.io/metadata.name: myapp-staging
           podSelector:
             matchExpressions:
               - key: app.kubernetes.io/name
                 operator: In
                 values:
-                  - archives-api
-                  - archives-workers
-                  - bluerobin-web
+                  - myapp-api
+                  - myapp-workers
+                  - my-web-client
       ports:
         - protocol: TCP
           port: 5432
@@ -344,15 +344,15 @@ spec:
     - from:
         - namespaceSelector:
             matchLabels:
-              kubernetes.io/metadata.name: archives-prod
+              kubernetes.io/metadata.name: myapp-prod
           podSelector:
             matchExpressions:
               - key: app.kubernetes.io/name
                 operator: In
                 values:
-                  - archives-api
-                  - archives-workers
-                  - bluerobin-web
+                  - myapp-api
+                  - myapp-workers
+                  - my-web-client
       ports:
         - protocol: TCP
           port: 5432
@@ -389,8 +389,8 @@ spec:
               - key: kubernetes.io/metadata.name
                 operator: In
                 values:
-                  - archives-staging
-                  - archives-prod
+                  - myapp-staging
+                  - myapp-prod
       ports:
         - protocol: TCP
           port: 4222
@@ -422,11 +422,11 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: allow-external-apis
-  namespace: archives-staging
+  namespace: myapp-staging
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: archives-workers
+      app.kubernetes.io/name: myapp-workers
   policyTypes:
     - Egress
   egress:
@@ -456,16 +456,16 @@ Exclude private IP ranges when allowing external access to prevent bypassing int
 apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
-  name: archives-api-l7
-  namespace: archives-staging
+  name: myapp-api-l7
+  namespace: myapp-staging
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: archives-api
+      app.kubernetes.io/name: myapp-api
   ingress:
     - fromEndpoints:
         - matchLabels:
-            app.kubernetes.io/name: bluerobin-web
+            app.kubernetes.io/name: my-web-client
       toPorts:
         - ports:
             - port: "8080"
@@ -488,11 +488,11 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: allow-specific-dns
-  namespace: archives-staging
+  namespace: myapp-staging
 spec:
   endpointSelector:
     matchLabels:
-      app.kubernetes.io/name: archives-workers
+      app.kubernetes.io/name: myapp-workers
   egress:
     - toEndpoints:
         - matchLabels:
@@ -518,7 +518,7 @@ apiVersion: cilium.io/v2
 kind: CiliumNetworkPolicy
 metadata:
   name: audit-deny
-  namespace: archives-staging
+  namespace: myapp-staging
   annotations:
     io.cilium.proxy-visibility: "<Egress/80/TCP/HTTP>,<Ingress/8080/TCP/HTTP>"
 spec:
@@ -537,15 +537,15 @@ spec:
 # Test allowed connection
 kubectl run test-client --rm -i --restart=Never \
   --image=busybox \
-  -n archives-staging \
-  --labels="app.kubernetes.io/name=archives-api" \
+  -n myapp-staging \
+  --labels="app.kubernetes.io/name=myapp-api" \
   -- wget -qO- --timeout=5 \
   http://postgresql.data-layer.svc.cluster.local:5432 || echo "Connection blocked (expected)"
 
 # Test denied connection
 kubectl run test-client --rm -i --restart=Never \
   --image=busybox \
-  -n archives-staging \
+  -n myapp-staging \
   --labels="app.kubernetes.io/name=test-pod" \
   -- wget -qO- --timeout=5 \
   http://postgresql.data-layer.svc.cluster.local:5432 && echo "Connection allowed (unexpected!)" || echo "Connection blocked (expected)"
@@ -557,13 +557,13 @@ kubectl run test-client --rm -i --restart=Never \
 
 | Source | Destination | Port | Expected |
 |--------|-------------|------|----------|
-| archives-api | postgresql | 5432 | Allow |
-| archives-api | nats | 4222 | Allow |
-| archives-api | qdrant | 6333 | Deny |
-| archives-workers | qdrant | 6333 | Allow |
-| bluerobin-web | archives-api | 8080 | Allow |
-| bluerobin-web | postgresql | 5432 | Deny |
-| traefik | archives-api | 8080 | Allow |
+| myapp-api | postgresql | 5432 | Allow |
+| myapp-api | nats | 4222 | Allow |
+| myapp-api | qdrant | 6333 | Deny |
+| myapp-workers | qdrant | 6333 | Allow |
+| my-web-client | myapp-api | 8080 | Allow |
+| my-web-client | postgresql | 5432 | Deny |
+| traefik | myapp-api | 8080 | Allow |
 
 ## Conclusion
 

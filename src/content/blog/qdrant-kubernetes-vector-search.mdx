@@ -1,7 +1,7 @@
 ---
 title: "Qdrant Vector Database on Kubernetes"
 description: "Deploy and configure Qdrant for production semantic search with collection management, filtering, and high availability on Kubernetes."
-pubDate: 2025-08-28
+pubDate: 2025-10-16
 author: "Victor Robin"
 category: "database"
 difficulty: "intermediate"
@@ -25,7 +25,7 @@ Qdrant is a high-performance vector database written in Rust, designed for the n
 - **Hybrid Search**: Combine vector similarity with metadata filters for precise results
 - **Scale**: Handle millions of vectors with sub-millisecond query latency
 
-For BlueRobin's document intelligence features, Qdrant is the backbone of our search. Users can ask natural language questions and find relevant documents even when the exact words don't match.
+For our document intelligence system features, Qdrant is the backbone of our search. Users can ask natural language questions and find relevant documents even when the exact words don't match.
 
 **Why Qdrant Matters:**
 
@@ -420,7 +420,7 @@ public sealed class QdrantVectorStore : IVectorStore
     
     public async Task<IReadOnlyList<SearchResult>> SearchAsync(
         float[] queryVector,
-        BlueRobinId ownerId,
+        CustomId ownerId,
         int limit = 10,
         float scoreThreshold = 0.5f,
         SearchFilters? filters = null,
@@ -488,7 +488,7 @@ public sealed class QdrantVectorStore : IVectorStore
         return results.Select(r => new SearchResult
         {
             Id = r.Id.Uuid,
-            DocumentId = BlueRobinId.From(r.Payload["document_id"].StringValue),
+            DocumentId = CustomId.From(r.Payload["document_id"].StringValue),
             ChunkIndex = (int)r.Payload["chunk_index"].IntegerValue,
             Content = r.Payload["content"].StringValue,
             Score = r.Score
@@ -496,8 +496,8 @@ public sealed class QdrantVectorStore : IVectorStore
     }
     
     public async Task DeleteByDocumentAsync(
-        BlueRobinId documentId,
-        BlueRobinId ownerId,
+        CustomId documentId,
+        CustomId ownerId,
         CancellationToken ct = default)
     {
         var collectionName = GetCollectionName();
@@ -534,7 +534,7 @@ public sealed class QdrantVectorStore : IVectorStore
     }
     
     public async Task<long> CountByOwnerAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         CancellationToken ct = default)
     {
         var collectionName = GetCollectionName();
@@ -581,7 +581,7 @@ public sealed record VectorPoint
 
 public sealed record SearchFilters
 {
-    public IReadOnlyList<BlueRobinId>? DocumentIds { get; init; }
+    public IReadOnlyList<CustomId>? DocumentIds { get; init; }
     public IReadOnlyList<string>? Tags { get; init; }
     public DateTimeOffset? CreatedAfter { get; init; }
     public DateTimeOffset? CreatedBefore { get; init; }
@@ -590,7 +590,7 @@ public sealed record SearchFilters
 public sealed record SearchResult
 {
     public required string Id { get; init; }
-    public required BlueRobinId DocumentId { get; init; }
+    public required CustomId DocumentId { get; init; }
     public required int ChunkIndex { get; init; }
     public required string Content { get; init; }
     public required float Score { get; init; }

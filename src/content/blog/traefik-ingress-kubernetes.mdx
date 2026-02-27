@@ -1,7 +1,7 @@
 ---
 title: "Traefik Ingress Controller on Kubernetes"
 description: "Configure Traefik as your Kubernetes ingress controller with TLS termination, middleware chains, and IngressRoutes for routing traffic."
-pubDate: 2024-04-28
+pubDate: 2024-04-07
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -25,7 +25,7 @@ Your Kubernetes cluster runs dozens of services, but they're all hidden behind i
 - **Middleware Ecosystem**: Authentication, rate limiting, compression as composable building blocks
 - **Dashboard**: Real-time visibility into routes, services, and middleware chains
 
-For BlueRobin, Traefik is the front door to everything—our Blazor web app, REST API, and internal tools. Its CRD-based configuration (IngressRoute) gives us more power than standard Kubernetes Ingress, while the middleware system handles cross-cutting concerns like auth forwarding and security headers.
+Traefik is the front door to everything—our Blazor web app, REST API, and internal tools. Its CRD-based configuration (IngressRoute) gives us more power than standard Kubernetes Ingress, while the middleware system handles cross-cutting concerns like auth forwarding and security headers.
 
 Traefik is a modern HTTP reverse proxy and load balancer that makes deploying microservices easy. In the Kubernetes ecosystem, it serves as an **Ingress Controller**, managing access to your services from the outside world.
 
@@ -297,12 +297,12 @@ spec:
 ### API IngressRoute
 
 ```yaml
-# apps/archives-api/ingressroute.yaml
+# apps/myapp-api/ingressroute.yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: archives-api
-  namespace: archives-staging
+  name: myapp-api
+  namespace: myapp-staging
   annotations:
     kubernetes.io/ingress.class: traefik
 spec:
@@ -315,27 +315,27 @@ spec:
         - name: chain-secure
           namespace: kube-system
       services:
-        - name: archives-api
+        - name: myapp-api
           port: 80
     - match: Host(`api-staging.bluerobin.local`) && PathPrefix(`/api/health`)
       kind: Rule
       services:
-        - name: archives-api
+        - name: myapp-api
           port: 80
       priority: 100  # Higher priority, skip auth
   tls:
-    secretName: bluerobin-tls
+    secretName: myapp-tls
 ```
 
 ### Web IngressRoute
 
 ```yaml
-# apps/bluerobin-web/ingressroute.yaml
+# apps/my-web-client/ingressroute.yaml
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: bluerobin-web
-  namespace: archives-staging
+  name: my-web-client
+  namespace: myapp-staging
 spec:
   entryPoints:
     - websecure
@@ -346,10 +346,10 @@ spec:
         - name: chain-secure-auth
           namespace: kube-system
       services:
-        - name: bluerobin-web
+        - name: my-web-client
           port: 80
   tls:
-    secretName: bluerobin-tls
+    secretName: myapp-tls
 ```
 
 <Callout type="tip">
@@ -365,10 +365,10 @@ Use route priority to ensure health check endpoints bypass authentication while 
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: bluerobin-wildcard
+  name: myapp-wildcard
   namespace: cert-manager
 spec:
-  secretName: bluerobin-tls
+  secretName: myapp-tls
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
@@ -379,7 +379,7 @@ spec:
     annotations:
       reflector.v1.k8s.emberstack.com/reflection-allowed: "true"
       reflector.v1.k8s.emberstack.com/reflection-allowed-namespaces: >-
-        archives-staging,archives-prod,authelia
+        myapp-staging,myapp-prod,authelia
       reflector.v1.k8s.emberstack.com/reflection-auto-enabled: "true"
 ```
 
@@ -394,7 +394,7 @@ metadata:
   namespace: kube-system
 spec:
   defaultCertificate:
-    secretName: bluerobin-tls
+    secretName: myapp-tls
 ```
 
 ## Load Balancing
@@ -402,12 +402,12 @@ spec:
 ### Sticky Sessions
 
 ```yaml
-# apps/bluerobin-web/ingressroute.yaml (with sticky sessions)
+# apps/my-web-client/ingressroute.yaml (with sticky sessions)
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
-  name: bluerobin-web
-  namespace: archives-staging
+  name: my-web-client
+  namespace: myapp-staging
 spec:
   entryPoints:
     - websecure
@@ -418,7 +418,7 @@ spec:
         - name: chain-secure-auth
           namespace: kube-system
       services:
-        - name: bluerobin-web
+        - name: my-web-client
           port: 80
           sticky:
             cookie:
@@ -426,7 +426,7 @@ spec:
               secure: true
               httpOnly: true
   tls:
-    secretName: bluerobin-tls
+    secretName: myapp-tls
 ```
 
 <ImplementationNote>
@@ -436,19 +436,19 @@ Blazor Server requires sticky sessions to maintain SignalR connections to the sa
 ### Weighted Routing (Canary)
 
 ```yaml
-# apps/bluerobin-web/canary-route.yaml
+# apps/my-web-client/canary-route.yaml
 apiVersion: traefik.io/v1alpha1
 kind: TraefikService
 metadata:
-  name: bluerobin-web-canary
-  namespace: archives-staging
+  name: my-web-client-canary
+  namespace: myapp-staging
 spec:
   weighted:
     services:
-      - name: bluerobin-web
+      - name: my-web-client
         port: 80
         weight: 90
-      - name: bluerobin-web-canary
+      - name: my-web-client-canary
         port: 80
         weight: 10
 ```
@@ -495,7 +495,7 @@ spec:
         - name: api@internal
           kind: TraefikService
   tls:
-    secretName: bluerobin-tls
+    secretName: myapp-tls
 ```
 
 ## Local Development DNS
@@ -522,7 +522,7 @@ Traefik provides comprehensive ingress management:
 | Security Headers | HSTS, XSS filter, frame options |
 | Load Balancing | Weighted routing, sticky sessions |
 
-Combined with Flux CD for GitOps deployment, Traefik enables secure, scalable traffic management for BlueRobin services.
+Combined with Flux CD for GitOps deployment, Traefik enables secure, scalable traffic management for our services.
 
 <ExternalCite 
   title="Traefik Documentation" 

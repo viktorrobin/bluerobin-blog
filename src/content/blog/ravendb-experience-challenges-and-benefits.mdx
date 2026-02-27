@@ -1,7 +1,7 @@
 ---
 title: "RavenDB: Challenges and Benefits in Production"
 description: "Why we chose the Document Model and RavenDB's impressive GUI, despite the challenges of a smaller ecosystem and specialized hosting requirements."
-pubDate: 2026-02-21
+pubDate: 2025-03-24
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -19,7 +19,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 In a world dominated by PostgreSQL and SQL Server, choosing a NoSQL document store as a primary database is a bold move. Choosing **RavenDB** specifically often raises eyebrows. "Why not MongoDB? Why not CosmosDB?"
 
-At BlueRobin, our data model is inherently hierarchical. Documents belong to Folders, which belong to Projects, which belong to Organizations. Force-fitting this into normalized SQL tables often leads to complex JOINs and ORM friction. RavenDB promised us a way to store data exactly as we use it in our code. 
+In production, our data model is inherently hierarchical. Documents belong to Folders, which belong to Projects, which belong to Organizations. Force-fitting this into normalized SQL tables often leads to complex JOINs and ORM friction. RavenDB promised us a way to store data exactly as we use it in our code. 
 
 Three years later, the verdict is in. We have some scars, but mostly, we have a highly performant system that developers love to work with.
 

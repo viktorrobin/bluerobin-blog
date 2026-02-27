@@ -1,7 +1,7 @@
 ---
 title: "Integrating Docling OCR in a .NET Document Pipeline"
 description: "Learn how to integrate Docling, an AI-powered document understanding library, into your .NET application for high-quality OCR with layout preservation."
-pubDate: 2025-08-07
+pubDate: 2025-09-23
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
@@ -232,7 +232,7 @@ spec:
     spec:
       containers:
         - name: docling
-          image: ghcr.io/bluerobin/docling-ocr:latest
+          image: registry.example.com/myapp/docling-ocr:latest
           ports:
             - containerPort: 8080
           resources:
@@ -280,7 +280,7 @@ Create a typed HTTP client to call the Docling API:
 
 ```csharp
 // Infrastructure/Ocr/DoclingOcrService.cs
-namespace Archives.Infrastructure.Ocr;
+namespace MyApp.Infrastructure.Ocr;
 
 public interface IOcrService
 {
@@ -421,7 +421,7 @@ The OCR worker listens for document upload events and processes them:
 
 ```csharp
 // Workers/OcrWorkerService.cs
-namespace Archives.Workers;
+namespace MyApp.Workers;
 
 public sealed class OcrWorkerService : BackgroundService
 {
@@ -543,7 +543,7 @@ Define strongly-typed events for the pipeline:
 
 ```csharp
 // Application/Events/DocumentEvents.cs
-namespace Archives.Application.Events;
+namespace MyApp.Application.Events;
 
 public sealed record DocumentProcessingRequestedEvent
 {

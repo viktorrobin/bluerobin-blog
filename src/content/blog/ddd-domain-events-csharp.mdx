@@ -1,7 +1,7 @@
 ---
 title: "Domain Events: Decoupling Your Domain Logic"
 description: "Master domain events in C# to build reactive systems with loose coupling, eventual consistency, and clean separation of concerns."
-pubDate: 2024-11-27
+pubDate: 2024-10-18
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -78,8 +78,8 @@ public interface IDomainEvent : INotification // MediatR
 
 // The Concrete Event
 public sealed record DocumentCreatedEvent(
-    BlueRobinId DocumentId,
-    BlueRobinId OwnerId,
+    CustomId DocumentId,
+    CustomId OwnerId,
     string Title) : IDomainEvent
 {
     public Guid EventId { get; } = Guid.NewGuid();
@@ -136,7 +136,7 @@ public sealed class DomainEventDispatcherInterceptor : SaveChangesInterceptor
 
         // 1. Find all entities with events
         var aggregates = context.ChangeTracker
-            .Entries<AggregateRoot<BlueRobinId>>()
+            .Entries<AggregateRoot<CustomId>>()
             .Where(e => e.Entity.DomainEvents.Any())
             .Select(e => e.Entity)
             .ToList();

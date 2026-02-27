@@ -1,7 +1,7 @@
 ---
 title: "Deploying a Telegram Bot to Kubernetes with Flux"
-description: "Complete guide to deploying the BlueRobin Telegram Bot on Kubernetes, covering Docker builds, Kustomize overlays, secrets management with Infisical, and GitOps with Flux CD."
-pubDate: 2025-12-04
+description: "Complete guide to deploying our Telegram Bot on Kubernetes, covering Docker builds, Kustomize overlays, secrets management with Infisical, and GitOps with Flux CD."
+pubDate: 2026-02-07
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
@@ -31,8 +31,8 @@ After building the [Telegram Bot service](/articles/telegram-bot-integration-dot
 ```mermaid
 flowchart TB
     subgraph GitHub["GitHub"]
-        App[bluerobin-app]
-        Infra[bluerobin-infra]
+        App[my-app]
+        Infra[my-infra]
     end
     
     subgraph CI["GitHub Actions"]
@@ -56,7 +56,7 @@ flowchart TB
             Kustomize[Kustomization]
         end
         
-        subgraph NS["archives-staging namespace"]
+        subgraph NS["myapp-staging namespace"]
             ExtSecret[ExternalSecret]
             Secret[Secret]
             Deploy[Deployment]
@@ -103,7 +103,7 @@ flowchart TB
 
 We use a multi-stage build with Microsoft's chiseled base images for security:
 
-<CodeFile path="Archives.TelegramBot/Dockerfile" language="dockerfile">
+<CodeFile path="MyApp.TelegramBot/Dockerfile" language="dockerfile">
 ```dockerfile
 # =============================================================================
 # Stage 1: Build
@@ -115,23 +115,23 @@ ARG BUILD_TIME=unknown
 WORKDIR /src
 
 # Copy solution and project files for layer caching
-COPY ["BlueRobin.sln", "./"]
+COPY ["MyApp.sln", "./"]
 COPY ["Directory.Build.props", "./"]
 COPY ["src/SharedKernel/SharedKernel.csproj", "src/SharedKernel/"]
-COPY ["src/Archives.Core/Archives.Core.csproj", "src/Archives.Core/"]
-COPY ["src/Archives.Application/Archives.Application.csproj", "src/Archives.Application/"]
-COPY ["src/Archives.Infrastructure/Archives.Infrastructure.csproj", "src/Archives.Infrastructure/"]
-COPY ["src/Archives.TelegramBot/Archives.TelegramBot.csproj", "src/Archives.TelegramBot/"]
+COPY ["src/MyApp.Core/MyApp.Core.csproj", "src/MyApp.Core/"]
+COPY ["src/MyApp.Application/MyApp.Application.csproj", "src/MyApp.Application/"]
+COPY ["src/MyApp.Infrastructure/MyApp.Infrastructure.csproj", "src/MyApp.Infrastructure/"]
+COPY ["src/MyApp.TelegramBot/MyApp.TelegramBot.csproj", "src/MyApp.TelegramBot/"]
 
 # Restore dependencies
-RUN dotnet restore "src/Archives.TelegramBot/Archives.TelegramBot.csproj"
+RUN dotnet restore "src/MyApp.TelegramBot/MyApp.TelegramBot.csproj"
 
 # Copy source code
 COPY ["src/", "src/"]
 
 # Build and publish
-WORKDIR "/src/src/Archives.TelegramBot"
-RUN dotnet publish "Archives.TelegramBot.csproj" \
+WORKDIR "/src/src/MyApp.TelegramBot"
+RUN dotnet publish "MyApp.TelegramBot.csproj" \
     -c Release \
     -o /app/publish \
     --no-restore \
@@ -147,8 +147,8 @@ ARG BUILD_COMMIT=unknown
 ARG BUILD_TIME=unknown
 LABEL org.opencontainers.image.revision=$BUILD_COMMIT
 LABEL org.opencontainers.image.created=$BUILD_TIME
-LABEL org.opencontainers.image.title="BlueRobin Telegram Bot"
-LABEL org.opencontainers.image.description="Telegram bot for BlueRobin document management"
+LABEL org.opencontainers.image.title="Telegram Bot"
+LABEL org.opencontainers.image.description="Telegram bot for document management"
 
 # Required for ICU/globalization support
 ENV DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false
@@ -161,7 +161,7 @@ USER $APP_UID
 
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "BlueRobin.Archives.TelegramBot.dll"]
+ENTRYPOINT ["dotnet", "MyApp.MyApp.TelegramBot.dll"]
 ```
 </CodeFile>
 
@@ -197,7 +197,7 @@ apps/archives-telegram-bot/
 
 ### Base Resources
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/base/deployment.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/base/deployment.yaml" language="yaml">
 ```yaml
 apiVersion: apps/v1
 kind: Deployment
@@ -233,7 +233,7 @@ spec:
         - name: registry-pull-secret
       containers:
         - name: telegram-bot
-          image: 192.168.0.5:5005/bluerobin/archives-telegram-bot:latest
+          image: registry.example.com/myapp/archives-telegram-bot:latest
           imagePullPolicy: Always
           securityContext:
             allowPrivilegeEscalation: false
@@ -276,7 +276,7 @@ spec:
             - name: ASPNETCORE_ENVIRONMENT
               value: "Production"
             - name: ConnectionStrings__DefaultConnection
-              value: "Host=$(ARCHIVES_DB_HOST);Port=$(ARCHIVES_DB_PORT);Database=$(ARCHIVES_DB_NAME);Username=$(ARCHIVES_DB_USER);Password=$(ARCHIVES_DB_PASSWORD)"
+              value: "Host=$(APP_DB_HOST);Port=$(APP_DB_PORT);Database=$(APP_DB_NAME);Username=$(APP_DB_USER);Password=$(APP_DB_PASSWORD)"
             - name: Telegram__BotToken
               valueFrom:
                 secretKeyRef:
@@ -291,7 +291,7 @@ spec:
 
 ### ConfigMap
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/base/configmap.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/base/configmap.yaml" language="yaml">
 ```yaml
 apiVersion: v1
 kind: ConfigMap
@@ -306,8 +306,8 @@ data:
   Minio__UseSSL: "false"
   
   # Database host (resolved via secrets)
-  ARCHIVES_DB_HOST: "postgres-rw.data-layer.svc.cluster.local"
-  ARCHIVES_DB_PORT: "5432"
+  APP_DB_HOST: "postgres-rw.data-layer.svc.cluster.local"
+  APP_DB_PORT: "5432"
   
   # Qdrant vector store
   Qdrant__Endpoint: "http://qdrant.data-layer.svc.cluster.local:6334"
@@ -319,7 +319,7 @@ data:
   Rag__MaxChunks: "5"
   
   # Telegram bot settings (non-sensitive)
-  Telegram__BotUsername: "BlueRobinBot"
+  Telegram__BotUsername: "MyAppBot"
   Telegram__MaxUploadSizeBytes: "52428800"  # 50MB
   
   # Environment prefix for NATS subjects
@@ -329,12 +329,12 @@ data:
 
 ### Staging Overlay
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/overlays/staging/kustomization.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/overlays/staging/kustomization.yaml" language="yaml">
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: archives-staging
+namespace: myapp-staging
 
 resources:
   - ../../base
@@ -348,8 +348,8 @@ patches:
         path: /data/Environment__Prefix
         value: "staging"
       - op: replace
-        path: /data/ARCHIVES_DB_NAME
-        value: "archives_staging"
+        path: /data/APP_DB_NAME
+        value: "myapp_staging"
       - op: replace
         path: /data/Qdrant__CollectionName
         value: "staging-documents"
@@ -361,12 +361,12 @@ patches:
 
 ### Production Overlay
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/overlays/prod/kustomization.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/overlays/prod/kustomization.yaml" language="yaml">
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: archives-prod
+namespace: myapp-prod
 
 resources:
   - ../../base
@@ -380,8 +380,8 @@ patches:
         path: /data/Environment__Prefix
         value: ""
       - op: replace
-        path: /data/ARCHIVES_DB_NAME
-        value: "archives_prod"
+        path: /data/APP_DB_NAME
+        value: "myapp_prod"
       - op: replace
         path: /data/Qdrant__CollectionName
         value: "prod-documents"
@@ -406,7 +406,7 @@ patches:
 
 We use ExternalSecrets to sync secrets from Infisical:
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/externalsecret.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/externalsecret.yaml" language="yaml">
 ```yaml
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
@@ -427,12 +427,12 @@ spec:
         key: TELEGRAM_BOT_TOKEN
         
     # Database credentials
-    - secretKey: ARCHIVES_DB_USER
+    - secretKey: APP_DB_USER
       remoteRef:
-        key: ARCHIVES_DB_USER
-    - secretKey: ARCHIVES_DB_PASSWORD
+        key: APP_DB_USER
+    - secretKey: APP_DB_PASSWORD
       remoteRef:
-        key: ARCHIVES_DB_PASSWORD
+        key: APP_DB_PASSWORD
         
     # MinIO credentials
     - secretKey: MINIO_ACCESS_KEY
@@ -456,7 +456,7 @@ Before deploying, add `TELEGRAM_BOT_TOKEN` to Infisical:
 
 The Flux Kustomization resource tells Flux how to deploy the app:
 
-<CodeFile path="bluerobin-infra/clusters/bluerobin/apps/archives-telegram-bot.yaml" language="yaml">
+<CodeFile path="my-infra/clusters/my-cluster/apps/archives-telegram-bot.yaml" language="yaml">
 ```yaml
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
@@ -469,12 +469,12 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: bluerobin-infra
+    name: my-infra
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment
       name: archives-telegram-bot
-      namespace: archives-staging
+      namespace: myapp-staging
   timeout: 3m
 ---
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -488,12 +488,12 @@ spec:
   prune: true
   sourceRef:
     kind: GitRepository
-    name: bluerobin-infra
+    name: my-infra
   healthChecks:
     - apiVersion: apps/v1
       kind: Deployment
       name: archives-telegram-bot
-      namespace: archives-prod
+      namespace: myapp-prod
   dependsOn:
     - name: archives-telegram-bot-staging  # Deploy staging first
   timeout: 3m
@@ -504,7 +504,7 @@ spec:
 
 To automatically deploy new images, we configure Flux's image automation:
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/image-automation.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/image-automation.yaml" language="yaml">
 ```yaml
 apiVersion: image.toolkit.fluxcd.io/v1beta2
 kind: ImageRepository
@@ -512,7 +512,7 @@ metadata:
   name: archives-telegram-bot
   namespace: flux-system
 spec:
-  image: 192.168.0.5:5005/bluerobin/archives-telegram-bot
+  image: registry.example.com/myapp/archives-telegram-bot
   interval: 5m
   insecure: true  # Private registry without TLS
 ---
@@ -539,14 +539,14 @@ spec:
   interval: 5m
   sourceRef:
     kind: GitRepository
-    name: bluerobin-infra
+    name: my-infra
   git:
     checkout:
       ref:
         branch: main
     commit:
       author:
-        email: flux@bluerobin.local
+        email: flux@example.local
         name: Flux Bot
       messageTemplate: 'chore: update archives-telegram-bot to {{.NewTag}}'
     push:
@@ -560,12 +560,12 @@ spec:
 In the deployment, add the image marker:
 
 ```yaml
-image: 192.168.0.5:5005/bluerobin/archives-telegram-bot:latest # {"$imagepolicy": "flux-system:archives-telegram-bot"}
+image: registry.example.com/myapp/archives-telegram-bot:latest # {"$imagepolicy": "flux-system:archives-telegram-bot"}
 ```
 
 ## GitHub Actions CI
 
-<CodeFile path="bluerobin-app/.github/workflows/telegram-bot.yml" language="yaml">
+<CodeFile path="my-app/.github/workflows/telegram-bot.yml" language="yaml">
 ```yaml
 name: Build Telegram Bot
 
@@ -573,11 +573,11 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/Archives.TelegramBot/**'
+      - 'src/MyApp.TelegramBot/**'
       - 'src/SharedKernel/**'
-      - 'src/Archives.Core/**'
-      - 'src/Archives.Application/**'
-      - 'src/Archives.Infrastructure/**'
+      - 'src/MyApp.Core/**'
+      - 'src/MyApp.Application/**'
+      - 'src/MyApp.Infrastructure/**'
   workflow_dispatch:
 
 jobs:
@@ -600,16 +600,16 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./src/Archives.TelegramBot/Dockerfile
+          file: ./src/MyApp.TelegramBot/Dockerfile
           push: true
           tags: |
-            192.168.0.5:5005/bluerobin/archives-telegram-bot:latest
-            192.168.0.5:5005/bluerobin/archives-telegram-bot:sha-${{ github.sha }}
+            registry.example.com/myapp/archives-telegram-bot:latest
+            registry.example.com/myapp/archives-telegram-bot:sha-${{ github.sha }}
           build-args: |
             BUILD_COMMIT=${{ github.sha }}
             BUILD_TIME=${{ github.event.head_commit.timestamp }}
-          cache-from: type=registry,ref=192.168.0.5:5005/bluerobin/archives-telegram-bot:buildcache
-          cache-to: type=registry,ref=192.168.0.5:5005/bluerobin/archives-telegram-bot:buildcache,mode=max
+          cache-from: type=registry,ref=registry.example.com/myapp/archives-telegram-bot:buildcache
+          cache-to: type=registry,ref=registry.example.com/myapp/archives-telegram-bot:buildcache,mode=max
 ```
 </CodeFile>
 
@@ -627,21 +627,21 @@ After deployment, verify everything is working:
 ### 1. Check Deployment Status
 
 ```bash
-kubectl get deployments -n archives-staging -l app=archives-telegram-bot
-kubectl describe deployment archives-telegram-bot -n archives-staging
+kubectl get deployments -n myapp-staging -l app=archives-telegram-bot
+kubectl describe deployment archives-telegram-bot -n myapp-staging
 ```
 
 ### 2. Check Logs
 
 ```bash
-kubectl logs -n archives-staging deployment/archives-telegram-bot -f
+kubectl logs -n myapp-staging deployment/archives-telegram-bot -f
 ```
 
 Expected output:
 ```
-info: BlueRobin.Archives.TelegramBot[0]
-      Telegram bot started: @BlueRobinBot (ID: 123456789)
-info: BlueRobin.Archives.TelegramBot[0]
+info: MyApp.MyApp.TelegramBot[0]
+      Telegram bot started: @MyAppBot (ID: 123456789)
+info: MyApp.MyApp.TelegramBot[0]
       Telegram notification worker starting, subscribing to staging.notifications.telegram
 ```
 

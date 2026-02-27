@@ -1,7 +1,7 @@
 ---
 title: "Hybrid Search: Combining Semantic and Keyword Search"
 description: "Build a powerful hybrid search system that combines vector embeddings with traditional keyword search for comprehensive document retrieval."
-pubDate: 2025-09-04
+pubDate: 2025-10-24
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -21,7 +21,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-Pure semantic search excels at understanding meaning but can miss exact matches. Keyword search finds precise terms but misses semantic relationships. Hybrid search combines both approaches for the best of both worlds. This article details the implementation of a hybrid search system in BlueRobin using Qdrant for vector search and PostgreSQL for full-text search, fused with Reciprocal Rank Fusion (RRF).
+Pure semantic search excels at understanding meaning but can miss exact matches. Keyword search finds precise terms but misses semantic relationships. Hybrid search combines both approaches for the best of both worlds. This article details the implementation of a hybrid search system using Qdrant for vector search and PostgreSQL for full-text search, fused with Reciprocal Rank Fusion (RRF).
 
 ## Architecture Overview
 
@@ -132,11 +132,11 @@ public void Configure(EntityTypeBuilder<Document> builder)
 // Infrastructure/Search/PostgresKeywordSearch.cs
 public sealed class PostgresKeywordSearch : IKeywordSearch
 {
-    private readonly BlueRobinDbContext _context;
+    private readonly AppDbContext _context;
     private readonly ILogger<PostgresKeywordSearch> _logger;
     
     public PostgresKeywordSearch(
-        BlueRobinDbContext context,
+        AppDbContext context,
         ILogger<PostgresKeywordSearch> logger)
     {
         _context = context;
@@ -144,7 +144,7 @@ public sealed class PostgresKeywordSearch : IKeywordSearch
     }
     
     public async Task<IReadOnlyList<KeywordSearchResult>> SearchAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         string query,
         int limit = 20,
         CancellationToken ct = default)
@@ -187,7 +187,7 @@ public sealed class PostgresKeywordSearch : IKeywordSearch
     }
     
     public async Task<IReadOnlyList<KeywordSearchResult>> FuzzySearchAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         string query,
         double similarityThreshold = 0.3,
         int limit = 20,
@@ -235,7 +235,7 @@ public sealed class PostgresKeywordSearch : IKeywordSearch
 
 public sealed record KeywordSearchResult
 {
-    public required BlueRobinId DocumentId { get; init; }
+    public required CustomId DocumentId { get; init; }
     public required string Title { get; init; }
     public required float Score { get; init; }
     public string? Headline { get; init; }
@@ -266,7 +266,7 @@ public sealed class QdrantSemanticSearch : ISemanticSearch
     }
     
     public async Task<IReadOnlyList<SemanticSearchResult>> SearchAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         string query,
         int limit = 20,
         float scoreThreshold = 0.5f,
@@ -302,8 +302,8 @@ public sealed class QdrantSemanticSearch : ISemanticSearch
         
         var results = searchResult.Select(r => new SemanticSearchResult
         {
-            ChunkId = BlueRobinId.From(r.Id.Uuid),
-            DocumentId = BlueRobinId.From(r.Payload["document_id"].StringValue),
+            ChunkId = CustomId.From(r.Id.Uuid),
+            DocumentId = CustomId.From(r.Payload["document_id"].StringValue),
             Content = r.Payload["content"].StringValue,
             Score = r.Score,
             ChunkIndex = (int)r.Payload["chunk_index"].IntegerValue
@@ -320,8 +320,8 @@ public sealed class QdrantSemanticSearch : ISemanticSearch
 
 public sealed record SemanticSearchResult
 {
-    public required BlueRobinId ChunkId { get; init; }
-    public required BlueRobinId DocumentId { get; init; }
+    public required CustomId ChunkId { get; init; }
+    public required CustomId DocumentId { get; init; }
     public required string Content { get; init; }
     public required float Score { get; init; }
     public required int ChunkIndex { get; init; }
@@ -356,7 +356,7 @@ public sealed class HybridSearchService : IHybridSearchService
     }
     
     public async Task<HybridSearchResponse> SearchAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         string query,
         HybridSearchOptions? options = null,
         CancellationToken ct = default)
@@ -440,7 +440,7 @@ public sealed class HybridSearchService : IHybridSearchService
         float semanticWeight,
         float keywordWeight)
     {
-        var documentScores = new Dictionary<BlueRobinId, FusedResult>();
+        var documentScores = new Dictionary<CustomId, FusedResult>();
         
         // Process semantic results
         for (int rank = 0; rank < semanticResults.Count; rank++)
@@ -488,7 +488,7 @@ public sealed class HybridSearchService : IHybridSearchService
     
     private class FusedResult
     {
-        public BlueRobinId DocumentId { get; init; }
+        public CustomId DocumentId { get; init; }
         public float FusedScore { get; set; }
         public float? SemanticScore { get; set; }
         public float? KeywordScore { get; set; }
@@ -531,7 +531,7 @@ public sealed record HybridSearchResponse
 
 public sealed record HybridSearchResult
 {
-    public required BlueRobinId DocumentId { get; init; }
+    public required CustomId DocumentId { get; init; }
     public Document? Document { get; init; }
     public required float Score { get; init; }
     public float? SemanticScore { get; init; }
@@ -542,7 +542,7 @@ public sealed record HybridSearchResult
 
 public sealed record MatchedChunk
 {
-    public required BlueRobinId ChunkId { get; init; }
+    public required CustomId ChunkId { get; init; }
     public required string Content { get; init; }
     public required int ChunkIndex { get; init; }
 }
@@ -620,22 +620,22 @@ public class HybridSearchServiceTests
         var semanticSearch = Substitute.For<ISemanticSearch>();
         var keywordSearch = Substitute.For<IKeywordSearch>();
         
-        semanticSearch.SearchAsync(Arg.Any<BlueRobinId>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
+        semanticSearch.SearchAsync(Arg.Any<CustomId>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<float>(), Arg.Any<CancellationToken>())
             .Returns([
-                new SemanticSearchResult { DocumentId = BlueRobinId.From("doc1"), Score = 0.9f },
-                new SemanticSearchResult { DocumentId = BlueRobinId.From("doc2"), Score = 0.7f }
+                new SemanticSearchResult { DocumentId = CustomId.From("doc1"), Score = 0.9f },
+                new SemanticSearchResult { DocumentId = CustomId.From("doc2"), Score = 0.7f }
             ]);
         
-        keywordSearch.SearchAsync(Arg.Any<BlueRobinId>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
+        keywordSearch.SearchAsync(Arg.Any<CustomId>(), Arg.Any<string>(), Arg.Any<int>(), Arg.Any<CancellationToken>())
             .Returns([
-                new KeywordSearchResult { DocumentId = BlueRobinId.From("doc2"), Score = 15.0f },
-                new KeywordSearchResult { DocumentId = BlueRobinId.From("doc3"), Score = 10.0f }
+                new KeywordSearchResult { DocumentId = CustomId.From("doc2"), Score = 15.0f },
+                new KeywordSearchResult { DocumentId = CustomId.From("doc3"), Score = 10.0f }
             ]);
         
         var service = new HybridSearchService(semanticSearch, keywordSearch, ...);
         
         // Act
-        var result = await service.SearchAsync(BlueRobinId.New(), "test query");
+        var result = await service.SearchAsync(CustomId.New(), "test query");
         
         // Assert
         result.Results.Should().HaveCount(3);

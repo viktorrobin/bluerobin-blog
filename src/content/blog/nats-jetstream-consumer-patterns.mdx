@@ -1,7 +1,7 @@
 ---
 title: "NATS JetStream Consumer Patterns: Work Queues vs Fan-Out"
 description: "Deep dive into NATS consumer configurations. Learn how to implement Load Balanced Work Queues for scaling background jobs and Fan-Out patterns for event-driven systems."
-pubDate: 2025-05-29
+pubDate: 2025-06-29
 author: "Victor Robin"
 category: "messaging"
 difficulty: "advanced"
@@ -36,7 +36,7 @@ Different services create *different* consumer names. Each consumer gets a full 
 
 ```mermaid
 flowchart TD
-    Stream["Stream: ARCHIVES\n(Subject: archives.doc.created)"]
+    Stream["Stream: MYAPP\n(Subject: archives.doc.created)"]
     
     subgraph WorkQueue["Pattern 1: Work Queue"]
         Stream -->|Load Balance| Worker1["Worker Instance 1"]
@@ -76,7 +76,7 @@ var consumerConfig = new ConsumerConfig("ocr_processor_group")
     AckWait = TimeSpan.FromSeconds(30)
 };
 
-var consumer = await js.CreateOrUpdateConsumerAsync("ARCHIVES", consumerConfig);
+var consumer = await js.CreateOrUpdateConsumerAsync("MYAPP", consumerConfig);
 
 // Process loop
 await foreach (var msg in consumer.ConsumeAsync<DocUploadedEvent>())
@@ -114,7 +114,7 @@ For a Blazor UI showing a progress bar, we don't need persistence if the user cl
 ```csharp
 // No 'DurableName' provided = Ephemeral
 // Consumer is deleted when connection closes
-var consumer = await js.CreateConsumerAsync("ARCHIVES", new ConsumerConfig
+var consumer = await js.CreateConsumerAsync("MYAPP", new ConsumerConfig
 {
     FilterSubject = "archives.documents.*",
     AckPolicy = ConsumerConfigAckPolicy.None, // Fire and Forget

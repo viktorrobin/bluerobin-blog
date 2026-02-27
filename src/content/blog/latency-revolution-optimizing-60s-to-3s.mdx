@@ -1,7 +1,7 @@
 ---
 title: "Latency Revolution: Optimizing 60s to 3s"
 description: "How we slashed system latency by 95% by moving from sequential HTTP calls to parallel NATS requests, implementing Redis caching, and tuning Qdrant vector search."
-pubDate: 2025-10-23
+pubDate: 2025-12-31
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -17,7 +17,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-In distributed systems, latency isn't just a number—it's the user experience. When BlueRobin started, processing a complex document upload with OCR, embedding generation, and metadata extraction took nearly **60 seconds**. This "coffee break" delay was unacceptable for a real-time archive system.
+In distributed systems, latency isn't just a number—it's the user experience. When We started, processing a complex document upload with OCR, embedding generation, and metadata extraction took nearly **60 seconds**. This "coffee break" delay was unacceptable for a real-time archive system.
 
 By auditing our architecture and making targeted changes to our communication patterns and data access strategies, we reduced this end-to-end process to under **3 seconds**.
 

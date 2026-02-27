@@ -1,7 +1,7 @@
 ---
 title: "EF Core Migrations and Schema Management"
 description: "Manage database schema evolution with EF Core migrations, including multi-environment strategies and zero-downtime deployments."
-pubDate: 2025-01-02
+pubDate: 2024-11-30
 author: "Victor Robin"
 category: "database"
 difficulty: "intermediate"
@@ -90,13 +90,13 @@ public sealed class DesignTimeDbContextFactory
     public ArchivesDbContext CreateDbContext(string[] args)
     {
         var connectionString = Environment.GetEnvironmentVariable(
-            "ConnectionStrings__BlueRobinDb")
-            ?? "Host=localhost;Database=archives_dev;Username=postgres;Password=postgres";
+            "ConnectionStrings__AppDb")
+            ?? "Host=localhost;Database=myapp_dev;Username=postgres;Password=postgres";
         
         var optionsBuilder = new DbContextOptionsBuilder<ArchivesDbContext>();
         optionsBuilder.UseNpgsql(connectionString, npgsql =>
         {
-            npgsql.MigrationsAssembly("Archives.Infrastructure");
+            npgsql.MigrationsAssembly("MyApp.Infrastructure");
             npgsql.EnableRetryOnFailure(3);
         });
         
@@ -116,8 +116,8 @@ The design-time factory is required for running migrations from the CLI when the
 ```bash
 # Create initial migration
 dotnet ef migrations add InitialCreate \
-    --project src/Archives.Infrastructure \
-    --startup-project src/Archives.Api \
+    --project src/MyApp.Infrastructure \
+    --startup-project src/MyApp.Api \
     --output-dir Persistence/Migrations
 ```
 
@@ -218,7 +218,7 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.Id)
             .HasConversion(
                 id => id.Value,
-                value => BlueRobinId.From(value))
+                value => CustomId.From(value))
             .HasMaxLength(8)
             .IsRequired();
         
@@ -229,7 +229,7 @@ public sealed class DocumentConfiguration : IEntityTypeConfiguration<Document>
         builder.Property(d => d.OwnerId)
             .HasConversion(
                 id => id.Value,
-                value => BlueRobinId.From(value))
+                value => CustomId.From(value))
             .HasMaxLength(8)
             .IsRequired();
         
@@ -357,7 +357,7 @@ public partial class PopulateContentHashes : Migration
 {
     "label": "db: migrate",
     "type": "shell",
-    "command": "export DATABASE_PASSWORD=$(infisical secrets get ARCHIVES_DB_PASSWORD --env=dev --plain) && export ConnectionStrings__BlueRobinDb=\"Host=192.168.0.6;Port=30432;Database=archives_dev;Username=archives_dev;Password=${DATABASE_PASSWORD};Include Error Detail=true;SSL Mode=Disable\" && dotnet ef database update --project src/Archives.Infrastructure/Archives.Infrastructure.csproj --startup-project src/Archives.Api/Archives.Api.csproj"
+    "command": "export DATABASE_PASSWORD=$(infisical secrets get APP_DB_PASSWORD --env=dev --plain) && export ConnectionStrings__AppDb=\"Host=192.168.0.6;Port=30432;Database=myapp_dev;Username=myapp_dev;Password=${DATABASE_PASSWORD};Include Error Detail=true;SSL Mode=Disable\" && dotnet ef database update --project src/MyApp.Infrastructure/MyApp.Infrastructure.csproj --startup-project src/MyApp.Api/MyApp.Api.csproj"
 }
 ```
 
@@ -395,11 +395,11 @@ jobs:
       
       - name: Run Migrations
         env:
-          ConnectionStrings__BlueRobinDb: ${{ secrets.DATABASE_CONNECTION_STRING }}
+          ConnectionStrings__AppDb: ${{ secrets.DATABASE_CONNECTION_STRING }}
         run: |
           dotnet ef database update \
-            --project src/Archives.Infrastructure \
-            --startup-project src/Archives.Api
+            --project src/MyApp.Infrastructure \
+            --startup-project src/MyApp.Api
 ```
 
 ## Rollback Strategy
@@ -409,13 +409,13 @@ jobs:
 ```bash
 # Revert to specific migration
 dotnet ef database update AddDocumentMetadata \
-    --project src/Archives.Infrastructure \
-    --startup-project src/Archives.Api
+    --project src/MyApp.Infrastructure \
+    --startup-project src/MyApp.Api
 
 # Revert all migrations
 dotnet ef database update 0 \
-    --project src/Archives.Infrastructure \
-    --startup-project src/Archives.Api
+    --project src/MyApp.Infrastructure \
+    --startup-project src/MyApp.Api
 ```
 
 ### Safe Rollback Patterns

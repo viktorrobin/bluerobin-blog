@@ -1,7 +1,7 @@
 ---
 title: "Error Handling and Resilience Patterns in .NET"
 description: "Implement robust error handling with Result patterns, global exception handling, and Polly resilience policies in .NET applications."
-pubDate: 2025-01-30
+pubDate: 2025-01-06
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -148,7 +148,7 @@ public sealed class DocumentService : IDocumentService
 
     public async Task<Result<Document>> GetByIdAsync(
         DocumentId id,
-        BlueRobinId userId,
+        CustomId userId,
         CancellationToken ct = default)
     {
         var document = await _repository.GetByIdAsync(id, ct);
@@ -208,7 +208,7 @@ public sealed class GetDocumentEndpoint : Endpoint<GetDocumentRequest, DocumentR
 
     public override async Task HandleAsync(GetDocumentRequest req, CancellationToken ct)
     {
-        var userId = BlueRobinId.From(User.FindFirst("bluerobin_id")!.Value);
+        var userId = CustomId.From(User.FindFirst("app_user_id")!.Value);
         var result = await _service.GetByIdAsync(req.Id, userId, ct);
 
         await result.Match(

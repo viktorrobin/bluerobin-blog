@@ -1,7 +1,7 @@
 ---
 title: "Automating TLS Certificates with Cert-Manager"
 description: "Stop manually renewing certificates. Set up Cert-Manager to automate Let's Encrypt DNS-01 challenges with Cloudflare."
-pubDate: 2024-05-08
+pubDate: 2024-04-17
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -63,13 +63,13 @@ metadata:
 spec:
   acme:
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: admin@bluerobin.local
+    email: admin@example.local
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
     solvers:
       - dns01:
           cloudflare:
-            email: admin@bluerobin.local
+            email: admin@example.local
             apiTokenSecretRef:
               name: cloudflare-api-token-secret
               key: api-token
@@ -107,10 +107,10 @@ With the Issuer ready, we can request our wildcard certificate.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: bluerobin-wildcard
+  name: myapp-wildcard
   namespace: traefik
 spec:
-  secretName: bluerobin-wildcard-tls
+  secretName: myapp-wildcard-tls
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer
@@ -121,4 +121,4 @@ spec:
 
 ## Conclusion
 
-Once applied, `cert-manager` will continually monitor the `bluerobin-wildcard-tls` secret. 30 days before expiration, it will talk to Cloudflare, prove ownership, fetch a new certificate from Let's Encrypt, and update the secret. Your applications (and Traefik) will pick up the new certificate automatically.
+Once applied, `cert-manager` will continually monitor the `myapp-wildcard-tls` secret. 30 days before expiration, it will talk to Cloudflare, prove ownership, fetch a new certificate from Let's Encrypt, and update the secret. Your applications (and Traefik) will pick up the new certificate automatically.

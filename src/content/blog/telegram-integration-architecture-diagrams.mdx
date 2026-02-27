@@ -1,7 +1,8 @@
 ---
-title: "BlueRobin Telegram Integration Architecture"
-description: "Visual architecture overview of the BlueRobin Telegram integration, showing the complete flow from mobile app to backend services, authentication, and notification pipelines."
-pubDate: 2025-12-11
+title: "Telegram Integration Architecture"
+description: "Visual architecture overview of our Telegram integration, showing the complete flow from mobile app to backend services, authentication, and notification pipelines."
+pubDate: 2026-02-11
+draft: true
 author: "Victor Robin"
 category: "architecture"
 difficulty: "intermediate"
@@ -16,7 +17,7 @@ import Callout from '@components/Callout.astro';
 
 ## Overview
 
-This article provides visual architecture diagrams for the BlueRobin Telegram integration. Use these as reference when implementing or troubleshooting the system.
+This article provides visual architecture diagrams for our Telegram integration. Use these as reference when implementing or troubleshooting the system.
 
 ## Complete System Architecture
 
@@ -35,7 +36,7 @@ flowchart TB
     end
     
     subgraph K8s["☸️ Kubernetes Cluster"]
-        subgraph Staging["archives-staging namespace"]
+        subgraph Staging["myapp-staging namespace"]
             BotSvc[Telegram Bot Service]
             NotifyWorker[Notification Worker]
             BotWorker[Bot Worker<br/>Long Polling]
@@ -99,13 +100,13 @@ flowchart TB
 
 ## Account Linking Flow (Deep Link)
 
-How a user links their Telegram account to BlueRobin using the traditional deep link method:
+How a user links their Telegram account to our platform using the traditional deep link method:
 
 ```mermaid
 sequenceDiagram
     autonumber
     participant U as 👤 User
-    participant Web as 🌐 BlueRobin Web
+    participant Web as 🌐 Web App
     participant API as ⚙️ API
     participant NATS as 📨 NATS
     participant DB as 🗄️ PostgreSQL
@@ -118,7 +119,7 @@ sequenceDiagram
     API->>API: Generate random token
     API->>NATS: Cache token (5 min TTL)
     API-->>Web: Return token
-    Web->>U: Show deep link:<br/>t.me/BlueRobinBot?start={token}
+    Web->>U: Show deep link:<br/>t.me/MyAppBot?start={token}
     
     Note over U,TG: Step 2: Open Bot & Validate
     U->>TG: Click deep link
@@ -151,7 +152,7 @@ A more streamlined linking method where users already chatting with the bot can 
 sequenceDiagram
     autonumber
     participant U as 👤 User
-    participant Web as 🌐 BlueRobin Web
+    participant Web as 🌐 Web App
     participant API as ⚙️ API
     participant NATS as 📨 NATS
     participant PLW as 🔔 Push Link Worker
@@ -202,7 +203,7 @@ sequenceDiagram
     participant U as 👤 User
     participant TG as 📱 Telegram App
     participant MA as 🔲 Mini App (Blazor)
-    participant API as ⚙️ BlueRobin API
+    participant API as ⚙️ Backend API
     participant DB as 🗄️ PostgreSQL
     
     Note over U,DB: Step 1: Open Mini App
@@ -327,7 +328,7 @@ sequenceDiagram
     
     Bot->>TG: ChatAction.Typing
     
-    Bot->>API: POST /api/rag/ask<br/>X-Service-Token + X-BlueRobin-UserId
+    Bot->>API: POST /api/rag/ask<br/>X-Service-Token + X-App-UserId
     API->>Qdrant: Semantic search<br/>collection: staging-documents<br/>filter: user_id = "abc123"
     Qdrant-->>API: Top 5 relevant chunks
     API->>LLM: Generate response<br/>Context: [chunks]<br/>Question: "passport number?"
@@ -340,7 +341,7 @@ sequenceDiagram
     opt User clicks source
         U->>TG: Tap "📄 passport.pdf"
         TG->>Bot: CallbackQuery: doc:xyz789
-        Bot->>API: GET /internal/documents/{docId}/download<br/>X-Service-Token + X-BlueRobin-UserId
+        Bot->>API: GET /internal/documents/{docId}/download<br/>X-Service-Token + X-App-UserId
         API-->>Bot: Presigned URL or stream
         Bot->>TG: Send document file
         TG->>U: Receive PDF
@@ -372,7 +373,7 @@ sequenceDiagram
     TG-->>Bot: File bytes
     
     Note over Bot,API: Upload via API (service-to-service auth)
-    Bot->>API: POST /internal/documents/upload<br/>X-Service-Token + X-BlueRobin-UserId<br/>multipart/form-data
+    Bot->>API: POST /internal/documents/upload<br/>X-Service-Token + X-App-UserId<br/>multipart/form-data
     API->>MinIO: PUT staging-{userId}/uploads/{filename}
     MinIO-->>API: Success
     API->>NATS: Publish staging.archives.documents.ocr.requested
@@ -397,8 +398,8 @@ sequenceDiagram
 ```mermaid
 flowchart TB
     subgraph GitHub["GitHub"]
-        AppRepo[bluerobin-app]
-        InfraRepo[bluerobin-infra]
+        AppRepo[my-app]
+        InfraRepo[my-infra]
     end
     
     subgraph CI["GitHub Actions"]
@@ -428,7 +429,7 @@ flowchart TB
             ImageUpdate[ImageUpdateAutomation]
         end
         
-        subgraph Staging["archives-staging namespace"]
+        subgraph Staging["myapp-staging namespace"]
             ExtSecret[ExternalSecret]
             Secret[Secret]
             ConfigMap[ConfigMap]
@@ -532,4 +533,4 @@ This diagram article is part of the **Telegram Integration Series**:
 2. [Building a Telegram Mini App with Blazor Server](/articles/telegram-miniapp-blazor-integration)
 3. [NATS-Powered Telegram Notification System](/articles/telegram-nats-notification-flow)
 4. [Deploying a Telegram Bot to Kubernetes with Flux](/articles/telegram-bot-kubernetes-deployment)
-5. **BlueRobin Telegram Integration Architecture** (this article)
+5. **Telegram Integration Architecture** (this article)

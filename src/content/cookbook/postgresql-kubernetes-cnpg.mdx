@@ -1,7 +1,7 @@
 ---
 title: "Running PostgreSQL on Kubernetes with CloudNative-PG"
 description: "Deploy a production-ready PostgreSQL cluster on Kubernetes using CloudNative-PG, with automated backups, failover, and multi-database support."
-pubDate: 2024-05-18
+pubDate: 2024-05-02
 author: "Victor Robin"
 category: "database"
 difficulty: "advanced"
@@ -106,7 +106,7 @@ A 3-instance cluster provides quorum-based failover. The primary handles writes;
 
 ### Multi-Database Configuration
 
-For BlueRobin, we create environment-specific databases in one cluster:
+For our project, we create environment-specific databases in one cluster:
 
 ```yaml
 # infrastructure/data-layer/postgres/cluster.yaml
@@ -125,33 +125,33 @@ spec:
   
   bootstrap:
     initdb:
-      database: archives_dev
-      owner: archives_dev
+      database: myapp_dev
+      owner: myapp_dev
       postInitSQL:
-        - CREATE DATABASE archives_staging OWNER archives_staging;
-        - CREATE DATABASE archives_prod OWNER archives_prod;
+        - CREATE DATABASE myapp_staging OWNER myapp_staging;
+        - CREATE DATABASE myapp_prod OWNER myapp_prod;
       postInitApplicationSQL:
-        - GRANT ALL PRIVILEGES ON DATABASE archives_dev TO archives_dev;
-        - GRANT ALL PRIVILEGES ON DATABASE archives_staging TO archives_staging;
-        - GRANT ALL PRIVILEGES ON DATABASE archives_prod TO archives_prod;
+        - GRANT ALL PRIVILEGES ON DATABASE myapp_dev TO myapp_dev;
+        - GRANT ALL PRIVILEGES ON DATABASE myapp_staging TO myapp_staging;
+        - GRANT ALL PRIVILEGES ON DATABASE myapp_prod TO myapp_prod;
   
   managed:
     roles:
-      - name: archives_dev
+      - name: myapp_dev
         ensure: present
         login: true
         passwordSecret:
           name: postgres-archives-dev-password
-      - name: archives_staging
+      - name: myapp_staging
         ensure: present
         login: true
         passwordSecret:
-          name: postgres-archives-staging-password
-      - name: archives_prod
+          name: postgres-myapp-staging-password
+      - name: myapp_prod
         ensure: present
         login: true
         passwordSecret:
-          name: postgres-archives-prod-password
+          name: postgres-myapp-prod-password
   
   storage:
     size: 50Gi
@@ -178,39 +178,39 @@ spec:
   data:
     - secretKey: password
       remoteRef:
-        key: ARCHIVES_DEV_DB_PASSWORD
+        key: APP_DEV_DB_PASSWORD
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: postgres-archives-staging-password
+  name: postgres-myapp-staging-password
   namespace: data-layer
 spec:
   secretStoreRef:
     kind: ClusterSecretStore
     name: infisical-store
   target:
-    name: postgres-archives-staging-password
+    name: postgres-myapp-staging-password
   data:
     - secretKey: password
       remoteRef:
-        key: ARCHIVES_STAGING_DB_PASSWORD
+        key: APP_STAGING_DB_PASSWORD
 ---
 apiVersion: external-secrets.io/v1beta1
 kind: ExternalSecret
 metadata:
-  name: postgres-archives-prod-password
+  name: postgres-myapp-prod-password
   namespace: data-layer
 spec:
   secretStoreRef:
     kind: ClusterSecretStore
     name: infisical-store
   target:
-    name: postgres-archives-prod-password
+    name: postgres-myapp-prod-password
   data:
     - secretKey: password
       remoteRef:
-        key: ARCHIVES_PROD_DB_PASSWORD
+        key: APP_PROD_DB_PASSWORD
 ```
 
 ## Backup Configuration
@@ -367,18 +367,18 @@ CNPG creates services for each role:
 ### Connection String Configuration
 
 ```yaml
-# apps/archives-api/staging/configmap.yaml
+# apps/myapp-api/staging/configmap.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: archives-api-config
-  namespace: archives-staging
+  name: myapp-api-config
+  namespace: myapp-staging
 data:
-  ConnectionStrings__BlueRobinDb: >-
+  ConnectionStrings__AppDb: >-
     Host=postgres-rw.data-layer.svc.cluster.local;
     Port=5432;
-    Database=archives_staging;
-    Username=archives_staging;
+    Database=myapp_staging;
+    Username=myapp_staging;
     Include Error Detail=true;
     SSL Mode=Disable
 ```
@@ -386,9 +386,9 @@ data:
 Password from secret:
 
 ```yaml
-# apps/archives-api/staging/deployment.yaml
+# apps/myapp-api/staging/deployment.yaml
 env:
-  - name: ConnectionStrings__BlueRobinDb
+  - name: ConnectionStrings__AppDb
     valueFrom:
       secretKeyRef:
         name: archives-secrets
@@ -399,10 +399,10 @@ env:
 
 ```csharp
 // Program.cs
-builder.Services.AddDbContext<BlueRobinDbContext>(options =>
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
     var connectionString = builder.Configuration
-        .GetConnectionString("BlueRobinDb");
+        .GetConnectionString("AppDb");
     
     options.UseNpgsql(connectionString, npgsql =>
     {
@@ -441,7 +441,7 @@ spec:
 Connection via Tailscale:
 
 ```
-Host=192.168.0.6;Port=30432;Database=archives_dev;Username=archives_dev;Password=xxx
+Host=192.168.0.6;Port=30432;Database=myapp_dev;Username=myapp_dev;Password=xxx
 ```
 
 ## Point-in-Time Recovery

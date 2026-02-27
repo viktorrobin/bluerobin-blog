@@ -1,7 +1,7 @@
 ---
 title: "Automating Workflows with n8n on Kubernetes"
-description: "How we use n8n as the 'glue' code for BlueRobin. Empowering low-code automation to handle document notifications, Telegram alerts, and system maintenance tasks."
-pubDate: 2025-12-18
+description: "How we use n8n as the 'glue' code for our platform. Empowering low-code automation to handle document notifications, Telegram alerts, and system maintenance tasks."
+pubDate: 2025-06-14
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -27,7 +27,7 @@ In any complex system, there are always "glue" tasks—simple logic that connect
 
 ### What We'll Build
 
-In this guide, we will explore how we host n8n on Kubernetes and use it to build a real-world workflow: **Sending a Telegram notification when a new document is uploaded to BlueRobin.**
+In this guide, we will explore how we host n8n on Kubernetes and use it to build a real-world workflow: **Sending a Telegram notification when a new document is uploaded to the platform.**
 
 1. **Deploy n8n**: Hosting it self-hosted on K3s with Helm.
 2. **Connect Data**: Integrating with our internal Postgres and NATS.
@@ -106,7 +106,7 @@ const docId = items[0].json.documentId;
 const title = items[0].json.title;
 return {
   json: {
-    message: `📄 *New Document Processed*\n\nTitle: ${title}\n[View in BlueRobin](https://app.bluerobin.local/documents/${docId})`
+    message: `📄 *New Document Processed*\n\nTitle: ${title}\n[View Document](https://app.example.local/documents/${docId})`
   }
 };
 ```

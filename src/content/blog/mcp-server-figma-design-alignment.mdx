@@ -1,7 +1,7 @@
 ---
 title: "Aligning Design with Code using MCP Server for Figma"
 description: "Bridging the gap between design and development by using the Model Context Protocol (MCP) to automate UI generation from Figma to Blazor."
-pubDate: 2026-02-05
+pubDate: 2026-02-21
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -17,12 +17,12 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-The "handover" phase from design to development is notoriously lossy. Pixels get shifted, colors slighted, and spacing ignored. At BlueRobin, we use an AI-driven approach to solve this. By connecting our coding assistant directly to Figma via the Model Context Protocol (MCP), we allow the LLM to "see" the design structure and generate precise Blazor + Tailwind code.
+The "handover" phase from design to development is notoriously lossy. Pixels get shifted, colors slighted, and spacing ignored. In our project, we use an AI-driven approach to solve this. By connecting our coding assistant directly to Figma via the Model Context Protocol (MCP), we allow the LLM to "see" the design structure and generate precise Blazor + Tailwind code.
 
 **Why MCP for Design Matters:**
 
 - **Context Awareness**: The model can inspect the layer hierarchy, Auto Layout settings, and design tokens directly.
-- **Consistency**: It enforces our specific Blazor component patterns (`BlueRobinComponentBase`) rather than generic HTML.
+- **Consistency**: It enforces our specific Blazor component patterns (`AppComponentBase`) rather than generic HTML.
 - **Speed**: Reduces the time from "approved design" to "functional component" by 80%.
 
 ### What We'll Build
@@ -90,7 +90,7 @@ The model maps these Figma primitives to our specific utilities.
 <CodeFile filename="DocumentCard.razor" language="razor">
 ```html
 <div class="flex flex-row items-center p-4 bg-white rounded-lg shadow-sm border border-robin-200">
-    <div class="mr-3 text-robin-500">
+    <div class="mr-3 text-primary-500">
         <Icon Name="FileText" Size="24" />
     </div>
     <div class="flex-1">
@@ -107,7 +107,7 @@ The model maps these Figma primitives to our specific utilities.
 </CodeFile>
 
 <ImplementationNote title="Token Mapping">
-  The real magic happens when the LLM recognizes that a hex code `#0ea5e9` matches our design token `robin-500` and uses the class name instead of an arbitrary value.
+  The real magic happens when the LLM recognizes that a hex code `#0ea5e9` matches our design token `primary-500` and uses the class name instead of an arbitrary value.
 </ImplementationNote>
 
 ## Conclusion

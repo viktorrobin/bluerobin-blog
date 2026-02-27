@@ -1,7 +1,7 @@
 ---
 title: "The Repository Pattern: Abstracting Persistence"
 description: "Decouple your domain logic from EF Core. Learn how to implement Repositories for DDD Aggregates with strict interface separation."
-pubDate: 2024-12-04
+pubDate: 2024-10-25
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -75,11 +75,11 @@ public interface IRepository<TEntity, TId> where TEntity : AggregateRoot<TId>
 }
 
 // Core/Interfaces/IDocumentRepository.cs
-public interface IDocumentRepository : IRepository<Document, BlueRobinId>
+public interface IDocumentRepository : IRepository<Document, CustomId>
 {
     // Specific queries needed by the domain
     Task<bool> ExistsWithFingerprintAsync(string hash, CancellationToken ct);
-    Task<IReadOnlyList<Document>> GetByOwnerAsync(BlueRobinId ownerId, int take, CancellationToken ct);
+    Task<IReadOnlyList<Document>> GetByOwnerAsync(CustomId ownerId, int take, CancellationToken ct);
 }
 ```
 
@@ -91,14 +91,14 @@ The implementation lives in the **Infrastructure** layer. This is where EF Core 
 // Infrastructure/Repositories/DocumentRepository.cs
 public sealed class DocumentRepository : IDocumentRepository
 {
-    private readonly BlueRobinDbContext _context;
+    private readonly AppDbContext _context;
 
-    public DocumentRepository(BlueRobinDbContext context)
+    public DocumentRepository(AppDbContext context)
     {
         _context = context;
     }
 
-    public async Task<Document?> GetByIdAsync(BlueRobinId id, CancellationToken ct)
+    public async Task<Document?> GetByIdAsync(CustomId id, CancellationToken ct)
     {
         return await _context.Documents
             .Include(d => d.Metadata) // Eager load Value Objects

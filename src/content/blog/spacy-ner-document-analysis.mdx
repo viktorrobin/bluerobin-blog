@@ -1,7 +1,7 @@
 ---
 title: "NER with spaCy for Document Analysis"
 description: "Extract named entities from documents using spaCy NLP service for building knowledge graphs and improving search relevance."
-pubDate: 2025-09-25
+pubDate: 2025-11-14
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
@@ -245,7 +245,7 @@ spec:
     spec:
       containers:
         - name: spacy-ner
-          image: registry.bluerobin.local/spacy-ner:latest
+          image: registry.example.com/myapp/spacy-ner:latest
           ports:
             - containerPort: 8080
           resources:
@@ -488,7 +488,7 @@ public sealed class EntityExtractionWorker : BackgroundService
         CancellationToken ct)
     {
         var document = await _documents.GetByIdAsync(
-            BlueRobinId.From(evt.DocumentId), ct);
+            CustomId.From(evt.DocumentId), ct);
         
         if (document == null) return;
         

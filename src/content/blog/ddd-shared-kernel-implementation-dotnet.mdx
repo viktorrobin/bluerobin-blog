@@ -1,7 +1,7 @@
 ---
 title: "Building a DDD Shared Kernel in .NET"
 description: "Implementation of the Shared Kernel pattern: A crucial library containing the base building blocks (Entity, AggregateRoot, ValueObject) for Domain-Driven Design."
-pubDate: 2024-10-30
+pubDate: 2024-09-20
 author: "Victor Robin"
 category: "architecture"
 difficulty: "intermediate"
@@ -22,7 +22,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 In Domain-Driven Design (DDD), the **Shared Kernel** is a strategic pattern—a shared library containing the core building blocks and ubiquitous language elements referenced by multiple Bounded Contexts. It provides the tactical foundation: `Entity`, `AggregateRoot`, `ValueObject`, and standard `IDomainEvent` definitions.
 
-This article details the production implementation of the Shared Kernel in BlueRobin, focusing on type safety, immutability, and enforcing DDD rules at the compiler level.
+This article details the production implementation of our Shared Kernel, focusing on type safety, immutability, and enforcing DDD rules at the compiler level.
 
 ## Why a Shared Kernel?
 
@@ -33,7 +33,7 @@ Without a Shared Kernel, each microservice or module might implement "Entity" or
 | **Entity** | Base class providing Identity and Equality behaviors. |
 | **ValueObject** | Base class providing Structural Equality. |
 | **AggregateRoot** | Base class for roots, managing Domain Events. |
-| **BlueRobinId** | A strongly-typed, human-friendly identifier (NanoID). |
+| **CustomId** | A strongly-typed, human-friendly identifier (NanoID). |
 
 ## Architecture Overview
 
@@ -47,17 +47,17 @@ flowchart TB
         AggRoot["📄 AggregateRoot&lt;TId&gt;"]
         VO["💎 ValueObject"]
         Event["📣 IDomainEvent"]
-        BRId["🔑 BlueRobinId"]
+        BRId["🔑 CustomId"]
         
         AggRoot --> Entity
     end
 
-    subgraph Core["🧱 Archives.Core"]
+    subgraph Core["🧱 MyApp.Core"]
         Doc["Document"] --> AggRoot
         FP["Fingerprint"] --> VO
     end
 
-    subgraph Infra["⚙️ Archives.Infrastructure"]
+    subgraph Infra["⚙️ MyApp.Infrastructure"]
         Repo["EF Repository"] -.-> AggRoot
     end
 
@@ -76,9 +76,9 @@ flowchart TB
 
 ## Implementation
 
-## The Identity Strategy: BlueRobinId
+## The Identity Strategy: CustomId
 
-BlueRobin uses a specialized, strongly-typed identifier key called `BlueRobinId` instead of raw GUIDs or Integers.
+We use a specialized, strongly-typed identifier key called `CustomId` instead of raw GUIDs or Integers.
 
 **Why?**
 1.  **URL Friendliness**: 8-char alphanumeric strings are cleaner in URLs than GUIDs.
@@ -86,10 +86,10 @@ BlueRobin uses a specialized, strongly-typed identifier key called `BlueRobinId`
 3.  **Consistency**: Used everywhere—Postgres Primary Keys, MinIO Object Keys, NATS Subjects.
 
 ```csharp
-// SharedKernel/Utilities/BlueRobinId.cs
+// SharedKernel/Utilities/CustomId.cs
 using NanoidDotNet;
 
-public readonly struct BlueRobinId : IEquatable<BlueRobinId>, IComparable<BlueRobinId>
+public readonly struct CustomId : IEquatable<CustomId>, IComparable<CustomId>
 {
     private const string Alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
     private const int Size = 8;
@@ -97,30 +97,30 @@ public readonly struct BlueRobinId : IEquatable<BlueRobinId>, IComparable<BlueRo
     public string Value { get; }
 
     // Private constructor forces validation
-    private BlueRobinId(string value) => Value = value;
+    private CustomId(string value) => Value = value;
 
-    public static BlueRobinId New() => new(Nanoid.Generate(Alphabet, Size));
+    public static CustomId New() => new(Nanoid.Generate(Alphabet, Size));
 
-    public static Result<BlueRobinId> Create(string? value)
+    public static Result<CustomId> Create(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
-            return Result.Failure<BlueRobinId>(new Error("Identity.Empty", "ID cannot be empty"));
+            return Result.Failure<CustomId>(new Error("Identity.Empty", "ID cannot be empty"));
 
         var normalized = value.Trim().ToLowerInvariant();
         
         if (normalized.Length != Size || !normalized.All(c => Alphabet.Contains(c)))
-             return Result.Failure<BlueRobinId>(new Error("Identity.Invalid", "Invalid ID format"));
+             return Result.Failure<CustomId>(new Error("Identity.Invalid", "Invalid ID format"));
 
-        return Result.Success(new BlueRobinId(normalized));
+        return Result.Success(new CustomId(normalized));
     }
     
     // Equality and Operators
-    public override bool Equals(object? obj) => obj is BlueRobinId other && Equals(other);
-    public bool Equals(BlueRobinId other) => Value == other.Value;
+    public override bool Equals(object? obj) => obj is CustomId other && Equals(other);
+    public bool Equals(CustomId other) => Value == other.Value;
     public override int GetHashCode() => Value.GetHashCode();
     public override string ToString() => Value;
     
-    public static implicit operator string(BlueRobinId id) => id.Value;
+    public static implicit operator string(CustomId id) => id.Value;
 }
 ```
 
@@ -137,9 +137,9 @@ Entities are objects defined by their identity. Two entities with different attr
 public abstract class Entity
 {
     // Protected set: ID should only be set during construction
-    public BlueRobinId Id { get; protected set; }
+    public CustomId Id { get; protected set; }
 
-    protected Entity(BlueRobinId id)
+    protected Entity(CustomId id)
     {
         Id = id;
     }
@@ -161,7 +161,7 @@ public abstract class AggregateRoot : Entity, IAggregateRoot
     
     public IReadOnlyCollection<IDomainEvent> DomainEvents => _domainEvents.AsReadOnly();
 
-    protected AggregateRoot(BlueRobinId id) : base(id) { }
+    protected AggregateRoot(CustomId id) : base(id) { }
     protected AggregateRoot() { }
 
     protected void RaiseDomainEvent(IDomainEvent domainEvent)
@@ -220,4 +220,4 @@ public abstract class ValueObject : IEquatable<ValueObject>
 
 ## Conclusion
 
-The Shared Kernel provides a robust, type-safe foundation for the entire BlueRobin ecosystem. By standardizing `BlueRobinId` and the base classes for DDD tactical patterns, we ensure that every microservice speaks the same language and adheres to the same structural rules.
+The Shared Kernel provides a robust, type-safe foundation for the entire ecosystem. By standardizing `CustomId` and the base classes for DDD tactical patterns, we ensure that every microservice speaks the same language and adheres to the same structural rules.

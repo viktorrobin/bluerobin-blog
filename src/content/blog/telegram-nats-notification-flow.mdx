@@ -1,7 +1,7 @@
 ---
 title: "NATS-Powered Telegram Notification System"
 description: "Building a real-time notification pipeline from document processing events to Telegram messages using NATS Core, environment-prefixed subjects, and the publisher-subscriber pattern."
-pubDate: 2025-11-27
+pubDate: 2026-01-31
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -21,7 +21,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-When a user uploads a document to BlueRobin, it goes through OCR, classification, entity extraction, chunking, and embedding generation. This can take anywhere from 30 seconds to several minutes. Users shouldn't have to refresh the page to know when processing completes—they should get a notification directly in Telegram.
+When a user uploads a document to our platform, it goes through OCR, classification, entity extraction, chunking, and embedding generation. This can take anywhere from 30 seconds to several minutes. Users shouldn't have to refresh the page to know when processing completes—they should get a notification directly in Telegram.
 
 This article covers how we built the **notification pipeline** using NATS messaging:
 
@@ -33,7 +33,7 @@ API → NATS Subject → Telegram Bot → Telegram API → User
 
 ```mermaid
 flowchart TB
-    subgraph API["BlueRobin API"]
+    subgraph API["Backend API"]
         Service[TelegramNotificationService]
         Provider[IEventSubjectProvider]
     end
@@ -79,7 +79,7 @@ A critical design decision: **all NATS subjects are environment-prefixed**. This
 - Preventing cross-environment message leakage
 - Supporting local development against shared infrastructure
 
-<CodeFile path="Archives.Application/Services/EventSubjectProvider.cs" language="csharp">
+<CodeFile path="MyApp.Application/Services/EventSubjectProvider.cs" language="csharp">
 ```csharp
 public interface IEventSubjectProvider
 {
@@ -172,7 +172,7 @@ Both the **publisher** (API) and **subscriber** (Telegram Bot) MUST use the same
 
 The API uses `TelegramNotificationService` to publish notifications. This service is injected wherever notifications need to be sent:
 
-<CodeFile path="Archives.Infrastructure/Notifications/TelegramNotificationService.cs" language="csharp">
+<CodeFile path="MyApp.Infrastructure/Notifications/TelegramNotificationService.cs" language="csharp">
 ```csharp
 public class TelegramNotificationService : INotificationService
 {
@@ -194,8 +194,8 @@ public class TelegramNotificationService : INotificationService
     }
 
     public async Task NotifyDocumentProcessedAsync(
-        BlueRobinId userId,
-        BlueRobinId documentId,
+        CustomId userId,
+        CustomId documentId,
         string documentName,
         bool success,
         string? errorMessage = null,
@@ -271,7 +271,7 @@ It wraps `INatsConnection` from the NATS.Net library.
 
 The Telegram Bot service runs a `BackgroundService` that subscribes to the notification subject and sends messages via the Telegram Bot API:
 
-<CodeFile path="Archives.TelegramBot/Services/TelegramNotificationWorker.cs" language="csharp">
+<CodeFile path="MyApp.TelegramBot/Services/TelegramNotificationWorker.cs" language="csharp">
 ```csharp
 /// <summary>
 /// Background service that listens to NATS Core for outbound Telegram notifications
@@ -429,12 +429,12 @@ public record DocumentProcessedNotification : TelegramNotificationMessage
 
 Both services need matching environment configuration:
 
-<CodeFile path="bluerobin-infra/apps/archives-telegram-bot/overlays/staging/kustomization.yaml" language="yaml">
+<CodeFile path="my-infra/apps/archives-telegram-bot/overlays/staging/kustomization.yaml" language="yaml">
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: archives-staging
+namespace: myapp-staging
 
 resources:
   - ../../base
@@ -462,7 +462,7 @@ Let's trace a notification from document upload to Telegram:
 ```mermaid
 sequenceDiagram
     participant User
-    participant API as BlueRobin API
+    participant API as Backend API
     participant Worker as OCR Worker
     participant NATS
     participant Bot as Telegram Bot
@@ -508,7 +508,7 @@ nats pub "staging.notifications.telegram" '{"MessageId":"test","ChatId":12345678
 
 3. **Check bot logs:**
 ```bash
-kubectl logs -n archives-staging deployment/archives-telegram-bot -f
+kubectl logs -n myapp-staging deployment/archives-telegram-bot -f
 ```
 
 ## Conclusion

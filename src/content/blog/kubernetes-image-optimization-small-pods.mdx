@@ -1,7 +1,7 @@
 ---
 title: "Optimizing Kubernetes Images for Homelab Resources"
 description: "Running a complex microservices stack on limited hardware. How we use .NET 10 Chiseled Ubuntu images and Native AOT to slash memory usage."
-pubDate: 2026-02-26
+pubDate: 2026-01-10
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -17,7 +17,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-BlueRobin runs on a modest Kubernetes cluster (K3s). We don't have infinite cloud RAM. When running 15+ pods (API, Workers, Databases, Monitoring), every megabyte counts.
+Our system runs on a modest Kubernetes cluster (K3s). We don't have infinite cloud RAM. When running 15+ pods (API, Workers, Databases, Monitoring), every megabyte counts.
 
 Standard .NET container images are "safe" but bloated. They contain shells, package managers, and binaries we never use.
 
@@ -43,13 +43,13 @@ We compile in a full SDK container, but publish to a minimal runtime.
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 COPY . .
-RUN dotnet publish "src/Archives.Api" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "src/MyApp.Api" -c Release -o /app/publish /p:UseAppHost=false
 
 # Runtime Stage (Chiseled)
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-noble-chiseled
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["dotnet", "Archives.Api.dll"]
+ENTRYPOINT ["dotnet", "MyApp.Api.dll"]
 ```
 
 This simple change drops the image size from **~250MB** (Debian default) to **~90MB**.
@@ -74,7 +74,7 @@ For our Worker services (which process queues), we can go further. Native AOT co
 FROM mcr.microsoft.com/dotnet/runtime-deps:10.0-noble-chiseled-aot
 WORKDIR /app
 COPY --from=build /app/publish .
-ENTRYPOINT ["./Archives.Workers"]
+ENTRYPOINT ["./MyApp.Workers"]
 ```
 
 **Result:**
@@ -101,7 +101,7 @@ We ensure this is enabled in our `Directory.Build.props`:
 
 ## Conclusion
 
-By caring about our artifacts, we reduced the total memory footprint of the BlueRobin application layer by **60%**. This allows us to allocate more RAM to where it's actually needed: the Database and Vector Index.
+By caring about our artifacts, we reduced the total memory footprint of our application layer by **60%**. This allows us to allocate more RAM to where it's actually needed: the Database and Vector Index.
 
 **Next Steps**:
 - Verify performance gains with [Benchmarking](/microservices-benchmarking-and-stress-testing).

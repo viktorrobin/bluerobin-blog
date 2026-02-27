@@ -1,7 +1,7 @@
 ---
 title: "Background Job Processing in .NET"
 description: "Implement reliable background job processing with hosted services, channels, and distributed task queues in .NET applications."
-pubDate: 2025-02-27
+pubDate: 2025-02-15
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -296,7 +296,7 @@ public sealed class DocumentProcessingHandler : IJobHandler<DocumentProcessingJo
 // Application/Jobs/Models/DocumentProcessingJob.cs
 public sealed record DocumentProcessingJob(
     DocumentId DocumentId,
-    BlueRobinId OwnerId,
+    CustomId OwnerId,
     string Bucket,
     string ObjectKey,
     string Environment);
@@ -470,14 +470,14 @@ public sealed class UploadDocumentEndpoint : Endpoint<UploadDocumentRequest, Doc
     public override async Task HandleAsync(UploadDocumentRequest req, CancellationToken ct)
     {
         // Save document metadata
-        var document = Document.Create(req.FileName, CurrentUser.BlueRobinId);
+        var document = Document.Create(req.FileName, CurrentUser.CustomId);
         await _repository.AddAsync(document, ct);
         
         // Queue background processing
         await _jobQueue.QueueAsync(new DocumentProcessingJob(
             document.Id,
-            CurrentUser.BlueRobinId,
-            $"{Environment}-{CurrentUser.BlueRobinId}",
+            CurrentUser.CustomId,
+            $"{Environment}-{CurrentUser.CustomId}",
             document.ObjectKey,
             Environment), ct);
         

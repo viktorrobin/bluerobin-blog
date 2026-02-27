@@ -1,7 +1,7 @@
 ---
 title: "Creating Technical Diagrams with Mermaid"
 description: "A comprehensive guide to using Mermaid.js for creating architecture diagrams, flowcharts, sequence diagrams, and more in your technical documentation."
-pubDate: 2025-05-15
+pubDate: 2025-05-31
 author: "Victor Robin"
 category: "frontend"
 difficulty: "beginner"
@@ -189,7 +189,7 @@ For documenting domain models and object relationships:
 ```mermaid
 classDiagram
     class Document {
-        +BlueRobinId Id
+        +CustomId Id
         +string Title
         +DocumentStatus Status
         +Upload()
@@ -197,14 +197,14 @@ classDiagram
     }
     
     class Archive {
-        +BlueRobinId Id
+        +CustomId Id
         +string OwnerId
         +List~Document~ Documents
         +AddDocument()
     }
     
     class User {
-        +BlueRobinId Id
+        +CustomId Id
         +string ExternalId
         +Archive Archive
     }
@@ -248,7 +248,7 @@ erDiagram
     USER {
         uuid id PK
         string external_id
-        string bluerobin_id UK
+        string app_user_id UK
         timestamp created_at
     }
     
@@ -278,7 +278,7 @@ graph TB
         MinIO[MinIO Storage]
     end
     
-    subgraph BlueRobin ["BlueRobin System"]
+    subgraph App ["Application System"]
         subgraph Web ["Web Tier"]
             Blazor[Blazor Server]
         end
@@ -310,7 +310,7 @@ For project timelines and planning:
 
 ```mermaid
 gantt
-    title BlueRobin Development Timeline
+    title Project Development Timeline
     dateFormat YYYY-MM-DD
     
     section Infrastructure
@@ -425,7 +425,7 @@ Mermaid transforms technical documentation from static text into living visual d
 - Keep diagrams focused and use subgraphs for complex systems
 
 <ImplementationNote>
-The BlueRobin blog automatically renders Mermaid diagrams with a consistent theme that matches the site's design system. Diagrams support both light and dark modes and include a fullscreen view button for detailed examination.
+Our technical blog automatically renders Mermaid diagrams with a consistent theme that matches the site's design system. Diagrams support both light and dark modes and include a fullscreen view button for detailed examination.
 </ImplementationNote>
 
 ## Further Reading

@@ -1,7 +1,7 @@
 ---
 title: "NATS Monitoring and Observability"
 description: "Set up comprehensive monitoring for NATS JetStream with Prometheus, Grafana dashboards, and alerting for production-ready messaging infrastructure."
-pubDate: 2025-06-12
+pubDate: 2025-07-14
 author: "Victor Robin"
 category: "messaging"
 difficulty: "intermediate"
@@ -94,7 +94,7 @@ data:
     
     # Cluster configuration
     cluster {
-      name: bluerobin-nats
+      name: my-nats
       port: 6222
       routes: [
         nats://nats-0.nats.data-layer.svc.cluster.local:6222
@@ -466,7 +466,7 @@ public static class NatsMetrics
             "ms",
             "Time to process message");
     
-    private static readonly Meter Meter = new("BlueRobin.Nats", "1.0.0");
+    private static readonly Meter Meter = new("MyApp.Nats", "1.0.0");
     
     public static void RecordPublish(string subject, long durationMs)
     {
@@ -597,8 +597,8 @@ nats account info
 <Callout type="tip">
 Create a `nats` context for your cluster to avoid repeating connection strings:
 ```bash
-nats context add bluerobin --server nats://192.168.0.6:30422
-nats context select bluerobin
+nats context add my-cluster --server nats://192.168.0.6:30422
+nats context select my-cluster
 ```
 </Callout>
 

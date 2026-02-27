@@ -1,7 +1,8 @@
 ---
 title: "Homelab Dashboarding: Homepage, Backstage, & Authelia"
 description: "Building the ultimate developer portal for the home lab. We integrate 'gethomepage', Spotify Backstage, and secure it all with Authelia SSO."
-pubDate: 2025-12-25
+pubDate: 2026-01-14
+draft: true
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -28,7 +29,7 @@ A homelab isn't complete without a proper landing page. But as services grow, a 
 ### What We'll Build
 
 1. **Landing Page**: A beautiful dashboard with live service widgets.
-2. **Developer Portal**: A Backstage instance tracking our BlueRobin microservices.
+2. **Developer Portal**: A Backstage instance tracking our our microservices.
 3. **SSO Gateway**: Enforcing 2FA in front of all internal tools.
 
 ## Architecture Overview
@@ -90,7 +91,7 @@ Backstage allows us to treat our homelab like a production platform. We map our 
 apiVersion: backstage.io/v1alpha1
 kind: Component
 metadata:
-  name: bluerobin-api
+  name: myapp-api
   description: The main API for document archives.
   tags:
     - dotnet
@@ -128,7 +129,7 @@ spec:
 
 ## Conclusion
 
-By layering these three tools, we get the best of both worlds: a flashy "NOC-style" dashboard for quick checks, and a deep, enterprisey catalog for managing the complexity of the BlueRobin microservices.
+By layering these three tools, we get the best of both worlds: a flashy "NOC-style" dashboard for quick checks, and a deep, enterprisey catalog for managing the complexity of the our microservices.
 
 **Next Steps**:
 - See how we deploy this with **Flux CD**.

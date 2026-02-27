@@ -1,7 +1,7 @@
 ---
 title: "Better IDs: Switching from UUID to NanoID"
-description: "Why BlueRobin moved from standard UUIDs to NanoIDs for primary keys: URL aesthetics, database considerations, and a custom alphabet implementation."
-pubDate: 2024-12-18
+description: "Why we moved from standard UUIDs to NanoIDs for primary keys: URL aesthetics, database considerations, and a custom alphabet implementation."
+pubDate: 2024-11-12
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -22,7 +22,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 Unique Identifiers are the spine of any database schema. For years, the `UUID` (Universally Unique Identifier) has been the de facto standard. It's robust, collision-resistant, and natively supported by PostgreSQL.
 
-However, as we built BlueRobin's public-facing document sharing features, we realized that UUIDs (`550e8400-e29b-41d4-a716-446655440000`) are unwieldy, hard to select by double-clicking, and ugly in URLs. We switched to **NanoID**.
+However, as we built our public-facing document sharing features, we realized that UUIDs (`550e8400-e29b-41d4-a716-446655440000`) are unwieldy, hard to select by double-clicking, and ugly in URLs. We switched to **NanoID**.
 
 **Why NanoID?**
 
@@ -32,10 +32,10 @@ However, as we built BlueRobin's public-facing document sharing features, we rea
 
 ### What We'll Build
 
-In this guide, we will implement a custom ID generator for BlueRobin. You will learn how to:
+In this guide, we will implement a custom ID generator. You will learn how to:
 
 1. **Compare ID formats**: Visual and technical differences.
-2. **Implement Custom Alphabet**: Creating `BlueRobinId` (lowercase alphanumeric).
+2. **Implement Custom Alphabet**: Creating `CustomId` (lowercase alphanumeric).
 3. **Handle Database Integration**: Storing NanoIDS efficiently in PostgreSQL.
 
 ## Architecture Overview
@@ -46,7 +46,7 @@ The ID generation flow is straightforward but critical to understand:
 flowchart LR
     subgraph Application["🔌 Application Layer"]
         Request["📥 Create Entity"]
-        Factory["🏭 BlueRobinId.Generate()"]
+        Factory["🏭 CustomId.Generate()"]
     end
 
     subgraph Generator["🔧 NanoID Generator"]
@@ -78,7 +78,7 @@ flowchart LR
 ```
 
 **Key Components**:
-- **Factory Method**: `BlueRobinId.Generate()` encapsulates ID creation
+- **Factory Method**: `CustomId.Generate()` encapsulates ID creation
 - **Custom Alphabet**: 36 characters (lowercase + digits) for URL-friendliness
 - **Cryptographic RNG**: Ensures unpredictable, secure IDs
 - **Fixed-Width Storage**: `CHAR(8)` optimizes PostgreSQL indexing
@@ -93,7 +93,7 @@ flowchart LR
         U["/docs/550e8400-e29b-41d4-a716-446655440000"]
     end
 
-    subgraph NanoID ["NanoID (BlueRobin)"]
+    subgraph NanoID ["NanoID (Custom)"]
         N["/docs/abc12345"]
     end
 
@@ -114,7 +114,7 @@ The NanoID is significantly more compact while retaining sufficient entropy for 
 
 Standard NanoID uses `A-Za-z0-9_-`. This is great, but it includes case sensitivity (`a` vs `A`) and special characters (`-`, `_`).
 
-For BlueRobin, we wanted **lowercase alphanumeric only** for maximum readability and ease of typing on mobile devices.
+For our project, we wanted **lowercase alphanumeric only** for maximum readability and ease of typing on mobile devices.
 
 ### Custom Alphabet Implementation
 
@@ -123,7 +123,7 @@ We use the `NanoId` library in .NET but configure a custom alphabet.
 ```csharp
 using NanoidDotNet;
 
-public static class BlueRobinId
+public static class CustomId
 {
     // Removing look-alikes if desired, but here we use simple lowercase alpha-num
     private const string Alphabet = "0123456789abcdefghijklmnopqrstuvwxyz";
@@ -160,7 +160,7 @@ CREATE TABLE documents (
 
 Since NanoIDs are random strings, inserting them into a B-Tree index (like a Primary Key) can cause fragmentation compared to sequential IDs (like `UUIDv7` or Integers).
 
-However, `BlueRobinId` is primarily used for *lookup*, not sorting. The cost of random insertion is a trade-off we accept for UX. For strictly internal, high-volume logging tables, we stick to `UUIDv7` or `BIGINT`.
+However, `CustomId` is primarily used for *lookup*, not sorting. The cost of random insertion is a trade-off we accept for UX. For strictly internal, high-volume logging tables, we stick to `UUIDv7` or `BIGINT`.
 
 ## Conclusion
 

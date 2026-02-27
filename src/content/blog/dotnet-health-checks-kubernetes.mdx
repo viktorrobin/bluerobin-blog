@@ -1,7 +1,7 @@
 ---
 title: "Health Checks and Readiness Probes in .NET"
 description: "Implement comprehensive health checks for .NET applications with database, cache, and dependency monitoring for Kubernetes deployments."
-pubDate: 2025-03-06
+pubDate: 2025-02-25
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -62,7 +62,7 @@ builder.Services.AddHealthChecks()
     
     // Database
     .AddNpgSql(
-        builder.Configuration.GetConnectionString("BlueRobinDb")!,
+        builder.Configuration.GetConnectionString("AppDb")!,
         name: "postgresql",
         tags: ["ready", "db"])
     
@@ -326,17 +326,17 @@ public static class HealthCheckResponseWriter
 ### Deployment Configuration
 
 ```yaml
-# apps/archives-api/deployment.yaml
+# apps/myapp-api/deployment.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: archives-api
+  name: myapp-api
 spec:
   template:
     spec:
       containers:
         - name: api
-          image: archives-api:latest
+          image: myapp-api:latest
           ports:
             - containerPort: 8080
           livenessProbe:
@@ -381,7 +381,7 @@ builder.Services.AddHealthChecksUI(setup =>
     setup.MaximumHistoryEntriesPerEndpoint(50);
     
     setup.AddHealthCheckEndpoint("API", "/health");
-    setup.AddHealthCheckEndpoint("Workers", "http://archives-workers:8080/health");
+    setup.AddHealthCheckEndpoint("Workers", "http://myapp-workers:8080/health");
 })
 .AddInMemoryStorage();
 
@@ -467,7 +467,7 @@ public sealed class MetricsHealthCheckPublisher : IHealthCheckPublisher
     {
         _metrics = metrics;
         
-        var meter = new Meter("BlueRobin.Health");
+        var meter = new Meter("MyApp.Health");
         _healthStatus = meter.CreateGauge<double>("health_status");
     }
 

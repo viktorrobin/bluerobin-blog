@@ -1,7 +1,7 @@
 ---
 title: "Building a Telegram Bot for System Notifications"
 description: "Going beyond simple webhooks. How to build a robust C# BackgroundService that listens to NATS events and manages a bidirectional Telegram Bot."
-pubDate: 2025-11-13
+pubDate: 2026-01-18
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -130,16 +130,16 @@ The bot does not connect directly to databases or storage. All data operations g
 Instead of giving the bot direct database access, we created internal API endpoints and use a service token for authentication:
 
 ```csharp
-public class BlueRobinApiClient : IBlueRobinApiClient
+public class AppApiClient : IAppApiClient
 {
     private readonly HttpClient _httpClient;
     private readonly TelegramBotOptions _options;
 
-    public BlueRobinApiClient(
+    public AppApiClient(
         IHttpClientFactory httpClientFactory,
         IOptions<TelegramBotOptions> options)
     {
-        _httpClient = httpClientFactory.CreateClient("BlueRobinApi");
+        _httpClient = httpClientFactory.CreateClient("MyAppApi");
         _options = options.Value;
 
         // Add service authentication headers
@@ -158,7 +158,7 @@ public class BlueRobinApiClient : IBlueRobinApiClient
     {
         // Include user ID header for authorization
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/rag/ask");
-        request.Headers.Add("X-BlueRobin-UserId", userId);
+        request.Headers.Add("X-App-UserId", userId);
         request.Content = JsonContent.Create(new { question, maxChunks = 5 });
         
         var response = await _httpClient.SendAsync(request, ct);

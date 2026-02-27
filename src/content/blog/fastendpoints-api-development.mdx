@@ -1,7 +1,7 @@
 ---
 title: "FastEndpoints: The REPR Pattern for .NET APIs"
 description: "Ditch bloated controllers. Build high-performance, maintainable APIs using the Request-Endpoint-Response (REPR) pattern with FastEndpoints."
-pubDate: 2024-12-11
+pubDate: 2024-11-03
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -132,7 +132,7 @@ public sealed class CreateDocumentEndpoint : Endpoint<CreateDocumentRequest, Cre
     {
         // 1. Call Domain Logic
         var result = await _service.UploadAsync(
-            ownerId: _user.BlueRobinId, 
+            ownerId: _user.CustomId, 
             title: req.Title, 
             stream: req.File.OpenReadStream(),
             ct: ct

@@ -1,7 +1,7 @@
 ---
 title: "Homelab Server & NAS Setup with TrueNAS Scale"
-description: "A comprehensive guide to the hardware powering BlueRobin. From Ryzen processors and 128GB RAM to configuring TrueNAS Scale for Kubernetes storage via iSCSI and NFS."
-pubDate: 2024-02-15
+description: "A comprehensive guide to the hardware powering our homelab. From Ryzen processors and 128GB RAM to configuring TrueNAS Scale for Kubernetes storage via iSCSI and NFS."
+pubDate: 2024-02-18
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
@@ -17,7 +17,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-High-performance software needs high-performance hardware. When we decided to bring BlueRobin on-premise, we needed a foundation that could handle the simultaneous demands of Kubernetes virtualization, massive storage throughput for MinIO, and spare cycles for build agents. We chose a consolidated approach using a powerful workstation build running TrueNAS Scale.
+High-performance software needs high-performance hardware. When we decided to bring our services on-premise, we needed a foundation that could handle the simultaneous demands of Kubernetes virtualization, massive storage throughput for MinIO, and spare cycles for build agents. We chose a consolidated approach using a powerful workstation build running TrueNAS Scale.
 
 **Why Proper Hardware Matters:**
 
@@ -27,7 +27,7 @@ High-performance software needs high-performance hardware. When we decided to br
 
 ### What We'll Build
 
-In this guide, we will walk through the specifications and configuration of the BlueRobin homelab server. You will learn how to:
+In this guide, we will walk through the specifications and configuration of our homelab server. You will learn how to:
 
 1. **Select Hardware**: Balancing CPU cores vs. PCIe lanes.
 2. **Configure ZFS**: Setting up pools for speed (NVMe) and capacity (HDD).
@@ -172,7 +172,7 @@ parameters:
 
 ## Conclusion
 
-This hardware setup provides the bedrock for the entire BlueRobin platform. By investing in quality components like ECC RAM and 10GbE, we've built a "private cloud" that outperforms standard cloud instances at a fraction of the long-term cost.
+This hardware setup provides the bedrock for the entire platform. By investing in quality components like ECC RAM and 10GbE, we've built a "private cloud" that outperforms standard cloud instances at a fraction of the long-term cost.
 
 **Next Steps**:
 - See how we [automated our workflows](/workflow-automation-n8n-kubernetes) on this cluster.

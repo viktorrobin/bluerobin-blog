@@ -1,7 +1,7 @@
 ---
 title: "Enforcing Invariants: Factory Methods and Private Constructors"
 description: "Stop creating invalid objects. Learn how to use static factory methods and private constructors to ensure DDD entities are always in a valid state."
-pubDate: 2024-11-06
+pubDate: 2024-09-27
 author: "Victor Robin"
 category: "architecture"
 difficulty: "intermediate"
@@ -80,7 +80,7 @@ _repo.Save(doc); // Database crash or corrupt data.
 We use a private constructor for EF Core (if needed) and a public static factory method for the domain.
 
 ```csharp
-public class Document : AggregateRoot<BlueRobinId>
+public class Document : AggregateRoot<CustomId>
 {
     public string Title { get; private set; }
     public long SizeBytes { get; private set; }
@@ -88,7 +88,7 @@ public class Document : AggregateRoot<BlueRobinId>
 
     // 1. Private Constructor
     // Only accessible by this class (and EF Core via reflection)
-    private Document(BlueRobinId id, string title, long sizeBytes)
+    private Document(CustomId id, string title, long sizeBytes)
     {
         Id = id;
         Title = title;
@@ -97,7 +97,7 @@ public class Document : AggregateRoot<BlueRobinId>
     }
 
     // 2. Static Factory Method
-    public static Document Create(BlueRobinId id, string title, long sizeBytes)
+    public static Document Create(CustomId id, string title, long sizeBytes)
     {
         // 3. Invariant Checks
         if (string.IsNullOrWhiteSpace(title))
@@ -124,7 +124,7 @@ Now the client code is clean and safe.
 try 
 {
     var doc = Document.Create(
-        BlueRobinId.NewId(), 
+        CustomId.NewId(), 
         "Tax Returns 2025.pdf", 
         1024 * 500
     );

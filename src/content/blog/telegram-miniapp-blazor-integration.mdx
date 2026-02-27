@@ -1,7 +1,7 @@
 ---
 title: "Building a Telegram Mini App with Blazor Server"
-description: "A deep dive into creating a Telegram Mini App for BlueRobin that enables passkey authentication, leveraging Blazor Server, WebAuthn, and Telegram's native theming system."
-pubDate: 2025-11-20
+description: "A deep dive into creating a Telegram Mini App that enables passkey authentication, leveraging Blazor Server, WebAuthn, and Telegram's native theming system."
+pubDate: 2026-01-25
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -34,9 +34,9 @@ Telegram Mini Apps (formerly Web Apps) let you embed web content inside Telegram
 sequenceDiagram
     participant U as User
     participant T as Telegram App
-    participant B as BlueRobin Bot
+    participant B as Telegram Bot
     participant M as Mini App (Blazor)
-    participant API as BlueRobin API
+    participant API as Backend API
     participant DB as PostgreSQL
     
     U->>T: Opens bot menu
@@ -75,7 +75,7 @@ Telegram Mini Apps need a specialized layout that:
 3. Exposes JS interop functions for Blazor
 4. Disables normal navigation (no header/sidebar)
 
-<CodeFile path="Archives.Web/Components/Layout/TelegramMiniappLayout.razor" language="razor">
+<CodeFile path="MyApp.Web/Components/Layout/TelegramMiniappLayout.razor" language="razor">
 ```razor
 @inherits LayoutComponentBase
 
@@ -166,7 +166,7 @@ Telegram Mini Apps run in a WebView with specific constraints. Using the main ap
 
 One of Telegram's best features is automatic theme adaptation. Users expect apps to match their Telegram color scheme. We achieve this with CSS custom properties:
 
-<CodeFile path="Archives.Web/Styles/input.css" language="css">
+<CodeFile path="MyApp.Web/Styles/input.css" language="css">
 ```css
 /* Telegram Mini App Theme Variables */
 .telegram-miniapp {
@@ -242,7 +242,7 @@ Telegram Mini Apps receive `initData` - a URL-encoded string containing user inf
     source="Telegram Documentation"
 />
 
-<CodeFile path="Archives.Api/Endpoints/Auth/TelegramMiniAppLoginEndpoint.cs" language="csharp">
+<CodeFile path="MyApp.Api/Endpoints/Auth/TelegramMiniAppLoginEndpoint.cs" language="csharp">
 ```csharp
 /// <summary>
 /// Validates Telegram Mini App initData according to Telegram's specification.
@@ -319,7 +319,7 @@ The 5-minute expiry window is crucial. Without it, an attacker could replay capt
 
 With authentication handled, we can build the passkey registration UI. This page uses the special layout and communicates with our WebAuthn endpoints:
 
-<CodeFile path="Archives.Web/Components/Pages/Telegram/SetupPasskey.razor" language="razor">
+<CodeFile path="MyApp.Web/Components/Pages/Telegram/SetupPasskey.razor" language="razor">
 ```razor
 @page "/telegram/setup-passkey"
 @layout TelegramMiniappLayout
@@ -327,7 +327,7 @@ With authentication handled, we can build the passkey registration UI. This page
 @inject IJSRuntime JS
 @inject HttpClient Http
 
-<PageTitle>Setup Passkey - BlueRobin</PageTitle>
+<PageTitle>Setup Passkey</PageTitle>
 
 <div class="miniapp-container">
     @switch (_state)
@@ -335,7 +335,7 @@ With authentication handled, we can build the passkey registration UI. This page
         case PageState.Loading:
             <div class="miniapp-loading">
                 <div class="miniapp-spinner"></div>
-                <p class="tg-text-hint">Connecting to BlueRobin...</p>
+                <p class="tg-text-hint">Connecting...</p>
             </div>
             break;
 
@@ -348,7 +348,7 @@ With authentication handled, we can build the passkey registration UI. This page
 
             <h1 class="passkey-title">Setup Passkey</h1>
             <p class="passkey-description">
-                Create a passkey to sign in to BlueRobin securely without a password.
+                Create a passkey to sign in securely without a password.
             </p>
 
             <ul class="passkey-features">
@@ -368,7 +368,7 @@ With authentication handled, we can build the passkey registration UI. This page
                 <div class="miniapp-status-icon success">✓</div>
                 <h2 class="miniapp-status-title">Passkey Created!</h2>
                 <p class="miniapp-status-message">
-                    You can now use this passkey to sign in to BlueRobin on any device.
+                    You can now use this passkey to sign in on any device.
                 </p>
                 <button class="tg-button" @onclick="CloseApp">Done</button>
             </div>
@@ -472,7 +472,7 @@ Users can also access it via the `/passkey` command or inline buttons after link
 The Mini App runs on a different origin than Telegram. To share the session cookie for WebAuthn:
 
 ```csharp
-HttpContext.Response.Cookies.Append("BlueRobin-TelegramSession", user.Id.Value, new CookieOptions
+HttpContext.Response.Cookies.Append("App-TelegramSession", user.Id.Value, new CookieOptions
 {
     HttpOnly = true,
     Secure = true,
@@ -487,7 +487,7 @@ The Mini App URL must be HTTPS and publicly accessible. In our staging environme
 
 ## User Experience Flow
 
-1. User opens BlueRobin bot in Telegram
+1. User opens the bot in Telegram
 2. Taps the "🔐 Setup Passkey" menu button
 3. Mini App opens within Telegram
 4. Automatic authentication via `initData`

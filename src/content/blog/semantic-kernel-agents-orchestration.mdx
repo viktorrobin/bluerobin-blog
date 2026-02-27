@@ -1,7 +1,7 @@
 ---
 title: "Semantic Kernel Agents for AI Orchestration"
 description: "Build intelligent AI agents using Microsoft Semantic Kernel with tool calling, memory, and multi-agent coordination in .NET."
-pubDate: 2025-10-16
+pubDate: 2025-12-05
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -232,7 +232,7 @@ public sealed class SearchPlugin
         [Description("The search query describing what to find")] string query,
         [Description("Maximum number of results (default 5)")] int limit = 5)
     {
-        var ownerId = _userContext.BlueRobinId;
+        var ownerId = _userContext.CustomId;
         var queryVector = await _embeddings.GenerateAsync(query);
         
         var results = await _vectorStore.SearchAsync(
@@ -266,7 +266,7 @@ public sealed class SearchPlugin
         [Description("Comma-separated tags to filter by")] string? tags = null,
         [Description("ISO date for 'created after' filter")] string? createdAfter = null)
     {
-        var ownerId = _userContext.BlueRobinId;
+        var ownerId = _userContext.CustomId;
         
         var filters = new SearchFilters
         {
@@ -324,10 +324,10 @@ public sealed class DocumentPlugin
     [KernelFunction("read_document")]
     [Description("Read the full content of a specific document by its ID.")]
     public async Task<string> ReadDocumentAsync(
-        [Description("The document ID (8-character BlueRobinId)")] string documentId)
+        [Description("The document ID (8-character CustomId)")] string documentId)
     {
-        var ownerId = _userContext.BlueRobinId;
-        var docId = BlueRobinId.From(documentId);
+        var ownerId = _userContext.CustomId;
+        var docId = CustomId.From(documentId);
         
         var document = await _documents.GetByIdAsync(docId);
         if (document == null || document.OwnerId != ownerId)
@@ -356,7 +356,7 @@ public sealed class DocumentPlugin
     public async Task<string> ListDocumentsAsync(
         [Description("Filter by status: Pending, Processing, Ready, Failed")] string? status = null)
     {
-        var ownerId = _userContext.BlueRobinId;
+        var ownerId = _userContext.CustomId;
         
         DocumentStatus? statusFilter = status != null
             ? Enum.Parse<DocumentStatus>(status, ignoreCase: true)
@@ -393,8 +393,8 @@ public sealed class DocumentPlugin
     public async Task<string> GetDocumentSummaryAsync(
         [Description("The document ID")] string documentId)
     {
-        var ownerId = _userContext.BlueRobinId;
-        var docId = BlueRobinId.From(documentId);
+        var ownerId = _userContext.CustomId;
+        var docId = CustomId.From(documentId);
         
         var document = await _documents.GetByIdAsync(docId);
         if (document == null || document.OwnerId != ownerId)
@@ -446,11 +446,11 @@ public sealed class AnalysisPlugin
         [Description("First document ID")] string documentId1,
         [Description("Second document ID")] string documentId2)
     {
-        var ownerId = _userContext.BlueRobinId;
+        var ownerId = _userContext.CustomId;
         
         // Get embeddings for both documents
-        var doc1Vectors = await GetDocumentVectorsAsync(BlueRobinId.From(documentId1), ownerId);
-        var doc2Vectors = await GetDocumentVectorsAsync(BlueRobinId.From(documentId2), ownerId);
+        var doc1Vectors = await GetDocumentVectorsAsync(CustomId.From(documentId1), ownerId);
+        var doc2Vectors = await GetDocumentVectorsAsync(CustomId.From(documentId2), ownerId);
         
         if (doc1Vectors.Count == 0 || doc2Vectors.Count == 0)
         {
@@ -492,8 +492,8 @@ public sealed class AnalysisPlugin
         [Description("Source document ID")] string documentId,
         [Description("Number of similar documents to find")] int limit = 5)
     {
-        var ownerId = _userContext.BlueRobinId;
-        var docId = BlueRobinId.From(documentId);
+        var ownerId = _userContext.CustomId;
+        var docId = CustomId.From(documentId);
         
         // Get first chunk vector as representative
         var results = await _vectorStore.SearchAsync(
@@ -543,7 +543,7 @@ public sealed class AnalysisPlugin
     }
     
     private async Task<IReadOnlyList<float[]>> GetDocumentVectorsAsync(
-        BlueRobinId documentId, BlueRobinId ownerId)
+        CustomId documentId, CustomId ownerId)
     {
         // Implementation to retrieve stored vectors for a document
         // This would require extending the vector store interface
@@ -551,7 +551,7 @@ public sealed class AnalysisPlugin
     }
     
     private async Task<float[]?> GetFirstChunkVectorAsync(
-        BlueRobinId documentId, BlueRobinId ownerId)
+        CustomId documentId, CustomId ownerId)
     {
         // Implementation to get first chunk embedding
         return null;
@@ -579,7 +579,7 @@ public sealed class SemanticKernelAgentService : IAgentService
     private readonly ILogger<SemanticKernelAgentService> _logger;
     
     private const string SystemPrompt = """
-        You are a helpful document assistant for BlueRobin, a personal knowledge management system.
+        You are a helpful document assistant for a personal knowledge management system.
         
         Your capabilities:
         1. Search documents using semantic search (Search.semantic_search)

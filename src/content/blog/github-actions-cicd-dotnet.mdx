@@ -1,7 +1,7 @@
 ---
 title: "GitHub Actions CI/CD for .NET Applications"
 description: "Build robust CI/CD pipelines with GitHub Actions for .NET applications including testing, Docker builds, and Kubernetes deployment."
-pubDate: 2024-06-27
+pubDate: 2024-05-17
 author: "Victor Robin"
 category: "ci-cd"
 difficulty: "intermediate"
@@ -120,7 +120,7 @@ jobs:
             --collect:"XPlat Code Coverage" \
             --results-directory ./coverage
         env:
-          ConnectionStrings__BlueRobinDb: "Host=localhost;Port=5432;Database=test_db;Username=test_user;Password=test_password"
+          ConnectionStrings__AppDb: "Host=localhost;Port=5432;Database=test_db;Username=test_user;Password=test_password"
       
       - name: Upload test results
         uses: actions/upload-artifact@v4
@@ -218,8 +218,8 @@ on:
           - prod
 
 env:
-  REGISTRY: registry.bluerobin.local
-  IMAGE_NAME: archives-api
+  REGISTRY: registry.example.local
+  IMAGE_NAME: myapp-api
 
 jobs:
   build-and-push:
@@ -281,7 +281,7 @@ jobs:
       - name: Checkout infra repo
         uses: actions/checkout@v4
         with:
-          repository: viktorrobin/bluerobin-infra
+          repository: your-org/my-infra
           token: ${{ secrets.INFRA_REPO_TOKEN }}
           path: infra
       
@@ -290,7 +290,7 @@ jobs:
           cd infra
           ENVIRONMENT=${{ inputs.environment || 'staging' }}
           yq eval -i ".spec.template.spec.containers[0].image = \"${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ needs.build-and-push.outputs.version }}\"" \
-            apps/archives-api/overlays/${ENVIRONMENT}/deployment-patch.yaml
+            apps/myapp-api/overlays/${ENVIRONMENT}/deployment-patch.yaml
       
       - name: Commit and push
         run: |
@@ -336,16 +336,16 @@ WORKDIR /src
 
 # Copy csproj files and restore
 COPY *.sln Directory.Build.props ./
-COPY src/Archives.Api/*.csproj src/Archives.Api/
-COPY src/Archives.Application/*.csproj src/Archives.Application/
-COPY src/Archives.Core/*.csproj src/Archives.Core/
-COPY src/Archives.Infrastructure/*.csproj src/Archives.Infrastructure/
+COPY src/MyApp.Api/*.csproj src/MyApp.Api/
+COPY src/MyApp.Application/*.csproj src/MyApp.Application/
+COPY src/MyApp.Core/*.csproj src/MyApp.Core/
+COPY src/MyApp.Infrastructure/*.csproj src/MyApp.Infrastructure/
 
 RUN dotnet restore
 
 # Copy source and build
 COPY src/ src/
-RUN dotnet publish src/Archives.Api/Archives.Api.csproj \
+RUN dotnet publish src/MyApp.Api/MyApp.Api.csproj \
     -c Release \
     -o /app/publish \
     /p:Version=${VERSION} \
@@ -364,7 +364,7 @@ COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-ENTRYPOINT ["dotnet", "Archives.Api.dll"]
+ENTRYPOINT ["dotnet", "MyApp.Api.dll"]
 ```
 
 ## Reusable Workflows
@@ -417,7 +417,7 @@ jobs:
       
       - run: dotnet test --configuration ${{ inputs.configuration }}
         env:
-          ConnectionStrings__BlueRobinDb: "Host=localhost;Port=5432;Database=test_db;Username=test_user;Password=test_password"
+          ConnectionStrings__AppDb: "Host=localhost;Port=5432;Database=test_db;Username=test_user;Password=test_password"
 ```
 
 ### Calling Reusable Workflow

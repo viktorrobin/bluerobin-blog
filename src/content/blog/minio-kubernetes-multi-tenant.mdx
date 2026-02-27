@@ -1,7 +1,7 @@
 ---
 title: "MinIO Multi-Tenant Object Storage"
 description: "Deploy a production-ready MinIO cluster on Kubernetes with per-user encryption, bucket policies, and integration with your .NET applications."
-pubDate: 2025-07-03
+pubDate: 2025-08-07
 author: "Victor Robin"
 category: "storage"
 difficulty: "intermediate"
@@ -25,7 +25,7 @@ Modern applications store more than just database rows—they handle PDFs, image
 - **Cost Control**: Self-hosted MinIO eliminates per-GB cloud storage fees
 - **S3 Compatibility**: Your existing SDKs and tools just work
 
-For BlueRobin, where users upload sensitive documents, multi-tenancy isn't a feature—it's a requirement. Each user gets their own encrypted bucket, managed by KES (Key Encryption Service), ensuring cryptographic isolation between tenants.
+In our system, where users upload sensitive documents, multi-tenancy isn't a feature—it's a requirement. Each user gets their own encrypted bucket, managed by KES (Key Encryption Service), ensuring cryptographic isolation between tenants.
 
 MinIO provides S3-compatible object storage that runs anywhere. This guide covers deploying MinIO on Kubernetes with multi-tenant isolation, per-user encryption keys, and integration with .NET applications.
 
@@ -241,29 +241,29 @@ spec:
 public interface IStorageService
 {
     Task EnsureBucketExistsAsync(
-        BlueRobinId userId,
+        CustomId userId,
         CancellationToken ct = default);
     
     Task<string> UploadAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         Stream content,
         string contentType,
         CancellationToken ct = default);
     
     Task<Stream> DownloadAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         CancellationToken ct = default);
     
     Task DeleteAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         CancellationToken ct = default);
     
     Task<string> GetPresignedUrlAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         TimeSpan expiry,
         CancellationToken ct = default);
 }
@@ -290,7 +290,7 @@ public sealed class MinioStorageService : IStorageService
     }
     
     public async Task EnsureBucketExistsAsync(
-        BlueRobinId userId,
+        CustomId userId,
         CancellationToken ct = default)
     {
         var bucketName = GetBucketName(userId);
@@ -352,8 +352,8 @@ public sealed class MinioStorageService : IStorageService
     }
     
     public async Task<string> UploadAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         Stream content,
         string contentType,
         CancellationToken ct = default)
@@ -380,8 +380,8 @@ public sealed class MinioStorageService : IStorageService
     }
     
     public async Task<Stream> DownloadAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         CancellationToken ct = default)
     {
         var bucketName = GetBucketName(userId);
@@ -401,8 +401,8 @@ public sealed class MinioStorageService : IStorageService
     }
     
     public async Task DeleteAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         CancellationToken ct = default)
     {
         var bucketName = GetBucketName(userId);
@@ -436,8 +436,8 @@ public sealed class MinioStorageService : IStorageService
     }
     
     public async Task<string> GetPresignedUrlAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         TimeSpan expiry,
         CancellationToken ct = default)
     {
@@ -451,13 +451,13 @@ public sealed class MinioStorageService : IStorageService
                 .WithExpiry((int)expiry.TotalSeconds));
     }
     
-    private string GetBucketName(BlueRobinId userId)
+    private string GetBucketName(CustomId userId)
     {
         var env = _config["Environment"] ?? "dev";
         return $"{env}-{userId.Value}";
     }
     
-    private static string GetObjectKey(BlueRobinId documentId)
+    private static string GetObjectKey(CustomId documentId)
     {
         return $"documents/{documentId.Value}/original";
     }
@@ -478,8 +478,8 @@ public sealed class ProcessedContentStorage : IProcessedContentStorage
     private readonly IConfiguration _config;
     
     public async Task SaveOcrContentAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         string content,
         CancellationToken ct = default)
     {
@@ -499,8 +499,8 @@ public sealed class ProcessedContentStorage : IProcessedContentStorage
     }
     
     public async Task<string?> GetOcrContentAsync(
-        BlueRobinId documentId,
-        BlueRobinId userId,
+        CustomId documentId,
+        CustomId userId,
         CancellationToken ct = default)
     {
         var bucketName = GetBucketName(userId);
@@ -527,7 +527,7 @@ public sealed class ProcessedContentStorage : IProcessedContentStorage
         }
     }
     
-    private string GetBucketName(BlueRobinId userId)
+    private string GetBucketName(CustomId userId)
     {
         var env = _config["Environment"] ?? "dev";
         return $"{env}-{userId.Value}";

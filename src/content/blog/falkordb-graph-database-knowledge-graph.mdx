@@ -1,7 +1,7 @@
 ---
 title: "FalkorDB Graph Database for Entity Relationships"
 description: "Model and query entity relationships using FalkorDB (Redis Graph) for knowledge graphs and connected data in .NET applications."
-pubDate: 2025-10-02
+pubDate: 2025-11-21
 author: "Victor Robin"
 category: "database"
 difficulty: "advanced"
@@ -354,8 +354,8 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
     }
     
     public async Task AddDocumentEntitiesAsync(
-        BlueRobinId documentId,
-        BlueRobinId ownerId,
+        CustomId documentId,
+        CustomId ownerId,
         IReadOnlyList<ExtractedEntity> entities,
         CancellationToken ct = default)
     {
@@ -422,7 +422,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
     
     public async Task<IReadOnlyList<RelatedEntity>> FindRelatedEntitiesAsync(
         string entityName,
-        BlueRobinId ownerId,
+        CustomId ownerId,
         int depth = 2,
         int limit = 20,
         CancellationToken ct = default)
@@ -444,7 +444,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
     }
     
     public async Task<IReadOnlyList<EntityConnection>> GetEntityConnectionsAsync(
-        BlueRobinId ownerId,
+        CustomId ownerId,
         int limit = 100,
         CancellationToken ct = default)
     {
@@ -467,7 +467,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
     
     public async Task<IReadOnlyList<DocumentDto>> FindDocumentsByEntityAsync(
         string entityName,
-        BlueRobinId ownerId,
+        CustomId ownerId,
         CancellationToken ct = default)
     {
         var results = await _graph.QueryAsync<DocumentDto>("""
@@ -482,7 +482,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
     }
     
     public async Task RemoveDocumentEntitiesAsync(
-        BlueRobinId documentId,
+        CustomId documentId,
         CancellationToken ct = default)
     {
         // Remove all relationships from document
@@ -569,7 +569,7 @@ public sealed class GetGraphEndpoint
     
     public override async Task HandleAsync(CancellationToken ct)
     {
-        var ownerId = _userContext.BlueRobinId;
+        var ownerId = _userContext.CustomId;
         
         var connections = await _relationships.GetEntityConnectionsAsync(
             ownerId, 

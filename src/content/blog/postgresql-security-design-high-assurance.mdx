@@ -1,7 +1,7 @@
 ---
 title: "PostgreSQL Security Design for High Assurance"
 description: "A comprehensive guide to securing PostgreSQL in a production environment, covering pg_hba.conf, enforced SSL/TLS, RBAC, Row-Level Security (RLS), and credential management with Infisical."
-pubDate: 2024-08-15
+pubDate: 2024-06-26
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
@@ -20,7 +20,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-In a data-intensive architecture like BlueRobin, the database is often the "crown jewel" target for attackers. Default PostgreSQL configurations prioritize compatibility over security, leaving gaps that can be exploited in a distributed system. "High Assurance" means going beyond basic passwords—it means Defense in Depth.
+In a data-intensive architecture like ours, the database is often the "crown jewel" target for attackers. Default PostgreSQL configurations prioritize compatibility over security, leaving gaps that can be exploited in a distributed system. "High Assurance" means going beyond basic passwords—it means Defense in Depth.
 
 **Why Database Security Matters:**
 
@@ -122,10 +122,10 @@ We separate users into three categories: **Owners** (Schema management), **Write
 CREATE ROLE app_readwrite NOLOGIN;
 
 -- 2. Create the actual application user
-CREATE USER bluerobin_api WITH PASSWORD '...';
+CREATE USER myapp_api WITH PASSWORD '...';
 
 -- 3. Grant the group to the user
-GRANT app_readwrite TO bluerobin_api;
+GRANT app_readwrite TO myapp_api;
 ```
 
 This ensures we manage permissions on the *group*, not individual users.
@@ -169,7 +169,7 @@ await command.ExecuteNonQueryAsync();
 
 Hardcoding connection strings is a vulnerability. We use Infisical to inject secrets at runtime.
 
-1. **Store the Password**: Save `ARCHIVES_DB_PASSWORD` in Infisical.
+1. **Store the Password**: Save `APP_DB_PASSWORD` in Infisical.
 2. **Inject in CI/CD**:
    
 ```yaml
@@ -177,7 +177,7 @@ Hardcoding connection strings is a vulnerability. We use Infisical to inject sec
   uses: Infisical/secrets-action@v1
   with:
     env-slug: "prod"
-    secret-ids: "ARCHIVES_DB_PASSWORD"
+    secret-ids: "APP_DB_PASSWORD"
 ```
 
 3. **Runtime**: The application reads the environment variable, constructing the connection string dynamically.
@@ -187,5 +187,5 @@ Hardcoding connection strings is a vulnerability. We use Infisical to inject sec
 By implementing strict `pg_hba.conf` rules, a hierarchical RBAC model, and RLS, we turn PostgreSQL from a simple data store into a security enforcer.
 
 **Next Steps**:
-- [Architecture Overview](/architecture/bluerobin-system-overview)
+- [Architecture Overview](/architecture/system-overview)
 - [Building a Private PKI](/building-private-pki-root-ca-certificates)

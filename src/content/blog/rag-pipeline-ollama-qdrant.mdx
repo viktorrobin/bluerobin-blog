@@ -1,7 +1,7 @@
 ---
 title: "Building a RAG Pipeline with Ollama and Qdrant"
 description: "Implement a complete Retrieval-Augmented Generation pipeline that combines semantic search with local LLM inference for intelligent document Q&A."
-pubDate: 2025-09-11
+pubDate: 2025-10-31
 author: "Victor Robin"
 category: "ai"
 difficulty: "expert"
@@ -28,7 +28,7 @@ Large Language Models are impressive, but they have a critical limitation: they 
 - **Attribution**: Cite specific sources for every answer
 - **Privacy**: Run entirely on-premise with Ollama—your data never leaves your infrastructure
 
-In BlueRobin, RAG powers our document Q&A feature. Users upload contracts, policies, and reports, then ask natural language questions like "What's the termination clause in the Smith contract?" The system retrieves relevant chunks, feeds them to an LLM, and returns an accurate, cited answer.
+RAG powers our document Q&A feature. Users upload contracts, policies, and reports, then ask natural language questions like "What's the termination clause in the Smith contract?" The system retrieves relevant chunks, feeds them to an LLM, and returns an accurate, cited answer.
 
 ## Architecture Overview
 
@@ -99,13 +99,13 @@ flowchart TB
 public interface IRagService
 {
     Task<RagResponse> AskAsync(
-        BlueRobinId userId,
+        CustomId userId,
         string question,
         RagOptions? options = null,
         CancellationToken ct = default);
     
     IAsyncEnumerable<RagStreamChunk> AskStreamingAsync(
-        BlueRobinId userId,
+        CustomId userId,
         string question,
         RagOptions? options = null,
         CancellationToken ct = default);
@@ -120,7 +120,7 @@ public sealed record RagOptions
     public int MaxTokens { get; init; } = 1024;
     public bool IncludeSources { get; init; } = true;
     public IReadOnlyList<string>? FilterTags { get; init; }
-    public IReadOnlyList<BlueRobinId>? FilterDocuments { get; init; }
+    public IReadOnlyList<CustomId>? FilterDocuments { get; init; }
 }
 
 public sealed record RagResponse
@@ -134,7 +134,7 @@ public sealed record RagResponse
 
 public sealed record SourceReference
 {
-    public required BlueRobinId DocumentId { get; init; }
+    public required CustomId DocumentId { get; init; }
     public required string DocumentTitle { get; init; }
     public required string Excerpt { get; init; }
     public required int ChunkIndex { get; init; }
@@ -189,7 +189,7 @@ public sealed class RagService : IRagService
     }
     
     public async Task<RagResponse> AskAsync(
-        BlueRobinId userId,
+        CustomId userId,
         string question,
         RagOptions? options = null,
         CancellationToken ct = default)
@@ -284,7 +284,7 @@ public sealed class RagService : IRagService
     }
     
     public async IAsyncEnumerable<RagStreamChunk> AskStreamingAsync(
-        BlueRobinId userId,
+        CustomId userId,
         string question,
         RagOptions? options = null,
         [EnumeratorCancellation] CancellationToken ct = default)
@@ -348,7 +348,7 @@ public sealed class RagService : IRagService
         CancellationToken ct)
     {
         var chunks = new List<RetrievedChunk>();
-        var seenDocuments = new HashSet<BlueRobinId>();
+        var seenDocuments = new HashSet<CustomId>();
         
         foreach (var result in results.Take(topK * 2))
         {
@@ -489,7 +489,7 @@ public sealed class RagService : IRagService
     
     private sealed record RetrievedChunk
     {
-        public BlueRobinId DocumentId { get; init; }
+        public CustomId DocumentId { get; init; }
         public required string DocumentTitle { get; init; }
         public required string Content { get; init; }
         public required int ChunkIndex { get; init; }
@@ -723,7 +723,7 @@ public sealed class OllamaClient : IOllamaClient
         try
         {
             var authState = await AuthState!;
-            var userId = authState.User.GetBlueRobinId();
+            var userId = authState.User.GetCustomId();
             
             _cts = new CancellationTokenSource();
             

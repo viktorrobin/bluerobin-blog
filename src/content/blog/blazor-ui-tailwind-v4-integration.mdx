@@ -1,7 +1,7 @@
 ---
 title: "Migrating Blazor to Tailwind CSS 4"
 description: "A comprehensive guide to adopting Tailwind CSS 4 in Blazor, leveraging CSS-first configuration and the new JIT engine for a streamlined frontend workflow."
-pubDate: 2025-03-27
+pubDate: 2025-04-02
 author: "Victor Robin"
 category: "frontend"
 difficulty: "intermediate"
@@ -27,7 +27,7 @@ Tailwind CSS v4 introduces a paradigm shift by moving configuration from JavaScr
 
 ### What We'll Build
 
-We will migrate the BlueRobin frontend to Tailwind v4. You will learn how to:
+We will migrate our Blazor frontend to Tailwind v4. You will learn how to:
 
 1.  **Setup the CSS Input**: rigorous use of `@theme` and `@utility`.
 2.  **Integrate with Blazor**: Watching for changes and serving the output.
@@ -65,14 +65,14 @@ flowchart LR
 
 Delete your `tailwind.config.js`. Create a `Styles/input.css` file. This is now your configuration source.
 
-<CodeFile filename="src/Archives.Web/Styles/input.css" language="css">
+<CodeFile filename="src/MyApp.Web/Styles/input.css" language="css">
 ```css
 @import "tailwindcss";
 
 @theme {
   /* Brand Colors */
   --color-robin-50: #f0f9ff;
-  --color-robin-500: #0ea5e9;
+  --color-primary-500: #0ea5e9;
   --color-robin-900: #0c4a6e;
 
   /* Typography */
@@ -88,7 +88,7 @@ Delete your `tailwind.config.js`. Create a `Styles/input.css` file. This is now 
 
 /* Custom Utilities */
 @utility .btn-primary {
-  @apply px-4 py-2 bg-robin-500 text-white rounded hover:bg-robin-600 transition-colors;
+  @apply px-4 py-2 bg-primary-500 text-white rounded hover:bg-robin-600 transition-colors;
 }
 ```
 </CodeFile>
@@ -129,4 +129,4 @@ In your `App.razor` (or `_Host.cshtml`), ensure you link to the generated output
 
 ## Conclusion
 
-Migrating to Tailwind CSS 4 has reduced our configuration boilerplate and improved build speeds. The "CSS-first" approach feels more natural for styling and keeps BlueRobin's architecture clean and focused on standard web technologies.
+Migrating to Tailwind CSS 4 has reduced our configuration boilerplate and improved build speeds. The "CSS-first" approach feels more natural for styling and keeps our architecture clean and focused on standard web technologies.

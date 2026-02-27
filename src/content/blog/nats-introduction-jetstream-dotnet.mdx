@@ -1,7 +1,7 @@
 ---
 title: "Getting Started with NATS JetStream in .NET"
 description: "A complete guide to replacing RabbitMQ/Kafka with NATS JetStream. Learn the core concepts of Streams, Subjects, and Consumers, and how to implement them in C#."
-pubDate: 2025-05-22
+pubDate: 2025-06-22
 author: "Victor Robin"
 category: "messaging"
 difficulty: "intermediate"
@@ -19,7 +19,7 @@ import ImplementationNote from '@components/ImplementationNote.astro';
 
 Message brokers are the nervous system of modern distributed architectures. While RabbitMQ and Kafka effectively rule the market, **NATS JetStream** has emerged as a compelling alternative that combines the simplicity of RabbitMQ with the persistence and replayability of Kafka—all in a single binary.
 
-In the BlueRobin ecosystem, NATS is the backbone. We use it for everything: reliable job queues, real-time UI updates, and Key-Value configuration.
+In our ecosystem, NATS is the backbone. We use it for everything: reliable job queues, real-time UI updates, and Key-Value configuration.
 
 ## Why NATS JetStream?
 
@@ -37,7 +37,7 @@ flowchart LR
     Producer["📢 Producer\n(API)"] -->|Publishes| Subject["Subject\n'archives.doc.created'"]
     
     subgraph JetStream["🌪️ JetStream Server"]
-        Subject --> Stream["💾 Stream\n'ARCHIVES'"]
+        Subject --> Stream["💾 Stream\n'MYAPP'"]
         Stream -->|Persists| Disk[(Disk Storage)]
     end
     
@@ -82,9 +82,9 @@ Before we can persist messages, we must define a **Stream**. The stream binds to
 
 public static async Task CreateStream(INatsJSContext js)
 {
-    // Define a stream 'ARCHIVES' that listens to 'archives.>'
+    // Define a stream 'MYAPP' that listens to 'archives.>'
     var config = new StreamConfig(
-        name: "ARCHIVES", 
+        name: "MYAPP", 
         subjects: new[] { "archives.>" })
     {
         Retention = StreamConfigRetention.WorkQueue, // Messages removed when acked
@@ -92,7 +92,7 @@ public static async Task CreateStream(INatsJSContext js)
     };
 
     await js.CreateStreamAsync(config);
-    Console.WriteLine("Stream 'ARCHIVES' created/updated.");
+    Console.WriteLine("Stream 'MYAPP' created/updated.");
 }
 ```
 
@@ -129,7 +129,7 @@ Console.WriteLine($"Published msg seq: {ack.Seq}");
 The modern way to consume in .NET is using the `ConsumeAsync` iterator.
 
 ```csharp
-var consumer = await js.CreateOrUpdateConsumerAsync("ARCHIVES", new ConsumerConfig("ocr_processor")
+var consumer = await js.CreateOrUpdateConsumerAsync("MYAPP", new ConsumerConfig("ocr_processor")
 {
     FilterSubject = "archives.documents.created",
     AckPolicy = ConsumerConfigAckPolicy.Explicit

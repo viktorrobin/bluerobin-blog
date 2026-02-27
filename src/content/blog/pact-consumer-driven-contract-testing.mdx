@@ -1,7 +1,7 @@
 ---
 title: "Consumer-Driven Contract Testing with Pact"
 description: "Decoupling frontend and backend tests by defining API contracts. How we verify Blazor/FastEndpoint compatibility in CI/CD without integration environments."
-pubDate: 2025-03-20
+pubDate: 2025-03-15
 author: "Victor Robin"
 category: "backend"
 tags: ["testing", "backend", "ci-cd"]
@@ -65,7 +65,7 @@ We use `PactNet`. In our Blazor unit test project, we set up a mock server.
 public async Task GetDocument_ReturnsCorrectData()
 {
     // Arrange
-    var pact = Pact.V3("BlueRobin.Web", "BlueRobin.Api", Config);
+    var pact = Pact.V3("MyApp.Web", "MyApp.Api", Config);
     
     await pact.UponReceiving("A valid request for a document")
         .Given("Document 123 exists")
@@ -106,8 +106,8 @@ public class ApiContractTests : IClassFixture<WebApplicationFactory<Program>>
         IPactVerifier verifier = new PactVerifier(config);
         
         verifier
-            .ServiceProvider("BlueRobin.Api", _factory.Server.BaseAddress)
-            .HonoursPactWith("BlueRobin.Web")
+            .ServiceProvider("MyApp.Api", _factory.Server.BaseAddress)
+            .HonoursPactWith("MyApp.Web")
             .PactUri("path/to/pact.json") // Or from Pact Broker
             .Verify();
     }

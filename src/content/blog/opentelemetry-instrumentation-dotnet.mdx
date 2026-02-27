@@ -1,7 +1,7 @@
 ---
 title: "OpenTelemetry Instrumentation for .NET"
 description: "Implement distributed tracing, metrics, and logging with OpenTelemetry in .NET applications for full observability."
-pubDate: 2025-06-26
+pubDate: 2025-07-30
 author: "Victor Robin"
 category: "observability"
 difficulty: "intermediate"
@@ -27,7 +27,7 @@ When a user reports "the app is slow," where do you start looking? In a distribu
 - **Automatic Instrumentation**: HTTP clients, EF Core, and ASP.NET Core instrumented out-of-the-box
 - **Custom Spans**: Add business-specific tracing without framework coupling
 
-OpenTelemetry has become the industry standard for observability instrumentation. By adopting it in BlueRobin, we can switch backends without rewriting code, and our traces follow requests across every service boundary.
+OpenTelemetry has become the industry standard for observability instrumentation. By adopting it in our project, we can switch backends without rewriting code, and our traces follow requests across every service boundary.
 
 ## Architecture Overview
 
@@ -36,9 +36,9 @@ OpenTelemetry instruments your application and exports telemetry to a collector,
 ```mermaid
 flowchart TB
     subgraph Apps["🔌 .NET Applications"]
-        API["📡 Archives.Api"]
-        Web["🖼️ Archives.Web"]
-        Workers["⚙️ Archives.Workers"]
+        API["📡 MyApp.Api"]
+        Web["🖼️ MyApp.Web"]
+        Workers["⚙️ MyApp.Workers"]
     end
 
     subgraph SDK["📦 OTel SDK"]
@@ -92,7 +92,7 @@ OpenTelemetry provides vendor-neutral observability instrumentation. This guide 
 ## Package Installation
 
 ```xml
-<!-- Archives.Api.csproj -->
+<!-- MyApp.Api.csproj -->
 <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.9.0" />
 <PackageReference Include="OpenTelemetry.Instrumentation.AspNetCore" Version="1.9.0" />
 <PackageReference Include="OpenTelemetry.Instrumentation.Http" Version="1.9.0" />
@@ -109,7 +109,7 @@ OpenTelemetry provides vendor-neutral observability instrumentation. This guide 
 builder.Services.AddOpenTelemetry()
     .ConfigureResource(resource => resource
         .AddService(
-            serviceName: "archives-api",
+            serviceName: "myapp-api",
             serviceVersion: Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.0.0",
             serviceInstanceId: Environment.MachineName)
         .AddAttributes(new[]
@@ -154,9 +154,9 @@ builder.Services.AddOpenTelemetry()
 // Infrastructure/Telemetry/ActivitySources.cs
 public static class ActivitySources
 {
-    public static readonly ActivitySource Api = new("BlueRobin.Api", "1.0.0");
-    public static readonly ActivitySource Infrastructure = new("BlueRobin.Infrastructure", "1.0.0");
-    public static readonly ActivitySource Workers = new("BlueRobin.Workers", "1.0.0");
+    public static readonly ActivitySource Api = new("MyApp.Api", "1.0.0");
+    public static readonly ActivitySource Infrastructure = new("MyApp.Infrastructure", "1.0.0");
+    public static readonly ActivitySource Workers = new("MyApp.Workers", "1.0.0");
 }
 ```
 
@@ -232,8 +232,8 @@ Use `using var activity = ActivitySource.StartActivity()` to automatically end t
 // Program.cs
 builder.Services.AddOpenTelemetry()
     .WithMetrics(metrics => metrics
-        .AddMeter("BlueRobin.Api")
-        .AddMeter("BlueRobin.Documents")
+        .AddMeter("MyApp.Api")
+        .AddMeter("MyApp.Documents")
         .AddAspNetCoreInstrumentation()
         .AddHttpClientInstrumentation()
         .AddRuntimeInstrumentation()
@@ -264,7 +264,7 @@ public sealed class DocumentMetrics : IDisposable
 
     public DocumentMetrics()
     {
-        _meter = new Meter("BlueRobin.Documents", "1.0.0");
+        _meter = new Meter("MyApp.Documents", "1.0.0");
         
         _documentsProcessed = _meter.CreateCounter<long>(
             "documents.processed",
@@ -411,7 +411,7 @@ public sealed class BaggageMiddleware
         // Extract user info and add to baggage
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var userId = context.User.FindFirst("bluerobin_id")?.Value;
+            var userId = context.User.FindFirst("app_user_id")?.Value;
             if (userId is not null)
             {
                 Baggage.SetBaggage("user.id", userId);
@@ -468,7 +468,7 @@ public sealed class DocumentProcessingSampler : Sampler
 // Infrastructure/Extensions/TelemetryExtensions.cs
 public static class TelemetryExtensions
 {
-    public static IServiceCollection AddBlueRobinTelemetry(
+    public static IServiceCollection AddAppTelemetry(
         this IServiceCollection services,
         IConfiguration configuration,
         string serviceName)
@@ -484,13 +484,13 @@ public static class TelemetryExtensions
                         configuration["Environment"] ?? "development")
                 }))
             .WithTracing(tracing => tracing
-                .AddSource("BlueRobin.*")
+                .AddSource("MyApp.*")
                 .AddAspNetCoreInstrumentation(o => o.RecordException = true)
                 .AddHttpClientInstrumentation(o => o.RecordException = true)
                 .AddEntityFrameworkCoreInstrumentation()
                 .AddOtlpExporter(o => o.Endpoint = new Uri(configuration["Otlp:Endpoint"]!)))
             .WithMetrics(metrics => metrics
-                .AddMeter("BlueRobin.*")
+                .AddMeter("MyApp.*")
                 .AddAspNetCoreInstrumentation()
                 .AddRuntimeInstrumentation()
                 .AddOtlpExporter(o => o.Endpoint = new Uri(configuration["Otlp:Endpoint"]!)));

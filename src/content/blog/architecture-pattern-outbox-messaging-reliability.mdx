@@ -1,7 +1,7 @@
 ---
 title: "The Transactional Outbox Pattern with NATS"
 description: "Achieve 100% reliable messaging by atomically committing state changes and events. A deep dive into the Outbox Pattern with EF Core and NATS utilizing background relay workers."
-pubDate: 2025-01-16
+pubDate: 2024-12-17
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -184,7 +184,7 @@ The Outbox pattern guarantees <strong>at-least-once</strong> delivery. It is pos
 
 The Transactional Outbox pattern decouples your database transaction from your message broker availability. While it adds moving parts (the relay worker), it is essential for systems where data integrity cannot be compromised.
 
-In the BlueRobin architecture, we rely on this pattern for all critical events, ensuring that even if NATS undergoes maintenance or a network partition occurs, no data is ever lost.
+In our architecture, we rely on this pattern for all critical events, ensuring that even if NATS undergoes maintenance or a network partition occurs, no data is ever lost.
 
 **Next Steps**:
 - Explore [Idempotency Consumers] to handle duplicate messages.

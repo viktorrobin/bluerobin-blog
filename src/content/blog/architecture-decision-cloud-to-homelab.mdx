@@ -1,7 +1,7 @@
 ---
 title: "Architecture Decision: Migrating from Cloud to On-Premise Homelab"
-description: "Why we abandoned the cloud for bare metal. A deep dive into the cost savings, performance gains of 10GbE, and total data sovereignty of running BlueRobin on-premise."
-pubDate: 2024-03-28
+description: "Why we abandoned the cloud for bare metal. A deep dive into the cost savings, performance gains of 10GbE, and total data sovereignty of running on-premise."
+pubDate: 2024-02-08
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -17,7 +17,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-For years, the industry mantra has been "Cloud First." The promise of infinite scalability and zero hardware maintenance is intoxicating. However, for a data-intensive platform like BlueRobin—filtering gigabytes of documents, running local AI inference, and managing vector embeddings—the cloud equation started to break down. We realized that we were paying a premium for elasticity we didn't need, while suffering from latency and egress costs that stifled our innovation.
+For years, the industry mantra has been "Cloud First." The promise of infinite scalability and zero hardware maintenance is intoxicating. However, for a data-intensive platform like ours—filtering gigabytes of documents, running local AI inference, and managing vector embeddings—the cloud equation started to break down. We realized that we were paying a premium for elasticity we didn't need, while suffering from latency and egress costs that stifled our innovation.
 
 **Why We Moved to Homelab:**
 
@@ -27,7 +27,7 @@ For years, the industry mantra has been "Cloud First." The promise of infinite s
 
 ### The Decision Matrix
 
-In this article, I'll explain the specific factors that led us to execute a "Cloud Exit" and migrate BlueRobin to a dedicated on-premise Kubernetes cluster. We will cover:
+In this article, I'll explain the specific factors that led us to execute a "Cloud Exit" and migrate to a dedicated on-premise Kubernetes cluster. We will cover:
 
 1. **The Cost Analysis**: Comparing Azure/AWS bills vs. hardware amortization.
 2. **Performance Wins**: How local NVMe and 10GbE transformed our ingestion pipeline.
@@ -68,7 +68,7 @@ Running LLMs in the cloud is expensive. API costs stack up ($0.03/1k tokens does
 
 ## Factor 2: Storage and Networking
 
-BlueRobin is storage-heavy. We store original PDFs, OCR markdown, and vector indices.
+Our system is storage-heavy. We store original PDFs, OCR markdown, and vector indices.
 
 In the cloud, high-performance storage (SSD Managed Disks) is a monthly recurring cost. S3/Blob storage is cheap but slow for random access patterns often seen in vector search.
 
@@ -80,7 +80,7 @@ The result? Putting MinIO on a local 10GbE link made it perform almost as fast a
 
 ## Factor 3: Privacy and Sovereignty
 
-BlueRobin manages personal archives. While cloud providers have robust security, there is a fundamental peace of mind in air-gapping functionality or simply knowing that `rm -rf` on a drive means the data is truly gone.
+Our platform manages personal archives. While cloud providers have robust security, there is a fundamental peace of mind in air-gapping functionality or simply knowing that `rm -rf` on a drive means the data is truly gone.
 
 Implementation-wise, we use **Infisical** to manage secrets regardless of location, ensuring that our security posture remains identical to a cloud environment (encrypted at rest, encrypted in transit).
 

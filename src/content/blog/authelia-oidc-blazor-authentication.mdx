@@ -1,7 +1,7 @@
 ---
 title: "Secure Your Blazor App with Authelia OIDC"
 description: "Implement self-hosted Single Sign-On (SSO) for Blazor Server using Authelia and OpenID Connect (OIDC)."
-pubDate: 2025-04-10
+pubDate: 2025-04-19
 author: "Victor Robin"
 category: "security"
 difficulty: "intermediate"
@@ -62,8 +62,8 @@ First, tell Authelia about your application. It needs a `client_id` and a `clien
 identity_providers:
   oidc:
     clients:
-      - client_id: bluerobin-web
-        client_name: BlueRobin Web
+      - client_id: my-web-client
+        client_name: My Web App
         client_secret: '$pbkdf2-sha512$...' # Hashed secret
         public: false
         authorization_policy: two_factor # Force 2FA
@@ -97,13 +97,13 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(options => 
 {
-    options.Cookie.Name = "BlueRobin.Session";
+    options.Cookie.Name = "MyApp.Session";
     options.Cookie.SameSite = SameSiteMode.Lax;
 })
 .AddOpenIdConnect(options =>
 {
     options.Authority = "https://auth.bluerobin.local";
-    options.ClientId = "bluerobin-web";
+    options.ClientId = "my-web-client";
     options.ClientSecret = builder.Configuration["Auth:ClientSecret"];
     options.ResponseType = "code";
 

@@ -1,7 +1,7 @@
 ---
 title: "Entity Analysis and Modeling for Graph Databases"
 description: "How to extract entities (NER) from documents using LLMs and model them effectively in FalkorDB for knowledge graphs."
-pubDate: 2025-10-09
+pubDate: 2025-11-28
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -71,10 +71,10 @@ Return ONLY JSON format:
 {
   ""entities"": [
     { ""type"": ""Person"", ""name"": ""Alice Smith"", ""role"": ""Manager"" },
-    { ""type"": ""Organization"", ""name"": ""BlueRobin Inc"" }
+    { ""type"": ""Organization"", ""name"": ""Acme Corp"" }
   ],
   ""relationships"": [
-    { ""from"": ""Alice Smith"", ""to"": ""BlueRobin Inc"", ""type"": ""WORKS_FOR"" }
+    { ""from"": ""Alice Smith"", ""to"": ""Acme Corp"", ""type"": ""WORKS_FOR"" }
   ]
 }";
 ```
@@ -93,7 +93,7 @@ Use the `MERGE` keyword to ensure idempotency.
 
 ```cypher
 MERGE (p:Person {name: 'Alice Smith'})
-MERGE (o:Organization {name: 'BlueRobin Inc'})
+MERGE (o:Organization {name: 'Acme Corp'})
 MERGE (p)-[:WORKS_FOR]->(o)
 ```
 
@@ -116,10 +116,10 @@ public async Task IngestGraphAsync(GraphData data)
 
 Now that the data is in, we can perform powerful queries that RAG alone cannot handle.
 
-**Question**: "Find all contracts signed by anyone who works for BlueRobin."
+**Question**: "Find all contracts signed by anyone who works for Acme Corp."
 
 ```cypher
-MATCH (p:Person)-[:WORKS_FOR]->(o:Organization {name: 'BlueRobin'})
+MATCH (p:Person)-[:WORKS_FOR]->(o:Organization {name: 'Acme Corp'})
 MATCH (p)-[:SIGNED]->(c:Contract)
 RETURN c.title, p.name
 ```

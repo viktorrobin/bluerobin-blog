@@ -1,7 +1,7 @@
 ---
 title: "Real-Time Updates in Blazor Server with NATS"
 description: "Implement real-time UI updates in Blazor Server using NATS JetStream instead of SignalR, with progress indicators and state management."
-pubDate: 2025-06-19
+pubDate: 2025-07-22
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -75,7 +75,7 @@ The notification service provides an in-process event aggregation layer. Compone
 
 ```csharp
 // Application/Services/IDocumentProcessingNotifier.cs
-namespace Archives.Application.Services;
+namespace MyApp.Application.Services;
 
 public interface IDocumentProcessingNotifier
 {
@@ -127,7 +127,7 @@ The implementation iterates through handlers, catching exceptions to prevent one
 
 ```csharp
 // Web/Services/DocumentProcessingNotifier.cs
-namespace Archives.Web.Services;
+namespace MyApp.Web.Services;
 
 public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
 {
@@ -223,7 +223,7 @@ This hosted service bridges NATS events to the notification service. It uses an 
 
 ```csharp
 // Web/Services/NatsDocumentEventListener.cs
-namespace Archives.Web.Services;
+namespace MyApp.Web.Services;
 
 public sealed class NatsDocumentEventListener : BackgroundService
 {
@@ -404,16 +404,16 @@ Now the Blazor side. We create a base component that handles the subscription bo
 **Why cleanup matters**: Blazor Server components can be disposed at any time (navigation, circuit disconnect). Without unsubscribing, you get memory leaks and exceptions when handlers try to invoke `StateHasChanged` on disposed components.
 
 ```csharp
-// Components/BlueRobinComponentBase.cs
-namespace Archives.Web.Components;
+// Components/AppComponentBase.cs
+namespace MyApp.Web.Components;
 
-public abstract class BlueRobinComponentBase : ComponentBase, IDisposable
+public abstract class AppComponentBase : ComponentBase, IDisposable
 {
     [Inject]
     protected IDocumentProcessingNotifier Notifier { get; set; } = default!;
     
     [Inject]
-    protected ILogger<BlueRobinComponentBase> Logger { get; set; } = default!;
+    protected ILogger<AppComponentBase> Logger { get; set; } = default!;
     
     private readonly List<IDisposable> _subscriptions = new();
     private bool _disposed;
@@ -530,7 +530,7 @@ Now let's build a complete upload component that shows real-time progress. This 
 
 ```razor
 @* Components/Documents/DocumentUploader.razor *@
-@inherits BlueRobinComponentBase
+@inherits AppComponentBase
 
 <div class="space-y-4">
     @* Upload Area *@
@@ -583,7 +583,7 @@ Now let's build a complete upload component that shows real-time progress. This 
     private string DropZoneClass => new CssBuilder()
         .AddClass("border-2 border-dashed rounded-xl p-8 text-center transition-colors")
         .AddClass("border-gray-300 dark:border-gray-600", !isDragOver)
-        .AddClass("border-robin-blue bg-robin-blue/5", isDragOver)
+        .AddClass("border-primary-blue bg-primary-blue/5", isDragOver)
         .Build();
     
     private void HandleDragEnter() => isDragOver = true;
@@ -710,7 +710,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
 <div class="glass-card p-4">
     <div class="flex items-center gap-4">
         @* File Icon *@
-        <div class="w-10 h-10 rounded-lg bg-robin-blue/10 flex items-center justify-center">
+        <div class="w-10 h-10 rounded-lg bg-primary-blue/10 flex items-center justify-center">
             <FileIcon FileName="@Upload.FileName" />
         </div>
         
@@ -737,9 +737,9 @@ The upload card displays file info, status, and a progress bar. The key is the p
                     break;
                     
                 case UploadStatus.Uploading:
-                    <div class="animate-spin w-5 h-5 border-2 border-robin-blue 
+                    <div class="animate-spin w-5 h-5 border-2 border-primary-blue 
                                 border-t-transparent rounded-full" />
-                    <span class="text-robin-blue">Uploading</span>
+                    <span class="text-primary-blue">Uploading</span>
                     break;
                     
                 case UploadStatus.Processing:
@@ -789,7 +789,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
                 <span>@Upload.Progress%</span>
             </div>
             <div class="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                <div class="h-full bg-robin-blue transition-all duration-300 rounded-full"
+                <div class="h-full bg-primary-blue transition-all duration-300 rounded-full"
                      style="width: @(Upload.Progress)%" />
             </div>
             @if (!string.IsNullOrEmpty(Upload.ProgressDetail))
@@ -831,7 +831,7 @@ Finally, a document list that updates in real-time when new documents are added 
 
 ```razor
 @* Components/Documents/DocumentList.razor *@
-@inherits BlueRobinComponentBase
+@inherits AppComponentBase
 @implements IAsyncDisposable
 
 <div class="space-y-4">
@@ -888,7 +888,7 @@ Finally, a document list that updates in real-time when new documents are added 
     
     public async ValueTask DisposeAsync()
     {
-        // BlueRobinComponentBase.Dispose handles unsubscription
+        // AppComponentBase.Dispose handles unsubscription
         Dispose();
         await ValueTask.CompletedTask;
     }
@@ -907,7 +907,7 @@ We've built a complete real-time update system for Blazor Server that leverages 
 |-----------|---------|
 | **IDocumentProcessingNotifier** | In-process event aggregation |
 | **NatsDocumentEventListener** | Bridges NATS → notification service |
-| **BlueRobinComponentBase** | Subscription management + cleanup |
+| **AppComponentBase** | Subscription management + cleanup |
 | **DocumentUploader** | Real-time upload + processing progress |
 | **DocumentList** | Live list updates |
 

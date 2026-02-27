@@ -1,7 +1,7 @@
 ---
 title: "Mastering the Blazor Component Lifecycle"
 description: "Stop memory leaks and race conditions. Master Blazor Server's lifecycle events and build a robust BaseComponent."
-pubDate: 2025-05-01
+pubDate: 2025-05-15
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -28,7 +28,7 @@ In Blazor Server, a component is a C# class instance living on the server. If yo
 
 ### What We'll Build
 1.  **Lifecycle Map**: Understanding exactly when methods run.
-2.  **Base Component**: A reusable `BlueRobinComponentBase` that handles `IDisposable` and CancellationTokens automatically.
+2.  **Base Component**: A reusable `AppComponentBase` that handles `IDisposable` and CancellationTokens automatically.
 3.  **Safe Updates**: A helper for thread-safe UI updates.
 
 ## Architecture Overview
@@ -57,8 +57,8 @@ flowchart TB
 Don't implement `IDisposable` in every component. Create a base class.
 
 ```csharp
-// Infrastructure/BlueRobinComponentBase.cs
-public abstract class BlueRobinComponentBase : ComponentBase, IAsyncDisposable
+// Infrastructure/AppComponentBase.cs
+public abstract class AppComponentBase : ComponentBase, IAsyncDisposable
 {
     private readonly CancellationTokenSource _cts = new();
     
@@ -96,7 +96,7 @@ public abstract class BlueRobinComponentBase : ComponentBase, IAsyncDisposable
 Typical pattern for loading data without freezing the UI.
 
 ```razor
-@inherits BlueRobinComponentBase
+@inherits AppComponentBase
 
 @if (_isLoading)
 {
@@ -137,11 +137,11 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
     if (firstRender)
     {
         // Only safe to call JS here
-        await JS.InvokeVoidAsync("bluerobin.initializeChart", "myChart");
+        await JS.InvokeVoidAsync("myapp.initializeChart", "myChart");
     }
 }
 ```
 
 ## Conclusion
 
-By inheriting from `BlueRobinComponentBase`, you eliminate 90% of the boilerplate associated with cancellation tokens and disposal. You ensure that every component is a good citizen effectively managing its own memory and lifecycle.
+By inheriting from `AppComponentBase`, you eliminate 90% of the boilerplate associated with cancellation tokens and disposal. You ensure that every component is a good citizen effectively managing its own memory and lifecycle.

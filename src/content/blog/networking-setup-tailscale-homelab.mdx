@@ -27,10 +27,10 @@ In a distributed homelab environment, secure and convenient access to internal s
 
 ### What We'll Build
 
-In this guide, we will implement a secure networking layer for our BlueRobin cluster. You will learn how to:
+In this guide, we will implement a secure networking layer for our Kubernetes cluster. You will learn how to:
 
 1. **Deploy Tailscale Operator**: Manage Tailscale resources directly from Kubernetes.
-2. **Expose Services**: Securely expose the BlueRobin API and MinIO.
+2. **Expose Services**: Securely expose our API and MinIO.
 3. **Connect Locally**: Verify connectivity from a development machine.
 
 ## Architecture Overview
@@ -47,7 +47,7 @@ flowchart LR
     subgraph "Kubernetes Cluster"
         Operator[Tailscale Operator]
         
-        subgraph "BlueRobin Namespace"
+        subgraph "Application Namespace"
             API[Archives API]
             Sidecar[Tailscale Sidecar]
         end
@@ -92,23 +92,23 @@ helm upgrade --install tailscale-operator tailscale/tailscale-operator \
   Store your OAuth secrets securely! We use Infisical to inject these values during our GitOps pipeline runs.
 </Callout>
 
-### 2. Exposing the BlueRobin API
+### 2. Exposing the API
 
 Instead of a standard `NodePort` or `LoadBalancer`, we annotate a Service to tell the Tailscale operator to expose it.
 
-<CodeFile filename="archives-api-tailscale.yaml" language="yaml">
+<CodeFile filename="myapp-api-tailscale.yaml" language="yaml">
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: archives-api-ts
+  name: myapp-api-ts
   namespace: archives
   annotations:
     tailscale.com/expose: "true"
-    tailscale.com/hostname: "bluerobin-api"
+    tailscale.com/hostname: "myapp-api"
 spec:
   selector:
-    app: archives-api
+    app: myapp-api
   ports:
     - protocol: TCP
       port: 80
@@ -116,22 +116,22 @@ spec:
 ```
 </CodeFile>
 
-Applying this manifest triggers the operator to create a proxy pod that joins your Tailnet with the hostname `bluerobin-api`.
+Applying this manifest triggers the operator to create a proxy pod that joins your Tailnet with the hostname `myapp-api`.
 
 ### 3. Verifying Connectivity
 
 Once the proxy pod is running, you can check your Tailscale admin console or simply try to ping the hostname from your local machine.
 
 <ImplementationNote title="DNS Resolution">
-  Ensure your local machine is using Tailscale's MagicDNS. This allows you to resolve `bluerobin-api` directly without needing to remember the 100.x.y.z IP address.
+  Ensure your local machine is using Tailscale's MagicDNS. This allows you to resolve `myapp-api` directly without needing to remember the 100.x.y.z IP address.
 </ImplementationNote>
 
 ```bash
 # From your local machine on the tailnet
-curl http://bluerobin-api/health
+curl http://myapp-api/health
 # Output: Healthy
 ```
 
 ## Conclusion
 
-By leveraging Tailscale, we've secured our BlueRobin infrastructure without sacrificing accessibility. We can now run database migrations, inspect Qdrant vectors, or debug the API from a coffee shop as securely as if we were sitting next to the server rack. This setup is foundational for a robust homelab DevOps lifecycle.
+By leveraging Tailscale, we've secured our infrastructure without sacrificing accessibility. We can now run database migrations, inspect Qdrant vectors, or debug the API from a coffee shop as securely as if we were sitting next to the server rack. This setup is foundational for a robust homelab DevOps lifecycle.

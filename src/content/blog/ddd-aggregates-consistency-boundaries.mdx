@@ -1,7 +1,7 @@
 ---
 title: "Building Rich Domain Models with Aggregates"
 description: "Learn how to design aggregates that enforce business invariants, manage consistency boundaries, and encapsulate complex domain logic in your C# applications."
-pubDate: 2024-11-20
+pubDate: 2024-10-11
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -44,8 +44,8 @@ classDiagram
     direction TB
     class Document {
         <<Aggregate Root>>
-        +BlueRobinId Id
-        +BlueRobinId OwnerId
+        +CustomId Id
+        +CustomId OwnerId
         +DocumentTitle Title
         +ProcessingStatus Status
         +List~Tag~ Tags
@@ -57,7 +57,7 @@ classDiagram
 
     class DocumentChunk {
         <<Entity>>
-        +BlueRobinId Id
+        +CustomId Id
         +int Index
         +string Content
     }
@@ -84,10 +84,10 @@ classDiagram
 The "Root" is the gateway. No external object can hold a reference to a `DocumentChunk` directly; they must find it through the `Document`.
 
 ```csharp
-public sealed class Document : AggregateRoot<BlueRobinId>
+public sealed class Document : AggregateRoot<CustomId>
 {
     // 1. Private Setters: State changes only happen via methods
-    public BlueRobinId OwnerId { get; private set; }
+    public CustomId OwnerId { get; private set; }
     public DocumentTitle Title { get; private set; }
     public ProcessingStatus Status { get; private set; }
     public DocumentMetadata Metadata { get; private set; }
@@ -101,13 +101,13 @@ public sealed class Document : AggregateRoot<BlueRobinId>
 
     // 3. Static Factory (Naming Intent)
     public static Document Create(
-        BlueRobinId ownerId, 
+        CustomId ownerId, 
         DocumentTitle title, 
         DocumentMetadata metadata)
     {
         var doc = new Document
         {
-            Id = BlueRobinId.New(),
+            Id = CustomId.New(),
             OwnerId = ownerId,
             Title = title,
             Metadata = metadata,
@@ -150,7 +150,7 @@ public void AddChunk(int index, string content)
         throw new DomainException($"Chunk {index} already exists.");
     }
 
-    _chunks.Add(new DocumentChunk(BlueRobinId.New(), index, content));
+    _chunks.Add(new DocumentChunk(CustomId.New(), index, content));
 }
 ```
 
@@ -172,7 +172,7 @@ public class Document
 // ✅ Good: Reference by ID
 public class Document
 {
-    public BlueRobinId OwnerId { get; private set; }
+    public CustomId OwnerId { get; private set; }
 }
 ```
 

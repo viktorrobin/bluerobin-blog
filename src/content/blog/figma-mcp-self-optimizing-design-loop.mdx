@@ -1,7 +1,8 @@
 ---
 title: "Figma MCP: The Self-Optimizing Design Loop"
 description: "How we use Model Context Protocol to create a closed-loop design system where agents verify implementation against Figma specs automatically."
-pubDate: 2026-02-08
+pubDate: 2026-02-23
+draft: true
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -17,7 +18,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-The "handover gap" between Design and Engineering is where pixels go to die. Traditionally, this is solved by manual QA or visual regression testing. At BlueRobin, we're experimenting with a "Self-Optimizing Design Loop" using the Model Context Protocol (MCP).
+The "handover gap" between Design and Engineering is where pixels go to die. Traditionally, this is solved by manual QA or visual regression testing. In our project, we're experimenting with a "Self-Optimizing Design Loop" using the Model Context Protocol (MCP).
 
 **Why This Matters:**
 
@@ -41,7 +42,7 @@ The loop relies on MCP servers for both Figma and the Chrome browser.
 flowchart TD
     Figma[Figma MCP]
     Browser[Chrome MCP]
-    Agent[BlueRobin Agent]
+    Agent[Design Agent]
     FileSystem[VS Code / FileSystem]
 
     Agent -->|Fetch Design Spec| Figma
