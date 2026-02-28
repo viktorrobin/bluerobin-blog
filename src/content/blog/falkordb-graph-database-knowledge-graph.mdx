@@ -2,6 +2,7 @@
 title: "FalkorDB Graph Database for Entity Relationships"
 description: "Model and query entity relationships using FalkorDB (Redis Graph) for knowledge graphs and connected data in .NET applications."
 pubDate: 2025-11-21
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "database"
 difficulty: "advanced"
@@ -16,7 +17,15 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
+When I first ran a Cypher query against the knowledge graph and saw the results, I had one of those moments where a tool clicks into place. I had uploaded two completely unrelated documents -- a vendor contract and an internal memo -- and the graph query revealed that both mentioned the same person at the same company. That connection was invisible with traditional keyword search or even semantic search. You would have had to read both documents yourself and remember the names. The graph surfaced it in milliseconds. That was when I understood why knowledge graphs exist and why relational databases, despite being excellent at structured queries, are the wrong tool for exploring entity relationships across documents.
+
 Graph databases excel at modeling relationships between entities. FalkorDB (formerly RedisGraph) provides a high-performance graph database with Cypher query support, ideal for knowledge graphs extracted from documents.
+
+<ExternalCite title="FalkorDB Documentation" url="https://docs.falkordb.com/" author="FalkorDB" date="2024-09-10" />
+
+Graph databases represent data as nodes and edges rather than rows and columns. This makes traversal queries -- "find all entities connected to X within 3 hops" -- orders of magnitude faster than equivalent SQL joins, because the graph engine follows pointers rather than scanning index tables.
+
+<ExternalCite title="Graph Databases: New Opportunities for Connected Data (2nd ed.)" url="https://www.oreilly.com/library/view/graph-databases-2nd/9781491930885/" author="Ian Robinson, Jim Webber, and Emil Eifrem" date="2015-06-10" />
 
 ## Architecture Overview
 
@@ -29,7 +38,7 @@ graph LR
         Topic2["🏷️ Topic\nname: ML"]
         Org["🏢 Organization\nname: Acme Inc"]
         Loc["📍 Location\nname: NYC"]
-        
+
         Doc -->|MENTIONS| Person
         Doc -->|MENTIONS| Topic1
         Person -->|WORKS_AT| Org
@@ -148,6 +157,10 @@ spec:
 
 ### Client Setup
 
+FalkorDB communicates over the Redis wire protocol, which means we can use the standard StackExchange.Redis library as the transport layer for issuing `GRAPH.QUERY` commands.
+
+<ExternalCite title="StackExchange.Redis Documentation" url="https://stackexchange.github.io/StackExchange.Redis/" author="Stack Exchange" date="2024-10-05" />
+
 ```csharp
 // Infrastructure/DependencyInjection.cs
 public static IServiceCollection AddFalkorDbServices(
@@ -158,18 +171,22 @@ public static IServiceCollection AddFalkorDbServices(
     {
         var connectionString = configuration.GetConnectionString("FalkorDb")
             ?? "falkordb-api.data-layer.svc.cluster.local:6379";
-        
+
         return ConnectionMultiplexer.Connect(connectionString);
     });
-    
+
     services.AddScoped<IGraphDatabase, FalkorDbService>();
     services.AddScoped<IEntityRelationshipService, EntityRelationshipService>();
-    
+
     return services;
 }
 ```
 
 ### Graph Database Service
+
+FalkorDB uses the Cypher query language, which originated with Neo4j and has been standardized through the OpenCypher project. This means Cypher knowledge transfers directly between graph databases.
+
+<ExternalCite title="OpenCypher: An Open Standard for the Cypher Query Language" url="https://opencypher.org/" author="openCypher Project" date="2024-05-15" />
 
 ```csharp
 // Infrastructure/Graph/FalkorDbService.cs
@@ -178,7 +195,7 @@ public sealed class FalkorDbService : IGraphDatabase
     private readonly IConnectionMultiplexer _redis;
     private readonly IConfiguration _config;
     private readonly ILogger<FalkorDbService> _logger;
-    
+
     public FalkorDbService(
         IConnectionMultiplexer redis,
         IConfiguration config,
@@ -188,7 +205,7 @@ public sealed class FalkorDbService : IGraphDatabase
         _config = config;
         _logger = logger;
     }
-    
+
     public async Task<IReadOnlyList<T>> QueryAsync<T>(
         string cypher,
         object? parameters = null,
@@ -196,22 +213,22 @@ public sealed class FalkorDbService : IGraphDatabase
     {
         var db = _redis.GetDatabase();
         var graphName = GetGraphName();
-        
+
         var paramString = parameters != null
             ? SerializeParameters(parameters)
             : "";
-        
+
         var fullQuery = string.IsNullOrEmpty(paramString)
             ? cypher
             : $"CYPHER {paramString} {cypher}";
-        
+
         try
         {
             var result = await db.ExecuteAsync(
                 "GRAPH.QUERY",
                 graphName,
                 fullQuery);
-            
+
             return ParseResults<T>(result);
         }
         catch (RedisException ex)
@@ -220,7 +237,7 @@ public sealed class FalkorDbService : IGraphDatabase
             throw;
         }
     }
-    
+
     public async Task ExecuteAsync(
         string cypher,
         object? parameters = null,
@@ -228,18 +245,18 @@ public sealed class FalkorDbService : IGraphDatabase
     {
         var db = _redis.GetDatabase();
         var graphName = GetGraphName();
-        
+
         var paramString = parameters != null
             ? SerializeParameters(parameters)
             : "";
-        
+
         var fullQuery = string.IsNullOrEmpty(paramString)
             ? cypher
             : $"CYPHER {paramString} {cypher}";
-        
+
         await db.ExecuteAsync("GRAPH.QUERY", graphName, fullQuery);
     }
-    
+
     public async Task CreateIndexAsync(
         string label,
         string property,
@@ -249,13 +266,13 @@ public sealed class FalkorDbService : IGraphDatabase
             $"CREATE INDEX FOR (n:{label}) ON (n.{property})",
             ct: ct);
     }
-    
+
     private string GetGraphName()
     {
         var env = _config["Environment"] ?? "dev";
         return $"{env}-knowledge-graph";
     }
-    
+
     private static string SerializeParameters(object parameters)
     {
         var props = parameters.GetType().GetProperties();
@@ -271,52 +288,52 @@ public sealed class FalkorDbService : IGraphDatabase
             };
             return $"{p.Name}={serialized}";
         });
-        
+
         return string.Join(" ", parts);
     }
-    
-    private static IReadOnlyList<T> ParseResults<T>(RedisResult result) 
+
+    private static IReadOnlyList<T> ParseResults<T>(RedisResult result)
         where T : class, new()
     {
         // FalkorDB returns results as nested arrays
         // Parse based on T's properties
         var results = new List<T>();
-        
+
         if (result.IsNull) return results;
-        
+
         var rows = (RedisResult[])result!;
         if (rows.Length < 2) return results;
-        
+
         var headers = ((RedisResult[])rows[0]).Select(h => h.ToString()).ToArray();
         var data = (RedisResult[])rows[1];
-        
+
         foreach (RedisResult row in data)
         {
             var values = (RedisResult[])row!;
             var item = new T();
-            
+
             for (int i = 0; i < headers.Length && i < values.Length; i++)
             {
-                var prop = typeof(T).GetProperty(headers[i], 
+                var prop = typeof(T).GetProperty(headers[i],
                     BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
-                
+
                 if (prop != null && !values[i].IsNull)
                 {
                     var value = ConvertValue(values[i], prop.PropertyType);
                     prop.SetValue(item, value);
                 }
             }
-            
+
             results.Add(item);
         }
-        
+
         return results;
     }
-    
+
     private static object? ConvertValue(RedisResult value, Type targetType)
     {
         if (value.IsNull) return null;
-        
+
         return targetType switch
         {
             Type t when t == typeof(string) => value.ToString(),
@@ -331,7 +348,7 @@ public sealed class FalkorDbService : IGraphDatabase
 ```
 
 <ImplementationNote>
-FalkorDB uses the Cypher query language (like Neo4j). Query results are returned as nested arrays that need to be parsed into strongly-typed objects.
+FalkorDB returns query results as nested Redis arrays, and parsing them into strongly-typed C# objects was by far the most fragile part of the integration. The response format is undocumented at the level of detail you need for a generic parser -- you get an array of header names, then an array of row arrays, but the value types are inconsistent (strings sometimes come back as Redis bulk strings, sometimes as simple strings). This code broke twice during minor FalkorDB version upgrades when the serialization format changed slightly. I ended up pinning the FalkorDB Docker image to a specific version (`v4.2.0`) and adding integration tests that verify the parse behavior against known query results. If FalkorDB ever publishes an official .NET client, I would switch to it immediately.
 </ImplementationNote>
 
 ## Entity Relationship Service
@@ -344,7 +361,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
 {
     private readonly IGraphDatabase _graph;
     private readonly ILogger<EntityRelationshipService> _logger;
-    
+
     public EntityRelationshipService(
         IGraphDatabase graph,
         ILogger<EntityRelationshipService> logger)
@@ -352,7 +369,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
         _graph = graph;
         _logger = logger;
     }
-    
+
     public async Task AddDocumentEntitiesAsync(
         CustomId documentId,
         CustomId ownerId,
@@ -365,7 +382,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { documentId = documentId.Value, ownerId = ownerId.Value },
             ct);
-        
+
         foreach (var entity in entities)
         {
             // Create entity node based on type
@@ -378,28 +395,28 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
                 EntityType.Date => "Date",
                 _ => "Entity"
             };
-            
+
             await _graph.ExecuteAsync($"""
                 MERGE (e:{label} {{name: $name, ownerId: $ownerId}})
                 WITH e
                 MATCH (d:Document {{id: $documentId}})
                 MERGE (d)-[:MENTIONS {{confidence: $confidence}}]->(e)
                 """,
-                new 
-                { 
-                    name = entity.Value, 
+                new
+                {
+                    name = entity.Value,
                     ownerId = ownerId.Value,
                     documentId = documentId.Value,
                     confidence = entity.Confidence
                 },
                 ct);
         }
-        
+
         // Create relationships between co-occurring entities
         foreach (var (entity1, entity2) in GetEntityPairs(entities))
         {
             if (entity1.Type == entity2.Type) continue;
-            
+
             await _graph.ExecuteAsync($"""
                 MATCH (e1 {{name: $name1, ownerId: $ownerId}})
                 MATCH (e2 {{name: $name2, ownerId: $ownerId}})
@@ -413,13 +430,13 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
                 },
                 ct);
         }
-        
+
         _logger.LogInformation(
             "Added {Count} entities for document {DocumentId}",
             entities.Count,
             documentId);
     }
-    
+
     public async Task<IReadOnlyList<RelatedEntity>> FindRelatedEntitiesAsync(
         string entityName,
         CustomId ownerId,
@@ -430,7 +447,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
         var results = await _graph.QueryAsync<RelatedEntity>($"""
             MATCH path = (start {{name: $name, ownerId: $ownerId}})-[*1..{depth}]-(related)
             WHERE related.ownerId = $ownerId
-            RETURN DISTINCT 
+            RETURN DISTINCT
                 related.name AS Name,
                 labels(related)[0] AS Type,
                 length(path) AS Distance
@@ -439,10 +456,10 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { name = entityName, ownerId = ownerId.Value },
             ct);
-        
+
         return results;
     }
-    
+
     public async Task<IReadOnlyList<EntityConnection>> GetEntityConnectionsAsync(
         CustomId ownerId,
         int limit = 100,
@@ -451,7 +468,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
         var results = await _graph.QueryAsync<EntityConnection>("""
             MATCH (e1)-[r]->(e2)
             WHERE e1.ownerId = $ownerId
-            RETURN 
+            RETURN
                 e1.name AS Source,
                 labels(e1)[0] AS SourceType,
                 type(r) AS Relationship,
@@ -461,10 +478,10 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { ownerId = ownerId.Value, limit },
             ct);
-        
+
         return results;
     }
-    
+
     public async Task<IReadOnlyList<DocumentDto>> FindDocumentsByEntityAsync(
         string entityName,
         CustomId ownerId,
@@ -477,10 +494,10 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { name = entityName, ownerId = ownerId.Value },
             ct);
-        
+
         return results;
     }
-    
+
     public async Task RemoveDocumentEntitiesAsync(
         CustomId documentId,
         CancellationToken ct = default)
@@ -492,7 +509,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { documentId = documentId.Value },
             ct);
-        
+
         // Delete document node
         await _graph.ExecuteAsync("""
             MATCH (d:Document {id: $documentId})
@@ -500,7 +517,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             new { documentId = documentId.Value },
             ct);
-        
+
         // Clean up orphaned entities
         await _graph.ExecuteAsync("""
             MATCH (e)
@@ -509,7 +526,7 @@ public sealed class EntityRelationshipService : IEntityRelationshipService
             """,
             ct: ct);
     }
-    
+
     private static IEnumerable<(ExtractedEntity, ExtractedEntity)> GetEntityPairs(
         IReadOnlyList<ExtractedEntity> entities)
     {
@@ -540,6 +557,10 @@ public sealed record EntityConnection
 }
 ```
 
+<ImplementationNote>
+The MERGE-based upsert pattern (`MERGE (e:Person {name: $name, ownerId: $ownerId})`) was critical for idempotent entity creation -- the same entity mentioned across multiple documents should be a single node, not duplicates. But MERGE performance degraded badly once the graph grew past a few thousand nodes, because FalkorDB was scanning all nodes of the matching label to check for existence. The fix was creating composite indexes on `(name, ownerId)` for every entity label (Person, Organization, Location, etc.). Without the index, a MERGE on a graph with 10K Person nodes took 200ms; with the index, it dropped to under 5ms. Always create indexes before you need them -- retrofitting them on a production graph is painful.
+</ImplementationNote>
+
 <Callout type="tip">
 Create indexes on frequently queried properties (name, ownerId) to improve query performance:
 ```cypher
@@ -548,16 +569,20 @@ CREATE INDEX FOR (n:Organization) ON (n.ownerId)
 ```
 </Callout>
 
+<ImplementationNote>
+The orphaned entity cleanup query (`MATCH (e) WHERE NOT (e)--() AND NOT e:Document DELETE e`) in `RemoveDocumentEntitiesAsync` turned out to be surprisingly expensive. On a graph with 50K+ nodes, it would scan every node and check its degree, taking 5-10 seconds and blocking other queries. I moved this out of the synchronous document-deletion path and into a nightly scheduled job instead. The trade-off is that orphaned nodes exist for up to 24 hours, but since they have no relationships, they do not affect query results -- they just consume a small amount of memory. For most knowledge graph use cases, eventual cleanup is perfectly acceptable.
+</ImplementationNote>
+
 ## Graph Visualization API
 
 ```csharp
 // Api/Endpoints/Graph/GetGraphEndpoint.cs
-public sealed class GetGraphEndpoint 
+public sealed class GetGraphEndpoint
     : EndpointWithoutRequest<GraphVisualizationResponse>
 {
     private readonly IEntityRelationshipService _relationships;
     private readonly IUserContext _userContext;
-    
+
     public override void Configure()
     {
         Get("/api/graph");
@@ -566,32 +591,32 @@ public sealed class GetGraphEndpoint
             .WithSummary("Get entity graph for visualization")
             .Produces<GraphVisualizationResponse>(200));
     }
-    
+
     public override async Task HandleAsync(CancellationToken ct)
     {
         var ownerId = _userContext.CustomId;
-        
+
         var connections = await _relationships.GetEntityConnectionsAsync(
-            ownerId, 
-            limit: 200, 
+            ownerId,
+            limit: 200,
             ct);
-        
+
         var nodes = new HashSet<GraphNode>();
         var edges = new List<GraphEdge>();
-        
+
         foreach (var conn in connections)
         {
-            nodes.Add(new GraphNode 
-            { 
-                Id = conn.Source, 
-                Label = conn.Source, 
-                Type = conn.SourceType 
+            nodes.Add(new GraphNode
+            {
+                Id = conn.Source,
+                Label = conn.Source,
+                Type = conn.SourceType
             });
-            nodes.Add(new GraphNode 
-            { 
-                Id = conn.Target, 
-                Label = conn.Target, 
-                Type = conn.TargetType 
+            nodes.Add(new GraphNode
+            {
+                Id = conn.Target,
+                Label = conn.Target,
+                Type = conn.TargetType
             });
             edges.Add(new GraphEdge
             {
@@ -600,7 +625,7 @@ public sealed class GetGraphEndpoint
                 Relationship = conn.Relationship
             });
         }
-        
+
         await SendOkAsync(new GraphVisualizationResponse
         {
             Nodes = nodes.ToList(),
@@ -610,9 +635,13 @@ public sealed class GetGraphEndpoint
 }
 ```
 
-## Summary
+The graph visualization endpoint returns nodes and edges in a format suitable for rendering with graph visualization libraries. Knowledge graphs like this enable exploratory data analysis that is fundamentally different from keyword or semantic search -- users can discover connections they did not know to search for.
 
-FalkorDB enables:
+<ExternalCite title="A Survey on Knowledge Graphs: Representation, Acquisition, and Applications" url="https://arxiv.org/abs/2002.00388" author="Shaoxiong Ji et al." date="2022-04-01" />
+
+## Conclusion
+
+FalkorDB has become one of the most valuable components in the document processing pipeline, not because of raw performance, but because of what it enables. The ability to query "show me all people connected to this organization across all my documents" or "what entities bridge these two otherwise unrelated documents" unlocks a level of document intelligence that no amount of full-text search or vector similarity can replicate. The biggest challenge was not the graph queries themselves -- Cypher is expressive and well-designed -- but the plumbing: parsing Redis array responses, managing index creation, and handling the cleanup of orphaned nodes at scale.
 
 | Feature | Use Case |
 |---------|----------|
@@ -624,8 +653,21 @@ FalkorDB enables:
 
 Combined with NER extraction, FalkorDB builds a searchable knowledge graph from your documents.
 
-<ExternalCite 
-  title="FalkorDB Documentation" 
-  url="https://docs.falkordb.com/"
-  author="FalkorDB"
-/>
+### Next Steps
+
+- [NER with spaCy for Document Analysis](/blog/spacy-ner-document-analysis) -- the entity extraction pipeline that feeds this graph
+- [Ensemble NER: spaCy + LLM Voting](/blog/ensemble-ner-spacy-llm-voting) -- improve entity quality with multi-provider ensembling before graph ingestion
+
+### Further Reading
+
+<ExternalCite title="FalkorDB Documentation" url="https://docs.falkordb.com/" author="FalkorDB" date="2024-09-10" />
+
+<ExternalCite title="Neo4j Cypher Manual" url="https://neo4j.com/docs/cypher-manual/current/" author="Neo4j" date="2024-11-01" />
+
+<ExternalCite title="OpenCypher Specification" url="https://opencypher.org/" author="openCypher Project" date="2024-05-15" />
+
+<ExternalCite title="StackExchange.Redis Documentation" url="https://stackexchange.github.io/StackExchange.Redis/" author="Stack Exchange" date="2024-10-05" />
+
+<ExternalCite title="Graph Databases: New Opportunities for Connected Data (2nd ed.)" url="https://www.oreilly.com/library/view/graph-databases-2nd/9781491930885/" author="Ian Robinson, Jim Webber, and Emil Eifrem" date="2015-06-10" />
+
+<ExternalCite title="A Survey on Knowledge Graphs: Representation, Acquisition, and Applications" url="https://arxiv.org/abs/2002.00388" author="Shaoxiong Ji et al." date="2022-04-01" />

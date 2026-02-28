@@ -2,6 +2,7 @@
 title: "Building a Telegram Bot for System Notifications"
 description: "Going beyond simple webhooks. How to build a robust C# BackgroundService that listens to NATS events and manages a bidirectional Telegram Bot."
 pubDate: 2026-01-18
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -19,6 +20,8 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
+I wanted a way to get notified when documents finished processing without staring at the web dashboard. A Telegram bot was the perfect solution---it's always in my pocket, supports rich media, and the Bot API is surprisingly well-designed. What started as a simple notification channel evolved into a full conversational interface for managing my document archive.
+
 While n8n is great for simple flows, sometimes you need a robust, code-first approach for system notifications. We needed a bot that could not only send alerts but also respond to commands (like `/status` or `/restart`). For this, we leveraged .NET's `BackgroundService` and the NATS messaging system.
 
 **Why a Custom Bot?**
@@ -29,11 +32,11 @@ While n8n is great for simple flows, sometimes you need a robust, code-first app
 
 ### What We'll Build
 
-In this guide, we will implement `TelegramBotService`, a hosted service that connects to the Telegram Bot API and subscribes to `alerts.>` subjects on NATS.
+In this guide, we will implement `TelegramBotService`, a hosted service that connects to the Telegram Bot API and subscribes to `alerts.>` subjects on NATS. <ExternalCite title="Telegram Bot API Documentation" url="https://core.telegram.org/bots/api" author="Telegram" date="2024" />
 
 ## Architecture Overview
 
-The bot acts as a bridge between the event bus and the chat application.
+The bot acts as a bridge between the event bus and the chat application. <ExternalCite title="Designing Event-Driven Systems" url="https://www.oreilly.com/library/view/designing-event-driven-systems/9781492038252/" author="Ben Stopford" date="2018" />
 
 ```mermaid
 flowchart LR
@@ -62,7 +65,7 @@ flowchart LR
 
 ## Section 1: The Telegram Client
 
-We use the `Telegram.Bot` NuGet package. It facilitates typed access to the API.
+We use the `Telegram.Bot` NuGet package. It facilitates typed access to the API. <ExternalCite title="Telegram.Bot - .NET Client Library" url="https://github.com/TelegramBots/Telegram.Bot" author="TelegramBots" date="2024" />
 
 <Callout type="info" title="Secret Management">
     Never store your Bot Token in `appsettings.json`. We load it via environment variables provided by Infisical at runtime.
@@ -91,7 +94,7 @@ public class TelegramNotifier : ITelegramNotifier
 
 ## Section 2: Listening to NATS
 
-The core of the service is the `BackgroundService` that maintains a subscription to NATS. We use the `NATS.Client.Core` library for modern, async-first usage.
+The core of the service is the `BackgroundService` that maintains a subscription to NATS. We use the `NATS.Client.Core` library for modern, async-first usage. <ExternalCite title="BackgroundService in .NET" url="https://learn.microsoft.com/en-us/dotnet/core/extensions/hosted-services" author="Microsoft" date="2024" />
 
 ```csharp
 public class NatsAlertListener : BackgroundService
@@ -117,9 +120,17 @@ public class NatsAlertListener : BackgroundService
 
 ## Section 3: Handling Commands
 
-To make the bot interactive, we implement a polling loop (or webhook) to listen for user messages.
+To make the bot interactive, we implement a polling loop (or webhook) to listen for user messages. <ExternalCite title="Long Polling vs WebHooks" url="https://core.telegram.org/bots/api#getting-updates" author="Telegram" date="2024" />
+
+<ImplementationNote>
+The first version of the bot used webhooks, which required a publicly accessible URL. In a homelab behind a firewall, this meant setting up Cloudflare Tunnel just for the bot. I switched to long polling, which makes an outbound connection---simpler for a self-hosted setup and no inbound ports needed.
+</ImplementationNote>
 
 We implemented a simple `/health` command that checks the specialized health endpoints of our API and reports back to the chat. This allows us to check system status from our phones without logging into the VPN or opening a dashboard.
+
+<ImplementationNote>
+Telegram's rate limiting caught me off guard. The bot was sending processing updates for every stage of the document pipeline, which hit the 30 messages/second limit during batch uploads. I added a debounce mechanism that batches updates and sends a single summary message per document instead of one per processing stage.
+</ImplementationNote>
 
 ## Section 4: API-Based Data Access
 
@@ -189,6 +200,16 @@ serviceTokens[telegramBotToken] = new ServiceTokenConfig
 
 Combining .NET's robust hosting model with NATS and Telegram creates a powerful ChatOps experience. We receive critical information where we already are (in our chat app) and can take basic actions immediately.
 
+Looking back, the biggest lesson was keeping the bot thin. Early on I was tempted to put business logic directly in the command handlers---querying databases, triggering pipelines, managing state. That turned the bot into a second API with none of the safeguards. Once I moved everything behind the main API and made the bot a pure interface layer, things got dramatically simpler: easier to test, easier to secure, and easier to extend. If I were starting over, I would treat the bot as just another frontend from day one.
+
 **Next Steps**:
 - See how we [configure the infrastructure](/homelab-setup-truenas-server-guide) supporting this bot.
 - Learn about the [observability stack](/observability-lessons-why-we-dropped-signoz) that generates the alerts.
+- Explore the [document processing pipeline](/blog) that feeds events into NATS.
+- Read about [securing service-to-service communication](/blog) in a homelab environment.
+
+## Further Reading
+
+<ExternalCite title="Building Bots with Microsoft Bot Framework" url="https://learn.microsoft.com/en-us/azure/bot-service/bot-service-overview?view=azure-bot-service-4.0" author="Microsoft" date="2024" />
+
+<ExternalCite title="NATS.io Documentation - Core Concepts" url="https://docs.nats.io/nats-concepts/overview" author="Synadia" date="2024" />

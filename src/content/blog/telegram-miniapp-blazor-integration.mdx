@@ -2,6 +2,7 @@
 title: "Building a Telegram Mini App with Blazor Server"
 description: "A deep dive into creating a Telegram Mini App that enables passkey authentication, leveraging Blazor Server, WebAuthn, and Telegram's native theming system."
 pubDate: 2026-01-25
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -16,6 +17,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured the Telegram Mini App to work with Blazor Server, the biggest surprise was how many subtle issues lurk in the WebView environment. The Telegram SDK loaded fine, but cross-origin cookies refused to stick, the viewport kept resizing unpredictably, and my Blazor SignalR connection dropped every time the user minimized the app. It took several days of trial and error -- reading Telegram's sparse documentation, testing on multiple devices, and digging through WebView-specific quirks -- before the experience felt native. This article captures everything I learned so you can skip the pain.
 
 ## Introduction
 
@@ -166,6 +169,8 @@ Telegram Mini Apps run in a WebView with specific constraints. Using the main ap
 
 One of Telegram's best features is automatic theme adaptation. Users expect apps to match their Telegram color scheme. We achieve this with CSS custom properties:
 
+<ExternalCite title="Telegram Mini Apps - ThemeParams" url="https://core.telegram.org/bots/webapps#themeparams" author="Telegram" date="2024-12-20" />
+
 <CodeFile path="MyApp.Web/Styles/input.css" language="css">
 ```css
 /* Telegram Mini App Theme Variables */
@@ -232,14 +237,19 @@ One of Telegram's best features is automatic theme adaptation. Users expect apps
 
 The JavaScript in the layout reads `themeParams` from Telegram's SDK and applies them as CSS variables. This means our styles automatically adapt when users switch between light and dark mode.
 
+<ImplementationNote title="Viewport Height Flicker on iOS">
+I spent an entire afternoon debugging a visual glitch where the Mini App would flicker on iOS when the Telegram keyboard appeared. The root cause was using `100vh` instead of `100dvh` for the body height. On iOS, `100vh` includes the area behind the virtual keyboard, causing a layout shift every time the keyboard toggled. Switching to `100dvh` (dynamic viewport height) and adding `maximum-scale=1.0, user-scalable=no` to the viewport meta tag fixed the flicker completely. This is easy to miss because it only reproduces on physical iOS devices, not in Chrome DevTools.
+</ImplementationNote>
+
 ## Authenticating via initData
 
 Telegram Mini Apps receive `initData` - a URL-encoded string containing user information **signed by Telegram**. We must validate this signature server-side before trusting the user identity.
 
-<ExternalCite 
+<ExternalCite
     title="Telegram Bot API - Validating Mini App Data"
     url="https://core.telegram.org/bots/webapps#validating-data-received-via-the-mini-app"
-    source="Telegram Documentation"
+    author="Telegram"
+    date="2024-12-20"
 />
 
 <CodeFile path="MyApp.Api/Endpoints/Auth/TelegramMiniAppLoginEndpoint.cs" language="csharp">
@@ -318,6 +328,8 @@ The 5-minute expiry window is crucial. Without it, an attacker could replay capt
 ## The Passkey Setup Page
 
 With authentication handled, we can build the passkey registration UI. This page uses the special layout and communicates with our WebAuthn endpoints:
+
+<ExternalCite title="Web Authentication: An API for accessing Public Key Credentials (Level 3)" url="https://www.w3.org/TR/webauthn-3/" author="W3C" date="2024-04-08" />
 
 <CodeFile path="MyApp.Web/Components/Pages/Telegram/SetupPasskey.razor" language="razor">
 ```razor
@@ -451,6 +463,8 @@ With authentication handled, we can build the passkey registration UI. This page
 
 The Telegram bot configures its menu button to open our Mini App:
 
+<ExternalCite title="Telegram Bot API - MenuButtonWebApp" url="https://core.telegram.org/bots/api#menubuttonwebapp" author="Telegram" date="2024-12-20" />
+
 ```csharp
 private async Task SetupBotMenuAsync(CancellationToken cancellationToken)
 {
@@ -467,6 +481,8 @@ private async Task SetupBotMenuAsync(CancellationToken cancellationToken)
 Users can also access it via the `/passkey` command or inline buttons after linking their account.
 
 ## Deployment Considerations
+
+<ExternalCite title="SameSite cookies explained" url="https://web.dev/articles/samesite-cookies-explained" author="Rowan Merewood" date="2024-02-29" />
 
 <ImplementationNote title="Cross-Origin Cookies">
 The Mini App runs on a different origin than Telegram. To share the session cookie for WebAuthn:
@@ -498,9 +514,15 @@ The Mini App URL must be HTTPS and publicly accessible. In our staging environme
 
 The entire flow happens without leaving Telegram, taking only seconds.
 
+<ImplementationNote title="initData Validation Race Condition">
+I hit a subtle race condition during testing: occasionally, the `initData` validation would fail with "Data expired" even though the user had just opened the Mini App. The issue was that Blazor Server's `OnAfterRenderAsync` sometimes fired several seconds after the WebView loaded, and the 5-minute window had nearly elapsed by then on slow network connections. My fix was to call `getTelegramInitData` immediately in JavaScript on page load and cache it, rather than waiting for the Blazor circuit to establish. This reduced the effective delay from ~4 seconds to under 100ms.
+</ImplementationNote>
+
 ## Conclusion
 
 Telegram Mini Apps provide a powerful way to extend your bot's capabilities with rich web interfaces. Combined with Blazor Server's component model and WebAuthn's passwordless authentication, we created a seamless passkey registration experience.
+
+Building this integration pushed my understanding of cross-origin constraints, mobile WebView behavior, and the limits of Blazor Server in non-traditional hosting contexts. The most valuable lesson was that testing exclusively in desktop browsers is insufficient -- the real bugs only appeared on physical devices inside the actual Telegram app. If I were starting over, I would set up on-device testing from day one.
 
 **Key Takeaways:**
 
@@ -508,6 +530,21 @@ Telegram Mini Apps provide a powerful way to extend your bot's capabilities with
 - Apply theme variables for native look and feel
 - Provide haptic feedback for mobile interactions
 - Scope session cookies carefully for cross-origin scenarios
-- Keep the Mini App focused—it's a modal, not a full app
+- Keep the Mini App focused -- it's a modal, not a full app
+
+## Next Steps
+
+- **Add passkey management UI** so users can view and revoke registered passkeys from within the Mini App
+- **Implement conditional UI** that detects whether the user's device supports WebAuthn before showing the passkey flow
+- **Explore Telegram Cloud Storage API** for persisting Mini App state across sessions without requiring server-side storage
+- **Add analytics events** to track conversion rate from Mini App open to successful passkey registration
+
+## Further Reading
+
+- [Telegram Mini Apps Documentation](https://core.telegram.org/bots/webapps) -- Official reference for the Telegram WebApp SDK and lifecycle
+- [WebAuthn Guide by MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API) -- Comprehensive guide to the Web Authentication API
+- [Passkeys.dev](https://passkeys.dev/) -- Cross-platform passkey implementation guidance and device support matrix
+- [Blazor Server Hosting Model](https://learn.microsoft.com/en-us/aspnet/core/blazor/hosting-models) -- Microsoft documentation on Blazor Server's SignalR-based architecture
+- [SameSite Cookies Explained](https://web.dev/articles/samesite-cookies-explained) -- Essential reading for cross-origin cookie scenarios
 
 **Next in Series:** [NATS-Powered Notification System](/articles/telegram-nats-notification-flow) - How we built the real-time notification pipeline from document processing to Telegram.

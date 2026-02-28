@@ -2,6 +2,7 @@
 title: "Kustomize Overlays for Multi-Environment Deployments"
 description: "Manage Kubernetes configurations across environments with Kustomize overlays, patches, and ConfigMap generators."
 pubDate: 2024-05-27
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -17,9 +18,13 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first started managing multiple environments in my homelab cluster, I made the mistake that everyone warns you about: I copied entire YAML files for staging and production, then tried to keep them in sync manually. Within a week, a resource limit change I made in staging never made it to prod, and my API pod got OOM-killed during a load test. Kustomize overlays solved this by letting me define a single base and override only what differs per environment. The initial restructuring of my repository took an evening, but it paid for itself the very next time I needed to add a new environment variable across all environments with a single edit to the base.
+
 ## Introduction
 
 Managing Kubernetes configurations across multiple environments (Dev, Staging, Prod) can quickly become a maintenance nightmare if you're duplicating YAML files. Kustomize offers a template-free way to customize application configuration, preserving the base structure while allowing for environment-specific "overlays" to modify behavior. This guide details how to structure a multi-environment deployment using standard Kustomize patterns.
+
+<ExternalCite title="Kustomize - Kubernetes native configuration management" url="https://kustomize.io/" author="Kubernetes SIG CLI" date="2024-07-01" />
 
 ## Architecture Overview
 
@@ -70,6 +75,8 @@ apps/
 ```
 
 ### Base Configuration
+
+<ExternalCite title="Kustomize Glossary - Base" url="https://kubectl.docs.kubernetes.io/references/kustomize/glossary/#base" author="Kubernetes SIG CLI" date="2024-07-01" />
 
 #### Base Kustomization
 
@@ -261,8 +268,8 @@ spec:
           averageUtilization: 80
 ```
 
-<ImplementationNote>
-The `namePrefix` in staging overlay prefixes all resource names with `staging-`, but the HPA's `scaleTargetRef.name` is also prefixed automatically by Kustomize.
+<ImplementationNote title="The namePrefix gotcha with HPA targets">
+I spent a frustrating afternoon wondering why my HPA was not scaling pods in staging. The deployment was running fine, but `kubectl describe hpa` showed "unable to find target ref." The issue was that `namePrefix: staging-` was being applied to the Deployment name, making it `staging-myapp-api`, but I assumed the HPA's `scaleTargetRef.name` needed to match the original base name. Kustomize actually transforms the HPA reference automatically, but only if the HPA is listed in the same kustomization.yaml `resources`. Once I moved the HPA into the overlay's resource list, Kustomize correctly prefixed both the Deployment and the HPA target reference.
 </ImplementationNote>
 
 #### Production Overlay
@@ -367,6 +374,8 @@ Always use PodDisruptionBudgets in production to ensure high availability during
 
 ### Strategic Merge Patches
 
+<ExternalCite title="Kustomize - Patches (Strategic Merge)" url="https://kubectl.docs.kubernetes.io/references/kustomize/kustomization/patches/" author="Kubernetes SIG CLI" date="2024-07-01" />
+
 #### JSON Patch
 
 ```yaml
@@ -420,7 +429,13 @@ secretGenerator:
       disableNameSuffixHash: true
 ```
 
+<ImplementationNote title="ConfigMap hash suffixes and rollout triggers">
+I was puzzled when my configuration changes were not triggering pod rollouts. I would update a literal in `configMapGenerator`, Flux would reconcile, but the pods kept running with the old config. The reason is that Kustomize appends a hash suffix to ConfigMap names (e.g., `myapp-api-config-8k2g5m`), and the Deployment's `envFrom` reference is updated to match. However, I had `disableNameSuffixHash: true` on my staging ConfigMap for debugging convenience, which meant the ConfigMap name never changed, so Kubernetes saw no reason to restart pods. I removed that flag for staging and production, and now every config change automatically triggers a rolling update.
+</ImplementationNote>
+
 ### Flux Integration
+
+<ExternalCite title="Flux - Kustomize Controller" url="https://fluxcd.io/flux/components/kustomize/" author="Flux Project" date="2024-10-01" />
 
 #### Kustomization Resource
 

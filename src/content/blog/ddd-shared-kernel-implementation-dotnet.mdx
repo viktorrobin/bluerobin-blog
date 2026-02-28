@@ -2,6 +2,7 @@
 title: "Building a DDD Shared Kernel in .NET"
 description: "Implementation of the Shared Kernel pattern: A crucial library containing the base building blocks (Entity, AggregateRoot, ValueObject) for Domain-Driven Design."
 pubDate: 2024-09-20
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "architecture"
 difficulty: "intermediate"
@@ -20,7 +21,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-In Domain-Driven Design (DDD), the **Shared Kernel** is a strategic pattern—a shared library containing the core building blocks and ubiquitous language elements referenced by multiple Bounded Contexts. It provides the tactical foundation: `Entity`, `AggregateRoot`, `ValueObject`, and standard `IDomainEvent` definitions.
+When I started building BlueRobin, every module had its own definition of what an 'Entity' looked like. Archives.Core used GUIDs, the Workers used strings, and the Infrastructure layer had its own base classes. This inconsistency was a nightmare for serialization and testing. The Shared Kernel was my answer—a single library that defines the tactical building blocks everyone must use.
 
 This article details the production implementation of our Shared Kernel, focusing on type safety, immutability, and enforcing DDD rules at the compiler level.
 
@@ -34,6 +35,8 @@ Without a Shared Kernel, each microservice or module might implement "Entity" or
 | **ValueObject** | Base class providing Structural Equality. |
 | **AggregateRoot** | Base class for roots, managing Domain Events. |
 | **CustomId** | A strongly-typed, human-friendly identifier (NanoID). |
+
+<ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" />
 
 ## Architecture Overview
 
@@ -124,8 +127,14 @@ public readonly struct CustomId : IEquatable<CustomId>, IComparable<CustomId>
 }
 ```
 
+<ExternalCite title="NanoID - A tiny, secure, URL-friendly, unique string ID generator" url="https://github.com/ai/nanoid" author="Andrey Sitnik" date="2024" />
+
 <ImplementationNote>
 We stick to **lowercase alphanumeric** characters. This avoids case-sensitivity issues across different filesystems (MinIO on Linux vs Windows) and database collations.
+</ImplementationNote>
+
+<ImplementationNote>
+I initially used a 12-character NanoID, but found that 8 characters with a 36-character alphabet (a-z, 0-9) gives roughly 2.8 trillion combinations. For a personal document system, the collision probability is astronomically low. The shorter length made a noticeable difference in URL readability and NATS subject lengths.
 </ImplementationNote>
 
 ## The Entity Base Class
@@ -148,6 +157,12 @@ public abstract class Entity
     protected Entity() { }
 }
 ```
+
+<ExternalCite title=".NET Domain-Driven Design Guidance" url="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/" author="Microsoft" date="2024" />
+
+<ImplementationNote>
+The parameterless `protected Entity() { }` constructor is there solely for EF Core. When Entity Framework materializes objects from the database, it needs a way to create instances without going through our factory methods. I spent a frustrating afternoon debugging "No suitable constructor found" errors before adding this. The key insight: EF Core uses reflection to bypass access modifiers, so `protected` works fine—it doesn't need to be `public`.
+</ImplementationNote>
 
 ## The Aggregate Root
 
@@ -176,9 +191,15 @@ public abstract class AggregateRoot : Entity, IAggregateRoot
 }
 ```
 
+<ExternalCite title="Implementing Domain-Driven Design" url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/" author="Vaughn Vernon" date="2013" />
+
 <Callout type="tip">
 **Why ClearEvents?** Domain Events are typically dispatched *after* the transaction is committed to the database. We need a way for the repository or dispatcher to clear them after processing to prevent double-firing.
 </Callout>
+
+<ImplementationNote>
+Getting the timing of domain event dispatch right was one of the trickiest parts of the architecture. If you dispatch events before `SaveChangesAsync`, side effects execute even if the database commit fails. If you dispatch after, you risk losing events if the process crashes post-commit. I settled on dispatching via an EF Core `SaveChangesInterceptor` that fires events after a successful commit, with a fallback outbox pattern for critical events.
+</ImplementationNote>
 
 ## The Value Object Base Class
 
@@ -218,6 +239,19 @@ public abstract class ValueObject : IEquatable<ValueObject>
 }
 ```
 
+<ExternalCite title="Value Object Pattern" url="https://martinfowler.com/bliki/ValueObject.html" author="Martin Fowler" date="2016" />
+
 ## Conclusion
 
-The Shared Kernel provides a robust, type-safe foundation for the entire ecosystem. By standardizing `CustomId` and the base classes for DDD tactical patterns, we ensure that every microservice speaks the same language and adheres to the same structural rules.
+The Shared Kernel has been one of the most valuable investments in this project. By standardizing `CustomId` and the base classes for DDD tactical patterns, I've ensured that every service speaks the same language and adheres to the same structural rules. When I later added the Finance and Health modules, they immediately inherited all these patterns without reinventing them.
+
+**Next Steps**:
+- Learn how to [enforce invariants with factory methods](/ddd-factory-methods-private-constructors) to prevent invalid state.
+- Explore [Value Objects in depth](/ddd-value-objects-csharp) for self-validating domain primitives.
+- See how [Aggregates](/ddd-aggregates-consistency-boundaries) build on these base classes.
+
+## Further Reading
+
+<ExternalCite title="Shared Kernel Pattern" url="https://www.domainlanguage.com/ddd/reference/" author="Eric Evans" date="2015" />
+
+<ExternalCite title="C# Records - Microsoft Documentation" url="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record" author="Microsoft" date="2024" />

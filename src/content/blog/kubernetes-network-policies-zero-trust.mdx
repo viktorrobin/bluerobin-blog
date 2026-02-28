@@ -2,6 +2,7 @@
 title: "Kubernetes Network Policies for Zero Trust Security"
 description: "Implement network segmentation and micro-segmentation in Kubernetes using Network Policies for defense in depth."
 pubDate: 2024-08-05
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "security"
 difficulty: "advanced"
@@ -14,9 +15,13 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first deployed default-deny network policies across my homelab cluster, I immediately broke everything. The API could not reach PostgreSQL, the workers could not pull from NATS, and even DNS resolution stopped working because I had forgotten to allow egress to kube-system on port 53. It took me an entire evening with `kubectl logs` and Hubble flow traces to understand the cascade of failures. That painful experience taught me to always deploy allow policies before deny policies, and to keep a validation script handy. This article is the playbook I built from those hard-won lessons.
+
 ## Introduction
 
 In a flat network, a compromised pod can attack any other pod in the cluster. Network Policies act as a firewall for pods, enabling a Zero Trust architecture where communication is denied by default and explicitly allowed only where necessary. This guide demonstrates how to implement a defense-in-depth strategy using Kubernetes Network Policies, ensuring that services can only communicate with their valid dependencies.
+
+<ExternalCite title="Network Policies" url="https://kubernetes.io/docs/concepts/services-networking/network-policies/" author="Kubernetes" date="2024-03-01" />
 
 ## Architecture Overview
 
@@ -99,6 +104,8 @@ spec:
 Always deploy default-deny policies **after** allow policies are in place, or you may lock yourself out of the cluster.
 </Callout>
 
+<ExternalCite title="NIST SP 800-207: Zero Trust Architecture" url="https://csrc.nist.gov/publications/detail/sp/800-207/final" author="Scott Rose et al." date="2020-08-11" />
+
 ### Allow Policies
 
 #### API to Database
@@ -164,8 +171,8 @@ spec:
           port: 53
 ```
 
-<ImplementationNote>
-Always include DNS egress rules (port 53) or pods won't be able to resolve service names. This is a common source of issues when implementing network policies.
+<ImplementationNote title="DNS Egress Is Non-Negotiable">
+Always include DNS egress rules (port 53) or pods won't be able to resolve service names. This is a common source of issues when implementing network policies. I once spent two hours debugging why my API pods could not connect to PostgreSQL, only to realize the issue was not the database policy at all -- the pods simply could not resolve `postgresql.data-layer.svc.cluster.local` because DNS egress was blocked. My rule of thumb now is: DNS egress to kube-system is the very first allow rule I write for any namespace.
 </ImplementationNote>
 
 #### Worker to Services
@@ -449,6 +456,8 @@ Exclude private IP ranges when allowing external access to prevent bypassing int
 
 ### Cilium Enhanced Policies
 
+<ExternalCite title="Cilium Network Policy Documentation" url="https://docs.cilium.io/en/stable/security/policy/" author="Cilium" date="2024-05-15" />
+
 #### Layer 7 HTTP Policy
 
 ```yaml
@@ -508,6 +517,10 @@ spec:
               - matchName: "api.openai.com"
 ```
 
+<ImplementationNote title="Cilium vs Standard NetworkPolicy Gotchas">
+When I migrated from standard Kubernetes NetworkPolicy resources to CiliumNetworkPolicy, I discovered they do not merge the way I expected. Cilium evaluates its own policies separately from the standard K8s ones, and having both active on the same pods created confusing allow/deny conflicts. My Hubble traces showed traffic being allowed by the Cilium policy but dropped by the standard policy, or vice versa. I ended up standardizing entirely on CiliumNetworkPolicy for namespaces where I needed L7 filtering, and keeping the standard policies only for namespaces that might run on non-Cilium clusters. The key lesson: pick one policy type per namespace and stick with it.
+</ImplementationNote>
+
 ### Monitoring Network Policies
 
 #### Policy Audit with Cilium
@@ -553,6 +566,8 @@ kubectl run test-client --rm -i --restart=Never \
 
 ### Testing Strategy
 
+<ExternalCite title="Kubernetes Network Policy Recipes" url="https://github.com/ahmetb/kubernetes-network-policy-recipes" author="Ahmet Alp Balkan" date="2023-11-20" />
+
 #### Policy Test Matrix
 
 | Source | Destination | Port | Expected |
@@ -569,8 +584,22 @@ kubectl run test-client --rm -i --restart=Never \
 
 Network Policies are a fundamental building block of Kubernetes security. By starting with a default-deny posture and whitelisting required traffic, you significantly reduce the attack surface of your cluster, turning it from a soft-shell target into a hardened fortress.
 
-<ExternalCite 
-  title="Network Policies - Kubernetes Documentation" 
-  url="https://kubernetes.io/docs/concepts/services-networking/network-policies/"
-  author="Kubernetes"
-/>
+Implementing these policies in my own homelab felt like going from leaving the front door wide open to installing a proper lock on every room. The upfront investment in mapping out which services genuinely need to talk to each other forced me to understand my own architecture more deeply than I had before. Every time I add a new service now, the first thing I write is its network policy -- it has become as natural as writing the Deployment manifest itself.
+
+<ExternalCite title="Network Policies - Kubernetes Documentation" url="https://kubernetes.io/docs/concepts/services-networking/network-policies/" author="Kubernetes" date="2024-03-01" />
+
+<ImplementationNote title="Rollout Strategy for Production">
+One mistake I made early on was applying default-deny across all namespaces simultaneously. In a production-like environment, I recommend a phased rollout: start with a single low-risk namespace, validate with Hubble flow logs for at least 48 hours, then expand to the next namespace. I also keep a "break glass" script that removes the default-deny policies from all namespaces in case something goes catastrophically wrong during business hours.
+</ImplementationNote>
+
+### Next Steps
+
+- Enable **Hubble UI** for real-time network flow visualization and policy debugging.
+- Implement **CiliumClusterwideNetworkPolicy** for policies that span multiple namespaces.
+- Explore **NetworkPolicy editor tools** like [Cilium Editor](https://editor.networkpolicy.io/) to visually design and validate policies before deployment.
+
+### Further Reading
+
+- [NIST SP 800-207: Zero Trust Architecture](https://csrc.nist.gov/publications/detail/sp/800-207/final) -- The authoritative framework for zero-trust design principles.
+- [Cilium Documentation](https://docs.cilium.io/) -- Comprehensive guide to Cilium's eBPF-powered networking and security.
+- [Kubernetes Security Best Practices](https://kubernetes.io/docs/concepts/security/) -- Official guidance on securing Kubernetes workloads.

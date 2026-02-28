@@ -2,6 +2,7 @@
 title: "BlueRobin System Architecture Overview"
 description: "A comprehensive look at the BlueRobin document management system architecture—covering the technology stack, data flows, and design decisions."
 pubDate: 2024-07-21
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "system"
 difficulty: "intermediate"
@@ -15,7 +16,7 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
-BlueRobin is a personal document management system designed to organize, search, and analyze documents using AI. This architecture overview explains the system's design, component interactions, and key technical decisions.
+BlueRobin is a personal document management system I built to organize, search, and analyze documents using AI. What started as a weekend experiment to index my tax documents has evolved into a full distributed system running on a homelab Kubernetes cluster. This architecture overview explains the system's design, how the components interact, and the key decisions I made along the way—including the ones I got wrong the first time.
 
 ## System Overview
 
@@ -78,7 +79,14 @@ BlueRobin follows a **modular monolith** architecture deployed on Kubernetes, wi
 
 ### 1. Domain-Driven Design (DDD)
 
-The codebase follows DDD tactical patterns:
+The codebase follows DDD tactical patterns. I chose DDD early on because document management has surprisingly deep domain complexity—processing states, ownership rules, content extraction pipelines—and I needed a way to keep that complexity from leaking into every layer of the application.
+
+<ExternalCite
+  title="Domain-Driven Design: Tackling Complexity in the Heart of Software"
+  url="https://www.domainlanguage.com/ddd/"
+  author="Eric Evans"
+  date="2003"
+/>
 
 - **Entities** with identity (e.g., `Document`, `Archive`)
 - **Value Objects** for immutable data (e.g., `FingerPrint`, `BlueRobinId`)
@@ -109,7 +117,14 @@ public class Document : AggregateRoot
 
 ### 2. Clean Architecture
 
-The solution follows Clean Architecture with clear layer boundaries:
+The solution follows Clean Architecture with clear layer boundaries. I was heavily influenced by Robert C. Martin's dependency rule—the idea that source code dependencies should point inward, toward higher-level policies. In practice, this meant that my `Archives.Core` project has zero NuGet dependencies beyond the .NET runtime itself.
+
+<ExternalCite
+  title="The Clean Architecture"
+  url="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html"
+  author="Robert C. Martin"
+  date="2012"
+/>
 
 ```
 src/
@@ -123,7 +138,20 @@ src/
 
 **Dependency Rule**: Dependencies flow inward. Core has no external dependencies; Infrastructure implements Core interfaces.
 
+<ImplementationNote>
+When I first designed the solution structure, I made the mistake of putting DTOs and mapping logic directly in the Core project. This created a subtle coupling—Core started depending on serialization attributes. It took a refactoring pass to move all DTOs to the Application layer, enforcing a strict boundary where Core only contains domain concepts, interfaces, and events.
+</ImplementationNote>
+
 ### 3. Event-Driven Architecture
+
+I chose NATS JetStream for message brokering after evaluating RabbitMQ and Kafka. For a homelab context, NATS was the clear winner—it's a single binary with built-in persistence, key-value store, and object store. No Zookeeper, no Erlang runtime, no cluster coordination overhead.
+
+<ExternalCite
+  title="NATS JetStream"
+  url="https://docs.nats.io/nats-concepts/jetstream"
+  author="Synadia Communications"
+  date="2024"
+/>
 
 Services communicate through NATS JetStream events:
 
@@ -152,7 +180,7 @@ BlueRobin uses a dual-identity model:
 | **BlueRobinId** | 8-char alphanumeric | Internal references, MinIO buckets, database keys |
 | **ExternalId** | UUID | OIDC `sub` claim from Authelia |
 
-The `UserSyncService` maps external identities to internal BlueRobinIds on first login.
+The `UserSyncService` maps external identities to internal BlueRobinIds on first login. This dual-identity approach took me a while to land on—my first attempt used the OIDC `sub` claim directly as the primary key, which worked until I realized that 36-character UUIDs made terrible MinIO bucket names and NATS subject tokens.
 
 ```csharp
 // UserSyncService resolves external ID to internal BlueRobinId
@@ -176,7 +204,14 @@ public async Task<ApplicationUser> SyncUserAsync(ClaimsPrincipal principal)
 
 ### Storage Architecture
 
-Each user has a dedicated MinIO bucket with server-side encryption:
+Each user has a dedicated MinIO bucket with server-side encryption. I chose MinIO because it's S3-compatible—meaning if I ever move to AWS, the storage layer is a config change, not a rewrite.
+
+<ExternalCite
+  title="MinIO Object Storage for Kubernetes"
+  url="https://min.io/docs/minio/kubernetes/upstream/"
+  author="MinIO, Inc."
+  date="2024"
+/>
 
 ```
 Bucket: staging-abc12345  (environment-userId)
@@ -192,13 +227,24 @@ Bucket: staging-abc12345  (environment-userId)
 
 **Encryption**: MinIO uses SSE-KMS with per-user keys managed by KES. Key names follow the pattern `key-{blueRobinId}`.
 
+<ImplementationNote>
+Getting MinIO KES encryption working was one of the most frustrating configurations in the entire project. The KES server requires a client certificate for authentication, and the certificate fingerprint must match exactly what's registered in the KES config. I went through at least five rounds of regenerating certificates before realizing the issue was the fingerprint format—KES expects SHA-256 without colons, while OpenSSL outputs with colons by default.
+</ImplementationNote>
+
 <Callout type="warning">
 Workers must use the bucket name from event payloads (`evt.Bucket`), never construct bucket names manually. This ensures correct environment and user targeting.
 </Callout>
 
 ### Database Design
 
-PostgreSQL stores structured data with per-environment databases:
+PostgreSQL stores structured data with per-environment databases. I run PostgreSQL via the CloudNativePG operator, which handles automatic failover, backups, and replication—it's one of the best Kubernetes operators I've worked with.
+
+<ExternalCite
+  title="CloudNativePG Documentation"
+  url="https://cloudnative-pg.io/documentation/"
+  author="CloudNativePG Contributors"
+  date="2024"
+/>
 
 | Environment | Database | Purpose |
 |-------------|----------|---------|
@@ -242,7 +288,14 @@ CREATE TABLE canonical_entities (
 
 ### Search Architecture
 
-BlueRobin implements hybrid search combining:
+BlueRobin implements hybrid search combining multiple retrieval strategies. Getting search quality right was an iterative process—I started with pure vector search, but quickly hit cases where exact keyword matches (like document IDs or specific legal terms) were missed entirely by semantic search.
+
+<ExternalCite
+  title="Qdrant Vector Database Documentation"
+  url="https://qdrant.tech/documentation/"
+  author="Qdrant"
+  date="2024"
+/>
 
 1. **Full-text search** — PostgreSQL `tsvector` for keyword matching
 2. **Semantic search** — Qdrant vector similarity for meaning-based matching
@@ -276,7 +329,14 @@ public async Task<SearchResults> SearchAsync(
 
 ### AI Processing Pipeline
 
-Documents flow through a multi-stage AI pipeline:
+Documents flow through a multi-stage AI pipeline. I originally built this as a single monolithic worker that did OCR, analysis, and embedding in sequence. That design crumbled the moment I wanted to add NER or change the embedding model—every change required redeploying the entire pipeline. Breaking it into independent workers connected via NATS events was one of the best architectural decisions I made.
+
+<ExternalCite
+  title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+  url="https://arxiv.org/abs/2005.11401"
+  author="Lewis et al."
+  date="2020"
+/>
 
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
@@ -307,6 +367,10 @@ Documents flow through a multi-stage AI pipeline:
 | Chunking | Custom | Markdown | Semantic chunks (500 tokens) |
 | NER | spaCy | Markdown | Named entities |
 | Embedding | Ollama (nomic-embed-text) | Text | 768-dim vectors |
+
+<ImplementationNote>
+The embedding stage was a major source of latency early on. Running eight different embedding models (nomic, mxbai, arctic, minilm, bge, granite, bge-m3, paraphrase) sequentially per document took over 60 seconds. I restructured this into a fan-out pattern—NATS publishes one event per model, and each embedding request processes in parallel. The total time dropped from 60 seconds to under 3 seconds. This was one of those "obvious in hindsight" optimizations that took real production pain to discover.
+</ImplementationNote>
 
 ### Real-Time Updates
 
@@ -398,7 +462,14 @@ BlueRobin uses a shared infrastructure model:
 
 ### GitOps with Flux
 
-All infrastructure is managed through GitOps:
+All infrastructure is managed through GitOps. This was a deliberate choice—I wanted a single source of truth for every piece of configuration running in the cluster. If a node dies tomorrow, I can rebuild the entire environment from the Git repository.
+
+<ExternalCite
+  title="Flux - the GitOps family of projects"
+  url="https://fluxcd.io/flux/"
+  author="CNCF Flux Project"
+  date="2024"
+/>
 
 ```
 bluerobin-infra/
@@ -504,7 +575,14 @@ All heavy operations are processed asynchronously:
 
 ### Metrics and Tracing
 
-BlueRobin uses SigNoz for unified observability:
+BlueRobin uses SigNoz for unified observability. Distributed tracing was essential for debugging the multi-stage document pipeline—without trace correlation, figuring out why a document got stuck at the embedding stage was like searching for a needle in a haystack.
+
+<ExternalCite
+  title="OpenTelemetry .NET Documentation"
+  url="https://opentelemetry.io/docs/languages/net/"
+  author="OpenTelemetry Authors"
+  date="2024"
+/>
 
 - **Metrics**: Prometheus format, collected by OTEL collector
 - **Traces**: Distributed tracing with correlation IDs
@@ -533,7 +611,7 @@ builder.Services.AddHealthChecks()
 
 ## Summary
 
-BlueRobin's architecture balances simplicity with scalability:
+Building BlueRobin has been a journey through nearly every layer of modern software engineering—from DDD aggregates to Kubernetes network policies, from vector databases to Blazor real-time updates. The architecture balances simplicity with scalability:
 
 - **Modular monolith** allows rapid development while maintaining boundaries
 - **Event-driven** processing enables loose coupling and horizontal scaling
@@ -541,10 +619,27 @@ BlueRobin's architecture balances simplicity with scalability:
 - **DDD patterns** ensure a rich, maintainable domain model
 - **GitOps** provides reproducible, auditable deployments
 
-This architecture supports a single-user/family scale while providing a foundation for future growth.
+This architecture supports a single-user/family scale while providing a foundation for future growth. Every piece described in this overview has a dedicated deep-dive article in this blog—follow the series links to explore each component in detail.
 
-<ExternalCite 
-  title="Clean Architecture" 
-  url="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html" 
-  author="Robert C. Martin"
+## Further Reading
+
+<ExternalCite
+  title="Implementing Domain-Driven Design"
+  url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/"
+  author="Vaughn Vernon"
+  date="2013"
+/>
+
+<ExternalCite
+  title="Kubernetes Documentation"
+  url="https://kubernetes.io/docs/home/"
+  author="The Kubernetes Authors"
+  date="2024"
+/>
+
+<ExternalCite
+  title="FastEndpoints Documentation"
+  url="https://fast-endpoints.com/"
+  author="Dhananjay Kumar"
+  date="2024"
 />

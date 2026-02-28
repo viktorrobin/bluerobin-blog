@@ -2,6 +2,7 @@
 title: "Creating Technical Diagrams with Mermaid"
 description: "A comprehensive guide to using Mermaid.js for creating architecture diagrams, flowcharts, sequence diagrams, and more in your technical documentation."
 pubDate: 2025-05-31
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "frontend"
 difficulty: "beginner"
@@ -12,10 +13,16 @@ toc: true
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first tried to include architecture diagrams in our technical documentation, I was exporting PNGs from draw.io and committing them alongside our Markdown files. Every time the architecture changed, I had to re-open the diagram tool, make the edit, re-export, and hope I did not forget to update the image reference. It was tedious and error-prone. Discovering Mermaid was a turning point -- suddenly my diagrams lived in the same file as my prose, version-controlled and diffable. This article is the guide I wish I had when I started.
 
 ## Introduction
 
 Technical documentation often requires visual representations of complex systems. While tools like Lucidchart or draw.io work well, they create binary files that are difficult to version control and review. **Mermaid.js** solves this problem by rendering diagrams from plain text definitions.
+
+<ExternalCite title="Mermaid.js Official Documentation" url="https://mermaid.js.org/intro/" author="Mermaid Contributors" date="2025" />
 
 **Why Mermaid?**
 
@@ -51,6 +58,8 @@ graph LR
 ## Flowcharts
 
 Flowcharts are the most versatile diagram type. They support various node shapes, connection styles, and subgraphs.
+
+<ExternalCite title="Mermaid Flowchart Syntax" url="https://mermaid.js.org/syntax/flowchart.html" author="Mermaid Contributors" date="2025" />
 
 ### Basic Flowchart
 
@@ -91,6 +100,10 @@ graph LR
 
 For complex systems, subgraphs help group related components:
 
+<ImplementationNote title="Subgraph Nesting Limits">
+When I first tried nesting three levels of subgraphs to represent our full infrastructure, the rendering engine choked and produced overlapping labels. I discovered through trial and error that Mermaid handles two levels of nesting reliably, but beyond that, the auto-layout algorithm struggles. My workaround was to split overly deep hierarchies into two separate diagrams -- one for the high-level view and another for the detailed subsystem -- rather than fighting the layout engine.
+</ImplementationNote>
+
 ```mermaid
 graph TB
     subgraph Frontend ["🖥️ Frontend Layer"]
@@ -120,6 +133,8 @@ graph TB
 ## Sequence Diagrams
 
 Sequence diagrams are perfect for showing interactions between services over time.
+
+<ExternalCite title="Mermaid Sequence Diagram Syntax" url="https://mermaid.js.org/syntax/sequenceDiagram.html" author="Mermaid Contributors" date="2025" />
 
 ### Basic Sequence
 
@@ -238,6 +253,8 @@ stateDiagram-v2
 
 For database schema documentation:
 
+<ExternalCite title="Mermaid Entity Relationship Diagram Syntax" url="https://mermaid.js.org/syntax/entityRelationshipDiagram.html" author="Mermaid Contributors" date="2025" />
+
 ```mermaid
 erDiagram
     USER ||--o{ ARCHIVE : owns
@@ -270,6 +287,8 @@ erDiagram
 ## Architecture Diagrams (C4 Style)
 
 For high-level system views, combine subgraphs with styling:
+
+<ExternalCite title="The C4 Model for Visualising Software Architecture" url="https://c4model.com/" author="Simon Brown" date="2024" />
 
 ```mermaid
 graph TB
@@ -356,6 +375,10 @@ pie showData
 
 You can add custom styling to nodes:
 
+<ImplementationNote title="Dark Mode Theming Challenges">
+I ran into a frustrating issue when our blog added dark mode support. Mermaid diagrams that looked great on a white background became unreadable on dark backgrounds because the default text color was near-black. I had to create a custom Mermaid theme configuration that detected the current color scheme and swapped the palette accordingly. The key insight was to use CSS custom properties for the Mermaid theme variables, so the diagrams automatically adapt when the user toggles between light and dark mode.
+</ImplementationNote>
+
 ```mermaid
 graph LR
     A[Critical]:::critical --> B[Warning]:::warning --> C[Info]:::info
@@ -366,6 +389,8 @@ graph LR
 ```
 
 ## Common Patterns
+
+<ExternalCite title="Include Diagrams in Your Markdown Files with Mermaid" url="https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/" author="GitHub Blog" date="2022" />
 
 ### Request-Response Flow
 
@@ -416,6 +441,8 @@ graph LR
 
 Mermaid transforms technical documentation from static text into living visual documentation. By embedding diagrams directly in your MDX files, you ensure they stay in sync with the code and can be reviewed alongside it.
 
+Adopting Mermaid across our documentation has been one of those quiet productivity wins that compounds over time. I no longer dread updating architecture diagrams because the friction is nearly zero -- edit the text, commit, and the CI pipeline renders it. The real payoff came during code reviews, where reviewers could see diagram changes in the same diff as the code changes they described. If you are still exporting PNGs from a GUI tool, I genuinely encourage you to give Mermaid a week-long trial. You will not go back.
+
 **Key Takeaways:**
 
 - Use **flowcharts** for architecture and process flows
@@ -428,8 +455,16 @@ Mermaid transforms technical documentation from static text into living visual d
 Our technical blog automatically renders Mermaid diagrams with a consistent theme that matches the site's design system. Diagrams support both light and dark modes and include a fullscreen view button for detailed examination.
 </ImplementationNote>
 
-## Further Reading
+### Next Steps
 
-- [Mermaid Official Documentation](https://mermaid.js.org/)
-- [Mermaid Live Editor](https://mermaid.live/) - Test diagrams in real-time
-- [GitHub Mermaid Support](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/) - Mermaid in GitHub markdown
+- Explore **Mermaid CLI** (`mmdc`) to pre-render diagrams as SVGs during build time for environments that do not support client-side rendering.
+- Integrate Mermaid diagram **linting** into your CI pipeline to catch syntax errors before they reach production.
+- Experiment with **Gitgraph diagrams** to visualize branching strategies directly in your contributing guides.
+- Build a **shared diagram component library** with pre-styled subgraph templates for your team's common architecture patterns.
+
+### Further Reading
+
+- [Mermaid Official Documentation](https://mermaid.js.org/) - Complete syntax reference and examples
+- [Mermaid Live Editor](https://mermaid.live/) - Test and iterate on diagrams in real-time
+- [GitHub Mermaid Support](https://github.blog/2022-02-14-include-diagrams-markdown-files-mermaid/) - Mermaid rendering in GitHub markdown
+- [The C4 Model](https://c4model.com/) - A structured approach to diagramming software architecture

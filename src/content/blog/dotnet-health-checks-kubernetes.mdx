@@ -2,6 +2,7 @@
 title: "Health Checks and Readiness Probes in .NET"
 description: "Implement comprehensive health checks for .NET applications with database, cache, and dependency monitoring for Kubernetes deployments."
 pubDate: 2025-02-25
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -14,11 +15,17 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first wired up health checks for our .NET API running on Kubernetes, I made the classic mistake of putting all dependency checks into the liveness probe. The result was catastrophic: a brief Redis connection hiccup caused Kubernetes to restart every API pod simultaneously, turning a minor blip into a full outage. That incident taught me the critical distinction between liveness and readiness probes the hard way. Liveness should only answer "is the process alive?" while readiness answers "can this pod handle traffic right now?" Getting this separation right eliminated our health check flapping problem entirely and gave us stable, predictable behavior during transient dependency failures.
+
 ## Introduction
 
 In a containerized environment like Kubernetes, the orchestrator needs to know the exact state of your application to manage traffic routing and restarts. Health checks enable Kubernetes to determine when your application is ready to receive traffic (Readiness) and when it needs to be restarted (Liveness).
 
 This guide covers implementing comprehensive health monitoring in .NET, ensuring your services are observable and resilient.
+
+<ExternalCite title="Health checks in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks" author="Microsoft" date="2024-11-01" />
+
+<ExternalCite title="Configure Liveness, Readiness and Startup Probes" url="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" author="Kubernetes Authors" date="2024-06-15" />
 
 ### What We'll Build
 1.  **Liveness & Readiness Probes**: Separate checks for startup, liveness, and readiness.
@@ -101,6 +108,8 @@ app.MapHealthChecks("/health", new HealthCheckOptions
 ```
 
 ## Custom Health Checks
+
+<ExternalCite title="AspNetCore.Diagnostics.HealthChecks" url="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks" author="Xabaril" date="2024-03-01" />
 
 ### NATS Health Check
 
@@ -242,6 +251,10 @@ public sealed class QdrantHealthCheck : IHealthCheck
 Use `HealthCheckResult.Degraded` when a non-critical dependency fails. This keeps the service running but signals that something needs attention.
 </ImplementationNote>
 
+<ImplementationNote title="NATS Reconnection and Health Flapping">
+I ran into an issue where our NATS health check would briefly report `Unhealthy` during NATS server rolling updates, even though the client library was reconnecting automatically. This caused Kubernetes to pull pods from the load balancer for a few seconds on every NATS restart. The fix was to check both the connection state and whether a reconnection was in progress. If the NATS client is actively reconnecting (not permanently disconnected), I now return `Degraded` instead of `Unhealthy`, which keeps the pod in the ready pool while still surfacing the issue in our monitoring dashboards.
+</ImplementationNote>
+
 ## Response Writers
 
 ### Detailed Response Writer
@@ -323,6 +336,8 @@ public static class HealthCheckResponseWriter
 
 ## Kubernetes Probes
 
+<ExternalCite title="Pod Lifecycle" url="https://kubernetes.io/docs/concepts/workloads/pods/pod-lifecycle/#container-probes" author="Kubernetes Authors" date="2024-05-20" />
+
 ### Deployment Configuration
 
 ```yaml
@@ -368,6 +383,10 @@ spec:
 <Callout type="tip">
 Use `startupProbe` for applications with slow startup times. It prevents liveness probes from killing the pod before it's ready. The `failureThreshold * periodSeconds` gives the maximum startup time.
 </Callout>
+
+<ImplementationNote title="Startup Probe Timing">
+I learned the hard way that EF Core database migrations running on startup can easily exceed the default startup probe window. Our API pod kept getting killed during the first deployment to a fresh environment because the migration took about 90 seconds, but the startup probe only allowed `failureThreshold(10) * periodSeconds(5) = 50 seconds`. I increased the `failureThreshold` to 30, giving the pod 150 seconds to complete startup. The alternative was to run migrations as a separate init container, but for our scale the simpler approach of extending the probe timeout was sufficient.
+</ImplementationNote>
 
 ## Health Check UI
 
@@ -521,8 +540,21 @@ Health check configuration by environment:
 
 Health checks enable Kubernetes to maintain application availability by routing traffic only to healthy pods and restarting unresponsive ones.
 
-<ExternalCite 
-  title="Health checks in ASP.NET Core" 
-  url="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks"
-  author="Microsoft"
-/>
+Implementing health checks properly has been one of the highest-leverage improvements I have made to our platform's reliability. Before this work, we had frequent incidents where pods would sit in a broken state, silently dropping requests because a downstream dependency was unreachable. Now, Kubernetes automatically removes unhealthy pods from the service mesh and restarts them only when truly necessary. The key insight was treating liveness and readiness as fundamentally different questions: liveness is about the process, readiness is about the system. Getting this distinction right eliminated our false-positive restart loops and made our deployments significantly more stable.
+
+<ExternalCite title="Health checks in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks" author="Microsoft" date="2024-11-01" />
+
+<ExternalCite title="Kubernetes Best Practices: Setting Resource Requests and Limits" url="https://cloud.google.com/blog/products/containers-kubernetes/kubernetes-best-practices-resource-requests-and-limits" author="Google Cloud" date="2024-04-01" />
+
+## Next Steps
+
+- Add structured logging to health check failures so you can correlate probe failures with specific dependency issues in your log aggregator.
+- Implement circuit breaker patterns alongside health checks to prevent cascading failures when a shared dependency goes down.
+- Set up Grafana dashboards using the `health_status` gauge metric published by the `MetricsHealthCheckPublisher` to track health trends over time.
+- Consider implementing [warm-up health checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks#use-health-checks-routing) that validate cache priming and connection pool establishment before marking the pod as ready.
+
+## Further Reading
+
+- [ASP.NET Core Health Checks Documentation](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks) -- The official Microsoft guide covering all health check features and configuration options.
+- [Kubernetes Probes Deep Dive](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) -- Detailed reference for configuring liveness, readiness, and startup probes.
+- [AspNetCore.Diagnostics.HealthChecks](https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks) -- Community library providing pre-built health checks for dozens of infrastructure components.

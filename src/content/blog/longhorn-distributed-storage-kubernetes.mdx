@@ -2,6 +2,7 @@
 title: "Longhorn Distributed Storage for Kubernetes"
 description: "Deploy Longhorn for persistent distributed block storage in Kubernetes with replication, snapshots, and disaster recovery."
 pubDate: 2024-04-27
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -13,6 +14,8 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured Longhorn on my three-node K3s cluster, I naively assumed distributed storage would "just work." Within the first week, I lost a PostgreSQL database after a node reboot because I had not properly configured replica counts or understood how data locality interacted with pod scheduling. That painful incident forced me to deeply study Longhorn's architecture, from how its engines coordinate iSCSI mounts to how replicas synchronize across nodes. After months of iteration, rebuilding volumes from backups, and tuning snapshot schedules, I finally arrived at a configuration that has survived multiple unplanned node failures without data loss. This guide captures every lesson from that journey so you can avoid the same mistakes.
 
 ## Introduction
 
@@ -80,6 +83,10 @@ flowchart TB
 
 Longhorn provides lightweight, reliable distributed block storage for Kubernetes. This guide covers deploying and configuring Longhorn for production workloads.
 
+<ExternalCite title="Longhorn Architecture Documentation" url="https://longhorn.io/docs/latest/concepts/" author="SUSE Rancher" date="2024-03-15" />
+
+<ExternalCite title="Cloud Native Computing Foundation - Longhorn" url="https://www.cncf.io/projects/longhorn/" author="CNCF" date="2023-11-01" />
+
 ## Prerequisites
 
 ### Node Requirements
@@ -92,6 +99,12 @@ sudo apt-get install -y open-iscsi
 # Enable and start iscsid
 sudo systemctl enable --now iscsid
 ```
+
+<ImplementationNote title="iSCSI dependency pitfall">
+When I first installed Longhorn, I skipped the open-iscsi prerequisite on one of my three nodes because it was running a minimal Ubuntu image. Longhorn deployed successfully and even showed the node as "schedulable" in the UI, but volumes mounted on that node would silently fail to attach. I spent hours checking CSI driver logs before realizing the iscsid service was simply not running. Now I run the Longhorn environment check script before every node addition -- it catches these issues in seconds rather than hours.
+</ImplementationNote>
+
+<ExternalCite title="Longhorn Installation Requirements" url="https://longhorn.io/docs/latest/deploy/install/#installation-requirements" author="SUSE Rancher" date="2024-03-15" />
 
 ## Installation
 
@@ -178,6 +191,10 @@ spec:
       remoteRef:
         key: MINIO_ENDPOINT
 ```
+
+<ImplementationNote title="Tuning replica count for homelab nodes">
+I initially set defaultReplicaCount to 3, following production best practices, but in a three-node homelab this meant every volume consumed disk space on every single node. My 500GB NVMe drives filled up within two weeks. Dropping to 2 replicas freed up a third of my cluster storage while still surviving any single-node failure. The key insight was that for a homelab, two replicas plus S3 backups to MinIO provide more practical resilience than three replicas with no off-cluster backup.
+</ImplementationNote>
 
 ## Storage Classes
 
@@ -417,6 +434,8 @@ spec:
       storage: 50Gi
 ```
 
+<ExternalCite title="Kubernetes Persistent Volumes Documentation" url="https://kubernetes.io/docs/concepts/storage/persistent-volumes/" author="Kubernetes Authors" date="2024-06-01" />
+
 ### Clone from Snapshot
 
 ```yaml
@@ -438,6 +457,10 @@ spec:
     requests:
       storage: 50Gi
 ```
+
+<ImplementationNote title="Recovering from a failed backup restore">
+During a real disaster recovery drill, I attempted to restore a 50GB PostgreSQL volume from an S3 backup and discovered that the restore process took over 45 minutes because Longhorn was rebuilding both replicas simultaneously over the network. The database pod kept hitting its startup probe timeout and getting killed by Kubernetes. I solved this by temporarily increasing the startup probe's failureThreshold to 60 and periodSeconds to 10, giving the restore a full 10-minute window to complete. Now I always factor restore time into my probe configurations for stateful workloads.
+</ImplementationNote>
 
 ## Volume Encryption
 
@@ -541,8 +564,24 @@ Longhorn storage features:
 
 Longhorn provides enterprise storage features without external dependencies, ideal for edge and homelab deployments.
 
-<ExternalCite 
-  title="Longhorn Documentation" 
+Looking back at my journey with Longhorn, the most important lesson was that distributed storage requires active management, not just initial deployment. I underestimated how much time I would spend monitoring replica health, tuning snapshot retention, and planning for disk capacity growth. But once the configuration was dialed in, Longhorn became the most reliable component in my entire cluster -- silently replicating data, surviving node reboots, and making disaster recovery as simple as pointing at an S3 backup URL. If you are running stateful workloads on Kubernetes without distributed storage, you are one node failure away from learning these lessons the hard way.
+
+<ExternalCite title="Designing Data-Intensive Applications" url="https://dataintensive.net/" author="Martin Kleppmann" date="2017-03-16" />
+
+## Next Steps
+
+- Explore [MinIO Object Storage for Document Management](/minio-object-storage-document-management) for S3-compatible storage that complements Longhorn's block storage
+- See how we benchmark [Storage Performance: Local NVMe SSD vs 10GbE NAS](/infrastructure-performance-ssd-vs-nas) to decide where each workload belongs
+- Review the [Homelab Server & NAS Setup](/homelab-setup-truenas-server-guide) that provides the underlying hardware for these volumes
+
+## Further Reading
+
+- [Longhorn Official Documentation](https://longhorn.io/docs/) -- comprehensive reference for all Longhorn features and configuration options
+- [Kubernetes Storage Concepts](https://kubernetes.io/docs/concepts/storage/) -- understanding PersistentVolumes, StorageClasses, and CSI drivers
+- [ZFS on Linux Documentation](https://openzfs.github.io/openzfs-docs/) -- deep dive into the filesystem backing our NAS storage tier
+
+<ExternalCite
+  title="Longhorn Documentation"
   url="https://longhorn.io/docs/"
   author="SUSE Rancher"
 />

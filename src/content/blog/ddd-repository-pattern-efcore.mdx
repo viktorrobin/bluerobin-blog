@@ -2,6 +2,7 @@
 title: "The Repository Pattern: Abstracting Persistence"
 description: "Decouple your domain logic from EF Core. Learn how to implement Repositories for DDD Aggregates with strict interface separation."
 pubDate: 2024-10-25
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -10,7 +11,7 @@ readTime: "18 min"
 toc: true
 series:
   name: "Domain-Driven Design in Practice"
-  part: 6
+  order: 6
 ---
 
 import Callout from '@components/Callout.astro';
@@ -19,11 +20,13 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
+The Repository pattern is one of the most debated patterns in the .NET ecosystem—some argue it's unnecessary with EF Core since the DbContext already acts as a Unit of Work. I was in that camp initially. But after watching BlueRobin's application services grow fat with LINQ queries and EF Core–specific syntax, I changed my mind. Extracting repositories gave me testable domain logic and the flexibility to swap persistence strategies for specific aggregates without rewriting business rules. <ExternalCite title="Repository" url="https://martinfowler.com/eaaCatalog/repository.html" author="Martin Fowler" date="2002" />
+
 Your Domain Layer should not know what a `DbContext` is. It shouldn't know about SQL connections or transaction scopes.
 
 **Why the Repository Pattern?**
 -   **Abstraction**: Swapping EF Core for Dapper (or CosmosDB) becomes possible without changing domain logic.
--   **Testing**: Mocking `IDocumentRepository` is trivial; mocking `DbSet<T>` is a nightmare.
+-   **Testing**: Mocking `IDocumentRepository` is trivial; mocking `DbSet<T>` is a nightmare. <ExternalCite title="Implementing Domain-Driven Design" url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/" author="Vaughn Vernon" date="2013" />
 -   **Intent**: `repo.GetOverdueLoans()` is clearer than `ctx.Loans.Where(l => l.DueDate < Now && !l.Returned)`.
 
 ### What We'll Build
@@ -32,6 +35,8 @@ Your Domain Layer should not know what a `DbContext` is. It shouldn't know about
 3.  **EF Core Implementation**: The infrastructure layer adapter.
 
 ## Architecture Overview
+
+<ExternalCite title="Clean Architecture in .NET" url="https://learn.microsoft.com/en-us/dotnet/architecture/modern-web-apps-azure/common-web-application-architectures" author="Microsoft" date="2024" />
 
 ```mermaid
 flowchart TB
@@ -63,7 +68,7 @@ flowchart TB
 
 ### The Contract
 
-In DDD, the repository interface lives in the **Domain/Core** layer.
+In DDD, the repository interface lives in the **Domain/Core** layer. <ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" />
 
 ```csharp
 // Core/Interfaces/IRepository.cs
@@ -85,7 +90,7 @@ public interface IDocumentRepository : IRepository<Document, CustomId>
 
 ### The Implementation
 
-The implementation lives in the **Infrastructure** layer. This is where EF Core resides.
+The implementation lives in the **Infrastructure** layer. This is where EF Core resides. <ExternalCite title="EF Core Documentation" url="https://learn.microsoft.com/en-us/ef/core/" author="Microsoft" date="2024" />
 
 ```csharp
 // Infrastructure/Repositories/DocumentRepository.cs
@@ -121,12 +126,20 @@ public sealed class DocumentRepository : IDocumentRepository
 ```
 
 <ImplementationNote>
+    A common mistake I made early on was exposing `IQueryable<T>` from the repository interface. This leaked EF Core's query capabilities into the domain layer, and callers started writing complex LINQ chains that only worked with a SQL database. I removed `IQueryable` entirely and replaced it with purpose-built query methods like `GetByOwnerAsync` and `GetPendingProcessingAsync`. This forced me to think about what the domain actually needs rather than providing a general-purpose query surface.
+</ImplementationNote>
+
+<ImplementationNote>
     Notice `AddAsync` is synchronous (returns `Task.CompletedTask`). In EF Core, `Add` just tracks the entity in memory. The actual database call happens when `UnitOfWork.SaveChangesAsync()` is called later.
+</ImplementationNote>
+
+<ImplementationNote>
+    When I introduced the generic `IRepository<TEntity, TId>` interface, I initially included `UpdateAsync` and `DeleteAsync` methods. Over time, I removed `UpdateAsync` entirely—EF Core's change tracking handles updates automatically when you modify a tracked entity. This simplified the interface and more accurately represented the repository as a "collection-like" abstraction: you add items, remove items, and find items, but you don't explicitly "update" them.
 </ImplementationNote>
 
 ## Section 3: The Unit of Work
 
-We don't call `SaveChangesAsync` in the repository. We use a Unit of Work to commit changes atomically.
+We don't call `SaveChangesAsync` in the repository. We use a Unit of Work to commit changes atomically. <ExternalCite title="Unit of Work" url="https://martinfowler.com/eaaCatalog/unitOfWork.html" author="Martin Fowler" date="2002" />
 
 ```csharp
 // Application/Services/DocumentService.cs
@@ -142,6 +155,22 @@ public async Task UploadAsync(...)
 }
 ```
 
+<ImplementationNote>
+    The Unit of Work in BlueRobin is just the EF Core `DbContext.SaveChangesAsync()` behind an `IUnitOfWork` interface. I resisted adding this abstraction for months, calling it "unnecessary ceremony." But the first time I needed to coordinate saves across two repositories in the same transaction—adding a document and updating the archive's document count—having the explicit `IUnitOfWork.SaveChangesAsync()` made the transactional boundary crystal clear to every developer reading the code.
+</ImplementationNote>
+
 ## Conclusion
 
 The Repository pattern keeps your domain model clean. It acts as an in-memory collection of objects, hiding the ugly details of SQL mapping and database connections behind a semantic interface.
+
+After implementing repositories across all of BlueRobin's aggregates, the biggest benefit wasn't testability or abstraction—it was discoverability. When a new feature needs to query documents, the developer looks at `IDocumentRepository` and sees exactly what queries are available. There's no temptation to write ad-hoc `DbContext` queries scattered across services. The repository becomes the single source of truth for how an aggregate is persisted and retrieved.
+
+**Next Steps:**
+- Learn how [Domain Events](/ddd-domain-events-csharp) integrate with the Unit of Work for transactional event dispatch.
+- See how [FastEndpoints](/fastendpoints-api-development) consumes repositories through the REPR pattern.
+
+### Further Reading
+
+- <ExternalCite title="Repository" url="https://martinfowler.com/eaaCatalog/repository.html" author="Martin Fowler" date="2002" /> — The original definition of the Repository pattern from Patterns of Enterprise Application Architecture.
+- <ExternalCite title="Implementing Domain-Driven Design" url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/" author="Vaughn Vernon" date="2013" /> — In-depth coverage of repository implementation in a DDD context with practical examples.
+- <ExternalCite title="EF Core Documentation" url="https://learn.microsoft.com/en-us/ef/core/" author="Microsoft" date="2024" /> — Official Entity Framework Core documentation covering change tracking, queries, and persistence.

@@ -2,6 +2,7 @@
 title: "NATS Monitoring and Observability"
 description: "Set up comprehensive monitoring for NATS JetStream with Prometheus, Grafana dashboards, and alerting for production-ready messaging infrastructure."
 pubDate: 2025-07-14
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "messaging"
 difficulty: "intermediate"
@@ -17,6 +18,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first deployed NATS on our k3s cluster, I treated monitoring as an afterthought — the server was running, messages were flowing, and everything seemed fine. Then one morning a user reported that document notifications were arriving hours late. There were no errors anywhere: no crash logs, no failed health checks, nothing in the NATS server output. It turned out a single slow consumer had fallen thousands of messages behind, and without consumer lag metrics I had no way to detect it. That incident convinced me to invest in proper observability for our messaging layer, and the Prometheus/Grafana stack I built afterward has caught every subsequent issue before it reached users.
+
 ## Introduction
 
 Your messaging system is the nervous system of your application. When NATS has problems—slow consumers, stream lag, connection storms—your entire platform feels the pain. But unlike a web server that simply returns errors, messaging failures often manifest as subtle symptoms: delayed notifications, missing events, or mysteriously stale data.
@@ -29,6 +32,8 @@ Your messaging system is the nervous system of your application. When NATS has p
 - **SLA Compliance**: Measure and alert on end-to-end message latency
 
 Production messaging systems require comprehensive monitoring. In this guide, we'll set up observability for NATS JetStream using Prometheus metrics, Grafana dashboards, and alerting rules.
+
+<ExternalCite title="The Four Golden Signals of Monitoring" url="https://sre.google/sre-book/monitoring-distributed-systems/#xref_monitoring_golden-signals" author="Google SRE" date="2016-03-01" />
 
 ## Architecture Overview
 
@@ -78,20 +83,20 @@ data:
   nats.conf: |
     # Server identification
     server_name: nats-0
-    
+
     # Client connections
     port: 4222
-    
+
     # HTTP monitoring
     http_port: 8222
-    
+
     # JetStream configuration
     jetstream {
       store_dir: /data
       max_memory_store: 1Gi
       max_file_store: 10Gi
     }
-    
+
     # Cluster configuration
     cluster {
       name: my-nats
@@ -102,13 +107,15 @@ data:
         nats://nats-2.nats.data-layer.svc.cluster.local:6222
       ]
     }
-    
+
     # Logging
     debug: false
     trace: false
     logtime: true
     log_file: /var/log/nats/nats.log
 ```
+
+<ExternalCite title="NATS Server Configuration" url="https://docs.nats.io/running-a-nats-service/configuration" author="NATS Authors" date="2024-03-20" />
 
 ### Prometheus Exporter Sidecar
 
@@ -148,7 +155,7 @@ spec:
             limits:
               memory: "1Gi"
               cpu: "1000m"
-        
+
         # Prometheus exporter sidecar
         - name: prometheus-exporter
           image: natsio/prometheus-nats-exporter:0.14.0
@@ -171,6 +178,12 @@ spec:
               memory: "64Mi"
               cpu: "100m"
 ```
+
+<ExternalCite title="NATS Prometheus Exporter" url="https://github.com/nats-io/prometheus-nats-exporter" author="NATS Authors" date="2024-06-01" />
+
+<ImplementationNote>
+Getting the exporter sidecar configuration right took more iteration than I expected. My first attempt used only the `-varz` flag, which gave me server-level metrics but nothing about JetStream streams or consumers. Adding `-jsz=all` was the breakthrough — it exposed per-stream and per-consumer metrics that made consumer lag alerting possible. The one gotcha was resource limits: the exporter itself is lightweight, but with `-jsz=all` on a cluster with many streams, it can spike to 50-60MB during scrapes. I bumped the memory limit to 64Mi after seeing OOM kills during peak traffic.
+</ImplementationNote>
 
 ### ServiceMonitor for Prometheus
 
@@ -234,6 +247,8 @@ spec:
 | `gnatsd_jsz_messages` | Total messages | Storage capacity |
 | `gnatsd_jsz_bytes` | Total storage used | > 80% of limit |
 | `gnatsd_jsz_memory` | Memory used | > 80% of limit |
+
+<ExternalCite title="Prometheus Monitoring Best Practices" url="https://prometheus.io/docs/practices/instrumentation/" author="Prometheus Authors" date="2024-01-01" />
 
 ### Stream-Specific Metrics
 
@@ -379,7 +394,7 @@ spec:
           annotations:
             summary: "NATS slow consumers detected"
             description: "{{ $value }} slow consumers on {{ $labels.pod }}"
-        
+
         # High message rate
         - alert: NATSHighMessageRate
           expr: rate(gnatsd_varz_in_msgs[5m]) > 10000
@@ -389,7 +404,7 @@ spec:
           annotations:
             summary: "High NATS message rate"
             description: "{{ $value | humanize }} msgs/sec on {{ $labels.pod }}"
-        
+
         # JetStream storage nearly full
         - alert: NATSJetStreamStorageFull
           expr: |
@@ -400,7 +415,7 @@ spec:
           annotations:
             summary: "JetStream storage > 80%"
             description: "Storage at {{ $value | humanize }}%"
-        
+
         # JetStream storage critical
         - alert: NATSJetStreamStorageCritical
           expr: |
@@ -411,7 +426,7 @@ spec:
           annotations:
             summary: "JetStream storage > 95%"
             description: "Storage at {{ $value | humanize }}%. Immediate action required."
-        
+
         # Consumer lag building up
         - alert: NATSConsumerLag
           expr: |
@@ -422,7 +437,7 @@ spec:
           annotations:
             summary: "NATS consumer lag detected"
             description: "Consumer {{ $labels.consumer }} has {{ $value }} messages behind"
-        
+
         # Server not responding
         - alert: NATSServerDown
           expr: up{job="nats"} == 0
@@ -434,6 +449,10 @@ spec:
             description: "NATS server {{ $labels.pod }} is not responding"
 ```
 
+<ImplementationNote>
+The scrape interval for the ServiceMonitor was something I tuned multiple times. I started at 30 seconds, which felt reasonable, but found that consumer lag could spike and resolve within that window — making the metric useless for detecting brief but impactful stalls. Dropping to 15 seconds gave me much better resolution without meaningfully increasing Prometheus storage costs. However, I would not recommend going below 10 seconds: at very short intervals, the exporter scrape itself can introduce latency on the NATS monitoring endpoint, especially when `-jsz=all` is enabled and you have many streams.
+</ImplementationNote>
+
 ## Application-Level Metrics
 
 ### Custom Metrics in .NET
@@ -442,43 +461,43 @@ spec:
 // Infrastructure/Messaging/Metrics/NatsMetrics.cs
 public static class NatsMetrics
 {
-    private static readonly Counter<long> MessagesPublished = 
+    private static readonly Counter<long> MessagesPublished =
         Meter.CreateCounter<long>(
             "nats.messages.published",
             "messages",
             "Number of messages published");
-    
-    private static readonly Counter<long> MessagesReceived = 
+
+    private static readonly Counter<long> MessagesReceived =
         Meter.CreateCounter<long>(
             "nats.messages.received",
             "messages",
             "Number of messages received");
-    
-    private static readonly Histogram<double> PublishDuration = 
+
+    private static readonly Histogram<double> PublishDuration =
         Meter.CreateHistogram<double>(
             "nats.publish.duration",
             "ms",
             "Time to publish message");
-    
-    private static readonly Histogram<double> ProcessingDuration = 
+
+    private static readonly Histogram<double> ProcessingDuration =
         Meter.CreateHistogram<double>(
             "nats.processing.duration",
             "ms",
             "Time to process message");
-    
+
     private static readonly Meter Meter = new("MyApp.Nats", "1.0.0");
-    
+
     public static void RecordPublish(string subject, long durationMs)
     {
         MessagesPublished.Add(1, new KeyValuePair<string, object?>("subject", subject));
         PublishDuration.Record(durationMs, new KeyValuePair<string, object?>("subject", subject));
     }
-    
+
     public static void RecordReceive(string subject)
     {
         MessagesReceived.Add(1, new KeyValuePair<string, object?>("subject", subject));
     }
-    
+
     public static void RecordProcessing(string subject, long durationMs, bool success)
     {
         ProcessingDuration.Record(
@@ -489,6 +508,8 @@ public static class NatsMetrics
 }
 ```
 
+<ExternalCite title=".NET Metrics and Instrumentation" url="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation" author="Microsoft" date="2024-04-10" />
+
 ### Instrumented Publisher
 
 ```csharp
@@ -497,18 +518,18 @@ public sealed class InstrumentedNatsPublisher : INatsPublisher
 {
     private readonly INatsConnection _nats;
     private readonly ILogger<InstrumentedNatsPublisher> _logger;
-    
+
     public async Task PublishAsync<T>(
         string subject,
         T data,
         CancellationToken ct = default)
     {
         var sw = Stopwatch.StartNew();
-        
+
         try
         {
             await _nats.PublishAsync(subject, data, cancellationToken: ct);
-            
+
             sw.Stop();
             NatsMetrics.RecordPublish(subject, sw.ElapsedMilliseconds);
         }
@@ -529,12 +550,12 @@ public sealed class InstrumentedNatsPublisher : INatsPublisher
 public sealed class NatsHealthCheck : IHealthCheck
 {
     private readonly INatsConnection _nats;
-    
+
     public NatsHealthCheck(INatsConnection nats)
     {
         _nats = nats;
     }
-    
+
     public async Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context,
         CancellationToken cancellationToken = default)
@@ -547,10 +568,10 @@ public sealed class NatsHealthCheck : IHealthCheck
                 return HealthCheckResult.Unhealthy(
                     $"NATS connection state: {_nats.ConnectionState}");
             }
-            
+
             // Ping test
             await _nats.PingAsync(cancellationToken);
-            
+
             return HealthCheckResult.Healthy("NATS connection is healthy");
         }
         catch (Exception ex)
@@ -617,8 +638,21 @@ Effective NATS monitoring requires:
 
 With this observability stack, you'll have full visibility into your messaging infrastructure and can respond quickly to issues.
 
-<ExternalCite 
-  title="NATS Server Monitoring" 
-  url="https://docs.nats.io/running-a-nats-service/nats_admin/monitoring"
-  author="NATS Authors"
-/>
+Looking back, the investment in NATS monitoring was one of the highest-leverage improvements I made to our platform. Before the Grafana dashboards and alerting rules were in place, messaging issues surfaced as user complaints — delayed notifications, stale data, mysteriously slow API responses. After deploying this stack, I catch problems at the metrics layer, usually before any user is affected. The consumer lag alert alone has saved us from multiple incidents where a slow consumer would have cascaded into a much larger outage.
+
+<ExternalCite title="NATS Server Monitoring" url="https://docs.nats.io/running-a-nats-service/nats_admin/monitoring" author="NATS Authors" date="2024-03-20" />
+
+## Next Steps
+
+- Build a dedicated "NATS Operations" Grafana dashboard with per-stream and per-consumer panels for your specific workloads
+- Implement distributed tracing with OpenTelemetry to correlate NATS messages with upstream HTTP requests
+- Set up Grafana alerting rules that notify via Slack or PagerDuty for critical NATS incidents
+- Add synthetic monitoring that publishes and consumes test messages to verify end-to-end message flow
+
+## Further Reading
+
+- [NATS Server Monitoring Documentation](https://docs.nats.io/running-a-nats-service/nats_admin/monitoring)
+- [Prometheus NATS Exporter](https://github.com/nats-io/prometheus-nats-exporter)
+- [Google SRE: Monitoring Distributed Systems](https://sre.google/sre-book/monitoring-distributed-systems/)
+- [.NET Metrics and Instrumentation](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation)
+- [Grafana Dashboard Best Practices](https://grafana.com/docs/grafana/latest/dashboards/build-dashboards/best-practices/)

@@ -2,6 +2,7 @@
 title: "Automating TLS Certificates with Cert-Manager"
 description: "Stop manually renewing certificates. Set up Cert-Manager to automate Let's Encrypt DNS-01 challenges with Cloudflare."
 pubDate: 2024-04-17
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -15,9 +16,13 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first set up cert-manager, I thought it would be a one-hour task: install the Helm chart, create a ClusterIssuer, and move on. Instead, I spent two full days debugging DNS-01 challenge failures. The ACME order would hang in a "pending" state, and the cert-manager logs showed cryptic errors about TXT record propagation timeouts. It turned out my Cloudflare API token had the wrong zone permissions -- I had scoped it to one zone but cert-manager was trying to create the `_acme-challenge` TXT record in a different zone. Once I fixed the token scopes and added a propagation check timeout, certificates started flowing automatically. That pain taught me to never underestimate the complexity hiding behind "automated" certificate management.
+
 ## Introduction
 
 In a production cluster, TLS is not optional. But manually generating certificates, creating Kubernetes Secrets, and rotating them every 90 days is toil.
+
+<ExternalCite title="cert-manager Documentation" url="https://cert-manager.io/docs/" author="cert-manager" date="2024-05-01" />
 
 **Why Cert-Manager?**
 -   **Automation**: It detects when a certificate is about to expire and renews it.
@@ -53,6 +58,10 @@ flowchart TB
 ## Section 1: The Trust Chain
 
 We use the **DNS-01** challenge type. This proves ownership of the domain by adding a TXT record to your DNS, rather than hosting a file on a public HTTP server (HTTP-01). This allows us to get certificates for internal services that aren't reachable from the internet.
+
+<ExternalCite title="ACME Protocol (RFC 8555)" url="https://datatracker.ietf.org/doc/html/rfc8555" author="R. Barnes et al." date="2019-03-01" />
+
+<ExternalCite title="Let's Encrypt: How It Works" url="https://letsencrypt.org/how-it-works/" author="Let's Encrypt" date="2024-01-15" />
 
 ```yaml
 # core-infra/security/cluster-issuer.yaml

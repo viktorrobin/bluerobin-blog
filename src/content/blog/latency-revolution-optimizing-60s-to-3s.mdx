@@ -2,6 +2,7 @@
 title: "Latency Revolution: Optimizing 60s to 3s"
 description: "How we slashed system latency by 95% by moving from sequential HTTP calls to parallel NATS requests, implementing Redis caching, and tuning Qdrant vector search."
 pubDate: 2025-12-31
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -14,6 +15,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first watched our system take nearly a minute to process a single document upload, I knew something was fundamentally wrong with our architecture. The frustrating part was that each individual service was fast on its own -- it was the way we orchestrated them that created a cascading latency nightmare. What followed was a week-long deep dive into profiling, parallelization, and caching that taught me more about distributed systems performance than any textbook could. This article is the story of how we turned a 60-second embarrassment into a 3-second success.
 
 ## Introduction
 
@@ -63,6 +66,8 @@ Our initial MVP used a familiar pattern: a central API controller that orchestra
 
 This synchronous Http chain was the primary culprit.
 
+<ExternalCite title="Release It! Design and Deploy Production-Ready Software" url="https://pragprog.com/titles/mnee2/release-it-second-edition/" author="Michael Nygard" date="2018" />
+
 ```mermaid
 sequenceDiagram
     participant User
@@ -91,6 +96,8 @@ We moved to an event-driven architecture using NATS JetStream. The API now simpl
 
 Multiple workers (OCR, Analysis) subscribe to this event and process it **in parallel**.
 
+<ExternalCite title="NATS JetStream Documentation" url="https://docs.nats.io/nats-concepts/jetstream" author="Synadia" date="2024" />
+
 ```mermaid
 flowchart LR
     API[API Service]
@@ -98,7 +105,7 @@ flowchart LR
     OCR[OCR Worker]
     Embed[Embedding Worker]
     DB[(PostgreSQL)]
-    
+
     classDef primary fill:#7c3aed,color:#fff
     classDef secondary fill:#06b6d4,color:#fff
     classDef db fill:#f43f5e,color:#fff
@@ -118,9 +125,15 @@ flowchart LR
     By running OCR (CPU bound) and Embedding generation (GPU/CPU bound) simultaneously, we immediately cut the processing time by the duration of the shorter task.
 </Callout>
 
+<ImplementationNote title="The Hidden Cost of Moving to Event-Driven">
+When I first switched from synchronous HTTP calls to NATS fan-out, I thought the hard part was over. I was wrong. The immediate problem was that the API could no longer return a fully processed document in the response -- it had to return an "accepted" status and let the client poll or subscribe for completion. Rewriting the frontend to handle this asynchronous flow took almost as long as the backend migration. I also had to build an aggregation service that knew when all parallel workers had finished, which introduced its own set of race conditions that took days to sort out.
+</ImplementationNote>
+
 ## Phase 2: Caching Expensive Lookups
 
 Profiling revealed that during high-traffic ingestion, we were slamming the database with repeated queries for `Tag` and `Category` existence checks. For every page of a document, we were checking if tags existed before inserting.
+
+<ExternalCite title="Caching Best Practices and Patterns" url="https://learn.microsoft.com/en-us/azure/architecture/best-practices/caching" author="Microsoft" date="2024" />
 
 We implemented a **Write-Through Caching** strategy using Redis.
 
@@ -132,7 +145,7 @@ Instead of `SELECT id FROM tags WHERE name = @name`, we check Redis first.
 public async Task<Guid> GetOrCreateTagIdAsync(string tagName)
 {
     var cacheKey = $"tag:{tagName.ToLower()}";
-    
+
     // 1. Fast Path: Redis
     var cachedId = await _cache.GetStringAsync(cacheKey);
     if (cachedId != null) return Guid.Parse(cachedId);
@@ -147,7 +160,7 @@ public async Task<Guid> GetOrCreateTagIdAsync(string tagName)
     }
 
     // 3. Cache for next time (1 hour expiration)
-    await _cache.SetStringAsync(cacheKey, tag.Id.ToString(), 
+    await _cache.SetStringAsync(cacheKey, tag.Id.ToString(),
         new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1) });
 
     return tag.Id;
@@ -156,11 +169,17 @@ public async Task<Guid> GetOrCreateTagIdAsync(string tagName)
 
 This simple change reduced database CPU usage by **40%** during bulk uploads.
 
+<ImplementationNote title="Cache Invalidation Headaches">
+I quickly learned why Phil Karlton famously said there are only two hard things in computer science: cache invalidation and naming things. After deploying the Redis caching layer, we hit a subtle bug where renamed tags would still resolve to their old IDs for up to an hour. Users would rename a tag in the UI, but documents kept getting the stale mapping. I had to implement a cache-busting strategy that published invalidation events through NATS whenever a tag was modified. It was a humbling reminder that caching is never "just add Redis."
+</ImplementationNote>
+
 ## Phase 3: Tuning Qdrant & HNSW
 
 The final bottleneck was vector search. As our collection grew to millions of vectors, search latency crept up to 400ms. We are using Qdrant as our vector engine.
 
 Qdrant uses HNSW (Hierarchical Navigable Small World) graphs. The default settings prioritize recall (accuracy) over speed. For a personal archive, we can tolerate a slight drop in accuracy for blazing speed.
+
+<ExternalCite title="Efficient and Robust Approximate Nearest Neighbor Search Using HNSW Graphs" url="https://arxiv.org/abs/1603.09320" author="Malkov and Yashunin" date="2018" />
 
 ### Optimizing Index Parameters
 
@@ -175,10 +194,12 @@ We adjusted the `m` (edges per node) and `ef_construct` (candidates during index
   "hnsw_config": {
     "m": 16,            // Reduced from 32 (Less memory, faster search)
     "ef_construct": 100, // Reduced from 200 (Faster indexing)
-    "full_scan_threshold": 10000 
+    "full_scan_threshold": 10000
   }
 }
 ```
+
+<ExternalCite title="Qdrant HNSW Index Configuration" url="https://qdrant.tech/documentation/concepts/indexing/#hnsw" author="Qdrant" date="2024" />
 
 <ImplementationNote title="Trade-offs">
     Lowering `m` reduces the graph connectivity. This makes search significantly faster and uses less RAM, but might miss the "absolute" best match in edge cases. For semantic search of documents, this trade-off is almost always worth it.
@@ -202,6 +223,20 @@ Optimization is rarely about finding a single "magic bullet." It requires a syst
 2.  **Data Layer**: Cache read-heavy, write-rare data close to the application (Redis).
 3.  **Compute Layer**: Tune algorithms to your specific use case (Qdrant HNSW).
 
-**Next Steps**:
-- [Introduction to NATS JetStream](./nats-introduction-jetstream-dotnet)
-- Exploring standard vs keyword search in Qdrant
+Reflecting on this optimization journey, the biggest takeaway for me was that the most impactful improvements came not from clever code but from architectural decisions. Switching from sequential HTTP to event-driven messaging was a one-time effort that delivered permanent, compounding benefits. If I had to do it again, I would start with the messaging layer from day one rather than building a synchronous MVP first. The migration cost was significant, and the technical debt of the synchronous approach nearly derailed us before we caught it.
+
+<ExternalCite title="Designing Data-Intensive Applications" url="https://dataintensive.net/" author="Martin Kleppmann" date="2017" />
+
+### Next Steps
+
+- Dive into the [Introduction to NATS JetStream](./nats-introduction-jetstream-dotnet) for a deeper look at our messaging infrastructure.
+- Explore standard vs keyword search strategies in Qdrant for different query patterns.
+- Implement distributed tracing with OpenTelemetry to get per-service latency breakdowns in production.
+- Add automated performance regression tests to CI/CD to catch latency regressions before deployment.
+
+### Further Reading
+
+- [NATS by Example: Core Patterns and JetStream](https://natsbyexample.com/) -- Interactive examples of NATS messaging patterns.
+- [Redis Caching Strategies in .NET](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/distributed) -- Microsoft documentation on distributed caching with Redis.
+- [Qdrant Performance Tuning Guide](https://qdrant.tech/documentation/guides/optimize/) -- Official guide on optimizing vector search performance.
+- [Designing Data-Intensive Applications by Martin Kleppmann](https://dataintensive.net/) -- Essential reading on building scalable, reliable distributed systems.

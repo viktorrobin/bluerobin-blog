@@ -2,6 +2,7 @@
 title: "Kubernetes Cluster Setup for AI Workloads"
 description: "A practical cluster setup guide for running AI services alongside traditional backends with reliable data, messaging, and observability."
 pubDate: 2025-09-15
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
@@ -12,8 +13,18 @@ toc: true
 
 import Callout from "@components/Callout.astro";
 import CodeFile from "@components/CodeFile.astro";
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first deployed an AI workload to Kubernetes, I watched it get OOMKilled within seconds because the embedding model consumed 4GB of memory while the pod had a 512Mi limit. That crash course in resource management for AI workloads — debugging why the pod kept restarting, learning about requests vs limits, and finally getting a stable deployment — shaped everything in this guide.
 
 Running AI workloads on Kubernetes isn't just about deploying a model behind an API. You need GPU scheduling, large model storage, health probes for inference services, and namespace isolation between AI and transactional workloads. This guide covers the practical decisions for setting up a cluster that handles both.
+
+<ExternalCite
+  title="Managing Resources for Containers"
+  url="https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/"
+  author="Kubernetes Documentation"
+/>
 
 ## Namespace Topology
 
@@ -32,6 +43,12 @@ flux-system         Flux CD controllers
 <Callout type="tip" title="Why not per-team namespaces?">
 AI services often share data layer connections (Qdrant, PostgreSQL). Organizing by concern makes network policies simpler — the ai namespace can reach data-layer, and apps-* can reach both ai and data-layer.
 </Callout>
+
+<ExternalCite
+  title="Kubernetes Patterns: Reusable Elements for Designing Cloud-Native Applications"
+  url="https://www.oreilly.com/library/view/kubernetes-patterns-2nd/9781098131678/"
+  author="Bilgin Ibryam & Roland Huss"
+/>
 
 ## AI Service Requirements
 
@@ -84,6 +101,22 @@ spec:
 ```
 </CodeFile>
 
+<ExternalCite
+  title="NVIDIA GPU Operator Documentation"
+  url="https://docs.nvidia.com/datacenter/cloud-native/gpu-operator/latest/index.html"
+  author="NVIDIA"
+/>
+
+<ImplementationNote>
+GPU scheduling in Kubernetes requires the NVIDIA device plugin, but it only exposes whole GPUs — no fractional GPU sharing out of the box. For our homelab with a single GPU, this meant only one AI pod could use the GPU at a time. I spent a frustrating weekend watching pods queue up waiting for the GPU before discovering time-slicing configuration in the device plugin. By setting `TimeSlicing.Resources[0].Replicas` to 4 in the device plugin ConfigMap, all four AI pods could share the GPU with reasonable throughput.
+</ImplementationNote>
+
+<ExternalCite
+  title="Schedule GPUs"
+  url="https://kubernetes.io/docs/tasks/manage-gpus/scheduling-gpus/"
+  author="Kubernetes Documentation"
+/>
+
 ### Health Probes for AI Services
 
 AI services have longer startup times and can become unresponsive under load. Configure probes accordingly:
@@ -93,6 +126,10 @@ AI services have longer startup times and can become unresponsive under load. Co
 | Ollama | GET /api/tags | GET /api/tags | 30s |
 | Docling | GET /health | GET /health | 60s |
 | spaCy | GET /health | GET /health | 20s |
+
+<ImplementationNote>
+Node affinity rules for AI workloads were essential — without them, the Kubernetes scheduler would place embedding pods on the control plane node, starving it of resources and occasionally making the API server unresponsive. I learned this the hard way when the cluster became unreachable during a heavy embedding job. The fix was straightforward: I applied a custom `workload=ai` label to the GPU node and added a `nodeSelector` to all AI deployments. This ensured the scheduler would never place AI pods on control plane or general-purpose nodes.
+</ImplementationNote>
 
 ## Data Layer
 
@@ -110,6 +147,12 @@ For 100K documents with 8 embedding models averaging 800 dimensions:
 100,000 x 800 x 4 x 1.5 x 8 = 3.8 GB
 ```
 
+<ExternalCite
+  title="Device Plugins"
+  url="https://kubernetes.io/docs/concepts/extend-kubernetes/compute-storage-net/device-plugins/"
+  author="Kubernetes Documentation"
+/>
+
 ### Graph Database (FalkorDB)
 
 FalkorDB runs as a Redis-compatible server with graph extensions. It needs minimal resources for moderate graph sizes (under 1M nodes):
@@ -122,6 +165,10 @@ resources:
   limits:
     memory: 2Gi
 ```
+
+<ImplementationNote>
+Resource requests vs limits for AI workloads were counterintuitive — setting memory requests too high left resources stranded across the cluster, while setting them too low led to constant OOMKills during model loading. After weeks of tweaking, the pattern that worked was: request = model file size + 1GB overhead, limit = 2x request for burst during inference. For example, an embedding model with a 2GB file gets `requests.memory: 3Gi` and `limits.memory: 6Gi`. This gives the scheduler accurate information for bin-packing while allowing headroom for inference spikes.
+</ImplementationNote>
 
 ## GitOps with Flux
 
@@ -185,7 +232,17 @@ spec:
         - port: 8080   # Docling
 ```
 
-## Key Takeaways
+<ExternalCite
+  title="Network Policies"
+  url="https://kubernetes.io/docs/concepts/services-networking/network-policies/"
+  author="Kubernetes Documentation"
+/>
+
+## Conclusion
+
+Setting up Kubernetes for AI workloads taught me that the gap between "it works on my machine" and "it runs reliably in a cluster" is wider than I expected. Every section of this guide came from a real outage or a late-night debugging session — from OOMKilled pods to GPU contention to cross-namespace DNS failures. The investment in proper namespace topology, resource tuning, and GitOps pays off every time you need to add a new model or scale an existing service.
+
+### Key Takeaways
 
 - Organize namespaces by **concern** (data, messaging, ai, apps) not by team
 - AI services need **persistent storage**, **generous health probe timeouts**, and **memory limits**
@@ -193,7 +250,21 @@ spec:
 - **GitOps** keeps your cluster state reproducible and auditable
 - Size vector store storage based on `vectors x dimensions x 4 bytes x 1.5`
 
-## Related Reading
+### Next Steps
 
-- [Flux CD Documentation](https://fluxcd.io/flux/)
-- [Kubernetes Network Policies](https://kubernetes.io/docs/concepts/services-networking/network-policies/)
+- [Shipping a New AI Service with GitOps](/blog/graphrag-gitops-kustomize-externalsecrets) — How to deploy a new service into this cluster using Kustomize overlays and ExternalSecrets
+- [Integrating Docling OCR in a .NET Document Pipeline](/blog/docling-ocr-dotnet-integration) — Building the OCR service that runs in the `ai` namespace
+
+### Further Reading
+
+<ExternalCite
+  title="Flux CD Documentation"
+  url="https://fluxcd.io/flux/"
+  author="Flux CD Project"
+/>
+
+<ExternalCite
+  title="Kubernetes Scheduling Framework"
+  url="https://kubernetes.io/docs/concepts/scheduling-eviction/scheduling-framework/"
+  author="Kubernetes Documentation"
+/>

@@ -2,6 +2,7 @@
 title: "Building Rich Domain Models with Aggregates"
 description: "Learn how to design aggregates that enforce business invariants, manage consistency boundaries, and encapsulate complex domain logic in your C# applications."
 pubDate: 2024-10-11
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -10,7 +11,7 @@ readTime: "22 min"
 toc: true
 series:
   name: "Domain-Driven Design in Practice"
-  part: 4
+  order: 4
 ---
 
 import Callout from '@components/Callout.astro';
@@ -19,12 +20,14 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-In typical "Anemic" models, entities are just bags of getters and setters, and services hold all the logic. This leads to code where invalid states are pervasive—a document can have a null owner, or a negative file size. **Aggregates** are the antidote. They are clusters of objects treated as a single unit, guaranteeing that if you hold an object, it is valid.
+Designing the aggregate boundaries in BlueRobin was one of the hardest architectural decisions I faced. My first attempt made `Archive` the aggregate root that contained all its `Document` entities—which meant loading an archive with 500 documents pulled the entire collection into memory just to add one new document. It was a classic mistake of making aggregates too large. This article captures what I learned about keeping aggregates small, focused, and performant.
+
+In typical "Anemic" models, entities are just bags of getters and setters, and services hold all the logic. This leads to code where invalid states are pervasive—a document can have a null owner, or a negative file size. **Aggregates** are the antidote. <ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" /> They are clusters of objects treated as a single unit, guaranteeing that if you hold an object, it is valid.
 
 **Why Aggregates Matter:**
 
 -   **Invariants**: Aggregates ensure business rules are *always* true (e.g., "A document cannot be processed without content").
--   **Consistency**: They define clear transaction boundaries. You load, modify, and save the *entire* aggregate at once.
+-   **Consistency**: They define clear transaction boundaries. You load, modify, and save the *entire* aggregate at once. <ExternalCite title="Effective Aggregate Design" url="https://www.dddcommunity.org/library/vernon_2011/" author="Vaughn Vernon" date="2011" />
 -   **Encapsulation**: They hide internal complexity. The outside world talks only to the "Aggregate Root".
 
 ### What We'll Build
@@ -33,7 +36,7 @@ In this guide, we will design the core `Document` aggregate for our system. You 
 
 1.  **Define the Root**: Create a C# class that strictly controls access to its state.
 2.  **Encapsulate State**: Replace public setters with semantic methods (`Process`, `Tag`).
-3.  **Handle Collections**: Manage list of child entities (`Chunks`) without exposing the raw list.
+3.  **Handle Collections**: Manage list of child entities (`Chunks`) without exposing the raw list. <ExternalCite title="Encapsulation in Domain-Driven Design" url="https://enterprisecraftsmanship.com/posts/encapsulation-revisited/" author="Vladimir Khorikov" date="2017" />
 
 ## Architecture Overview
 
@@ -81,7 +84,7 @@ classDiagram
 
 ## Section 1: The Aggregate Root
 
-The "Root" is the gateway. No external object can hold a reference to a `DocumentChunk` directly; they must find it through the `Document`.
+The "Root" is the gateway. No external object can hold a reference to a `DocumentChunk` directly; they must find it through the `Document`. <ExternalCite title="Implementing Domain-Driven Design" url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/" author="Vaughn Vernon" date="2013" />
 
 ```csharp
 public sealed class Document : AggregateRoot<CustomId>
@@ -95,7 +98,7 @@ public sealed class Document : AggregateRoot<CustomId>
     // 2. Encapsulated Collections
     private readonly List<DocumentChunk> _chunks = [];
     public IReadOnlyCollection<DocumentChunk> Chunks => _chunks.AsReadOnly();
-    
+
     private readonly List<Tag> _tags = [];
     public IReadOnlyCollection<Tag> Tags => _tags.AsReadOnly();
 
@@ -121,8 +124,12 @@ public sealed class Document : AggregateRoot<CustomId>
 }
 ```
 
+<ImplementationNote>
+    My initial Document aggregate included a `List<DocumentChunk>` that could grow to thousands of entries for large PDFs. Loading the entire aggregate for simple metadata updates was painfully slow. I solved this by making `DocumentChunk` its own aggregate that references `Document` by ID. This meant chunks could be added and queried independently, while the Document aggregate stayed lightweight. The trade-off is eventual consistency between the document and its chunks—which turned out to be perfectly acceptable for our use case.
+</ImplementationNote>
+
 <Callout type="info" title="Private Constructors">
-    Notice we don't use a public constructor. `Create()` is explicit about *creation*. To load from DB, EF Core can use a private parameterless constructor or binding.
+    Notice we don't use a public constructor. `Create()` is explicit about *creation*. To load from DB, EF Core can use a private parameterless constructor or binding. <ExternalCite title="Domain-Driven Design Guidance for .NET" url="https://learn.microsoft.com/en-us/dotnet/architecture/microservices/microservice-ddd-cqrs-patterns/" author="Microsoft" date="2024" />
 </Callout>
 
 ## Section 2: Enforcing Invariants
@@ -154,9 +161,13 @@ public void AddChunk(int index, string content)
 }
 ```
 
+<ImplementationNote>
+    The state machine for `ProcessingStatus` (Pending → Processing → Completed/Failed) was one of the trickiest parts to get right. I started with a simple enum and `if` checks, but as the number of valid transitions grew, the code became a mess of nested conditions. I eventually extracted a dedicated `ProcessingStatus` value object with a `TransitionTo()` method that encapsulates the valid state machine. This reduced the aggregate's cyclomatic complexity and made invalid transitions impossible to express.
+</ImplementationNote>
+
 ## Section 3: Reference by Identity
 
-One of the hardest lessons in DDD is: **Don't link Aggregates with object references**. If a `User` owns a `Document`, do **not** add a `public User Owner { get; set; }` property.
+One of the hardest lessons in DDD is: **Don't link Aggregates with object references**. <ExternalCite title="Domain-Driven Design Reference" url="https://www.domainlanguage.com/ddd/reference/" author="Eric Evans" date="2015" /> If a `User` owns a `Document`, do **not** add a `public User Owner { get; set; }` property.
 
 **Why?**
 1.  **Performance**: Loading a Document shouldn't load the User and all their other Documents.
@@ -176,10 +187,22 @@ public class Document
 }
 ```
 
+<ImplementationNote>
+    Breaking the object reference between `Document` and `User` was psychologically difficult—it felt like I was losing convenience. But the first time I needed to query documents without loading user data, the decision paid for itself. The rule I follow now: if two things can change independently, they belong in separate aggregates connected by ID.
+</ImplementationNote>
+
 ## Conclusion
 
 By using Aggregates, we moved logic from "Service Classes" into the domain objects themselves. The `Document` class is no longer just data; it is a behavior-rich model that protects itself from invalid usage.
 
+The journey from anemic models to rich aggregates fundamentally changed how I think about software design. The aggregate pattern forces you to confront questions about consistency, performance, and boundaries that are easy to defer with procedural code. Every time I design a new feature in BlueRobin, the first question I ask is: "What is the aggregate boundary?"—and the answer shapes everything that follows.
+
 **Next Steps**:
-- See how [Domain Events](/ddd-domain-events-csharp) let aggregates talk to each other.
-- Learn about [Value Objects](/ddd-value-objects-csharp) which allow `DocumentTitle` to be more than just a string.
+- See how [Domain Events](/ddd-domain-events-csharp) let aggregates talk to each other without coupling.
+- Learn about [Value Objects](/ddd-value-objects-csharp) that compose within aggregates to model complex domain concepts.
+
+### Further Reading
+
+- <ExternalCite title="Effective Aggregate Design" url="https://www.dddcommunity.org/library/vernon_2011/" author="Vaughn Vernon" date="2011" /> — The three-part series that shaped modern thinking about aggregate sizing and boundaries.
+- <ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" /> — Eric Evans' foundational text on aggregates, entities, and consistency boundaries.
+- <ExternalCite title="Encapsulation in Domain-Driven Design" url="https://enterprisecraftsmanship.com/posts/encapsulation-revisited/" author="Vladimir Khorikov" date="2017" /> — Practical guidance on encapsulating collections and enforcing invariants within aggregates.

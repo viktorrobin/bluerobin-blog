@@ -2,6 +2,7 @@
 title: "MetalLB Load Balancer for Bare Metal Kubernetes"
 description: "Deploy and configure MetalLB for load balancing in bare metal Kubernetes clusters with L2 and BGP modes."
 pubDate: 2024-03-28
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -13,6 +14,8 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured MetalLB on my k3s bare-metal cluster, I spent an embarrassing amount of time wondering why my LoadBalancer services were stuck in `Pending`. It turned out that k3s ships with its own built-in ServiceLB (formerly Klipper), and the two were fighting over IP assignments. After disabling the k3s ServiceLB with `--disable servicelb` and carving out a dedicated IP range on my home network that my router would not hand out via DHCP, everything clicked into place. That initial struggle taught me more about Layer 2 networking and ARP than any textbook ever did, and it fundamentally changed how I think about homelab networking.
 
 ## Introduction
 
@@ -26,6 +29,8 @@ In cloud environments, creating a `LoadBalancer` Service is trivial—AWS, GCP, 
 - **High Availability**: Services failover automatically when nodes go down
 
 MetalLB fills this gap by implementing the LoadBalancer Service type for bare-metal clusters. It's the missing piece that makes homelab Kubernetes feel like a real cloud.
+
+<ExternalCite title="MetalLB - Concepts" url="https://metallb.io/concepts/" author="MetalLB Project" date="2024-06-15" />
 
 ## Architecture Overview
 
@@ -80,6 +85,8 @@ flowchart TB
 
 MetalLB provides network load balancer implementations for bare metal Kubernetes clusters. This guide covers deploying MetalLB with L2 mode for homelab and small deployments.
 
+<ExternalCite title="MetalLB - Layer 2 Mode" url="https://metallb.io/concepts/layer2/" author="MetalLB Project" date="2024-06-15" />
+
 ## Installation
 
 ### Helm Deployment
@@ -128,6 +135,10 @@ spec:
         - effect: NoSchedule
           key: node-role.kubernetes.io/control-plane
 ```
+
+<ImplementationNote title="Disabling k3s built-in ServiceLB">
+When I first deployed MetalLB on k3s, both MetalLB and the built-in Klipper ServiceLB were racing to assign IPs. Services would get an IP from Klipper, then MetalLB would reassign a different one, causing intermittent connectivity. The fix was adding `--disable servicelb` to my k3s server arguments in `/etc/systemd/system/k3s.service`. After a restart, MetalLB took over cleanly. I also had to make sure my DHCP server reserved the 192.168.1.200-250 range so it would never hand out those addresses to other devices on my network.
+</ImplementationNote>
 
 ## L2 Mode Configuration
 
@@ -266,8 +277,8 @@ spec:
       targetPort: 9000
 ```
 
-<ImplementationNote>
-Services sharing an IP must use different ports. The `allow-shared-ip` annotation must have the same value for all services sharing the IP.
+<ImplementationNote title="Debugging shared IP port conflicts">
+I initially tried sharing an IP between Traefik's HTTP/HTTPS service and its dashboard service without realizing they both needed unique port assignments. The speaker logs showed cryptic ARP failures until I realized the `allow-shared-ip` annotation value must match exactly across all services sharing the IP, and no two services can bind the same port. Once I separated the dashboard to port 9000 and matched the sharing key, the configuration worked flawlessly.
 </ImplementationNote>
 
 ## Requesting Specific IPs
@@ -291,6 +302,8 @@ spec:
 ```
 
 ## BGP Mode Configuration
+
+<ExternalCite title="MetalLB - BGP Mode" url="https://metallb.io/concepts/bgp/" author="MetalLB Project" date="2024-06-15" />
 
 ### BGP Peer Configuration
 
@@ -412,6 +425,8 @@ kubectl get svc -A -o wide | grep LoadBalancer
 
 ### ARP Debugging (L2 Mode)
 
+<ExternalCite title="Bare-metal considerations for Kubernetes" url="https://kubernetes.io/docs/concepts/services-networking/service/#type-loadbalancer" author="Kubernetes" date="2024-09-01" />
+
 ```bash
 # On a network machine, check ARP for service IP
 arp -n | grep 192.168.1.200
@@ -419,6 +434,10 @@ arp -n | grep 192.168.1.200
 # Check which node is advertising
 kubectl logs -n metallb-system -l app.kubernetes.io/component=speaker | grep -i "192.168.1.200"
 ```
+
+<ImplementationNote title="ARP cache and failover delays">
+After a node reboot, I noticed my services were unreachable for about two minutes despite MetalLB reassigning the IP to a healthy speaker. The issue was stale ARP cache entries on my router and client machines. I ended up setting the ARP timeout on my router to 30 seconds (down from the default 300), and I added a gratuitous ARP script to MetalLB's speaker configuration. This cut failover visibility from two minutes to under five seconds, which was critical for the services my family depends on like Home Assistant dashboards routed through the cluster.
+</ImplementationNote>
 
 ## Summary
 
@@ -434,8 +453,27 @@ MetalLB configuration components:
 
 MetalLB enables production-grade load balancing for bare metal Kubernetes without cloud provider dependencies.
 
-<ExternalCite 
-  title="MetalLB Documentation" 
+Looking back, MetalLB was one of the first components I deployed that made my homelab cluster feel like a real production environment. The ability to point a browser at a stable IP address and reach my services -- without NodePort hacks or manual iptables rules -- was a turning point. If you are running bare-metal Kubernetes of any kind, MetalLB is essential infrastructure.
+
+<ExternalCite title="MetalLB Installation Guide" url="https://metallb.io/installation/" author="MetalLB Project" date="2024-06-15" />
+
+<ExternalCite title="A Guide to MetalLB in Layer 2 Mode" url="https://www.adaltas.com/en/2022/09/08/kubernetes-metallb-critical/" author="Adaltas" date="2022-09-08" />
+
+### Next Steps
+
+- Configure [Traefik Ingress](/traefik-ingress-kubernetes) to use MetalLB-assigned IPs for HTTP routing
+- Set up Prometheus monitoring for MetalLB metrics to catch pool exhaustion early
+- Explore BGP mode if your router supports it for true load distribution across nodes
+
+### Further Reading
+
+- [MetalLB Official Documentation](https://metallb.io/) -- Comprehensive reference for all configuration options
+- [Kubernetes Service Types](https://kubernetes.io/docs/concepts/services-networking/service/) -- Understanding LoadBalancer, NodePort, and ClusterIP
+- [k3s Networking](https://docs.k3s.io/networking) -- How k3s handles networking and when to disable built-in components
+
+<ExternalCite
+  title="MetalLB Documentation"
   url="https://metallb.io/"
   author="MetalLB Project"
+  date="2024-06-15"
 />

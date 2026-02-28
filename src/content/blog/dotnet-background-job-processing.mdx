@@ -2,6 +2,7 @@
 title: "Background Job Processing in .NET"
 description: "Implement reliable background job processing with hosted services, channels, and distributed task queues in .NET applications."
 pubDate: 2025-02-15
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -14,9 +15,12 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first configured background services in our .NET application, graceful shutdown was the issue that bit me hardest. During local development everything looked fine, but once we deployed to Kubernetes and started rolling updates, we discovered that in-flight jobs were being silently killed mid-execution. Documents would end up in a half-processed state with no record of what went wrong. It took three separate incidents before I properly understood the relationship between `CancellationToken`, the host shutdown timeout, and the need to catch `OperationCanceledException` at exactly the right level. This article captures all of those lessons so you can avoid the same pain.
+
 ## Introduction
 
 Background job processing enables applications to handle long-running tasks asynchronously without blocking the main request thread. This is critical for keeping APIs responsive while performing heavy operations like document analysis, video transcoding, or sending emails.
+<ExternalCite title="Background tasks with hosted services in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services" author="Microsoft" date="2024-11-15" />
 
 This guide covers implementing robust background processing patterns in .NET using native `BackgroundService`, local channels, and distributed message queues.
 
@@ -30,7 +34,7 @@ This guide covers implementing robust background processing patterns in .NET usi
 ```mermaid
 flowchart LR
     API["🚀 API\n(User Request)"] -->|Enqueues| Queue["📥 Job Queue\n(Channel/NATS)"]
-    
+
     subgraph Worker["⚙️ Worker Service"]
         Queue -->|Dequeues| Handler["👷 Job Handler"]
         Handler -->|Updates| DB[(Database)]
@@ -77,7 +81,7 @@ public sealed class DocumentProcessingService : BackgroundService
             {
                 await using var scope = _scopeFactory.CreateAsyncScope();
                 var processor = scope.ServiceProvider.GetRequiredService<IDocumentProcessor>();
-                
+
                 await processor.ProcessPendingDocumentsAsync(stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -100,6 +104,10 @@ public sealed class DocumentProcessingService : BackgroundService
 <Callout type="warning">
 Always use `IServiceScopeFactory` to create scoped services in background services. The background service itself is a singleton, so injecting scoped dependencies directly will cause issues.
 </Callout>
+
+<ImplementationNote>
+The graceful shutdown problem cost me several production incidents. When Kubernetes sends SIGTERM, the .NET host triggers the `CancellationToken`, but by default you only get 30 seconds before a hard kill. Our document processing jobs could take up to two minutes for large PDFs. I had to configure `HostOptions.ShutdownTimeout` to 120 seconds and add a `finally` block in the handler that marks in-flight jobs as "interrupted" in the database, so the next instance picks them up. Without that explicit state tracking, we had documents stuck in a "processing" state with no way to recover them automatically.
+</ImplementationNote>
 
 ## Channel-Based Queue
 
@@ -133,7 +141,7 @@ public sealed class BackgroundJobQueue<T> : IBackgroundJobQueue<T> where T : cla
     public async ValueTask QueueAsync(T job, CancellationToken ct = default)
     {
         ArgumentNullException.ThrowIfNull(job);
-        
+
         await _channel.Writer.WriteAsync(job, ct);
         _logger.LogDebug("Job queued: {JobType}", typeof(T).Name);
     }
@@ -146,6 +154,9 @@ public sealed class BackgroundJobQueue<T> : IBackgroundJobQueue<T> where T : cla
     }
 }
 ```
+
+The `System.Threading.Channels` library provides a high-performance, thread-safe producer-consumer implementation that is ideal for in-process job queues.
+<ExternalCite title="System.Threading.Channels" url="https://learn.microsoft.com/en-us/dotnet/core/extensions/channels" author="Microsoft" date="2024-08-20" />
 
 ### Queue Consumer Service
 
@@ -190,10 +201,10 @@ public sealed class QueuedHostedService<T> : BackgroundService where T : class
             try
             {
                 var job = await _queue.DequeueAsync(stoppingToken);
-                
+
                 await using var scope = _scopeFactory.CreateAsyncScope();
                 var handler = scope.ServiceProvider.GetRequiredService<IJobHandler<T>>();
-                
+
                 await handler.HandleAsync(job, stoppingToken);
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
@@ -256,7 +267,7 @@ public sealed class DocumentProcessingHandler : IJobHandler<DocumentProcessingJo
     public async Task HandleAsync(DocumentProcessingJob job, CancellationToken ct = default)
     {
         _logger.LogInformation("Processing document: {DocumentId}", job.DocumentId);
-        
+
         using var activity = ActivitySources.Workers.StartActivity("ProcessDocument");
         activity?.SetTag("document.id", job.DocumentId.Value);
 
@@ -264,15 +275,15 @@ public sealed class DocumentProcessingHandler : IJobHandler<DocumentProcessingJo
         {
             // Perform OCR
             var content = await _ocrService.ExtractTextAsync(job.Bucket, job.ObjectKey, ct);
-            
+
             // Generate embeddings
             var embeddings = await _embeddingService.GenerateAsync(content, ct);
-            
+
             // Update document
             var document = await _repository.GetByIdAsync(job.DocumentId, ct);
             document!.SetContent(content, embeddings);
             await _repository.UpdateAsync(document, ct);
-            
+
             // Publish completion event
             await _nats.PublishAsync(
                 $"{job.Environment}.archives.documents.analysis.completed",
@@ -312,7 +323,7 @@ public sealed class MaintenanceService : BackgroundService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<MaintenanceService> _logger;
-    
+
     private readonly TimeSpan _cleanupInterval = TimeSpan.FromHours(6);
     private readonly TimeSpan _healthCheckInterval = TimeSpan.FromMinutes(5);
 
@@ -333,7 +344,7 @@ public sealed class MaintenanceService : BackgroundService
         CancellationToken stoppingToken)
     {
         using var timer = new PeriodicTimer(interval);
-        
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -359,10 +370,10 @@ public sealed class MaintenanceService : BackgroundService
     private async Task CleanupOrphanedFilesAsync(CancellationToken ct)
     {
         _logger.LogInformation("Starting orphaned file cleanup");
-        
+
         await using var scope = _scopeFactory.CreateAsyncScope();
         var cleanup = scope.ServiceProvider.GetRequiredService<IOrphanedFileCleanup>();
-        
+
         var deletedCount = await cleanup.CleanupAsync(ct);
         _logger.LogInformation("Cleanup complete: {Count} files removed", deletedCount);
     }
@@ -371,9 +382,9 @@ public sealed class MaintenanceService : BackgroundService
     {
         await using var scope = _scopeFactory.CreateAsyncScope();
         var healthChecker = scope.ServiceProvider.GetRequiredService<IServiceHealthChecker>();
-        
+
         var results = await healthChecker.CheckAllAsync(ct);
-        
+
         foreach (var (service, healthy) in results)
         {
             if (!healthy)
@@ -389,9 +400,15 @@ public sealed class MaintenanceService : BackgroundService
 Use `PeriodicTimer` (.NET 6+) instead of `Task.Delay` for periodic tasks. It accounts for execution time and provides more consistent intervals.
 </Callout>
 
+The `PeriodicTimer` was introduced in .NET 6 specifically for this kind of periodic background work, and it avoids the drift issues inherent in a `Task.Delay` loop.
+<ExternalCite title="PeriodicTimer Class" url="https://learn.microsoft.com/en-us/dotnet/api/system.threading.periodictimer" author="Microsoft" date="2024-09-10" />
+
 ## Retry Policies
 
 ### Polly Integration
+
+Polly's resilience pipelines integrate naturally with job handlers, providing exponential backoff and timeout protection for transient failures.
+<ExternalCite title="Polly v8 - Resilience and transient-fault-handling library" url="https://github.com/App-vNext/Polly" author="Polly Project" date="2024-10-05" />
 
 ```csharp
 // Application/Jobs/Handlers/ResilientJobHandler.cs
@@ -407,14 +424,14 @@ public sealed class ResilientJobHandler<T> : IJobHandler<T> where T : class
     {
         _inner = inner;
         _logger = logger;
-        
+
         _pipeline = new ResiliencePipelineBuilder()
             .AddRetry(new RetryStrategyOptions
             {
                 MaxRetryAttempts = 3,
                 Delay = TimeSpan.FromSeconds(2),
                 BackoffType = DelayBackoffType.Exponential,
-                ShouldHandle = new PredicateBuilder().Handle<Exception>(ex => 
+                ShouldHandle = new PredicateBuilder().Handle<Exception>(ex =>
                     ex is not InvalidOperationException),
                 OnRetry = args =>
                 {
@@ -437,13 +454,17 @@ public sealed class ResilientJobHandler<T> : IJobHandler<T> where T : class
 }
 ```
 
+<ImplementationNote>
+Tuning the retry policy for background jobs was trickier than I expected. Our initial configuration had `MaxRetryAttempts = 5` with a base delay of 1 second, which meant a failing job could block a worker for over 30 seconds with exponential backoff. During a brief outage of our OCR service, all three workers ended up stuck in retry loops and the channel queue backed up to capacity, causing the API to block on enqueue. I reduced retries to 3, added the 5-minute timeout as a hard ceiling, and -- most critically -- added a dead-letter mechanism: after exhausting retries, the job gets persisted to a `failed_jobs` table with the exception details so we can replay it later.
+</ImplementationNote>
+
 ## Registration
 
 ### Service Configuration
 
 ```csharp
 // Program.cs
-builder.Services.AddSingleton<IBackgroundJobQueue<DocumentProcessingJob>, 
+builder.Services.AddSingleton<IBackgroundJobQueue<DocumentProcessingJob>,
     BackgroundJobQueue<DocumentProcessingJob>>();
 
 builder.Services.AddScoped<IJobHandler<DocumentProcessingJob>, DocumentProcessingHandler>();
@@ -452,9 +473,12 @@ builder.Services.AddHostedService<QueuedHostedService<DocumentProcessingJob>>();
 builder.Services.AddHostedService<MaintenanceService>();
 
 // Decorator pattern for retry
-builder.Services.Decorate<IJobHandler<DocumentProcessingJob>, 
+builder.Services.Decorate<IJobHandler<DocumentProcessingJob>,
     ResilientJobHandler<DocumentProcessingJob>>();
 ```
+
+The Scrutor library provides the `Decorate` extension method used here, which simplifies applying the decorator pattern in the DI container.
+<ExternalCite title="Scrutor - Assembly scanning and decoration for Microsoft.Extensions.DependencyInjection" url="https://github.com/khellang/Scrutor" author="Kristian Hellang" date="2024-07-22" />
 
 ## Enqueueing Jobs
 
@@ -472,7 +496,7 @@ public sealed class UploadDocumentEndpoint : Endpoint<UploadDocumentRequest, Doc
         // Save document metadata
         var document = Document.Create(req.FileName, CurrentUser.CustomId);
         await _repository.AddAsync(document, ct);
-        
+
         // Queue background processing
         await _jobQueue.QueueAsync(new DocumentProcessingJob(
             document.Id,
@@ -480,7 +504,7 @@ public sealed class UploadDocumentEndpoint : Endpoint<UploadDocumentRequest, Doc
             $"{Environment}-{CurrentUser.CustomId}",
             document.ObjectKey,
             Environment), ct);
-        
+
         await SendCreatedAtAsync<GetDocumentEndpoint>(
             new { id = document.Id.Value },
             document.ToResponse());
@@ -490,7 +514,7 @@ public sealed class UploadDocumentEndpoint : Endpoint<UploadDocumentRequest, Doc
 
 ## Conclusion
 
-Background processing patterns:
+Background processing is one of those areas where the happy path is simple but production resilience requires careful thought. The patterns covered here -- `BackgroundService` for continuous loops, `Channel<T>` for bounded in-process queues, `PeriodicTimer` for scheduled work, and the handler-plus-decorator pattern for retry -- form a layered approach that has served us well across multiple services. The biggest lesson I took away is that every background job needs an explicit answer to: "What happens if this job is interrupted mid-execution?" If you cannot answer that question for every handler, you are not ready for production.
 
 | Pattern | Use Case | Characteristics |
 |---------|----------|-----------------|
@@ -499,10 +523,15 @@ Background processing patterns:
 | Timed Service | Scheduled tasks | Periodic execution |
 | Handler + Queue | Decoupled processing | Testable, scalable |
 
-Proper background job processing ensures responsive APIs while handling complex, long-running operations reliably.
+### Next Steps
+- [Error Handling and Resilience Patterns](/error-handling-resilience-patterns-dotnet)
+- [Integration Testing with Testcontainers](/integration-testing-dotnet-testcontainers)
+- [Caching Strategies in .NET with Redis](/dotnet-caching-strategies-redis)
 
-<ExternalCite 
-  title="Background tasks with hosted services in ASP.NET Core" 
-  url="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services"
-  author="Microsoft"
-/>
+### Further Reading
+- [Microsoft: Background tasks with hosted services](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services)
+- [System.Threading.Channels deep dive](https://learn.microsoft.com/en-us/dotnet/core/extensions/channels)
+- [Polly resilience and transient-fault-handling](https://github.com/App-vNext/Polly)
+- [Scrutor for DI decoration patterns](https://github.com/khellang/Scrutor)
+
+<ExternalCite title="Background tasks with hosted services in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services" author="Microsoft" date="2024-11-15" />

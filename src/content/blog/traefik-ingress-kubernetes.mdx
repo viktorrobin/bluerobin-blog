@@ -2,6 +2,7 @@
 title: "Traefik Ingress Controller on Kubernetes"
 description: "Configure Traefik as your Kubernetes ingress controller with TLS termination, middleware chains, and IngressRoutes for routing traffic."
 pubDate: 2024-04-07
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -13,6 +14,8 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first set up Traefik on my k3s cluster, I made the classic mistake of fighting against the default Traefik installation that k3s bundles. I wanted full control over the Helm values and middleware configuration, but every time I deployed my own Traefik instance, it would conflict with the built-in one. The breakthrough came when I learned to disable the bundled Traefik with `--disable traefik` in my k3s server flags and deploy my own via Flux. From there, getting HTTPS working with cert-manager, configuring security headers, and wiring up Authelia for forward authentication was a rewarding progression that turned a weekend project into a properly secured gateway.
 
 ## Introduction
 
@@ -28,6 +31,8 @@ Your Kubernetes cluster runs dozens of services, but they're all hidden behind i
 Traefik is the front door to everything—our Blazor web app, REST API, and internal tools. Its CRD-based configuration (IngressRoute) gives us more power than standard Kubernetes Ingress, while the middleware system handles cross-cutting concerns like auth forwarding and security headers.
 
 Traefik is a modern HTTP reverse proxy and load balancer that makes deploying microservices easy. In the Kubernetes ecosystem, it serves as an **Ingress Controller**, managing access to your services from the outside world.
+
+<ExternalCite title="Traefik Kubernetes Ingress Controller" url="https://doc.traefik.io/traefik/providers/kubernetes-ingress/" author="Traefik Labs" date="2024-08-01" />
 
 **Why Traefik Matters:**
 
@@ -185,6 +190,8 @@ spec:
 
 ## Middleware Configuration
 
+<ExternalCite title="Traefik Middlewares Overview" url="https://doc.traefik.io/traefik/middlewares/overview/" author="Traefik Labs" date="2024-08-01" />
+
 ### Common Middleware
 
 ```yaml
@@ -258,8 +265,8 @@ spec:
       - Remote-Groups
 ```
 
-<ImplementationNote>
-The `authResponseHeaders` forward Authelia user information to backend services, enabling user context without re-authentication.
+<ImplementationNote title="Getting forward auth headers right">
+I spent half a day debugging why my .NET API was not receiving user identity from Authelia. The Traefik ForwardAuth middleware was authenticating correctly, but the `Remote-User` header was being silently dropped. It turned out I had forgotten to list the headers in `authResponseHeaders` -- Traefik strips all response headers from the auth service by default for security reasons. Once I explicitly added `Remote-User`, `Remote-Email`, and `Remote-Groups` to this list, my API controller could read the authenticated user's identity without any re-authentication flow.
 </ImplementationNote>
 
 ### Middleware Chain
@@ -293,6 +300,8 @@ spec:
 ```
 
 ## IngressRoutes
+
+<ExternalCite title="Traefik IngressRoute" url="https://doc.traefik.io/traefik/routing/providers/kubernetes-crd/" author="Traefik Labs" date="2024-08-01" />
 
 ### API IngressRoute
 
@@ -358,6 +367,8 @@ Use route priority to ensure health check endpoints bypass authentication while 
 
 ## TLS Configuration
 
+<ExternalCite title="Traefik TLS Configuration" url="https://doc.traefik.io/traefik/https/tls/" author="Traefik Labs" date="2024-08-01" />
+
 ### cert-manager Certificate
 
 ```yaml
@@ -397,6 +408,10 @@ spec:
     secretName: myapp-tls
 ```
 
+<ImplementationNote title="TLS certificate reflection across namespaces">
+I initially created a separate cert-manager Certificate for each namespace, which quickly became a maintenance burden and burned through Let's Encrypt rate limits during testing. The solution was using the Reflector controller to mirror a single wildcard certificate from the `cert-manager` namespace into `myapp-staging`, `myapp-prod`, and `authelia`. The `reflection-allowed-namespaces` annotation controls exactly which namespaces receive the copy, and changes propagate automatically when the certificate renews. This reduced my cert-manager configuration from five Certificate resources down to one.
+</ImplementationNote>
+
 ## Load Balancing
 
 ### Sticky Sessions
@@ -429,8 +444,8 @@ spec:
     secretName: myapp-tls
 ```
 
-<ImplementationNote>
-Blazor Server requires sticky sessions to maintain SignalR connections to the same pod. Configure `sticky.cookie` for WebSocket affinity.
+<ImplementationNote title="Blazor Server and sticky session pain">
+Our Blazor Server app kept throwing `CircuitDisconnectedException` errors under load. Users would see the dreaded "Attempting to reconnect" overlay every few minutes. After hours of digging through SignalR logs, I realized the WebSocket connections were bouncing between pods. Traefik's default round-robin was distributing the initial HTTP request to one pod but the subsequent WebSocket upgrade to another. Adding `sticky.cookie` with `httpOnly: true` and `secure: true` fixed it immediately. The key insight was that Blazor Server is stateful -- each circuit lives on a specific pod, so session affinity is non-negotiable.
 </ImplementationNote>
 
 ### Weighted Routing (Canary)
@@ -524,8 +539,25 @@ Traefik provides comprehensive ingress management:
 
 Combined with Flux CD for GitOps deployment, Traefik enables secure, scalable traffic management for our services.
 
-<ExternalCite 
-  title="Traefik Documentation" 
+Traefik has become the component I interact with most in my cluster. Every new service deployment means a new IngressRoute, and the middleware chain pattern has saved me countless hours of duplicated security configuration. The initial learning curve -- especially around CRDs versus standard Ingress resources -- was steep, but the payoff in flexibility and observability has been well worth the investment.
+
+<ExternalCite title="Kubernetes Ingress Controllers: A Comprehensive Guide" url="https://kubernetes.io/docs/concepts/services-networking/ingress-controllers/" author="Kubernetes" date="2024-09-01" />
+
+### Next Steps
+
+- Implement [RBAC and Service Accounts](/kubernetes-rbac-service-accounts) to secure who can modify IngressRoutes
+- Add Grafana dashboards for Traefik metrics to monitor request latency and error rates
+- Explore TCP/UDP routing for non-HTTP services like databases or NATS
+
+### Further Reading
+
+- [Traefik Official Documentation](https://doc.traefik.io/traefik/) -- Complete reference for all Traefik features and providers
+- [cert-manager Documentation](https://cert-manager.io/docs/) -- Automated TLS certificate management for Kubernetes
+- [Authelia - Identity and Access Management](https://www.authelia.com/) -- The SSO portal used for forward authentication
+
+<ExternalCite
+  title="Traefik Documentation"
   url="https://doc.traefik.io/traefik/"
   author="Traefik Labs"
+  date="2024-08-01"
 />

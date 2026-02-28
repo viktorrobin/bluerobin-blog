@@ -2,6 +2,7 @@
 title: "GitOps with Flux CD: From Zero to Automated Deployments"
 description: "Learn how to implement GitOps for your Kubernetes cluster using Flux CD, including repository structure, Kustomize overlays, and automated image updates."
 pubDate: 2024-05-07
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -20,14 +21,16 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-GitOps is a deployment paradigm where Git is the single source of truth for your infrastructure and applications. By treating infrastructure as code (IaC) and using pull-based mechanisms, we eliminate configuration drift and enhance security. **Flux CD** is a CNCF graduated project that makes GitOps work seamlessly with Kubernetes.
+Before GitOps, deploying to my homelab was a manual SSH-into-the-node-and-kubectl-apply affair. One missed manifest, one forgotten ConfigMap update, and the cluster would drift from what I thought was running. Flux CD changed everything—now the Git repository IS the deployment. If I want to know what's running in production, I look at the Git log, not the cluster.
+
+GitOps is a deployment paradigm where Git is the single source of truth for your infrastructure and applications <ExternalCite title="GitOps Principles" url="https://opengitops.dev/" author="CNCF OpenGitOps" date="2024" />. By treating infrastructure as code (IaC) and using pull-based mechanisms, we eliminate configuration drift and enhance security. **Flux CD** is a CNCF graduated project that makes GitOps work seamlessly with Kubernetes <ExternalCite title="Flux CD Documentation" url="https://fluxcd.io/flux/" author="CNCF Flux Project" date="2024" />.
 
 **Why GitOps Matters:**
 
 - **Audit Trail**: Every change to your cluster is committed, versioned, and attributed in Git.
 - **Drift Correction**: The cluster automatically resets any manual changes that conflict with the Git state.
 - **Disaster Recovery**: You can rebuild your entire cluster state from scratch just by pointing Flux to your repository.
-- **Developer Agency**: Developers deploy by merging Pull Requests, not by running imperative CLI commands.
+- **Developer Agency**: Developers deploy by merging Pull Requests, not by running imperative CLI commands <ExternalCite title="Weaveworks Guide to GitOps" url="https://www.weave.works/technologies/gitops/" author="Weaveworks" date="2023" />.
 
 ### What We'll Build
 
@@ -96,9 +99,13 @@ This command performs several critical actions:
     Store your specific GitHub credentials securely. After this step, you rarely need admin credentials; Flux manages the cluster using its own Service Account.
 </Callout>
 
+<ImplementationNote>
+    The first time I bootstrapped Flux, the reconciliation loop went into an infinite cycle because my manifests had circular dependencies—a HelmRelease depending on a Secret that was created by an ExternalSecret that required the Helm chart to be installed first. I solved this by introducing a `core-infra` Kustomization with explicit `dependsOn` ordering that installs cert-manager and external-secrets before any application manifests.
+</ImplementationNote>
+
 ### Repository Structure Strategy
 
-A well-structured repository is key to managing complexity. We follow a pattern of **Base** definitions and **Overlays** for environments.
+A well-structured repository is key to managing complexity. We follow a pattern of **Base** definitions and **Overlays** for environments <ExternalCite title="Kustomize Documentation" url="https://kustomize.io/" author="Kubernetes SIG CLI" date="2024" />.
 
 ```plaintext
 my-infra/
@@ -134,7 +141,7 @@ resources:
 
 ### Multi-Environment Overlays
 
-We use Kustomize to patch base resources for different environments. This allows us to keep our "Base" DRY (Don't Repeat Yourself).
+We use Kustomize to patch base resources for different environments <ExternalCite title="Kubernetes Documentation" url="https://kubernetes.io/docs/home/" author="The Kubernetes Authors" date="2024" />. This allows us to keep our "Base" DRY (Don't Repeat Yourself).
 
 ### Base Configuration
 
@@ -179,6 +186,10 @@ spec:
               memory: "512Mi"
               cpu: "500m"
 ```
+
+<ImplementationNote>
+    We use Keel for automated image updates in staging—it polls the container registry every 30 seconds and updates the deployment when a new `:latest` tag appears. For production, we use a manual GitHub Actions workflow that commits an immutable image tag (e.g., `20260215143022-abc1234`) to the infra repository. Flux then detects the git change and reconciles.
+</ImplementationNote>
 
 ### Automated Image Updates
 
@@ -246,7 +257,7 @@ With this configured, when GitHub Actions pushes `v1.0.1`, Flux detects it, comm
 
 ## Conclusion
 
-We have established a robust GitOps pipeline. 
+We have established a robust GitOps pipeline.
 - **Git** is the source of truth.
 - **Kustomize** manages environment differences.
 - **Flux** automates the deployment of new container images.
@@ -256,3 +267,11 @@ This setup significantly reduces "fear of deployment" because every state change
 **Next Steps:**
 - Explore [External Secrets](/external-secrets-infisical-kubernetes) to handle sensitive data.
 - Set up [Slack Notifications](/nats-monitoring-prometheus-grafana) for deployment alerts.
+
+### Further Reading
+
+- [Flux CD Official Documentation](https://fluxcd.io/flux/) -- comprehensive guide to all Flux components, including source-controller, kustomize-controller, helm-controller, and image automation controllers.
+- [OpenGitOps Principles](https://opengitops.dev/) -- the CNCF working group's formal definition of GitOps principles, including declarative configuration, versioned and immutable storage, and continuous reconciliation.
+- [Kustomize Reference](https://kustomize.io/) -- full documentation on Kustomize overlays, strategic merge patches, and JSON patches for managing multi-environment Kubernetes manifests.
+- [GitOps with Flux v2 (Weaveworks)](https://www.weave.works/technologies/gitops/) -- the original GitOps guide from the team that coined the term, covering patterns, anti-patterns, and enterprise adoption strategies.
+- [Kubernetes Documentation](https://kubernetes.io/docs/home/) -- the official Kubernetes docs for understanding the underlying platform that Flux orchestrates.

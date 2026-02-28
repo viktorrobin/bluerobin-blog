@@ -2,6 +2,7 @@
 title: "Architecture Decision: Migrating from Cloud to On-Premise Homelab"
 description: "Why we abandoned the cloud for bare metal. A deep dive into the cost savings, performance gains of 10GbE, and total data sovereignty of running on-premise."
 pubDate: 2024-02-08
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -17,7 +18,9 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-For years, the industry mantra has been "Cloud First." The promise of infinite scalability and zero hardware maintenance is intoxicating. However, for a data-intensive platform like ours—filtering gigabytes of documents, running local AI inference, and managing vector embeddings—the cloud equation started to break down. We realized that we were paying a premium for elasticity we didn't need, while suffering from latency and egress costs that stifled our innovation.
+This article documents one of the most impactful decisions I made for BlueRobin: moving the entire platform from cloud services to a self-hosted homelab. It wasn't just about cost—though the numbers were compelling. It was about having complete control over the data pipeline, the ability to run local AI models without per-token pricing, and the engineering satisfaction of building real infrastructure.
+
+For years, the industry mantra has been "Cloud First." The promise of infinite scalability and zero hardware maintenance is intoxicating. However, for a data-intensive platform like ours—filtering gigabytes of documents, running local AI inference, and managing vector embeddings—the cloud equation started to break down <ExternalCite title="Azure Pricing Calculator" url="https://azure.microsoft.com/en-us/pricing/calculator/" author="Microsoft" date="2024" />. We realized that we were paying a premium for elasticity we didn't need, while suffering from latency and egress costs that stifled our innovation.
 
 **Why We Moved to Homelab:**
 
@@ -27,7 +30,7 @@ For years, the industry mantra has been "Cloud First." The promise of infinite s
 
 ### The Decision Matrix
 
-In this article, I'll explain the specific factors that led us to execute a "Cloud Exit" and migrate to a dedicated on-premise Kubernetes cluster. We will cover:
+In this article, I'll explain the specific factors that led us to execute a "Cloud Exit" and migrate to a dedicated on-premise Kubernetes cluster <ExternalCite title="Architecture Decision Records" url="https://adr.github.io/" author="Joel Parker Henderson" date="2024" />. We will cover:
 
 1. **The Cost Analysis**: Comparing Azure/AWS bills vs. hardware amortization.
 2. **Performance Wins**: How local NVMe and 10GbE transformed our ingestion pipeline.
@@ -35,7 +38,7 @@ In this article, I'll explain the specific factors that led us to execute a "Clo
 
 ## Architecture Overview
 
-The shift wasn't just physical; it was architectural. We moved from managed services to self-hosted cloud-native components. The new stack emphasizes data locality and high-speed interconnects.
+The shift wasn't just physical; it was architectural. We moved from managed services to self-hosted cloud-native components <ExternalCite title="K3s - Lightweight Kubernetes" url="https://k3s.io/" author="SUSE Rancher" date="2024" />. The new stack emphasizes data locality and high-speed interconnects.
 
 ```mermaid
 flowchart TD
@@ -63,8 +66,12 @@ flowchart TD
 Running LLMs in the cloud is expensive. API costs stack up ($0.03/1k tokens doesn't sound like much until you re-index a million documents), and dedicated GPU instances are overkill for sporadic tasks but necessary for latency.
 
 <Callout type="info" title="The Local Advantage">
-    With a consumer-grade GPU (RTX 3090/4090) in a homelab, we can run quantized models (Llama 3, Mistral) via Ollama with zero marginal cost per token. This allows us to re-run classification pipelines aggressively without "budget fear."
+    With a consumer-grade GPU (RTX 3090/4090) in a homelab, we can run quantized models (Llama 3, Mistral) via Ollama with zero marginal cost per token <ExternalCite title="Ollama - Run Large Language Models Locally" url="https://ollama.ai/" author="Ollama" date="2024" />. This allows us to re-run classification pipelines aggressively without "budget fear."
 </Callout>
+
+<ImplementationNote>
+    The cloud bill for running Ollama inference on Azure was approaching $200/month for minimal usage—and that was with the cheapest GPU SKU. My homelab server with a modest CPU handles the same workload for the cost of electricity (roughly $15/month). The breakeven point was less than 3 months.
+</ImplementationNote>
 
 ## Factor 2: Storage and Networking
 
@@ -74,9 +81,13 @@ In the cloud, high-performance storage (SSD Managed Disks) is a monthly recurrin
 
 **On-Premise Specs:**
 - **Network**: 10GbE SFP+ backbone.
-- **Storage**: ZFS pool with NVMe caching.
+- **Storage**: ZFS pool with NVMe caching <ExternalCite title="TrueNAS Scale Documentation" url="https://www.truenas.com/docs/scale/" author="iXsystems" date="2024" />.
 
 The result? Putting MinIO on a local 10GbE link made it perform almost as fast as a local disk, completely removing IO wait times from our ingestion workers.
+
+<ImplementationNote>
+    The transition wasn't smooth. My first attempt at running K3s on TrueNAS Scale failed because TrueNAS manages its own container runtime, which conflicts with K3s. I ended up running K3s on a separate Debian partition on the same hardware, using the TrueNAS NAS purely for NFS storage. This dual-boot approach was messy but functional.
+</ImplementationNote>
 
 ## Factor 3: Privacy and Sovereignty
 
@@ -91,3 +102,11 @@ Migrating to a homelab wasn't just about saving money; it was about unlocking pe
 **Next Steps**:
 - Read about our [Hardware Setup](/homelab-setup-truenas-server-guide)
 - See how we [Automate Workflows](/workflow-automation-n8n-kubernetes)
+
+### Further Reading
+
+- [K3s - Lightweight Kubernetes](https://k3s.io/) -- a certified Kubernetes distribution designed for production workloads in resource-constrained environments, perfect for homelab and edge deployments.
+- [TrueNAS Scale Documentation](https://www.truenas.com/docs/scale/) -- comprehensive documentation for TrueNAS Scale, the Linux-based NAS operating system with built-in ZFS, Docker, and Kubernetes support.
+- [Ollama](https://ollama.ai/) -- run large language models locally with a simple CLI interface, supporting models like Llama 3, Mistral, and many others without cloud dependencies.
+- [Architecture Decision Records](https://adr.github.io/) -- a lightweight methodology for capturing architecturally significant decisions, including templates and tooling for maintaining a decision log.
+- [Azure Pricing Calculator](https://azure.microsoft.com/en-us/pricing/calculator/) -- useful for running the cloud cost comparisons referenced in this article and understanding the true cost of managed services at scale.

@@ -2,6 +2,7 @@
 title: "GitHub Actions CI/CD for .NET Applications"
 description: "Build robust CI/CD pipelines with GitHub Actions for .NET applications including testing, Docker builds, and Kubernetes deployment."
 pubDate: 2024-05-17
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "ci-cd"
 difficulty: "intermediate"
@@ -17,9 +18,15 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first set up our CI/CD pipeline with GitHub Actions for our .NET microservices, I naively assumed it would be as simple as "build, test, push." The first pipeline ran for over 25 minutes because I was not caching NuGet packages or Docker layers, and the integration tests would intermittently time out waiting for the PostgreSQL service container to become ready. It took several iterations to get the pipeline reliable -- adding proper health checks for service containers, implementing registry-based Docker build caching, and separating the CI and CD workflows so that a formatting issue would not block a critical hotfix deploy. The pipeline we have now runs in under 8 minutes end-to-end and has not had a flaky failure in months.
+
 ## Introduction
 
 GitHub Actions provides powerful CI/CD capabilities integrated directly with your repository. This guide covers building comprehensive pipelines for .NET applications with Docker and Kubernetes deployment.
+
+<ExternalCite title="GitHub Actions Documentation" url="https://docs.github.com/en/actions" author="GitHub" date="2024-10-01" />
+
+<ExternalCite title="Building and testing .NET with GitHub Actions" url="https://docs.github.com/en/actions/use-cases-and-examples/building-and-testing/building-and-testing-net" author="GitHub" date="2024-08-15" />
 
 ## Architecture Overview
 

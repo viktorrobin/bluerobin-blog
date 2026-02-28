@@ -2,6 +2,7 @@
 title: "Remote VS Code Development on Kubernetes with Dev Containers"
 description: "How to run a full development environment remotely with VS Code, Kubernetes, and a persistent dev container pod."
 pubDate: 2025-06-06
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -12,10 +13,16 @@ toc: true
 
 import Callout from "@components/Callout.astro";
 import CodeFile from "@components/CodeFile.astro";
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured remote VS Code development against our k3s cluster, I expected it to be a quick afternoon project. Instead, I spent three days wrestling with intermittent disconnections, volume permission errors, and figuring out the right container lifecycle strategy. The biggest surprise was that running an SSH daemon inside the pod was completely unnecessary -- `sleep infinity` combined with `kubectl exec` turned out to be both simpler and more secure. Once I got persistent storage working with a StatefulSet, the workflow became remarkably smooth, and I have not looked back at local-only development since.
 
 Developing against a Kubernetes cluster from a local machine means port-forwarding, VPN tunnels, and environment variable gymnastics. An alternative: run your IDE's backend **inside the cluster** as a persistent pod. VS Code connects remotely via the Kubernetes extension, and your code has native access to every cluster service.
 
 ## Why Remote Development?
+
+<ExternalCite title="VS Code Remote Development Overview" url="https://code.visualstudio.com/docs/remote/remote-overview" author="Microsoft" date="2024-11-15" />
 
 | Concern | Local Dev | Remote (in-cluster) |
 |---------|----------|-------------------|
@@ -28,6 +35,8 @@ Developing against a Kubernetes cluster from a local machine means port-forwardi
 ## Pod Specification
 
 A dev container pod with persistent storage and access to cluster services:
+
+<ExternalCite title="StatefulSets" url="https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/" author="Kubernetes Documentation" date="2024-08-20" />
 
 <CodeFile filename="dev-container.yaml">
 ```yaml
@@ -78,6 +87,10 @@ spec:
 The container just needs to stay alive. VS Code handles the IDE server lifecycle. Don't run a shell or SSH daemon — sleep infinity with kubectl exec is simpler and more secure.
 </Callout>
 
+<ImplementationNote title="Volume Permission Headaches">
+When I first deployed the StatefulSet, the workspace PVC mounted as root-owned and VS Code's server process could not write its configuration files. I spent hours trying different `securityContext` settings before realizing the simplest fix was running the container as root (acceptable in a dev-only namespace with NetworkPolicies restricting egress). In production you would use an init container to `chown` the volume, but for a dev pod, pragmatism won out over purity.
+</ImplementationNote>
+
 ## VS Code Connection
 
 ### Option 1: Kubernetes Extension
@@ -89,6 +102,8 @@ The container just needs to stay alive. VS Code handles the IDE server lifecycle
 ### Option 2: Remote SSH with kubectl exec
 
 For a more stable connection, use the VS Code Remote - SSH extension with a ProxyCommand:
+
+<ExternalCite title="Remote Development using SSH" url="https://code.visualstudio.com/docs/remote/ssh" author="Microsoft" date="2024-10-01" />
 
 ```
 # ~/.ssh/config
@@ -111,6 +126,10 @@ rsync -avz --exclude='bin/' --exclude='obj/' \
 kubectl exec -n dev dev-container-0 -c dev -- \
   git clone https://github.com/org/repo.git /workspace/repo
 ```
+
+<ImplementationNote title="Rsync vs Git for Workspace Sync">
+I tried both approaches extensively. Rsync felt natural at first, but the delay between saving a file locally and it appearing in the container added noticeable friction -- about 200-400ms per sync on our network. Switching to a pure git-based workflow inside the container eliminated this entirely. I clone the repo directly in the pod, make all edits via the VS Code remote window, and push commits from inside the cluster. The only downside is that I need to remember to push before the pod restarts, which the persistent volume handles gracefully anyway.
+</ImplementationNote>
 
 ## VS Code Tasks
 
@@ -146,6 +165,8 @@ Define tasks that run inside the container:
 
 Inside the dev pod, all cluster services are reachable via DNS:
 
+<ExternalCite title="DNS for Services and Pods" url="https://kubernetes.io/docs/concepts/services-networking/dns-pod-service/" author="Kubernetes Documentation" date="2024-06-12" />
+
 ```bash
 # From inside the dev container:
 curl http://ollama.ai.svc.cluster.local:11434/api/tags
@@ -158,6 +179,8 @@ No port forwarding, no VPN, no environment variable juggling.
 ## Secrets
 
 Mount secrets from your vault using ExternalSecrets, just like production:
+
+<ExternalCite title="ExternalSecrets Operator" url="https://external-secrets.io/latest/introduction/overview/" author="External Secrets Community" date="2024-09-15" />
 
 ```yaml
 apiVersion: external-secrets.io/v1beta1
@@ -178,6 +201,12 @@ spec:
         key: DEV_POSTGRES_CONNECTION_STRING
 ```
 
+<ImplementationNote title="Secret Refresh Gotcha">
+I initially set the ExternalSecret `refreshInterval` to 24 hours for the dev namespace, thinking it would reduce API calls to Infisical. That turned out to be a mistake -- when I rotated the PostgreSQL password one morning, my dev container kept using the old credentials until the next day. I now use a 1-hour refresh interval for dev secrets, which strikes a decent balance between API load and freshness. For truly urgent rotations, a quick `kubectl delete secret dev-secrets` forces an immediate re-sync.
+</ImplementationNote>
+
+<ExternalCite title="Remote Development Tips and Tricks" url="https://code.visualstudio.com/docs/remote/troubleshooting" author="Microsoft" date="2024-07-20" />
+
 ## Key Takeaways
 
 - Run your dev environment **inside the cluster** for native service access
@@ -186,7 +215,18 @@ spec:
 - Mount secrets with **ExternalSecrets** — same mechanism as staging/production
 - Define **VS Code tasks** that kubectl exec into the pod for build/test/run
 
+Moving to an in-cluster development workflow was one of the most impactful changes I made to my homelab setup. The immediate payoff is eliminating the "works on my machine" problem entirely -- when your IDE runs in the same network as your services, the gap between development and production shrinks dramatically. The initial setup takes effort, but the daily time savings in not managing port-forwards and VPN tunnels have been well worth it.
+
+## Next Steps
+
+- Add GPU passthrough to the dev container for testing ML workloads locally
+- Experiment with [DevPod](https://devpod.sh/) as an alternative to manual StatefulSet management
+- Configure VS Code profiles to auto-select the right extensions and settings for remote sessions
+- Set up pre-commit hooks that run inside the container for consistent formatting
+
 ## Related Reading
 
 - [VS Code Remote Development](https://code.visualstudio.com/docs/remote/remote-overview)
 - [Kubernetes StatefulSets](https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/)
+- [Dev Containers Specification](https://containers.dev/)
+- [Persistent Volumes in Kubernetes](https://kubernetes.io/docs/concepts/storage/persistent-volumes/)

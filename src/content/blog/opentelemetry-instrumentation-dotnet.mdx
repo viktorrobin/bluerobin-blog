@@ -2,6 +2,7 @@
 title: "OpenTelemetry Instrumentation for .NET"
 description: "Implement distributed tracing, metrics, and logging with OpenTelemetry in .NET applications for full observability."
 pubDate: 2025-07-30
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "observability"
 difficulty: "intermediate"
@@ -14,11 +15,16 @@ toc: true
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
+import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first tackled observability for our distributed system, I made the classic mistake of reaching for application logs and hoping they would tell me what was going wrong. Spoiler: they did not. It was not until I invested properly in OpenTelemetry that I could actually trace a request from the API gateway through NATS messaging, into the OCR worker, and back to the database. The clarity it provided was transformative, and I genuinely cannot imagine running a microservices system without it now. This guide captures every lesson I learned setting up comprehensive instrumentation in .NET.
 
 ## Introduction
 
 When a user reports "the app is slow," where do you start looking? In a distributed system with APIs, workers, databases, and external services, the problem could be anywhere. Without proper instrumentation, you're debugging in the dark.
+
+<ExternalCite title="OpenTelemetry Specification" url="https://opentelemetry.io/docs/specs/otel/" author="OpenTelemetry" date="2024" />
 
 **Why OpenTelemetry Matters:**
 
@@ -62,11 +68,11 @@ flowchart TB
     API --> SDK
     Web --> SDK
     Workers --> SDK
-    
+
     Traces --> Recv
     Metrics --> Recv
     Logs --> Recv
-    
+
     Recv --> Proc --> Exp
     Exp --> Jaeger
     Exp --> Prom
@@ -100,6 +106,8 @@ OpenTelemetry provides vendor-neutral observability instrumentation. This guide 
 <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.9.0" />
 ```
 
+<ExternalCite title="OpenTelemetry .NET Getting Started" url="https://opentelemetry.io/docs/languages/net/getting-started/" author="OpenTelemetry" date="2024" />
+
 ## Tracing Configuration
 
 ### Basic Setup
@@ -114,7 +122,7 @@ builder.Services.AddOpenTelemetry()
             serviceInstanceId: Environment.MachineName)
         .AddAttributes(new[]
         {
-            new KeyValuePair<string, object>("deployment.environment", 
+            new KeyValuePair<string, object>("deployment.environment",
                 builder.Environment.EnvironmentName.ToLowerInvariant())
         }))
     .WithTracing(tracing => tracing
@@ -126,14 +134,14 @@ builder.Services.AddOpenTelemetry()
             options.RecordException = true;
             options.EnrichWithHttpRequest = (activity, request) =>
             {
-                activity.SetTag("http.request.header.x-request-id", 
+                activity.SetTag("http.request.header.x-request-id",
                     request.Headers["X-Request-Id"].FirstOrDefault());
             };
         })
         .AddHttpClientInstrumentation(options =>
         {
             options.RecordException = true;
-            options.FilterHttpRequestMessage = msg => 
+            options.FilterHttpRequestMessage = msg =>
                 msg.RequestUri?.Host != "localhost";
         })
         .AddEntityFrameworkCoreInstrumentation(options =>
@@ -147,6 +155,10 @@ builder.Services.AddOpenTelemetry()
             options.Protocol = OtlpExportProtocol.Grpc;
         }));
 ```
+
+<ImplementationNote title="Filtering Health Check Noise">
+When I first enabled ASP.NET Core automatic instrumentation, I was overwhelmed by the volume of traces. Kubernetes health probes were hitting our `/health` endpoint every 10 seconds across multiple pods, generating thousands of useless spans per hour. Adding the `Filter` option to exclude health check paths was one of the first things I did, and it immediately made the trace data useful. I also learned to filter out localhost calls from HttpClient instrumentation, since inter-service calls through the sidecar proxy were cluttering the trace view.
+</ImplementationNote>
 
 ### Activity Sources
 
@@ -173,7 +185,7 @@ public sealed class DocumentService : IDocumentService
     private readonly ILogger<DocumentService> _logger;
 
     public async Task<Document> ProcessDocumentAsync(
-        DocumentId documentId, 
+        DocumentId documentId,
         CancellationToken ct = default)
     {
         using var activity = ActivitySources.Api.StartActivity("ProcessDocument");
@@ -184,7 +196,7 @@ public sealed class DocumentService : IDocumentService
             // Add event for document retrieval
             activity?.AddEvent(new ActivityEvent("FetchingDocument"));
             var document = await _repository.GetByIdAsync(documentId, ct);
-            
+
             if (document is null)
             {
                 activity?.SetStatus(ActivityStatusCode.Error, "Document not found");
@@ -198,15 +210,15 @@ public sealed class DocumentService : IDocumentService
             using (var embeddingActivity = ActivitySources.Api.StartActivity("GenerateEmbeddings"))
             {
                 embeddingActivity?.SetTag("content.length", document.Content?.Length ?? 0);
-                
+
                 var embeddings = await _embeddings.GenerateAsync(document.Content!, ct);
-                
+
                 embeddingActivity?.SetTag("embeddings.count", embeddings.Length);
                 document.SetEmbeddings(embeddings);
             }
 
             await _repository.UpdateAsync(document, ct);
-            
+
             activity?.SetStatus(ActivityStatusCode.Ok);
             return document;
         }
@@ -248,6 +260,8 @@ builder.Services.AddOpenTelemetry()
         }));
 ```
 
+<ExternalCite title="OpenTelemetry Metrics API for .NET" url="https://opentelemetry.io/docs/languages/net/instrumentation/#metrics" author="OpenTelemetry" date="2024" />
+
 ### Custom Metrics
 
 ```csharp
@@ -259,28 +273,28 @@ public sealed class DocumentMetrics : IDisposable
     private readonly Counter<long> _processingErrors;
     private readonly Histogram<double> _processingDuration;
     private readonly ObservableGauge<int> _pendingDocuments;
-    
+
     private int _pendingCount;
 
     public DocumentMetrics()
     {
         _meter = new Meter("MyApp.Documents", "1.0.0");
-        
+
         _documentsProcessed = _meter.CreateCounter<long>(
             "documents.processed",
             unit: "{document}",
             description: "Number of documents processed");
-        
+
         _processingErrors = _meter.CreateCounter<long>(
             "documents.processing.errors",
             unit: "{error}",
             description: "Number of document processing errors");
-        
+
         _processingDuration = _meter.CreateHistogram<double>(
             "documents.processing.duration",
             unit: "ms",
             description: "Document processing duration");
-        
+
         _pendingDocuments = _meter.CreateObservableGauge(
             "documents.pending",
             () => _pendingCount,
@@ -290,7 +304,7 @@ public sealed class DocumentMetrics : IDisposable
 
     public void RecordProcessed(string documentType)
     {
-        _documentsProcessed.Add(1, 
+        _documentsProcessed.Add(1,
             new KeyValuePair<string, object?>("document.type", documentType));
     }
 
@@ -324,11 +338,11 @@ public sealed class DocumentProcessingService : IDocumentProcessingService
     public async Task ProcessAsync(Document document, CancellationToken ct)
     {
         var sw = Stopwatch.StartNew();
-        
+
         try
         {
             await ProcessInternalAsync(document, ct);
-            
+
             sw.Stop();
             _metrics.RecordProcessed(document.Type);
             _metrics.RecordDuration(sw.Elapsed.TotalMilliseconds, document.Type);
@@ -374,18 +388,18 @@ public async Task<Document> GetByIdAsync(DocumentId id, CancellationToken ct)
     });
 
     _logger.LogInformation("Fetching document {DocumentId}", id.Value);
-    
+
     var document = await _repository.GetByIdAsync(id, ct);
-    
+
     if (document is null)
     {
         _logger.LogWarning("Document {DocumentId} not found", id.Value);
         return null;
     }
 
-    _logger.LogDebug("Document {DocumentId} retrieved, size: {Size} bytes", 
+    _logger.LogDebug("Document {DocumentId} retrieved, size: {Size} bytes",
         id.Value, document.Size);
-    
+
     return document;
 }
 ```
@@ -420,7 +434,7 @@ public sealed class BaggageMiddleware
         }
 
         // Add request ID
-        var requestId = context.Request.Headers["X-Request-Id"].FirstOrDefault() 
+        var requestId = context.Request.Headers["X-Request-Id"].FirstOrDefault()
             ?? Guid.NewGuid().ToString("N");
         Baggage.SetBaggage("request.id", requestId);
         context.Response.Headers["X-Request-Id"] = requestId;
@@ -429,6 +443,8 @@ public sealed class BaggageMiddleware
     }
 }
 ```
+
+<ExternalCite title="W3C Trace Context Specification" url="https://www.w3.org/TR/trace-context/" author="W3C" date="2024" />
 
 ## Sampling Configuration
 
@@ -462,6 +478,10 @@ public sealed class DocumentProcessingSampler : Sampler
 }
 ```
 
+<ImplementationNote title="Getting Sampling Right in Production">
+I initially deployed with `AlwaysOnSampler` in production because I wanted complete visibility. Within hours, our collector was overwhelmed and started dropping spans. The storage costs were also alarming. Switching to 10% ratio-based sampling felt like flying blind at first, but I quickly realized that for identifying patterns and anomalies, 10% of high-traffic data is more than sufficient. The key insight was configuring the custom sampler to always capture error traces at 100% -- that way, we never miss a failure even when sampling aggressively.
+</ImplementationNote>
+
 ## Configuration Summary
 
 ```csharp
@@ -474,13 +494,13 @@ public static class TelemetryExtensions
         string serviceName)
     {
         services.AddSingleton<DocumentMetrics>();
-        
+
         services.AddOpenTelemetry()
             .ConfigureResource(resource => resource
                 .AddService(serviceName)
                 .AddAttributes(new[]
                 {
-                    new KeyValuePair<string, object>("deployment.environment", 
+                    new KeyValuePair<string, object>("deployment.environment",
                         configuration["Environment"] ?? "development")
                 }))
             .WithTracing(tracing => tracing
@@ -510,8 +530,20 @@ public static class TelemetryExtensions
 
 OpenTelemetry provides unified observability that integrates seamlessly with SigNoz, Jaeger, Prometheus, and other backends.
 
-<ExternalCite 
-  title="OpenTelemetry .NET Documentation" 
-  url="https://opentelemetry.io/docs/languages/net/"
-  author="OpenTelemetry"
-/>
+Implementing OpenTelemetry was one of those investments that paid for itself almost immediately. The first time I used a distributed trace to pinpoint a slow database query that was hidden behind three layers of service calls, I knew there was no going back. If you are running any kind of distributed system, I cannot recommend strongly enough that you invest in proper instrumentation from day one. The debugging time it saves is enormous, and the confidence it gives you when deploying changes to production is invaluable.
+
+<ExternalCite title="OpenTelemetry .NET Documentation" url="https://opentelemetry.io/docs/languages/net/" author="OpenTelemetry" date="2024" />
+
+### Next Steps
+
+- Integrate OpenTelemetry traces with [Benchmarking and Stress Testing](/microservices-benchmarking-and-stress-testing) to correlate load patterns with trace data.
+- Add custom metrics for business-level KPIs like document processing throughput and error rates by category.
+- Configure the OpenTelemetry Collector with tail-based sampling for smarter trace retention in high-traffic environments.
+- Explore building custom Grafana dashboards that combine traces, metrics, and logs into a single pane of glass.
+
+### Further Reading
+
+- [OpenTelemetry .NET Documentation](https://opentelemetry.io/docs/languages/net/) -- Official guide covering all SDK components and instrumentation libraries.
+- [Distributed Tracing in Practice by Austin Parker et al.](https://www.oreilly.com/library/view/distributed-tracing-in/9781492056621/) -- Comprehensive book on distributed tracing concepts and implementation.
+- [SigNoz Documentation](https://signoz.io/docs/) -- Open-source APM and observability platform built on OpenTelemetry.
+- [OpenTelemetry Collector Configuration](https://opentelemetry.io/docs/collector/configuration/) -- Guide to setting up processors, exporters, and sampling in the collector.

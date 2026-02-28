@@ -2,6 +2,7 @@
 title: "Error Handling and Resilience Patterns in .NET"
 description: "Implement robust error handling with Result patterns, global exception handling, and Polly resilience policies in .NET applications."
 pubDate: 2025-01-06
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -14,9 +15,12 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first configured Polly circuit breakers for our external OCR service, I set the failure threshold too aggressively -- three failures in ten seconds would trip the breaker for a full minute. In development this felt safe, but in production the OCR service had occasional cold-start latency spikes that looked like failures. The circuit breaker would trip during perfectly normal operation, cutting off document processing for a minute at a time. Users would upload a PDF and get an immediate error, even though the OCR service was actually healthy. Tuning those thresholds required weeks of production observation and multiple adjustments before we found the right balance between sensitivity and stability.
+
 ## Introduction
 
-Robust systems must anticipate and handle failures gracefully. In distributed architectures, errors are inevitable—services timeout, databases lock, and networks partition. Relying solely on try-catch blocks often leads to "exception-driven logic" which is hard to reason about and expensive at runtime. This guide explores implementing resilient error handling in .NET using the Result pattern for domain logic and Polly policies for infrastructure resilience, ensuring system stability under pressure.
+Robust systems must anticipate and handle failures gracefully. In distributed architectures, errors are inevitable--services timeout, databases lock, and networks partition. Relying solely on try-catch blocks often leads to "exception-driven logic" which is hard to reason about and expensive at runtime. This guide explores implementing resilient error handling in .NET using the Result pattern for domain logic and Polly policies for infrastructure resilience, ensuring system stability under pressure.
+<ExternalCite title="Polly - Resilience and transient-fault-handling library for .NET" url="https://github.com/App-vNext/Polly" author="Polly Project" date="2024-10-05" />
 
 ## Architecture Overview
 
@@ -25,13 +29,13 @@ The following diagram illustrates the multi-layered error handling strategy, fro
 ```mermaid
 flowchart TB
     Client["📱 Client"] --> API["🛡️ API Endpoint<br/>(Global Exception Handler)"]
-    
+
     subgraph App["Application Layer"]
         Service["⚙️ Service Layer<br/>(Result Pattern)"]
         Retry["🔄 Polly Retry Policy"]
         Breaker["⚡ Circuit Breaker"]
     end
-    
+
     subgraph Ext["External Systems"]
         DB[("🗄️ Database")]
         Remote["☁️ External API"]
@@ -39,7 +43,7 @@ flowchart TB
 
     API --> Service
     Service -->|Success/Failure| API
-    
+
     Service --> DB
     Service --> Retry
     Retry --> Breaker
@@ -59,6 +63,9 @@ flowchart TB
 ## Implementation
 
 ### Result Pattern
+
+The Result pattern enforces explicit success and failure handling without relying on exceptions for control flow, a principle advocated by many functional programming practitioners.
+<ExternalCite title="Railway Oriented Programming" url="https://fsharpforfunandprofit.com/rop/" author="Scott Wlaschin" date="2024-01-10" />
 
 #### Result Type Implementation
 
@@ -152,7 +159,7 @@ public sealed class DocumentService : IDocumentService
         CancellationToken ct = default)
     {
         var document = await _repository.GetByIdAsync(id, ct);
-        
+
         if (document is null)
         {
             return Result.Failure<Document>(
@@ -181,7 +188,7 @@ public sealed class DocumentService : IDocumentService
 
         var document = Document.Create(command.Name, command.OwnerId);
         await _repository.AddAsync(document, ct);
-        
+
         return Result.Success(document.Id);
     }
 }
@@ -240,6 +247,9 @@ public sealed class GetDocumentEndpoint : Endpoint<GetDocumentRequest, DocumentR
 
 #### Exception Handling Middleware
 
+The `IExceptionHandler` interface was introduced in .NET 8 as the recommended way to handle unhandled exceptions globally, replacing the older middleware approach.
+<ExternalCite title="Handle errors in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/error-handling" author="Microsoft" date="2024-11-10" />
+
 ```csharp
 // Api/Middleware/GlobalExceptionHandler.cs
 public sealed class GlobalExceptionHandler : IExceptionHandler
@@ -267,28 +277,28 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
                 Detail = ex.Message,
                 Extensions = { ["errors"] = ex.Errors }
             }),
-            
+
             NotFoundException ex => (404, new ProblemDetails
             {
                 Status = 404,
                 Title = "Not Found",
                 Detail = ex.Message
             }),
-            
+
             UnauthorizedAccessException => (403, new ProblemDetails
             {
                 Status = 403,
                 Title = "Forbidden",
                 Detail = "You don't have permission to access this resource"
             }),
-            
+
             OperationCanceledException => (499, new ProblemDetails
             {
                 Status = 499,
                 Title = "Request Cancelled",
                 Detail = "The request was cancelled"
             }),
-            
+
             _ => (500, new ProblemDetails
             {
                 Status = 500,
@@ -299,9 +309,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 
         context.Response.StatusCode = statusCode;
         context.Response.ContentType = "application/problem+json";
-        
+
         await context.Response.WriteAsJsonAsync(errorResponse, ct);
-        
+
         return true;
     }
 }
@@ -310,6 +320,9 @@ public sealed class GlobalExceptionHandler : IExceptionHandler
 <Callout type="warning">
 Never expose internal exception details in production. Use `ProblemDetails` with generic messages while logging full details server-side.
 </Callout>
+
+The `ProblemDetails` format follows RFC 9457, which standardizes error responses for HTTP APIs and improves interoperability with API consumers.
+<ExternalCite title="RFC 9457 - Problem Details for HTTP APIs" url="https://www.rfc-editor.org/rfc/rfc9457" author="IETF" date="2024-03-01" />
 
 ### Polly Resilience
 
@@ -352,7 +365,14 @@ public static class ResilienceExtensions
 }
 ```
 
+<ImplementationNote>
+Tuning the circuit breaker was the hardest part of our resilience setup. The initial `MinimumThroughput` of 3 meant the breaker could trip after just 2 failures in a low-traffic period, causing false positives. I raised it to 10 to ensure the breaker only trips under meaningful load. The `SamplingDuration` of 30 seconds with a `FailureRatio` of 0.5 means at least 5 out of 10 requests must fail within a 30-second window before the breaker opens. I also learned that `UseJitter = true` on the retry policy is not optional in a distributed system -- without it, all retrying clients hit the recovering service at the exact same intervals, creating a synchronized retry storm that looks just like the original spike.
+</ImplementationNote>
+
 #### Using Resilience in HttpClient
+
+The `AddStandardResilienceHandler` extension from `Microsoft.Extensions.Http.Resilience` provides a pre-configured resilience pipeline that follows Microsoft's recommended defaults for HTTP clients.
+<ExternalCite title="Build resilient HTTP apps with Microsoft.Extensions.Http.Resilience" url="https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience" author="Microsoft" date="2024-09-25" />
 
 ```csharp
 // Program.cs
@@ -444,6 +464,10 @@ public sealed class ConflictException : DomainException
 }
 ```
 
+<ImplementationNote>
+We use both the Result pattern and domain exceptions, and it took time to find the right boundary. The rule we settled on: the Result pattern is for expected business failures (not found, validation, authorization), while exceptions are reserved for truly unexpected situations (database connectivity, serialization failures, infrastructure errors). This means service methods return `Result<T>` for normal flows, and the global exception handler catches everything else as a last resort. Initially I tried to make everything use Result, but propagating Results through five layers of middleware and decorators was more ceremony than it was worth for infrastructure errors that should never happen under normal operation.
+</ImplementationNote>
+
 ### Error Response Models
 
 #### Standard Error Response
@@ -475,10 +499,17 @@ public sealed record ValidationErrorResponse(
 
 ## Conclusion
 
-By combining the Result pattern for domain logic with Polly's resilience strategies, we create a defense-in-depth approach to error handling. This limits the blast radius of failures and provides a predictable experience for both developers and end-users. The Result pattern eliminates the ambiguity of exceptions for flow control, while Polly ensures that transient faults in external systems don't cascade through the application.
+Error handling and resilience are not features you bolt on at the end -- they shape the architecture of your entire application. The combination of the Result pattern for domain-level errors and Polly for infrastructure resilience creates clear boundaries: business logic never throws exceptions for expected cases, and transient infrastructure failures are absorbed by retry and circuit breaker policies before they reach the user. The hardest lesson I learned was that resilience configuration is not something you get right on the first try. Every threshold, every timeout, every retry count needs to be tuned against real production traffic patterns. Start with conservative defaults, instrument everything with metrics, and iterate based on what you observe. The goal is not to prevent all failures -- it is to ensure that failures are handled predictably, communicated clearly, and recovered from automatically whenever possible.
 
-<ExternalCite 
-  title="Polly Documentation" 
-  url="https://github.com/App-vNext/Polly"
-  author="Polly Project"
-/>
+<ExternalCite title="Polly Documentation" url="https://github.com/App-vNext/Polly" author="Polly Project" date="2024-10-05" />
+
+### Next Steps
+- [Background Job Processing in .NET](/dotnet-background-job-processing)
+- [Caching Strategies in .NET with Redis](/dotnet-caching-strategies-redis)
+- [Integration Testing with Testcontainers](/integration-testing-dotnet-testcontainers)
+
+### Further Reading
+- [Polly resilience and transient-fault-handling library](https://github.com/App-vNext/Polly)
+- [Microsoft: Build resilient HTTP apps](https://learn.microsoft.com/en-us/dotnet/core/resilience/http-resilience)
+- [RFC 9457: Problem Details for HTTP APIs](https://www.rfc-editor.org/rfc/rfc9457)
+- [Scott Wlaschin: Railway Oriented Programming](https://fsharpforfunandprofit.com/rop/)

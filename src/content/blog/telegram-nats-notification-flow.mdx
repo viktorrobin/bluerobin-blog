@@ -2,6 +2,7 @@
 title: "NATS-Powered Telegram Notification System"
 description: "Building a real-time notification pipeline from document processing events to Telegram messages using NATS Core, environment-prefixed subjects, and the publisher-subscriber pattern."
 pubDate: 2026-01-31
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -18,6 +19,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured the NATS notification pipeline, the most frustrating issue was silence. I would upload a document, see it fully processed in the logs, but no Telegram notification arrived. The problem? My API was publishing to `staging.notifications.telegram` while the bot was subscribed to `notifications.telegram` -- no environment prefix. There was no error, no warning, just two services talking past each other on different subjects. That debugging session is what convinced me to build the `IEventSubjectProvider` abstraction described in this article. It also taught me that fire-and-forget messaging demands extra discipline around observability, since there is no built-in feedback loop when something goes wrong.
 
 ## Introduction
 
@@ -74,6 +77,8 @@ flowchart TB
 ## Environment-Prefixed Subjects
 
 A critical design decision: **all NATS subjects are environment-prefixed**. This enables:
+
+<ExternalCite title="NATS Subject-Based Messaging" url="https://docs.nats.io/nats-concepts/subjects" author="Synadia" date="2024-10-01" />
 
 - Running staging and production on the same NATS cluster
 - Preventing cross-environment message leakage
@@ -171,6 +176,8 @@ Both the **publisher** (API) and **subscriber** (Telegram Bot) MUST use the same
 ## The Publisher: TelegramNotificationService
 
 The API uses `TelegramNotificationService` to publish notifications. This service is injected wherever notifications need to be sent:
+
+<ExternalCite title="NATS.Net Client Library" url="https://github.com/nats-io/nats.net" author="NATS Authors" date="2024-09-15" />
 
 <CodeFile path="MyApp.Infrastructure/Notifications/TelegramNotificationService.cs" language="csharp">
 ```csharp
@@ -270,6 +277,8 @@ It wraps `INatsConnection` from the NATS.Net library.
 ## The Subscriber: TelegramNotificationWorker
 
 The Telegram Bot service runs a `BackgroundService` that subscribes to the notification subject and sends messages via the Telegram Bot API:
+
+<ExternalCite title="Telegram Bot API - sendMessage" url="https://core.telegram.org/bots/api#sendmessage" author="Telegram" date="2024-12-20" />
 
 <CodeFile path="MyApp.TelegramBot/Services/TelegramNotificationWorker.cs" language="csharp">
 ```csharp
@@ -376,6 +385,8 @@ public class TelegramNotificationWorker : BackgroundService
 
 You might wonder why we use Core NATS instead of JetStream for notifications. The key considerations:
 
+<ExternalCite title="NATS JetStream Documentation" url="https://docs.nats.io/nats-concepts/jetstream" author="Synadia" date="2024-10-01" />
+
 | Feature | Core NATS | JetStream |
 |---------|-----------|-----------|
 | **Delivery** | At-most-once | At-least-once |
@@ -429,6 +440,8 @@ public record DocumentProcessedNotification : TelegramNotificationMessage
 
 Both services need matching environment configuration:
 
+<ExternalCite title="Kustomize - Kubernetes Native Configuration Management" url="https://kustomize.io/" author="Kubernetes SIG CLI" date="2024-06-01" />
+
 <CodeFile path="my-infra/apps/archives-telegram-bot/overlays/staging/kustomization.yaml" language="yaml">
 ```yaml
 apiVersion: kustomize.config.k8s.io/v1beta1
@@ -454,6 +467,10 @@ patches:
 </CodeFile>
 
 For production, `Environment__Prefix` is empty (or absent), resulting in unprefixed subjects.
+
+<ImplementationNote title="Notification Deduplication Surprises">
+During early testing, I noticed users occasionally receiving duplicate Telegram notifications for the same document. The root cause was that the OCR worker sometimes published the `embeddings.completed` event twice -- once from the embedding step and once from a retry path that fired when the Qdrant upsert timed out but ultimately succeeded. Since Core NATS offers at-most-once delivery per publish, two publishes meant two notifications. I solved this by adding a `MessageId` field to the notification DTO and keeping a short-lived LRU cache (60-second TTL) in the `TelegramNotificationWorker` to skip duplicates. It is a simple fix, but it took a while to reproduce the issue reliably.
+</ImplementationNote>
 
 ## End-to-End Flow
 
@@ -520,11 +537,28 @@ The NATS-powered notification system provides:
 - **Loose coupling** - API and Bot deploy independently
 - **Observable** - Full tracing through OpenTelemetry
 
+Looking back, the decision to use Core NATS for notifications and JetStream for document events was the right call, but it was not obvious at the time. I initially built everything on JetStream, thinking guaranteed delivery was universally better. In practice, the JetStream consumer state added operational complexity that was disproportionate for ephemeral notifications. Simplifying to Core NATS for the notification path cut the debugging surface in half and made the system easier to reason about.
+
 **Key Patterns:**
 
 1. Use `IEventSubjectProvider` for all NATS subjects
 2. Match publisher and subscriber messaging patterns (Core vs JetStream)
 3. Pre-compute subjects at startup for performance
 4. Check user preferences before sending notifications
+
+## Next Steps
+
+- **Add notification batching** to coalesce multiple rapid events (e.g., batch-upload of 20 documents) into a single summary message
+- **Implement delivery receipts** by tracking Telegram API response status and exposing a "notification health" endpoint
+- **Build a dead-letter subject** for notifications that fail Telegram API delivery after retries, enabling manual re-send from an admin UI
+- **Add priority-based routing** so high-priority failure notifications bypass any batching or rate-limiting logic
+
+## Further Reading
+
+- [NATS by Example](https://natsbyexample.com/) -- Practical patterns for Core NATS and JetStream with runnable examples
+- [NATS.Net Client Documentation](https://github.com/nats-io/nats.net) -- The official .NET client library for NATS
+- [Telegram Bot API - sendMessage](https://core.telegram.org/bots/api#sendmessage) -- Reference for the message-sending API used by the notification worker
+- [OpenTelemetry .NET](https://opentelemetry.io/docs/languages/net/) -- Distributed tracing instrumentation for .NET services
+- [Kustomize Documentation](https://kustomize.io/) -- Kubernetes-native configuration management used in the deployment setup
 
 **Next in Series:** [Complete Telegram Bot Deployment Guide](/articles/telegram-bot-kubernetes-deployment) - Kubernetes manifests, secrets management, and Flux GitOps configuration.

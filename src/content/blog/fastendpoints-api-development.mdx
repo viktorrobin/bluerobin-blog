@@ -2,6 +2,7 @@
 title: "FastEndpoints: The REPR Pattern for .NET APIs"
 description: "Ditch bloated controllers. Build high-performance, maintainable APIs using the Request-Endpoint-Response (REPR) pattern with FastEndpoints."
 pubDate: 2024-11-03
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -10,7 +11,7 @@ readTime: "18 min"
 toc: true
 series:
   name: "Domain-Driven Design in Practice"
-  part: 6
+  order: 7
 ---
 
 import Callout from '@components/Callout.astro';
@@ -19,13 +20,15 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-For years, ASP.NET Core developers have been stuck in the "Controller" trap. You have a `DocumentsController` that grows to 2,000 lines of code, managing Dependencies for Reading, Writing, Deleting, and Searching documents. It's a violation of the Single Responsibility Principle.
+BlueRobin's API started as a traditional ASP.NET Core controller-based project. Within three months, I had a `DocumentsController` with 14 action methods, 6 injected dependencies, and over 800 lines of code. Every new endpoint required scrolling past unrelated methods. Switching to FastEndpoints was like going from a cluttered open-plan office to private offices—each endpoint got its own space, its own dependencies, and its own tests.
 
-**FastEndpoints** implements the **REPR Pattern** (Request-Endpoint-Response). Every endpoint is a distinct class. It’s like having a Controller with exactly one method. This naturally guides you toward **Vertical Slice Architecture**.
+For years, ASP.NET Core developers have been stuck in the "Controller" trap. You have a `DocumentsController` that grows to 2,000 lines of code, managing Dependencies for Reading, Writing, Deleting, and Searching documents. It's a violation of the Single Responsibility Principle <ExternalCite title="Clean Architecture" url="https://blog.cleancoder.com/uncle-bob/2012/08/13/the-clean-architecture.html" author="Robert C. Martin" date="2012" />.
+
+**FastEndpoints** <ExternalCite title="FastEndpoints Documentation" url="https://fast-endpoints.com/" author="Dhananjay Kumar" date="2024" /> implements the **REPR Pattern** (Request-Endpoint-Response) <ExternalCite title="REPR Design Pattern" url="https://deviq.com/design-patterns/repr-design-pattern" author="Steve Smith" date="2024" />. Every endpoint is a distinct class. It's like having a Controller with exactly one method. This naturally guides you toward **Vertical Slice Architecture** <ExternalCite title="Vertical Slice Architecture" url="https://jimmybogard.com/vertical-slice-architecture/" author="Jimmy Bogard" date="2018" />.
 
 **Why FastEndpoints Matters:**
 
--   **Performance**: It's faster than MVC Controllers and uses less memory.
+-   **Performance**: It's faster than MVC Controllers and uses less memory <ExternalCite title="ASP.NET Core Performance Benchmarks" url="https://www.techempower.com/benchmarks/" author="TechEmpower" date="2024" />.
 -   **Organization**: Related logic (Request, Response, Validation, Handler) stays together in one file or folder.
 -   **No More Bloat**: You never need `private` helper methods shared by 10 unrelated actions.
 
@@ -70,7 +73,7 @@ flowchart LR
 
 ### The Request & Validation
 
-FastEndpoints has FluentValidation built-in. You don't need to register validators manually; it scans and registers them automatically.
+FastEndpoints has FluentValidation <ExternalCite title="FluentValidation Documentation" url="https://docs.fluentvalidation.net/" author="Jeremy Skinner" date="2024" /> built-in. You don't need to register validators manually; it scans and registers them automatically.
 
 ```csharp
 // 1. The Request DTO
@@ -98,6 +101,10 @@ public sealed class CreateDocumentValidator : Validator<CreateDocumentRequest>
     }
 }
 ```
+
+<ImplementationNote>
+    I initially put domain validation inside the FluentValidation validators, checking things like "does this archive exist?" in the validator itself. This was a mistake—validators should only handle input sanitization (format, length, required fields), not business rules. Business rule validation belongs in the domain layer. Once I separated these concerns, the validators became fast and stateless, while domain validation errors were returned as proper 422 responses from the handler.
+</ImplementationNote>
 
 ### The Endpoint
 
@@ -160,6 +167,10 @@ public sealed class CreateDocumentEndpoint : Endpoint<CreateDocumentRequest, Cre
     Notice `SendCreatedAtAsync`. It automatically generates the `Location` header pointing to the `GetDocumentEndpoint`. This enforces HATEOAS best practices with strong typing—if you rename the Get endpoint, this code won't compile unless you update it.
 </ImplementationNote>
 
+<ImplementationNote>
+    One challenge I faced was endpoint discovery during testing. FastEndpoints auto-discovers endpoints by scanning assemblies, which is convenient in production but made integration tests unpredictable—sometimes test endpoints would leak into the production assembly scan. I solved this by configuring explicit assembly scanning in `Program.cs` and using a separate test project with its own endpoint configuration. This also made startup faster since FastEndpoints wasn't scanning unnecessary assemblies.
+</ImplementationNote>
+
 ### Vertical Slice Organization
 
 Files should be grouped by **Feature**, not by **Type**.
@@ -187,10 +198,23 @@ Files should be grouped by **Feature**, not by **Type**.
   CreateDocumentValidator.cs
 ```
 
+<ImplementationNote>
+    The vertical slice folder structure was initially controversial in code reviews because it felt "wrong" to have four files in a folder instead of grouping all validators together. But the moment I needed to delete an endpoint, I just deleted the folder—no hunting through separate Controllers, Models, and Validators directories. The cognitive load of understanding a feature dropped dramatically because everything you need is in one place.
+</ImplementationNote>
+
 ## Conclusion
 
 FastEndpoints removes the friction from API development. It gives you the raw speed of Minimal APIs with the structure and discipline required for large enterprise systems.
 
+After migrating BlueRobin's API from controllers to FastEndpoints, the codebase went from 3 controller files averaging 600 lines each to 45 endpoint files averaging 40 lines each. The total line count barely changed, but the navigability and testability improved dramatically. Every endpoint is independently testable, independently deployable (conceptually), and independently understandable. If you are starting a new .NET API project, I strongly recommend starting with FastEndpoints from day one rather than retrofitting later.
+
 **Next Steps:**
 - Combine this with [Domain Events](/ddd-domain-events-csharp) to trigger processing after the API response.
 - Learn how [Aggregates](/ddd-aggregates-consistency-boundaries) handle the actual logic inside `_service.UploadAsync`.
+- See the [Shared Kernel](/ddd-shared-kernel-implementation-dotnet) that provides the base types used across all endpoints.
+
+### Further Reading
+
+- <ExternalCite title="FastEndpoints Documentation" url="https://fast-endpoints.com/" author="Dhananjay Kumar" date="2024" /> — The official documentation covering all features including versioning, rate limiting, and Swagger integration.
+- <ExternalCite title="Vertical Slice Architecture" url="https://jimmybogard.com/vertical-slice-architecture/" author="Jimmy Bogard" date="2018" /> — Jimmy Bogard's influential post on organizing code by feature rather than technical layer.
+- <ExternalCite title="REPR Design Pattern" url="https://deviq.com/design-patterns/repr-design-pattern" author="Steve Smith" date="2024" /> — The Request-Endpoint-Response pattern that FastEndpoints implements, explained by Steve Smith.

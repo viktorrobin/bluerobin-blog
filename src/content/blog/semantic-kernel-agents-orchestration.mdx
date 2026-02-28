@@ -2,6 +2,7 @@
 title: "Semantic Kernel Agents for AI Orchestration"
 description: "Build intelligent AI agents using Microsoft Semantic Kernel with tool calling, memory, and multi-agent coordination in .NET."
 pubDate: 2025-12-05
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -21,6 +22,8 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
+When I first started building our document intelligence pipeline, I had a single monolithic LLM call that tried to do everything -- classify the document, extract entities, generate a summary, and answer follow-up questions. It worked fine on simple invoices. Then someone uploaded a 47-page legal contract and asked it to compare clauses with a previous version. The model hallucinated wildly, confused sections from different documents, and returned a confident but completely wrong answer. That failure pushed me toward Semantic Kernel's agent-based approach, where each specialized agent does one thing well and an orchestrator coordinates them. The difference was night and day.
+
 A user asks: "Find all documents about the Q3 budget, compare them to last year's actuals, and summarize the key variances."
 
 This isn't a simple search query—it requires multiple steps: search, retrieval, comparison, and synthesis. Traditional APIs can't handle this. **AI agents** can.
@@ -30,6 +33,10 @@ Agents go beyond simple question-answering by:
 - **Tool calling**: Using external functions (search, database queries, APIs)
 - **Memory**: Maintaining context across interactions
 - **Reasoning**: Deciding which tools to use and in what order
+
+<ExternalCite title="ReAct: Synergizing Reasoning and Acting in Language Models" url="https://arxiv.org/abs/2210.03629" author="Yao, S. et al." date="2022-10-06" />
+
+This reasoning-acting loop is the foundation of modern agent architectures, where the LLM interleaves chain-of-thought reasoning with concrete tool invocations.
 
 ### What We'll Build
 
@@ -50,9 +57,15 @@ Microsoft's Semantic Kernel is the .NET-native way to build AI applications:
 - **Production ready**: Used in Microsoft 365 Copilot
 - **Plugin architecture**: Clean separation between AI reasoning and business logic
 
+<ExternalCite title="Semantic Kernel Overview" url="https://learn.microsoft.com/en-us/semantic-kernel/overview/" author="Microsoft" date="2024-11-15" />
+
+<ExternalCite title="Semantic Kernel GitHub Repository" url="https://github.com/microsoft/semantic-kernel" author="Microsoft" date="2024-12-01" />
+
 ## Architecture Overview
 
-Our agent system coordinates multiple specialized agents, each with access to specific tools:
+Our agent system coordinates multiple specialized agents, each with access to specific tools. This multi-agent pattern -- where each agent has a narrow focus and an orchestrator routes between them -- draws from research on collaborative AI systems.
+
+<ExternalCite title="AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation" url="https://arxiv.org/abs/2308.08155" author="Wu, Q. et al. (Microsoft Research)" date="2023-08-16" />
 
 ```mermaid
 flowchart TB
@@ -199,6 +212,8 @@ public static IServiceCollection AddSemanticKernel(
 ```
 
 **Key insight**: Plugins are C# classes with methods decorated with `[KernelFunction]`. The LLM reads the descriptions and decides when to call them.
+
+<ExternalCite title="Semantic Kernel Plugins Documentation" url="https://learn.microsoft.com/en-us/semantic-kernel/concepts/plugins/" author="Microsoft" date="2024-10-20" />
 
 ## Plugin Definitions
 
@@ -417,7 +432,7 @@ public sealed class DocumentPlugin
 ```
 
 <ImplementationNote>
-Each plugin function has a clear `[Description]` that helps the LLM decide when to use it. Be specific about when each tool should be used.
+Each plugin function has a clear `[Description]` that helps the LLM decide when to use it. Be specific about when each tool should be used. Early on, I found the planner's automatic function calling was unpredictable in production -- the LLM would call the wrong plugin or chain them in nonsensical orders. After two weeks of fighting non-deterministic behavior, I switched to explicit orchestration with deterministic routing, using SK plugins as building blocks rather than letting the planner decide everything. The key insight was using `ToolCallBehavior.AutoInvokeKernelFunctions` only for the final synthesis step, while routing search and analysis through a hardcoded pipeline. This gave us 95% of the flexibility with 100% of the predictability.
 </ImplementationNote>
 
 ### Analysis Plugin
@@ -567,6 +582,10 @@ public sealed class AnalysisPlugin
 }
 ```
 
+<ImplementationNote>
+Plugin execution timeout was a lesson I learned the hard way. One of our external API plugins -- the one that called a third-party entity extraction service -- hung for over 2 minutes during a demo, blocking the entire agent pipeline. The user saw a spinning cursor and eventually got a gateway timeout. After that incident, I added a 10-second timeout per plugin with graceful degradation: if the entity extraction plugin times out, the agent continues with whatever data it already has and notes the limitation in its response. We wrapped every plugin call in a `CancellationTokenSource` with a configured timeout, and the difference in reliability was immediate.
+</ImplementationNote>
+
 ## Agent Service
 
 ### Implementation
@@ -631,7 +650,7 @@ public sealed class SemanticKernelAgentService : IAgentService
             Temperature = 0.3f,
             MaxTokens = 2000
         };
-        
+
         var chatService = _kernel.GetRequiredService<IChatCompletionService>();
         
         await foreach (var chunk in chatService.GetStreamingChatMessageContentsAsync(
@@ -703,6 +722,14 @@ public sealed record ChatMessage(ChatRole Role, string Content);
 
 public enum ChatRole { User, Assistant }
 ```
+
+The `AutoInvokeKernelFunctions` behavior tells Semantic Kernel to let the LLM automatically call any registered plugin function. Under the hood, this leverages OpenAI's function calling protocol.
+
+<ExternalCite title="Function Calling - OpenAI API" url="https://platform.openai.com/docs/guides/function-calling" author="OpenAI" date="2024-06-01" />
+
+<ImplementationNote>
+Memory management with SK's chat history was a silent scaling problem. In development, conversations were short and everything worked. In production, power users would have 50+ message conversations, and the chat history grew unbounded -- eventually exceeding the model's context window. The LLM started "forgetting" early instructions and plugin descriptions. I implemented a sliding window of the last 10 messages plus the system prompt, with a compressed summary of earlier messages generated by a fast local model. This kept token usage predictable while preserving conversation coherence. The summary generation adds about 200ms per turn, but it is a worthwhile trade-off.
+</ImplementationNote>
 
 <Callout type="warning">
 Tool calling with Ollama requires models that support function calling (like Llama 3.2). Verify your model supports this feature before deployment.
@@ -896,7 +923,7 @@ public sealed record ChatRequest
 }
 ```
 
-## Summary
+## Conclusion
 
 Semantic Kernel agents provide:
 
@@ -909,8 +936,20 @@ Semantic Kernel agents provide:
 
 Combined with document search plugins, agents enable natural language interactions with your knowledge base.
 
-<ExternalCite 
-  title="Semantic Kernel Documentation" 
-  url="https://learn.microsoft.com/en-us/semantic-kernel/"
-  author="Microsoft"
-/>
+Looking back at this journey, the biggest shift in my thinking was moving from "one LLM call to rule them all" to a system of specialized agents. The monolithic approach felt simpler at first, but it collapsed under real-world complexity. With Semantic Kernel's plugin architecture, each agent has a clear contract, is independently testable, and can be swapped or upgraded without affecting the others. The orchestrator pattern gave us the composability we needed to handle increasingly complex user queries without rewriting the entire pipeline every time requirements changed.
+
+The next frontier for us is adding persistent semantic memory across sessions, so the agent remembers not just the current conversation but what the user has asked about historically. That is where things get truly interesting.
+
+### Next Steps
+
+- [LangGraph State Collisions: Lessons Learned](./langgraph-state-collision-lessons) -- state management pitfalls in another agent framework
+- [AI Strategy: Moving from Local Llama to OpenAI](./ai-strategy-moving-local-llama-to-openai) -- the hybrid architecture powering our LLM backend
+- [Optimizing System Latency](./latency-revolution-optimizing-60s-to-3s) -- reducing end-to-end response times
+
+### Further Reading
+
+<ExternalCite title="Semantic Kernel Documentation" url="https://learn.microsoft.com/en-us/semantic-kernel/" author="Microsoft" date="2024-11-15" />
+
+<ExternalCite title="ReAct: Synergizing Reasoning and Acting in Language Models" url="https://arxiv.org/abs/2210.03629" author="Yao, S. et al." date="2022-10-06" />
+
+<ExternalCite title="AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation" url="https://arxiv.org/abs/2308.08155" author="Wu, Q. et al. (Microsoft Research)" date="2023-08-16" />

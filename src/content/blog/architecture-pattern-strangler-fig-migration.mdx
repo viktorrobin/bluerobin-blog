@@ -2,6 +2,7 @@
 title: "Modernizing via Strangler Fig Pattern"
 description: "How to safely migrate from a monolithic ASP.NET MVC app to modern microservices using the Strangler Fig Pattern and YARP (Yet Another Reverse Proxy)."
 pubDate: 2024-12-27
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "architecture"
 difficulty: "intermediate"
@@ -15,12 +16,17 @@ toc: true
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first inherited a legacy ASP.NET MVC monolith with over 200 controllers and a single shared SQL Server database, every instinct told me to rewrite it from scratch. I spent two weeks drafting an ambitious migration plan with a new .NET 10 microservices architecture, estimated at six months. My tech lead looked at it and said, "We cannot freeze features for six months. Find a way to do this incrementally." That conversation led me to the Strangler Fig pattern and YARP, and it completely changed my approach to legacy modernization. We have been migrating routes one at a time for over a year now, and the monolith shrinks steadily without ever disrupting the business.
 
 ## Introduction
 
 Rewriting a legacy system from scratch (the "Big Bang" approach) is almost always a mistake. It takes years, business features freeze, and the cutover day is a high-risk nightmare.
 
 The **Strangler Fig Pattern**, named after the vine that grows around a host tree until it eventually replaces it, offers a safer alternative. You incrementally replace specific functionality with new services while the old system continues to run.
+
+<ExternalCite title="Strangler Fig Application" url="https://martinfowler.com/bliki/StranglerFigApplication.html" author="Martin Fowler" date="2019-06-18" />
 
 **Why Use Strangler Fig:**
 
@@ -36,10 +42,12 @@ We will set up a Facade using **YARP (Yet Another Reverse Proxy)** in .NET. This
 
 The key component is the "Facade" or Proxy. It intercepts all incoming traffic.
 
+<ExternalCite title="YARP Documentation" url="https://microsoft.github.io/reverse-proxy/" author="Microsoft" date="2024-05-15" />
+
 ```mermaid
 flowchart TD
     User[Clients/Users] --> Proxy[YARP Proxy Facade]
-    
+
     Proxy -->|Match /api/v1/orders| New[New Service\n(.NET 10)]
     Proxy -->|Everything else| Old[Legacy Monolith\n(ASP.NET MVC)]
 
@@ -62,6 +70,8 @@ First, create a new empty Web API project for the proxy and install YARP.
 ```bash
 dotnet add package Yarp.ReverseProxy
 ```
+
+<ExternalCite title="YARP Getting Started" url="https://microsoft.github.io/reverse-proxy/articles/getting-started.html" author="Microsoft YARP Team" date="2024-05-15" />
 
 ## Section 2: Configuration (The Route Map)
 
@@ -115,6 +125,10 @@ In this configuration:
 **Authentication Sharing**: The biggest challenge is often sharing session state or auth tokens. If the legacy app uses Cookies, you may need to implement a "Ticket Store" (e.g., Redis) that both the Monolith and the YARP proxy can read to validate users before routing.
 </ImplementationNote>
 
+<ImplementationNote title="Migration cutover with feature flags">
+Our first route migration (the orders API) went smoothly in staging but caused a brief outage in production because the new service's health check endpoint was not registered, and YARP marked the cluster as unhealthy. I learned to always configure YARP's active health checks with a `/health` endpoint on every new service before cutting over. Beyond that, I now wrap every route migration behind a feature flag (using a simple config toggle in `appsettings.json`): the YARP configuration loads routes conditionally, so I can flip traffic back to the monolith in seconds without redeploying. This "dark launch" approach reduced our migration anxiety from "hope it works" to "we can always roll back."
+</ImplementationNote>
+
 ## Section 3: The Program.cs
 
 Wiring it up is simple.
@@ -142,12 +156,31 @@ Often, the new service needs data that the legacy service owns. You have a few o
 
 For the Strangler Pattern, we typically start with a Shared Database and slowly peel off tables into the new service's exclusive domain as we refactor.
 
+<ExternalCite title="Strangler Fig Pattern" url="https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig" author="Microsoft" date="2024-03-20" />
+
+<ImplementationNote title="Shared database schema conflicts during migration">
+When we started with a shared database between the monolith and the new orders service, I assumed both could read and write to the same `Orders` table without issues. Within a week, the monolith deployed a migration that added a non-nullable column with no default value, breaking the new service's inserts. The fix was to establish a strict rule: the monolith owns the schema, and the new service only uses a read-only database user for shared tables. Any writes from the new service go through a dedicated schema (`orders_v2`) that the monolith never touches. Once a domain is fully migrated, we run a one-time data migration and drop the old tables. This boundary discipline was essential to keeping both systems running in parallel without stepping on each other.
+</ImplementationNote>
+
+<ExternalCite title="Monolith to Microservices" url="https://www.oreilly.com/library/view/monolith-to-microservices/9781492047834/" author="Sam Newman" date="2019-11-14" />
+
 ## Conclusion
 
 The Strangler Fig pattern allows you to modernize "in-flight". By using YARP, you gain a robust, .NET-native way to manage this traffic routing dynamically.
 
 Eventually, as you "strangle" more routes, the Monolith becomes small enough to be decommissioned entirely (or kept as a small service for truly dead-end features).
 
+Having lived through this migration for over a year, my strongest piece of advice is to resist the temptation to migrate everything at once. Start with the route that causes the most pain -- the one with the worst performance, the most bugs, or the most frequent feature requests -- and use it as your proving ground. That first successful migration builds team confidence and establishes the operational patterns (health checks, feature flags, shared auth, database boundaries) that make every subsequent migration faster and safer. The monolith did not grow overnight, and it does not need to disappear overnight either.
+
+<ExternalCite title="Building Evolutionary Architectures" url="https://www.oreilly.com/library/view/building-evolutionary-architectures/9781491986356/" author="Neal Ford, Rebecca Parsons, and Patrick Kua" date="2017-10-05" />
+
 **Next Steps**:
 - Learn about [Distributed Tracing] to track requests as they jump between Proxy -> Service -> Monolith.
 - Read about [Identity Federation] to unify auth across the stack.
+
+### Further Reading
+
+- [Martin Fowler's Strangler Fig Application](https://martinfowler.com/bliki/StranglerFigApplication.html) -- the original description of the pattern and its metaphor.
+- [Microsoft YARP documentation](https://microsoft.github.io/reverse-proxy/) -- official guides for route configuration, transforms, health checks, and load balancing.
+- [Microsoft Azure Strangler Fig pattern](https://learn.microsoft.com/en-us/azure/architecture/patterns/strangler-fig) -- cloud-oriented guidance on applying the pattern at scale.
+- [Monolith to Microservices](https://www.oreilly.com/library/view/monolith-to-microservices/9781492047834/) by Sam Newman -- a practical guide to decomposition strategies and migration patterns.

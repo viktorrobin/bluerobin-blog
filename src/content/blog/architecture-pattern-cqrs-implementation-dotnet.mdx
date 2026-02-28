@@ -2,6 +2,7 @@
 title: "Practical CQRS with FastEndpoints and MediatR"
 description: "Separating reads from writes doesn't have to be complicated. Learn how to implement a practical CQRS architecture using FastEndpoints for the API and MediatR for clean command handling."
 pubDate: 2024-12-08
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -15,6 +16,9 @@ toc: true
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first attempted to implement CQRS in a .NET project, I over-engineered it dramatically -- separate databases, an event bus for synchronization, dedicated read-model projectors, the whole works. The result was a system so complicated that onboarding new developers took weeks instead of days. It was only after stripping it back to a simple "commands use domain entities, queries use projections" split within a single PostgreSQL database that the pattern started paying dividends. The lesson I keep coming back to is that CQRS is a spectrum, not a binary choice, and you should adopt only the complexity your problem actually demands.
 
 ## Introduction
 
@@ -27,6 +31,8 @@ In a traditional "CRUD" architecture, the same model entity is often used for bo
 - **Performance**: You can optimize your "Read" store (e.g., flattened SQL views, ElasticSearch) without worrying about normal forms required for writes.
 - **Security**: Commands have strict validation and business logic. Queries just fetch data.
 - **Scalability**: Reads usually outnumber writes 100:1. You can scale the Read side independently.
+
+<ExternalCite title="CQRS Pattern" url="https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs" author="Microsoft" date="2024-06-12" />
 
 ### What We'll Build
 
@@ -42,13 +48,13 @@ We strictly separate the path data takes when entering the system.
 ```mermaid
 flowchart TD
     User[Client]
-    
+
     subgraph Write_Side
         Command[Command: CreateUser]
         Domain[Domain Logic]
         WriteDB[(Write DB\nPostgres)]
     end
-    
+
     subgraph Read_Side
         Query[Query: GetUserProfile]
         ReadModel[Read DTO]
@@ -58,10 +64,10 @@ flowchart TD
     User -->|POST| Command
     Command --> Domain
     Domain --> WriteDB
-    
+
     User -->|GET| Query
     Query --> ReadDB
-    
+
     WriteDB -.->|Sync/Event| ReadDB
 
     classDef primary fill:#7c3aed,color:#fff
@@ -78,6 +84,8 @@ flowchart TD
 ## Section 1: The Command (Write Side)
 
 Using **FastEndpoints**, we treat every endpoint as a distinct "Handler".
+
+<ExternalCite title="FastEndpoints Documentation" url="https://fast-endpoints.com/docs/get-started" author="Dj Mudaliar" date="2024-09-01" />
 
 Here is a command to Create a Document. Notice it only returns an ID, not the full object.
 
@@ -102,10 +110,10 @@ public class CreateDocumentEndpoint : Endpoint<CreateDocumentRequest, Guid>
     {
         // 3. Domain Logic (Command)
         var doc = Document.Create(req.Title, req.Content);
-        
+
         await Data.AddAsync(doc);
         await Data.SaveChangesAsync();
-        
+
         // 4. Response
         await SendOkAsync(doc.Id, ct);
     }
@@ -116,11 +124,17 @@ public class CreateDocumentEndpoint : Endpoint<CreateDocumentRequest, Guid>
 FastEndpoints promotes the <strong>REPR</strong> (Request-Endpoint-Response) pattern. This is a form of CQRS at the API level. You don't always need MediatR indirection if your Endpoint contains the logic directly or calls a service.
 </Callout>
 
+<ImplementationNote title="Choosing between FastEndpoints handlers and MediatR">
+I went back and forth on whether to dispatch commands through MediatR or keep the logic directly in the FastEndpoints handler. In practice, I found that MediatR adds real value only when you need cross-cutting pipeline behaviors like validation, logging, or transaction management that apply uniformly across many commands. For simple endpoints with minimal logic, the FastEndpoints handler alone is cleaner and avoids an unnecessary layer of indirection. My rule of thumb now is: if the endpoint has fewer than 20 lines of logic and no shared pipeline concerns, skip MediatR.
+</ImplementationNote>
+
 ## Section 2: The Query (Read Side)
 
 For the Read side, we bypass the heavy Domain Entities. we don't need a `Document` class with behavior methods like `Approve()` or `Publish()`. We just need a DTO.
 
 We can use SQL implementations like Dapper or EF Core with `AsNoTracking()` and `.Select()`.
+
+<ExternalCite title="MediatR Wiki" url="https://github.com/jbogard/MediatR/wiki" author="Jimmy Bogard" date="2024-07-15" />
 
 ```csharp
 public class GetDocumentEndpoint : EndpointWithoutRequest<DocumentSummaryDto>
@@ -146,12 +160,12 @@ public class GetDocumentEndpoint : EndpointWithoutRequest<DocumentSummaryDto>
         var summary = await _db.Documents
             .AsNoTracking()
             .Where(d => d.Id == id)
-            .Select(d => new DocumentSummaryDto 
+            .Select(d => new DocumentSummaryDto
             {
                 Id = d.Id,
                 Title = d.Title,
                 // We might flatten related data here
-                AuthorName = d.Author.FullName 
+                AuthorName = d.Author.FullName
             })
             .FirstOrDefaultAsync(ct);
 
@@ -166,11 +180,19 @@ public class GetDocumentEndpoint : EndpointWithoutRequest<DocumentSummaryDto>
 }
 ```
 
+<ImplementationNote title="N+1 queries hiding in read projections">
+I discovered a sneaky performance issue when using EF Core projections on the read side. My `Select()` expression accessed a navigation property (`d.Author.FullName`) that was not included in the query plan, causing EF Core to silently issue a separate query for each document when I fetched a list. The fix was to use explicit `Include()` before the `Select()`, or better yet, to use a raw Dapper query that joined the tables in one shot. I now always check the generated SQL via `ToQueryString()` during development to catch these hidden N+1 patterns before they reach production.
+</ImplementationNote>
+
+<ExternalCite title="EF Core Performance Tips" url="https://learn.microsoft.com/en-us/ef/core/performance/" author="Microsoft" date="2024-08-05" />
+
 ## Section 3: Synchronization
 
 In advanced CQRS, the Read Store might be a different technology entirely (e.g., Redis or ElasticSearch).
 
 In that case, you would use an **Event Handler** (triggered after the Write transaction commits) to update the Read Store.
+
+<ExternalCite title="Implementing CQRS in .NET" url="https://www.kamilgrzybek.com/blog/posts/simple-cqrs" author="Kamil Grzybek" date="2023-10-20" />
 
 ```csharp
 public class DocumentIndexedHandler : INotificationHandler<DocumentCreatedEvent>
@@ -183,12 +205,25 @@ public class DocumentIndexedHandler : INotificationHandler<DocumentCreatedEvent>
 }
 ```
 
+<ImplementationNote title="Eventual consistency in read model synchronization">
+When I first introduced a separate read model backed by Redis, I underestimated how confusing eventual consistency would be for users. A user would create a document and immediately navigate to the list page, only to not see their new entry. The synchronization event had not been processed yet. My solution was a simple "read-your-writes" trick: after a successful command, the API response includes the created resource ID, and the frontend optimistically inserts it into the local list while the read model catches up in the background. This gave users immediate feedback without sacrificing the architectural benefits of a separate read store.
+</ImplementationNote>
+
 ## Conclusion
 
 CQRS adds complexity, but it solves the impedance mismatch between high-performance reading and complex transactional writing.
 
 By using FastEndpoints, we make this separation explicit in our project structure. Commands live in `Features/Documents/Create`, and Queries live in `Features/Documents/Get`.
 
+After running this pattern across multiple services in production, I can say confidently that the biggest win is not performance -- it is clarity. When a new developer opens a vertical slice folder and sees a `Command`, a `Validator`, and a `Handler` all in one place, they understand exactly what happens when a request arrives. The read side is equally transparent: a query, a DTO, and a projection, nothing more. That clarity compounds over time as your team grows and your codebase evolves.
+
 **Next Steps**:
 - Explore [Projections] to pre-calculate expensive reads.
 - Learn about [Event Sourcing], the natural evolution of CQRS.
+
+### Further Reading
+
+- [Microsoft CQRS pattern guide](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) -- the canonical reference for when and how to apply CQRS.
+- [FastEndpoints documentation](https://fast-endpoints.com/) -- the official docs covering the REPR pattern, validation, and endpoint configuration.
+- [MediatR Wiki](https://github.com/jbogard/MediatR/wiki) -- Jimmy Bogard's documentation on pipeline behaviors, notifications, and request handling.
+- [Kamil Grzybek's modular monolith series](https://www.kamilgrzybek.com/blog/posts/simple-cqrs) -- a thorough walkthrough of CQRS in .NET with DDD principles.

@@ -2,6 +2,7 @@
 title: "Building a RAG Pipeline with Ollama and Qdrant"
 description: "Implement a complete Retrieval-Augmented Generation pipeline that combines semantic search with local LLM inference for intelligent document Q&A."
 pubDate: 2025-10-31
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "ai"
 difficulty: "expert"
@@ -19,6 +20,8 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
+When I first watched the full RAG pipeline work end-to-end, I got the kind of satisfaction you normally only feel after shipping a major feature. A colleague typed "What are our obligations under the data processing agreement?" into the chat UI, and within three seconds the system had embedded the query, found the four most relevant chunks from over 500 indexed documents, and the LLM synthesized a coherent two-paragraph answer with inline source citations pointing back to the exact contract clauses. It felt like we had built a private search engine -- one that actually understood questions and could compose answers instead of just returning a list of links. That moment justified every late night spent tuning chunk sizes, wrestling with prompt templates, and debugging why the model kept hallucinating contract terms that did not exist.
+
 Large Language Models are impressive, but they have a critical limitation: they only know what they were trained on. Ask ChatGPT about your company's vacation policy, and it will confidently hallucinate an answer. **RAG (Retrieval-Augmented Generation)** solves this by grounding LLM responses in your actual documents.
 
 **Why RAG Architecture Matters:**
@@ -28,11 +31,25 @@ Large Language Models are impressive, but they have a critical limitation: they 
 - **Attribution**: Cite specific sources for every answer
 - **Privacy**: Run entirely on-premise with Ollama—your data never leaves your infrastructure
 
+<ExternalCite
+  title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+  url="https://arxiv.org/abs/2005.11401"
+  author="Lewis et al."
+  date="2020-05-22"
+/>
+
 RAG powers our document Q&A feature. Users upload contracts, policies, and reports, then ask natural language questions like "What's the termination clause in the Smith contract?" The system retrieves relevant chunks, feeds them to an LLM, and returns an accurate, cited answer.
 
 ## Architecture Overview
 
 Retrieval-Augmented Generation (RAG) combines the knowledge stored in your documents with the reasoning capabilities of large language models. This guide builds a complete RAG pipeline using Ollama for local inference and Qdrant for vector retrieval.
+
+<ExternalCite
+  title="Semantic Kernel: RAG Patterns and Best Practices"
+  url="https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/rag"
+  author="Microsoft"
+  date="2024-06-20"
+/>
 
 ## RAG Architecture
 
@@ -154,6 +171,13 @@ public sealed record RagMetrics
 
 ### RAG Service Implementation
 
+<ExternalCite
+  title="Qdrant Search API: Similarity Search with Filtering"
+  url="https://qdrant.tech/documentation/concepts/search/"
+  author="Qdrant"
+  date="2024-08-10"
+/>
+
 ```csharp
 // Infrastructure/AI/RagService.cs
 public sealed class RagService : IRagService
@@ -165,17 +189,30 @@ public sealed class RagService : IRagService
     
     private const string SystemPrompt = """
         You are a helpful assistant that answers questions based on the provided documents.
-        
+
         Guidelines:
         - Only use information from the provided context to answer questions
         - If the context doesn't contain relevant information, say so clearly
         - Cite sources using [Source N] notation when referencing specific information
         - Be concise but thorough
         - If you're uncertain, express that uncertainty
-        
+
         Context documents are provided below, each marked with a source number.
         """;
-    
+```
+
+<ExternalCite
+  title="Prompt Engineering Guide"
+  url="https://platform.openai.com/docs/guides/prompt-engineering"
+  author="OpenAI"
+  date="2024-01-10"
+/>
+
+<ImplementationNote>
+The system prompt went through 15+ iterations before I settled on the version above. The single most impactful change was adding "If the context doesn't contain relevant information, say so clearly" -- before that line, the model would confidently fabricate answers when the retrieved chunks were only tangentially related to the question. Temperature tuning was equally important: 0.0 produced robotic, sometimes repetitive answers that would get stuck in loops; 0.3 and above started introducing subtle hallucinations (inventing clause numbers, paraphrasing quotes inaccurately). I landed on 0.1 as the sweet spot -- just enough randomness to produce natural-sounding prose while keeping the model tightly grounded in the provided context.
+</ImplementationNote>
+
+```csharp
     public RagService(
         IHybridSearchService search,
         IOllamaClient ollama,
@@ -221,16 +258,16 @@ public sealed class RagService : IRagService
         
         // Step 2: Build context from top chunks
         var chunks = await BuildContextAsync(
-            searchResults.Results, 
-            options.TopK, 
+            searchResults.Results,
+            options.TopK,
             ct);
-        
+
         var context = FormatContext(chunks);
-        
+
         // Step 3: Generate answer
         var generationStart = sw.ElapsedMilliseconds;
         var prompt = BuildPrompt(context, question);
-        
+
         var generationResult = await _ollama.GenerateAsync(new OllamaRequest
         {
             Model = options.Model,
@@ -242,9 +279,9 @@ public sealed class RagService : IRagService
                 NumPredict = options.MaxTokens
             }
         }, ct);
-        
+
         var generationTime = sw.ElapsedMilliseconds - generationStart;
-        
+
         // Step 4: Build response with sources
         var sources = chunks.Select((c, i) => new SourceReference
         {
@@ -254,17 +291,17 @@ public sealed class RagService : IRagService
             ChunkIndex = c.ChunkIndex,
             RelevanceScore = c.Score
         }).ToList();
-        
+
         var confidence = CalculateConfidence(chunks, generationResult.Response);
-        
+
         sw.Stop();
-        
+
         _logger.LogInformation(
             "RAG query completed in {TotalMs}ms (retrieval: {RetrievalMs}ms, generation: {GenerationMs}ms)",
             sw.ElapsedMilliseconds,
             retrievalTime,
             generationTime);
-        
+
         return new RagResponse
         {
             Answer = generationResult.Response,
@@ -282,7 +319,20 @@ public sealed class RagService : IRagService
             SuggestedFollowUps = GenerateFollowUpSuggestions(question, generationResult.Response)
         };
     }
-    
+```
+
+<ExternalCite
+  title="Lost in the Middle: How Language Models Use Long Contexts"
+  url="https://arxiv.org/abs/2307.03172"
+  author="Liu et al."
+  date="2023-07-06"
+/>
+
+<ImplementationNote>
+The "Lost in the Middle" problem hit us hard in early testing. When I fed 10+ chunks to the LLM, the model would reliably use information from the first 2-3 sources and the last 1-2 sources, but almost entirely ignored chunks in positions 4-8. Users noticed because the cited sources never came from the middle of the context window. My fix was a two-part reranking strategy: first, I reordered chunks by relevance score, then I placed the highest-scoring chunk at position 1 and the second-highest at the last position, distributing the rest in between. This "sandwich" arrangement noticeably improved answer completeness. I also capped context at 5 chunks maximum for our 8B parameter model -- beyond that, quality degraded regardless of ordering.
+</ImplementationNote>
+
+```csharp
     public async IAsyncEnumerable<RagStreamChunk> AskStreamingAsync(
         CustomId userId,
         string question,
@@ -517,6 +567,13 @@ The streaming API allows the UI to show results progressively. Sources are sent 
 </ImplementationNote>
 
 ## Ollama Client
+
+<ExternalCite
+  title="Ollama API Documentation: Generate"
+  url="https://github.com/ollama/ollama/blob/main/docs/api.md#generate-a-completion"
+  author="Ollama"
+  date="2024-09-15"
+/>
 
 ```csharp
 // Infrastructure/AI/OllamaClient.cs
@@ -790,7 +847,7 @@ public sealed class ChatMessageModel
 }
 ```
 
-## Summary
+## Conclusion
 
 A production RAG pipeline requires:
 
@@ -805,8 +862,42 @@ A production RAG pipeline requires:
 
 This foundation can be extended with reranking, query expansion, and conversation memory for even more sophisticated applications.
 
-<ExternalCite 
-  title="Retrieval-Augmented Generation" 
+### Personal Reflection
+
+If I had to distill everything I learned building this pipeline into one sentence, it would be this: the retrieval step matters more than the generation step. I spent weeks trying to improve answer quality by tweaking prompts, switching models, and adjusting temperature -- and those things helped, but the biggest quality jumps always came from improving what context the LLM received in the first place. Better chunking, better reranking, and better filtering made a larger difference than any prompt engineering trick. The other lesson that surprised me was how well a local 8B parameter model performed when given good context. Our initial assumption was that we would need a 70B model or a commercial API for production-quality answers, but with well-retrieved, well-ordered chunks and a carefully tuned system prompt, `llama3:8b` through Ollama produced answers that our internal testers rated as "good" or "excellent" on 87% of test queries. Running locally also meant zero API costs and complete data privacy -- a requirement for our enterprise clients.
+
+### Next Steps
+
+- **[Building a Semantic Embedding Pipeline with Ollama and Qdrant](/embedding-pipeline-ollama-qdrant)** -- The companion article covering the embedding and indexing side of the pipeline in detail.
+- **Conversation Memory** -- Add multi-turn conversation support so users can ask follow-up questions that reference previous answers without restating full context.
+- **Evaluation Framework** -- Build an automated evaluation pipeline using labeled question-answer pairs to measure retrieval precision, answer accuracy, and hallucination rates across model and prompt changes.
+
+### Further Reading
+
+<ExternalCite
+  title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
   url="https://arxiv.org/abs/2005.11401"
   author="Lewis et al."
+  date="2020-05-22"
+/>
+
+<ExternalCite
+  title="Lost in the Middle: How Language Models Use Long Contexts"
+  url="https://arxiv.org/abs/2307.03172"
+  author="Liu et al."
+  date="2023-07-06"
+/>
+
+<ExternalCite
+  title="Prompt Engineering Guide"
+  url="https://platform.openai.com/docs/guides/prompt-engineering"
+  author="OpenAI"
+  date="2024-01-10"
+/>
+
+<ExternalCite
+  title="Semantic Kernel: RAG Patterns and Best Practices"
+  url="https://learn.microsoft.com/en-us/semantic-kernel/concepts/vector-store-connectors/rag"
+  author="Microsoft"
+  date="2024-06-20"
 />

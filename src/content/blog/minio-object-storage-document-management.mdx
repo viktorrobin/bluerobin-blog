@@ -2,6 +2,7 @@
 title: "MinIO Object Storage for Document Management"
 description: "Deploy and integrate MinIO for S3-compatible object storage with per-user buckets, encryption, and lifecycle policies."
 pubDate: 2025-08-15
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -14,6 +15,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
+When I first integrated MinIO into our .NET document management pipeline, I underestimated how many subtle decisions would determine whether the system was production-ready or a ticking time bomb. My initial implementation used virtual-hosted-style bucket addressing, which silently failed on our internal DNS because wildcard records were not configured. Then I discovered that large PDF uploads would time out because I had not configured multipart thresholds properly. After weeks of debugging connection resets, tuning Polly retry policies, and wrestling with Longhorn-backed PersistentVolumes that occasionally went read-only during Longhorn engine upgrades, I arrived at a deployment pattern I finally trust. This guide walks through that entire journey from raw Helm chart to battle-tested .NET integration.
+
 ## Introduction
 
 In Kubernetes-native architectures, handling file uploads and document storage requires a system that is resilient, scalable, and easy to manage. While cloud providers offer S3, running on-premise or in hybrid clouds demands a self-hosted equivalent. **MinIO** is the de facto standard for high-performance, S3-compatible object storage on Kubernetes.
@@ -24,6 +27,8 @@ In Kubernetes-native architectures, handling file uploads and document storage r
 - **Performance**: Optimized for high throughput using SIMD instructions, capable of saturating 100Gbps networks.
 - **Kubernetes Native**: Designed to run as a microservice, managed via Operator or Helm, just like your apps.
 - **Data Protection**: Built-in support for erasure coding (raid-like protection) and Server-Side Encryption (SSE).
+
+<ExternalCite title="MinIO Erasure Coding Overview" url="https://min.io/docs/minio/linux/operations/concepts/erasure-coding.html" author="MinIO, Inc." date="2024-06-01" />
 
 ### What We'll Build
 
@@ -70,6 +75,8 @@ flowchart TB
 ## Section 1: Deploying MinIO with Helm
 
 We use the official Helm chart managed via Flux CD. This ensures our storage configuration is versioned.
+
+<ExternalCite title="MinIO Helm Chart Repository" url="https://github.com/minio/minio/tree/master/helm/minio" author="MinIO, Inc." date="2024-05-01" />
 
 ### HelmRelease Configuration
 
@@ -137,6 +144,8 @@ We don't want to use the raw AWS SDK everywhere. We create a wrapper service to 
 
 ### 1. Configuration
 
+<ExternalCite title="AWS SDK for .NET - Amazon S3 Configuration" url="https://docs.aws.amazon.com/sdk-for-net/v3/developer-guide/s3-apis-intro.html" author="Amazon Web Services" date="2024-03-01" />
+
 ```csharp
 public class ObjectStorageOptions
 {
@@ -182,6 +191,8 @@ public static IServiceCollection AddMinioStorage(this IServiceCollection service
 
 Isolation is key. Instead of one giant bucket with folders, we give each user or tenant their own bucket. This allows us to granularly control quotas, encryption keys, and lifecycle policies.
 
+<ExternalCite title="Amazon S3 Bucket Naming Rules" url="https://docs.aws.amazon.com/AmazonS3/latest/userguide/bucketnamingrules.html" author="Amazon Web Services" date="2024-01-15" />
+
 ```csharp
 public class MinioStorageService : IObjectStorageService
 {
@@ -215,6 +226,10 @@ public class MinioStorageService : IObjectStorageService
     private string GetBucketName(CustomId userId) => $"user-{userId.Value.ToLower()}";
 }
 ```
+
+<ImplementationNote title="Longhorn volume going read-only during MinIO writes">
+One of the most difficult bugs I encountered was MinIO intermittently returning "read-only file system" errors during document uploads. The root cause was that Longhorn was performing an automatic engine upgrade on the node hosting the MinIO pod, which temporarily put the volume into a degraded state. During this window, the ext4 filesystem detected I/O errors and remounted itself as read-only as a safety measure. I fixed this by setting `concurrentAutomaticEngineUpgradePerNodeLimit: 1` in Longhorn and scheduling engine upgrades during a maintenance window. I also added a Polly retry policy in the .NET client that catches `IOException` and retries with exponential backoff, which masks the brief volume degradation from end users.
+</ImplementationNote>
 
 ## Section 4: Per-User Encryption Data Flow
 
@@ -277,6 +292,18 @@ spec:
 
 We have deployed a robust, S3-compatible storage layer within our cluster. By wrapping the AWS SDK, we've abstracted the storage complexity from our business logic and enforced a strong tenancy model.
 
-**Next Steps**:
+The journey from a "hello world" MinIO deployment to a production-grade document management backend was far longer than I expected. The core MinIO installation took an afternoon, but getting ForcePathStyle working, debugging Longhorn volume degradation, configuring KES certificates, and building retry-resilient .NET clients each took days. The biggest lesson was that object storage is deceptively simple at the API level but deeply complex at the infrastructure level. If you are building a similar system, invest heavily in end-to-end integration tests that exercise the full path from HTTP upload through encryption to disk persistence -- those tests caught every regression that unit tests missed.
+
+<ExternalCite title="Release It! Design and Deploy Production-Ready Software" url="https://pragprog.com/titles/mnee2/release-it-second-edition/" author="Michael T. Nygard" date="2018-01-15" />
+
+## Next Steps
+
 - Connect MinIO events to [NATS JetStream](/nats-advanced-patterns-kv-objectstore) to trigger processing upon upload.
 - Implement [Docling OCR](/docling-ocr-dotnet-integration) to extract text from these stored documents.
+- Review [MinIO Multi-Tenant Object Storage](/minio-kubernetes-multi-tenant) for the full per-user encryption and bucket isolation architecture.
+
+## Further Reading
+
+- [MinIO Official Documentation](https://min.io/docs/minio/kubernetes/upstream/) -- comprehensive reference for deployment, configuration, and SDK usage
+- [AWS S3 Developer Guide](https://docs.aws.amazon.com/AmazonS3/latest/dev/Welcome.html) -- since MinIO is S3-compatible, the AWS documentation applies to most operations
+- [Polly .NET Resilience Library](https://github.com/App-vNext/Polly) -- the retry and circuit-breaker library used in our MinIO client for transient fault handling

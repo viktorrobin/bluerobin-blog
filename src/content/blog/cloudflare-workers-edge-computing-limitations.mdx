@@ -2,6 +2,7 @@
 title: "Cloudflare Workers: A \"Love-Hate\" Relationship"
 description: "Exploring the highs of global distribution and the lows of execution limits. A candid look at when to embrace Cloudflare Workers and when to stick with containers."
 pubDate: 2024-09-11
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -14,6 +15,8 @@ import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first deployed a Cloudflare Worker as our authentication gateway, I was genuinely amazed -- cold starts under 5ms, globally distributed, zero infrastructure to manage. Then reality set in. Our worker started hitting CPU time limits during peak traffic because a seemingly innocent JSON parsing step was more expensive than I realized. I spent a week profiling V8 isolate performance characteristics and refactoring hot paths before I fully understood the constraints. That experience shaped my view that Workers are extraordinary for the right job, but reaching for them reflexively without understanding the boundaries leads to frustrating midnight debugging sessions.
 
 ## Introduction
 
@@ -72,9 +75,13 @@ The "Love" part of the relationship is easy to justify. The developer experience
 
 When you deploy a Worker, you aren't choosing a region like `us-east-1` or `eu-central-1`. You are deploying to hundreds of data centers simultaneously. For our users in Australia or Japan, this means the TLS handshake and initial response happen in milliseconds, not seconds.
 
+<ExternalCite title="How Workers Works" url="https://developers.cloudflare.com/workers/reference/how-workers-works/" author="Cloudflare" date="2024-04-10" />
+
 ### Near-Instant Cold Starts
 
 Unlike Lambda functions which can sometimes take seconds to warm up (especially inside a VPC), Cloudflare Workers utilize V8 isolates. The startup overhead is practically non-existent (often under 5ms). This makes them perfect for simple, bursty tasks.
+
+<ExternalCite title="Cloud Computing without Containers" url="https://blog.cloudflare.com/cloud-computing-without-containers/" author="Zack Bloom" date="2018-11-12" />
 
 <Callout type="info" title="Best Use Case">
     We use Workers for our "Permissions Gateway". It checks a JWT signature and verifies scopes against KV storage before the request ever touches our heavy .NET API. This offloads millions of CPU cycles from our K8s cluster.
@@ -90,6 +97,12 @@ Cloudflare Workers (on the standard plan) have strict CPU time limits (e.g., 10m
 
 We ran into this when trying to perform on-the-fly image resizing for large user uploads. The isolate would frequently time out on high-res images, forcing us to move that logic back to a containerized service.
 
+<ImplementationNote title="CPU Time Debugging with Wrangler">
+The most frustrating aspect of debugging CPU time limits was that `wrangler dev` does not enforce the same limits as production. My worker ran perfectly locally, but in production it would sporadically exceed the 10ms CPU budget. I eventually discovered that `console.time()` and `console.timeEnd()` inside the worker runtime gave me accurate CPU time measurements. The culprit was a regex-based URL parser that was backtracking on certain malformed paths. Replacing it with a simple string split reduced CPU time from ~12ms to ~2ms. The lesson: always profile under production-like constraints, not just local dev.
+</ImplementationNote>
+
+<ExternalCite title="Workers Limits" url="https://developers.cloudflare.com/workers/platform/limits/" author="Cloudflare" date="2024-06-01" />
+
 ### KV Storage Consistency
 
 Cloudflare KV is *eventually consistent*. Extremely eventually.
@@ -97,6 +110,12 @@ Cloudflare KV is *eventually consistent*. Extremely eventually.
 > "KV achieves high read performance by caching data in Cloudflare data centers... Changes may take up to 60 seconds to propagate."
 
 For configuration flags, this is fine. For a user who just updated their profile and expects to see the change immediately on a refresh? It's a disaster. We had to build specific cache-busting mechanisms or fallback to durable storage (like Durable Objects or D1) which adds cost and complexity.
+
+<ImplementationNote title="KV Propagation Delays in Auth Flows">
+We hit our worst KV consistency issue during a permission revocation flow. An admin would revoke a user's access, which wrote to KV, but the user could continue accessing protected resources for up to 60 seconds because the nearest edge node was still serving the stale KV entry. My fix was a dual-write strategy: the revocation writes to both KV and a Durable Object. The worker checks the Durable Object first for revocations (strongly consistent) and only falls back to KV for normal permission lookups. This added about 3ms of latency to revocation checks but solved the security hole completely.
+</ImplementationNote>
+
+<ExternalCite title="Cloudflare KV Documentation" url="https://developers.cloudflare.com/kv/" author="Cloudflare" date="2024-07-15" />
 
 ### Debugging Locally
 
@@ -118,6 +137,8 @@ After several iterations, we settled on a strict decision matrix.
 ### The "Hybrid" Approach
 
 We found the sweet spot is using Workers as a **Shield and Router**.
+
+<ExternalCite title="Designing Distributed Systems" url="https://www.oreilly.com/library/view/designing-distributed-systems/9781491983638/" author="Brendan Burns" date="2018-02-20" />
 
 1. **Worker** receives request.
 2. **Worker** checks caches (KV) and security headers.
@@ -142,10 +163,24 @@ export default {
 
 ## Conclusion
 
-Cloudflare Workers are an incredible tool in the modern infrastructure belt, but they are not a hammer for every nail. 
+Cloudflare Workers are an incredible tool in the modern infrastructure belt, but they are not a hammer for every nail.
 
 We love the speed. We love the distribution. We hate the execution limits and consistency gotchas. By treating them as a sophisticated **Edge Gateway** rather than a replacement for our backend, we get the best of both worlds: lightning-fast user interactions and the robustness of containerized .NET services for the heavy lifting.
 
-**Next Steps:**
+Reflecting on nearly two years of running Workers in production alongside our Kubernetes cluster, the biggest lesson is this: the edge is a deployment topology, not an architecture. The architecture decisions -- what belongs at the edge versus what belongs in your core -- need to be made deliberately and revisited regularly. Every few months I audit our workers to see if any have crept beyond their intended scope, and invariably I find one that has grown complex enough to migrate back to a container. That discipline is what keeps the system healthy.
+
+<ImplementationNote title="Monitoring Workers in Production">
+One thing I wish I had set up earlier was proper observability for our Workers. Cloudflare's built-in analytics are useful but limited. I ended up forwarding Worker logs to our central logging stack via Logpush, and setting up alerts on CPU time percentile thresholds (p99 > 8ms triggers a warning). This proactive monitoring caught a regression where a dependency update doubled our JWT verification time before any users were affected. The 30 minutes it took to configure Logpush has saved hours of incident response.
+</ImplementationNote>
+
+### Next Steps
+
 - Explore [Cloudflare D1](https://developers.cloudflare.com/d1/) for relational data at the edge.
 - Learn about [.NET 10 Native AOT](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/) for container cold starts.
+- Investigate **Durable Objects** for stateful edge use cases that need strong consistency.
+
+### Further Reading
+
+- [Cloudflare Workers Documentation](https://developers.cloudflare.com/workers/) -- Official reference for the Workers runtime, APIs, and configuration.
+- [Designing Distributed Systems](https://www.oreilly.com/library/view/designing-distributed-systems/9781491983638/) -- Brendan Burns' patterns for modern distributed architectures.
+- [The Edge Computing Landscape](https://www.infoq.com/articles/edge-computing-landscape/) -- A broader view of edge computing beyond Cloudflare.

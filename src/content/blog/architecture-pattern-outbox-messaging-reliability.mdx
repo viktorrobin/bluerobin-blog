@@ -2,6 +2,7 @@
 title: "The Transactional Outbox Pattern with NATS"
 description: "Achieve 100% reliable messaging by atomically committing state changes and events. A deep dive into the Outbox Pattern with EF Core and NATS utilizing background relay workers."
 pubDate: 2024-12-17
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "backend"
 difficulty: "advanced"
@@ -15,6 +16,9 @@ toc: true
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first built an event-driven integration between two of our services, I did what seemed natural: save to the database, then publish to NATS. It worked flawlessly in development. Then on the first busy Monday in production, a transient NATS connection timeout caused an order to be created in the database with no corresponding event ever reaching the fulfillment service. The customer's order sat in limbo for hours before anyone noticed. That incident was the catalyst for implementing the Transactional Outbox pattern, and it fundamentally changed how I think about the boundary between state changes and messaging.
 
 ## Introduction
 
@@ -25,6 +29,8 @@ In distributed systems, the "dual-write problem" is a classic villain. It occurs
 If you do step 1 and step 2 fails, your system is inconsistent (Order exists, but no one knows). If you do step 2 first and step 1 fails, downstream services process a ghost order.
 
 Atomic transactions across purely distributed resources (Two-Phase Commit) are heavy and brittle. The **Transactional Outbox Pattern** offers an elegant solution by turning the database into a temporary queue.
+
+<ExternalCite title="Pattern: Transactional Outbox" url="https://microservices.io/patterns/data/transactional-outbox.html" author="Chris Richardson" date="2023-05-10" />
 
 **Why Use the Outbox Pattern:**
 
@@ -47,7 +53,7 @@ Instead of publishing directly to NATS during the request, we write to an `Outbo
 ```mermaid
 flowchart LR
     Api[API Request] -->|1. Transaction| DB[(PostgreSQL)]
-    
+
     subgraph DB_Transaction
         Table1[Orders Table]
         Table2[Outbox Table]
@@ -55,10 +61,10 @@ flowchart LR
 
     Api -- Writes --> Table1
     Api -- Writes --> Table2
-    
+
     Relay[Background Worker] -->|2. Poll| Table2
     Relay -->|3. Publish| NATS[NATS JetStream]
-    
+
     NATS -->Consumer[Downstream Service]
 
     classDef primary fill:#7c3aed,color:#fff
@@ -73,6 +79,8 @@ flowchart LR
 ## Section 1: The Outbox Entity
 
 First, we define the schema for our stored messages. This table acts as our "durability buffer."
+
+<ExternalCite title="EF Core - Transactions" url="https://learn.microsoft.com/en-us/ef/core/saving/transactions" author="Microsoft" date="2024-04-22" />
 
 ```csharp
 public class OutboxMessage
@@ -106,13 +114,13 @@ public async Task Handle(CreateOrderCommand command, CancellationToken ct)
 
     // 2. Prepare Event
     var evt = new OrderCreatedEvent(order.Id);
-    var outboxMsg = new OutboxMessage 
+    var outboxMsg = new OutboxMessage
     {
         Type = nameof(OrderCreatedEvent),
         Subject = $"orders.{order.Id}.created",
         Payload = JsonSerializer.Serialize(evt)
     };
-    
+
     _dbContext.OutboxMessages.Add(outboxMsg);
 
     // 3. Atomic Commit
@@ -123,9 +131,15 @@ public async Task Handle(CreateOrderCommand command, CancellationToken ct)
 
 At this point, even if the server crashes immediately after commit, the event is safe on disk.
 
+<ImplementationNote title="Message ordering across aggregate boundaries">
+I ran into a subtle ordering problem when multiple aggregates produced outbox messages within the same transaction. The relay worker picks messages ordered by `OccurredOnUtc`, but two messages created in the same transaction can share the exact same timestamp (since `DateTime.UtcNow` has limited resolution). In one case, a `PaymentProcessed` event was delivered before the `OrderCreated` event it depended on, causing the downstream consumer to fail with a missing order reference. I fixed this by adding a monotonically increasing `SequenceNumber` column (a PostgreSQL `BIGSERIAL`) to the outbox table and ordering the relay query by that column instead. This guaranteed insertion-order delivery regardless of timestamp granularity.
+</ImplementationNote>
+
 ## Section 3: The Relay Worker
 
 A `BackgroundService` runs continuously to flush the outbox.
+
+<ExternalCite title="NATS JetStream Documentation" url="https://docs.nats.io/nats-concepts/jetstream" author="Synadia Communications" date="2024-07-30" />
 
 ```csharp
 public class OutboxRelayWorker : BackgroundService
@@ -156,11 +170,11 @@ public class OutboxRelayWorker : BackgroundService
 
         foreach (var msg in messages)
         {
-            try 
+            try
             {
                 // Publish to NATS
                 await _nats.PublishAsync(msg.Subject, msg.Payload);
-                
+
                 // Mark as processed
                 msg.ProcessedOnUtc = DateTime.UtcNow;
             }
@@ -180,12 +194,29 @@ public class OutboxRelayWorker : BackgroundService
 The Outbox pattern guarantees <strong>at-least-once</strong> delivery. It is possible for the worker to publish the message to NATS, but fail to update the DB row to "Processed" before crashing. When the worker restarts, it will send the message again. Therefore, your consumers <strong>must be idempotent</strong>.
 </Callout>
 
+<ExternalCite title="Microservices Patterns" url="https://www.manning.com/books/microservices-patterns" author="Chris Richardson" date="2018-11-01" />
+
+<ImplementationNote title="Scaling the relay worker with competing consumers">
+When our message volume grew, a single relay worker could not keep up with the outbox backlog. My first instinct was to run multiple instances of the worker, but that immediately caused duplicate deliveries because two workers would poll the same unprocessed rows. The solution was to use PostgreSQL's `SELECT ... FOR UPDATE SKIP LOCKED` in the polling query, which lets multiple workers grab distinct batches of messages without stepping on each other. Each worker locks only the rows it is processing, and other workers skip those locked rows and pick up the next available batch. This scaled our throughput linearly with the number of workers while preserving at-least-once delivery guarantees.
+</ImplementationNote>
+
+<ExternalCite title="Reliable Microservices Data Exchange With the Outbox Pattern" url="https://debezium.io/blog/2019/02/19/reliable-microservices-data-exchange-with-the-outbox-pattern/" author="Gunnar Morling" date="2019-02-19" />
+
 ## Conclusion
 
 The Transactional Outbox pattern decouples your database transaction from your message broker availability. While it adds moving parts (the relay worker), it is essential for systems where data integrity cannot be compromised.
 
 In our architecture, we rely on this pattern for all critical events, ensuring that even if NATS undergoes maintenance or a network partition occurs, no data is ever lost.
 
+Reflecting on the journey from naive publish-after-save to a proper outbox implementation, the biggest shift was mental: accepting that the database is perfectly fine as a short-lived message queue. Once I stopped thinking of the outbox as a "hack" and started treating it as a first-class reliability primitive, the design decisions around idempotency, ordering, and scaling all became much clearer. If you are building event-driven microservices on .NET with NATS, the outbox is not optional -- it is foundational.
+
 **Next Steps**:
 - Explore [Idempotency Consumers] to handle duplicate messages.
 - Look into **CDC (Change Data Capture)** tools like Debezium for a zero-code outbox implementation.
+
+### Further Reading
+
+- [Microservices.io Transactional Outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html) -- Chris Richardson's canonical description of the pattern and its trade-offs.
+- [Debezium outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html) -- CDC-based alternative that eliminates the polling relay worker entirely.
+- [NATS JetStream documentation](https://docs.nats.io/nats-concepts/jetstream) -- official guide to durable, at-least-once messaging with NATS.
+- [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by Chris Richardson -- comprehensive treatment of messaging reliability patterns.

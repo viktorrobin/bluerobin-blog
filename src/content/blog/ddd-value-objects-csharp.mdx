@@ -2,6 +2,7 @@
 title: "Value Objects: Immutability and Self-Validation in C#"
 description: "Learn how to implement value objects with built-in validation, equality semantics, and EF Core persistence for a cleaner, more expressive domain model."
 pubDate: 2024-10-04
+updatedDate: 2026-02-27
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -19,17 +20,19 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-Value objects are one of the most powerful yet underutilized tactical patterns in Domain-Driven Design. Unlike entities (which have identity), value objects are defined entirely by their attributes and are immutable once created. They are the building blocks of a rich domain model, encapsulating validation rules and behavior for concepts like email addresses, monetary amounts, or custom identifiers.
+When I first started building BlueRobin, I used raw strings everywhere—for user IDs, document hashes, email addresses, even file paths. The codebase was riddled with bugs where a user ID string was accidentally passed where a document ID was expected, and the compiler was perfectly happy about it. Introducing value objects was the turning point where the type system started working for me instead of against me.
+
+Value objects are one of the most powerful yet underutilized tactical patterns in Domain-Driven Design. <ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" /> Unlike entities (which have identity), value objects are defined entirely by their attributes and are immutable once created. They are the building blocks of a rich domain model, encapsulating validation rules and behavior for concepts like email addresses, monetary amounts, or custom identifiers.
 
 ## Why Use Value Objects?
 
-In many applications, we use primitive types (`string`, `int`, `decimal`) to represent domain concepts. This leads to "Primitive Obsession," where validation logic is scattered across services and controllers.
+In many applications, we use primitive types (`string`, `int`, `decimal`) to represent domain concepts. This leads to "Primitive Obsession," <ExternalCite title="Primitive Obsession" url="https://refactoring.guru/smells/primitive-obsession" author="Refactoring Guru" date="2024" /> where validation logic is scattered across services and controllers.
 
 Value Objects solve this by:
 1.  **Enforcing Constraints**: An invalid Value Object cannot exist (e.g., an email without `@` symbol).
 2.  **Encapsulating Logic**: Formatting, conversion, and equality logic live with the data.
 3.  **Improving Readability**: `EmailAddress` is more expressive than just `string`.
-4.  **Ensuring Immutability**: Once created, they cannot change, eliminating side effects.
+4.  **Ensuring Immutability**: Once created, they cannot change, eliminating side effects. <ExternalCite title="C# Records" url="https://learn.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/record" author="Microsoft" date="2024" />
 
 | Aspect | Entity | Value Object |
 |--------|--------|--------------|
@@ -90,7 +93,7 @@ classDiagram
 
 ## The Base Value Object Class
 
-To implement structural equality (equality based on values, not references), we use a base class that overrides `Equals` and `GetHashCode`.
+To implement structural equality (equality based on values, not references), we use a base class that overrides `Equals` and `GetHashCode`. <ExternalCite title="Value Object" url="https://martinfowler.com/bliki/ValueObject.html" author="Martin Fowler" date="2016" />
 
 ```csharp
 // Core/Common/ValueObject.cs
@@ -131,6 +134,10 @@ public abstract class ValueObject : IEquatable<ValueObject>
     public static bool operator !=(ValueObject? left, ValueObject? right) => !(left == right);
 }
 ```
+
+<ImplementationNote>
+    I initially implemented value objects using C# records, thinking `record` types would give me structural equality for free. While records do provide value-based equality, they also provide `with` expressions that allow mutation—defeating the purpose of enforced immutability in the domain. I switched to sealed classes with private constructors and explicit `GetEqualityComponents()`, which gives me full control over both equality semantics and the creation path.
+</ImplementationNote>
 
 ## Implementing a Value Object
 
@@ -211,9 +218,13 @@ public class DocumentHash : ValueObject
 }
 ```
 
+<ImplementationNote>
+    Our `FingerPrint` value object in BlueRobin stores both the SHA-256 hash and the file size as a composite identity for deduplication. When I first made this a value object, I forgot to include the file size in `GetEqualityComponents()`. This meant two different files with the same hash but different sizes were treated as duplicates—a subtle bug that only surfaced when a user uploaded a truncated PDF that happened to have the same hash prefix.
+</ImplementationNote>
+
 ## EF Core Configuration
 
-To map Value Objects to the database, we use the `OwnsOne` configuration in EF Core. This maps the value object's properties to columns in the owning entity's table ("Table Splitting").
+To map Value Objects to the database, we use the `OwnsOne` configuration in EF Core. <ExternalCite title="EF Core Owned Entity Types" url="https://learn.microsoft.com/en-us/ef/core/modeling/owned-entities" author="Microsoft" date="2024" /> This maps the value object's properties to columns in the owning entity's table ("Table Splitting").
 
 ```csharp
 // Infrastructure/Persistence/Configurations/DocumentConfiguration.cs
@@ -239,10 +250,28 @@ public void Configure(EntityTypeBuilder<Document> builder)
 }
 ```
 
+<ImplementationNote>
+    The EF Core `HasConversion` approach for simple value objects (like `CustomId`) worked well initially, but I hit a wall when LINQ queries tried to use the factory method inside expressions. EF Core couldn't translate `CustomId.Create(value).Value` to SQL. The fix was creating a dedicated `ValueConverter<CustomId, string>` that handles the conversion without calling the factory method—the factory is for domain creation, not database materialization.
+</ImplementationNote>
+
 <Callout type="warning">
 **Equality Warning**: EF Core tracks Owned Types by reference, not value. Modifying a property of an owned type is technically replacing the immutable object conceptually, but EF needs to detect the change. Since our VOs are immutable, always **replace** the entire instance: `doc.UpdateChecksum(DocumentHash.Create(...))`.
 </Callout>
 
+<ExternalCite title="Implementing Domain-Driven Design" url="https://www.oreilly.com/library/view/implementing-domain-driven-design/9780133039900/" author="Vaughn Vernon" date="2013" />
+
 ## Conclusion
 
 Value Objects are essential for creating a domain model that is expressive, safe, and easy to maintain. By encapsulating validation and behavior, they prevent "garbage data" from ever entering your system and make your code more self-documenting.
+
+The shift from primitive types to value objects was one of the most impactful refactoring exercises in BlueRobin. It caught bugs at compile time that previously required integration tests to detect. If you take away one thing from this article, let it be this: every time you reach for a `string` or `int` to represent a domain concept, consider whether a value object would make your intent clearer and your system safer.
+
+**Next Steps:**
+- See how [Aggregates](/ddd-aggregates-consistency-boundaries) compose value objects into rich domain models.
+- Learn about [Factory Methods](/ddd-factory-methods-private-constructors) that ensure value objects are always created correctly.
+
+### Further Reading
+
+- <ExternalCite title="Value Object" url="https://martinfowler.com/bliki/ValueObject.html" author="Martin Fowler" date="2016" /> — Martin Fowler's definitive explanation of value objects and their role in domain modeling.
+- <ExternalCite title="Domain-Driven Design: Tackling Complexity in the Heart of Software" url="https://www.domainlanguage.com/ddd/" author="Eric Evans" date="2003" /> — The original text introducing value objects as a tactical DDD pattern.
+- <ExternalCite title="EF Core Owned Entity Types" url="https://learn.microsoft.com/en-us/ef/core/modeling/owned-entities" author="Microsoft" date="2024" /> — Official documentation on persisting value objects with Entity Framework Core.

@@ -2,6 +2,7 @@
 title: "Real-Time Updates in Blazor Server with NATS"
 description: "Implement real-time UI updates in Blazor Server using NATS JetStream instead of SignalR, with progress indicators and state management."
 pubDate: 2025-07-22
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -16,12 +17,17 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import CodeFile from '@components/CodeFile.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first configured NATS as the real-time transport for our Blazor Server UI, I naively subscribed to NATS directly from within Razor components. The result was a tangle of connection management issues: components would lose their subscription when the circuit reconnected, duplicate messages appeared after hot reloads, and worst of all, disposed components would still receive messages and crash when calling `StateHasChanged`. It took a complete rethink, introducing an in-process notification service as an intermediary, before the system became stable. That architectural pivot is the foundation of everything described in this article.
 
 ## Introduction
 
 When a user uploads a document, they shouldn't stare at a spinner wondering if anything is happening. They should see real-time progress: "OCR processing... 45%... Entity extraction... Complete!"
 
 **The typical solution is SignalR**, but Blazor Server already uses SignalR internally for its circuit connection. Adding another SignalR layer for real-time events creates redundancy. Instead, we'll leverage our existing NATS messaging infrastructure to push updates directly to Blazor components.
+
+<ExternalCite title="NATS.io Documentation" url="https://docs.nats.io/nats-concepts/overview" author="Synadia Communications" date="2024-09-01" />
 
 ### What We'll Build
 
@@ -39,6 +45,8 @@ In this guide, we'll implement:
 - **Simplicity**: One messaging system instead of two
 - **Scalability**: NATS handles cross-pod communication naturally; SignalR needs Redis backplane
 - **Already there**: No additional infrastructure to manage
+
+<ExternalCite title="NATS JetStream" url="https://docs.nats.io/nats-concepts/jetstream" author="Synadia Communications" date="2024-09-01" />
 
 ## Architecture Overview
 
@@ -83,20 +91,20 @@ public interface IDocumentProcessingNotifier
     /// Event raised when a document's processing status changes.
     /// </summary>
     event Func<DocumentStatusUpdate, Task>? OnDocumentUpdated;
-    
+
     /// <summary>
     /// Event raised for processing progress updates.
     /// </summary>
     event Func<DocumentProgressUpdate, Task>? OnProgressUpdated;
-    
+
     /// <summary>
     /// Notifies subscribers of a document status change.
     /// </summary>
     Task NotifyDocumentUpdatedAsync(
-        string documentId, 
+        string documentId,
         DocumentStatus status,
         string? message = null);
-    
+
     /// <summary>
     /// Notifies subscribers of processing progress.
     /// </summary>
@@ -125,6 +133,8 @@ public record DocumentProgressUpdate(
 
 The implementation iterates through handlers, catching exceptions to prevent one bad handler from breaking the notification chain:
 
+<ExternalCite title="Background tasks with hosted services in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services" author="Microsoft" date="2024-11-12" />
+
 ```csharp
 // Web/Services/DocumentProcessingNotifier.cs
 namespace MyApp.Web.Services;
@@ -132,15 +142,15 @@ namespace MyApp.Web.Services;
 public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
 {
     private readonly ILogger<DocumentProcessingNotifier> _logger;
-    
+
     public event Func<DocumentStatusUpdate, Task>? OnDocumentUpdated;
     public event Func<DocumentProgressUpdate, Task>? OnProgressUpdated;
-    
+
     public DocumentProcessingNotifier(ILogger<DocumentProcessingNotifier> logger)
     {
         _logger = logger;
     }
-    
+
     public async Task NotifyDocumentUpdatedAsync(
         string documentId,
         DocumentStatus status,
@@ -151,12 +161,12 @@ public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
             status,
             message,
             DateTimeOffset.UtcNow);
-        
+
         _logger.LogDebug(
             "Notifying status update: {DocumentId} -> {Status}",
             documentId,
             status);
-        
+
         var handlers = OnDocumentUpdated;
         if (handlers is not null)
         {
@@ -170,14 +180,14 @@ public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, 
+                    _logger.LogError(ex,
                         "Error in document update handler for {DocumentId}",
                         documentId);
                 }
             }
         }
     }
-    
+
     public async Task NotifyProgressUpdatedAsync(
         string documentId,
         string stage,
@@ -190,7 +200,7 @@ public sealed class DocumentProcessingNotifier : IDocumentProcessingNotifier
             Math.Clamp(percentage, 0, 100),  // Ensure valid range
             detail,
             DateTimeOffset.UtcNow);
-        
+
         var handlers = OnProgressUpdated;
         if (handlers is not null)
         {
@@ -221,6 +231,8 @@ Register the notifier as a singleton so all components and the NATS listener sha
 
 This hosted service bridges NATS events to the notification service. It uses an **ephemeral consumer** since we only care about real-time updates—if the web server restarts, we don't need to replay missed events.
 
+<ExternalCite title="NATS Consumers" url="https://docs.nats.io/nats-concepts/jetstream/consumers" author="Synadia Communications" date="2024-09-01" />
+
 ```csharp
 // Web/Services/NatsDocumentEventListener.cs
 namespace MyApp.Web.Services;
@@ -231,7 +243,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
     private readonly IDocumentProcessingNotifier _notifier;
     private readonly ILogger<NatsDocumentEventListener> _logger;
     private readonly string _environment;
-    
+
     public NatsDocumentEventListener(
         INatsConnection nats,
         IDocumentProcessingNotifier notifier,
@@ -243,11 +255,11 @@ public sealed class NatsDocumentEventListener : BackgroundService
         _logger = logger;
         _environment = configuration["Environment"] ?? "dev";
     }
-    
+
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         var js = _nats.CreateJetStreamContext();
-        
+
         // Ephemeral consumer: unique name, short inactivity timeout, no ack required
         var consumer = await js.CreateOrUpdateConsumerAsync(
             stream: "DOCUMENTS",
@@ -265,11 +277,11 @@ public sealed class NatsDocumentEventListener : BackgroundService
                 InactiveThreshold = TimeSpan.FromMinutes(5)
             },
             stoppingToken);
-        
+
         _logger.LogInformation(
             "NATS document event listener started for {Environment}",
             _environment);
-        
+
         try
         {
             await foreach (var msg in consumer.ConsumeAsync<DocumentEventEnvelope>(
@@ -285,6 +297,10 @@ public sealed class NatsDocumentEventListener : BackgroundService
     }
 ```
 
+<ImplementationNote>
+    I initially used a durable consumer for the web listener, thinking it would be safer to not miss events. This backfired badly: after a deployment restart, the consumer would replay thousands of stale events, flooding every connected Blazor component with outdated status updates. Switching to an ephemeral consumer with `DeliverPolicy.New` was the correct choice for UI notifications. If a user refreshes the page, they get the current state from the API; they do not need historical event replay.
+</ImplementationNote>
+
 **Event mapping**: The listener translates NATS subjects to notification calls. Subject structure is `{env}.archives.documents.{event-type}`:
 
 ```csharp
@@ -297,7 +313,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
         {
             // Extract event type from subject: "dev.archives.documents.ocr-completed" -> "ocr-completed"
             var eventType = subject.Split('.').Last();
-            
+
             switch (eventType)
             {
                 case "uploaded":
@@ -306,7 +322,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                         DocumentStatus.Uploaded,
                         "Document queued for processing");
                     break;
-                
+
                 case "ocr-started":
                     await _notifier.NotifyDocumentUpdatedAsync(
                         envelope.DocumentId,
@@ -318,7 +334,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                         0,
                         "Initializing document processor");
                     break;
-                
+
                 case "ocr-progress":
                     if (envelope.Progress is not null)
                     {
@@ -329,7 +345,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                             envelope.Progress.Detail);
                     }
                     break;
-                
+
                 case "ocr-completed":
                     await _notifier.NotifyProgressUpdatedAsync(
                         envelope.DocumentId,
@@ -337,7 +353,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                         100,
                         "Text extraction complete");
                     break;
-                
+
                 case "analysis-completed":
                     await _notifier.NotifyProgressUpdatedAsync(
                         envelope.DocumentId,
@@ -345,7 +361,7 @@ public sealed class NatsDocumentEventListener : BackgroundService
                         100,
                         "AI analysis complete");
                     break;
-                
+
                 case "embedding-completed":
                     await _notifier.NotifyProgressUpdatedAsync(
                         envelope.DocumentId,
@@ -353,14 +369,14 @@ public sealed class NatsDocumentEventListener : BackgroundService
                         100,
                         "Search index updated");
                     break;
-                
+
                 case "indexed":
                     await _notifier.NotifyDocumentUpdatedAsync(
                         envelope.DocumentId,
                         DocumentStatus.Ready,
                         "Document ready for search");
                     break;
-                
+
                 case "error":
                     await _notifier.NotifyDocumentUpdatedAsync(
                         envelope.DocumentId,
@@ -403,6 +419,8 @@ Now the Blazor side. We create a base component that handles the subscription bo
 
 **Why cleanup matters**: Blazor Server components can be disposed at any time (navigation, circuit disconnect). Without unsubscribing, you get memory leaks and exceptions when handlers try to invoke `StateHasChanged` on disposed components.
 
+<ExternalCite title="ASP.NET Core Blazor component lifecycle" url="https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle" author="Microsoft" date="2024-11-12" />
+
 ```csharp
 // Components/AppComponentBase.cs
 namespace MyApp.Web.Components;
@@ -411,13 +429,13 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
 {
     [Inject]
     protected IDocumentProcessingNotifier Notifier { get; set; } = default!;
-    
+
     [Inject]
     protected ILogger<AppComponentBase> Logger { get; set; } = default!;
-    
+
     private readonly List<IDisposable> _subscriptions = new();
     private bool _disposed;
-    
+
     /// <summary>
     /// Subscribe to updates for a specific document.
     /// Automatically filters events and triggers StateHasChanged.
@@ -435,12 +453,12 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
                 await InvokeAsync(StateHasChanged);
             }
         }
-        
+
         Notifier.OnDocumentUpdated += FilteredHandler;
-        _subscriptions.Add(new EventSubscription(() => 
+        _subscriptions.Add(new EventSubscription(() =>
             Notifier.OnDocumentUpdated -= FilteredHandler));
     }
-    
+
     /// <summary>
     /// Subscribe to progress updates for a specific document.
     /// </summary>
@@ -456,12 +474,12 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
                 await InvokeAsync(StateHasChanged);
             }
         }
-        
+
         Notifier.OnProgressUpdated += FilteredHandler;
-        _subscriptions.Add(new EventSubscription(() => 
+        _subscriptions.Add(new EventSubscription(() =>
             Notifier.OnProgressUpdated -= FilteredHandler));
     }
-    
+
     /// <summary>
     /// Subscribe to all document updates (useful for lists).
     /// </summary>
@@ -473,22 +491,22 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
             await handler(update);
             await InvokeAsync(StateHasChanged);
         }
-        
+
         Notifier.OnDocumentUpdated += WrappedHandler;
-        _subscriptions.Add(new EventSubscription(() => 
+        _subscriptions.Add(new EventSubscription(() =>
             Notifier.OnDocumentUpdated -= WrappedHandler));
     }
-    
+
     public void Dispose()
     {
         Dispose(true);
         GC.SuppressFinalize(this);
     }
-    
+
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed) return;
-        
+
         if (disposing)
         {
             // Unsubscribe from all events
@@ -498,19 +516,19 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
             }
             _subscriptions.Clear();
         }
-        
+
         _disposed = true;
     }
-    
+
     /// <summary>
     /// Helper class to track subscriptions for cleanup.
     /// </summary>
     private sealed class EventSubscription : IDisposable
     {
         private Action? _unsubscribe;
-        
+
         public EventSubscription(Action unsubscribe) => _unsubscribe = unsubscribe;
-        
+
         public void Dispose()
         {
             _unsubscribe?.Invoke();
@@ -520,6 +538,10 @@ public abstract class AppComponentBase : ComponentBase, IDisposable
 }
 ```
 
+<ImplementationNote>
+    The `EventSubscription` helper class was born out of necessity after I tried to unsubscribe lambda event handlers directly and discovered that `event -= lambda` does not work as expected in C# because each lambda creates a new delegate instance. By capturing the exact delegate reference in the `EventSubscription` at subscription time, we guarantee that the unsubscribe call removes the correct handler. Without this pattern, handlers accumulate and components receive duplicate notifications.
+</ImplementationNote>
+
 ## Document Upload Component
 
 Now let's build a complete upload component that shows real-time progress. This component:
@@ -527,6 +549,8 @@ Now let's build a complete upload component that shows real-time progress. This 
 2. Uploads to the API
 3. Subscribes to processing events for real-time progress
 4. Updates the UI as events arrive
+
+<ExternalCite title="NATS .NET Client" url="https://github.com/nats-io/nats.net" author="NATS Authors" date="2024-07-15" />
 
 ```razor
 @* Components/Documents/DocumentUploader.razor *@
@@ -540,14 +564,14 @@ Now let's build a complete upload component that shows real-time progress. This 
          @ondragover:preventDefault
          @ondrop="HandleDrop"
          @ondrop:preventDefault>
-        
-        <InputFile OnChange="HandleFileSelected" 
+
+        <InputFile OnChange="HandleFileSelected"
                    accept=".pdf,.docx,.pptx,.png,.jpg,.jpeg"
                    class="hidden"
                    id="file-input" />
-        
+
         <label for="file-input" class="cursor-pointer flex flex-col items-center">
-            <svg class="w-12 h-12 text-gray-400 mb-3" fill="none" 
+            <svg class="w-12 h-12 text-gray-400 mb-3" fill="none"
                  stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/>
@@ -560,7 +584,7 @@ Now let's build a complete upload component that shows real-time progress. This 
             </span>
         </label>
     </div>
-    
+
     @* Upload Queue *@
     @if (uploads.Count > 0)
     {
@@ -576,66 +600,66 @@ Now let's build a complete upload component that shows real-time progress. This 
 @code {
     [Parameter] public string ArchiveId { get; set; } = default!;
     [Parameter] public EventCallback<string> OnUploadComplete { get; set; }
-    
+
     private List<UploadState> uploads = new();
     private bool isDragOver;
-    
+
     private string DropZoneClass => new CssBuilder()
         .AddClass("border-2 border-dashed rounded-xl p-8 text-center transition-colors")
         .AddClass("border-gray-300 dark:border-gray-600", !isDragOver)
         .AddClass("border-primary-blue bg-primary-blue/5", isDragOver)
         .Build();
-    
+
     private void HandleDragEnter() => isDragOver = true;
     private void HandleDragLeave() => isDragOver = false;
-    
+
     private async Task HandleDrop(DragEventArgs e)
     {
         isDragOver = false;
         // File handling via InputFile is more reliable
     }
-    
+
     private async Task HandleFileSelected(InputFileChangeEventArgs e)
     {
         foreach (var file in e.GetMultipleFiles(10))
         {
             var upload = new UploadState(file.Name, file.Size);
             uploads.Add(upload);
-            
+
             // Start upload asynchronously
             _ = UploadFileAsync(upload, file);
         }
     }
-    
+
     private async Task UploadFileAsync(UploadState upload, IBrowserFile file)
     {
         try
         {
             upload.Status = UploadStatus.Uploading;
             StateHasChanged();
-            
+
             // Subscribe to updates for this document
             // (DocumentId will be set after API response)
-            
+
             using var content = new MultipartFormDataContent();
             using var stream = file.OpenReadStream(maxAllowedSize: 50 * 1024 * 1024);
             using var streamContent = new StreamContent(stream);
-            
+
             content.Add(streamContent, "file", file.Name);
             content.Add(new StringContent(ArchiveId), "archiveId");
-            
+
             var response = await Http.PostAsync("/api/documents/upload", content);
             response.EnsureSuccessStatusCode();
-            
+
             var result = await response.Content.ReadFromJsonAsync<UploadResponse>();
             upload.DocumentId = result!.DocumentId;
             upload.Status = UploadStatus.Processing;
-            
+
             // Now subscribe to NATS updates for this specific document
-            SubscribeToDocumentUpdates(upload.DocumentId, update => 
+            SubscribeToDocumentUpdates(upload.DocumentId, update =>
             {
                 upload.StatusMessage = update.Message;
-                
+
                 if (update.Status == DocumentStatus.Ready)
                 {
                     upload.Status = UploadStatus.Complete;
@@ -646,10 +670,10 @@ Now let's build a complete upload component that shows real-time progress. This 
                     upload.Status = UploadStatus.Error;
                     upload.Error = update.Message;
                 }
-                
+
                 return Task.CompletedTask;
             });
-            
+
             SubscribeToProgressUpdates(upload.DocumentId, progress =>
             {
                 upload.Stage = progress.Stage;
@@ -664,15 +688,15 @@ Now let's build a complete upload component that shows real-time progress. This 
             upload.Error = ex.Message;
             Logger.LogError(ex, "Upload failed for {FileName}", file.Name);
         }
-        
+
         StateHasChanged();
     }
-    
+
     private void RemoveUpload(UploadState upload)
     {
         uploads.Remove(upload);
     }
-    
+
     [Inject] private HttpClient Http { get; set; } = default!;
 }
 
@@ -687,7 +711,7 @@ public class UploadState
     public string? ProgressDetail { get; set; }
     public string? StatusMessage { get; set; }
     public string? Error { get; set; }
-    
+
     public UploadState(string fileName, long fileSize)
     {
         FileName = fileName;
@@ -713,7 +737,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
         <div class="w-10 h-10 rounded-lg bg-primary-blue/10 flex items-center justify-center">
             <FileIcon FileName="@Upload.FileName" />
         </div>
-        
+
         @* File Info *@
         <div class="flex-1 min-w-0">
             <p class="font-medium text-gray-900 dark:text-white truncate">
@@ -727,7 +751,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
                 }
             </p>
         </div>
-        
+
         @* Status Indicator *@
         <div class="flex items-center gap-2">
             @switch (Upload.Status)
@@ -735,51 +759,51 @@ The upload card displays file info, status, and a progress bar. The key is the p
                 case UploadStatus.Pending:
                     <span class="text-gray-400">Waiting...</span>
                     break;
-                    
+
                 case UploadStatus.Uploading:
-                    <div class="animate-spin w-5 h-5 border-2 border-primary-blue 
+                    <div class="animate-spin w-5 h-5 border-2 border-primary-blue
                                 border-t-transparent rounded-full" />
                     <span class="text-primary-blue">Uploading</span>
                     break;
-                    
+
                 case UploadStatus.Processing:
                     <div class="animate-pulse w-5 h-5 bg-amber-400 rounded-full" />
                     <span class="text-amber-600 dark:text-amber-400">Processing</span>
                     break;
-                    
+
                 case UploadStatus.Complete:
                     <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" 
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" 
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
                               clip-rule="evenodd" />
                     </svg>
                     <span class="text-green-600 dark:text-green-400">Complete</span>
                     break;
-                    
+
                 case UploadStatus.Error:
                     <svg class="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" 
-                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" 
+                        <path fill-rule="evenodd"
+                              d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
                               clip-rule="evenodd" />
                     </svg>
                     <span class="text-red-600 dark:text-red-400">Failed</span>
                     break;
             }
-            
+
             @* Remove Button *@
             @if (Upload.Status is UploadStatus.Complete or UploadStatus.Error)
             {
                 <button @onclick="() => OnRemove.InvokeAsync(Upload)"
                         class="p-1 text-gray-400 hover:text-gray-600 rounded">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                               d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
             }
         </div>
     </div>
-    
+
     @* Progress Bar *@
     @if (Upload.Status == UploadStatus.Processing && Upload.Progress > 0)
     {
@@ -798,7 +822,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
             }
         </div>
     }
-    
+
     @* Error Message *@
     @if (Upload.Status == UploadStatus.Error && !string.IsNullOrEmpty(Upload.Error))
     {
@@ -809,7 +833,7 @@ The upload card displays file info, status, and a progress bar. The key is the p
 @code {
     [Parameter, EditorRequired] public UploadState Upload { get; set; } = default!;
     [Parameter] public EventCallback<UploadState> OnRemove { get; set; }
-    
+
     private string FormatBytes(long bytes)
     {
         string[] sizes = ["B", "KB", "MB", "GB"];
@@ -839,7 +863,7 @@ Finally, a document list that updates in real-time when new documents are added 
     {
         <DocumentCard Document="doc" />
     }
-    
+
     @if (documents.Count == 0)
     {
         <div class="text-center py-12 text-gray-500">
@@ -850,19 +874,19 @@ Finally, a document list that updates in real-time when new documents are added 
 
 @code {
     [Parameter] public string ArchiveId { get; set; } = default!;
-    
+
     private List<DocumentViewModel> documents = new();
-    
+
     protected override async Task OnInitializedAsync()
     {
         // Load initial documents
         documents = await LoadDocumentsAsync();
-        
+
         // Subscribe to all document updates for this archive
         SubscribeToAllDocumentUpdates(async update =>
         {
             var doc = documents.FirstOrDefault(d => d.Id == update.DocumentId);
-            
+
             if (doc is not null)
             {
                 // Update existing document
@@ -876,16 +900,16 @@ Finally, a document list that updates in real-time when new documents are added 
             }
         });
     }
-    
+
     private async Task<List<DocumentViewModel>> LoadDocumentsAsync()
     {
         var response = await Http.GetFromJsonAsync<DocumentListResponse>(
             $"/api/archives/{ArchiveId}/documents");
         return response?.Documents ?? new();
     }
-    
+
     [Inject] private HttpClient Http { get; set; } = default!;
-    
+
     public async ValueTask DisposeAsync()
     {
         // AppComponentBase.Dispose handles unsubscription
@@ -920,4 +944,16 @@ We've built a complete real-time update system for Blazor Server that leverages 
 
 This approach keeps the architecture simple: one messaging system (NATS) for both backend workers and frontend notifications, no SignalR hubs to configure, no Redis backplane for scaling.
 
-**Next in the series**: We'll build **advanced form components** with validation, error states, and glass morphism styling.
+Reflecting on this implementation, the decision to use NATS instead of adding a second SignalR layer was one of the best architectural choices we made. It reduced our infrastructure complexity and gave us a consistent event model from backend workers all the way to the UI. The in-process notification service pattern has proven remarkably robust in production; the only issue we ever encountered was the ephemeral consumer lesson described above, and that was resolved within hours of the first deployment.
+
+### Next Steps
+
+- Add heartbeat monitoring to detect stale NATS connections and trigger automatic reconnection.
+- Implement batch notification debouncing to prevent UI thrashing when many documents update simultaneously.
+- Build a notification history panel so users can review past processing events for audit purposes.
+
+### Further Reading
+
+- [NATS JetStream Documentation](https://docs.nats.io/nats-concepts/jetstream) -- Official guide to JetStream consumers, streams, and delivery policies.
+- [ASP.NET Core Blazor component lifecycle](https://learn.microsoft.com/en-us/aspnet/core/blazor/components/lifecycle) -- Understanding disposal and cleanup in Blazor Server.
+- [Background tasks with hosted services](https://learn.microsoft.com/en-us/aspnet/core/fundamentals/host/hosted-services) -- Patterns for long-running background services in ASP.NET Core.

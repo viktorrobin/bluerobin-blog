@@ -2,6 +2,7 @@
 title: "Telegram Integration Architecture"
 description: "Visual architecture overview of our Telegram integration, showing the complete flow from mobile app to backend services, authentication, and notification pipelines."
 pubDate: 2026-02-11
+updatedDate: 2026-02-28
 draft: true
 author: "Victor Robin"
 category: "architecture"
@@ -14,6 +15,10 @@ seriesOrder: 5
 ---
 
 import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+When I first sat down to diagram the full Telegram integration architecture, I realized how many moving parts had quietly accumulated over months of development. What started as a simple bot sending notifications had grown into a system spanning long-polling workers, NATS-driven event pipelines, Mini App authentication, and service-to-service API calls. Drawing it all out forced me to confront coupling I had not noticed and gaps in my mental model. This article is the result of that exercise -- a visual reference I wish I had on day one, covering every flow from account linking to document upload to RAG queries.
 
 ## Overview
 
@@ -98,9 +103,17 @@ flowchart TB
     class Ollama ai
 ```
 
+<ExternalCite title="Telegram Bot API Reference" url="https://core.telegram.org/bots/api" author="Telegram" date="2024-12-20" />
+
+<ImplementationNote title="Discovering Hidden Coupling in the Architecture">
+When I first drew this diagram, I realized the Bot Worker had quietly accumulated direct database connections for user lookups, bypassing the API entirely. This made the bot a second source of truth for authorization logic. Migrating to the API-first pattern (Bot -> API -> DB) took a full sprint, but eliminated an entire class of permission drift bugs that had been silently accumulating. The diagram was what made the problem visible.
+</ImplementationNote>
+
 ## Account Linking Flow (Deep Link)
 
 How a user links their Telegram account to our platform using the traditional deep link method:
+
+<ExternalCite title="Telegram Deep Linking" url="https://core.telegram.org/api/links#bot-links" author="Telegram" date="2024-11-15" />
 
 ```mermaid
 sequenceDiagram
@@ -245,6 +258,8 @@ sequenceDiagram
     MA->>TG: Telegram.WebApp.close()
 ```
 
+<ExternalCite title="Web Authentication: An API for accessing Public Key Credentials" url="https://www.w3.org/TR/webauthn-3/" author="W3C" date="2024-04-08" />
+
 ## Notification Pipeline
 
 How a document processing completion triggers a Telegram notification:
@@ -301,6 +316,8 @@ flowchart LR
     class NotifyWorker,TGClient bot
     class BotAPI,App telegram
 ```
+
+<ExternalCite title="NATS Documentation - Core Publish-Subscribe" url="https://docs.nats.io/nats-concepts/core-nats/pubsub" author="Synadia" date="2024-10-01" />
 
 ## RAG Query Flow
 
@@ -504,6 +521,8 @@ serviceTokens[telegramBotToken] = new ServiceTokenConfig
 
 ### Why Long Polling vs Webhooks?
 
+<ExternalCite title="Telegram Bot API - Getting Updates" url="https://core.telegram.org/bots/api#getting-updates" author="Telegram" date="2024-12-20" />
+
 | Aspect | Long Polling | Webhooks |
 |--------|-------------|----------|
 | **Setup** | Simple, no public endpoint | Requires TLS + public URL |
@@ -516,7 +535,13 @@ We chose **long polling** because:
 2. Simpler operational model
 3. Acceptable latency for our use case
 
+<ImplementationNote title="Webhook Reliability on a Homelab">
+I originally tried webhooks using a Cloudflare Tunnel to expose the endpoint, but ran into frustrating intermittent failures. Telegram would retry delivery, leading to duplicate message processing that was hard to debug. Switching to long polling simplified everything -- the bot controls the connection lifecycle, and there is no need for a publicly routable endpoint. The 1-3 second latency tradeoff was well worth the operational simplicity.
+</ImplementationNote>
+
 ### Why Core NATS for Notifications?
+
+<ExternalCite title="NATS Documentation - Core NATS vs JetStream" url="https://docs.nats.io/nats-concepts/overview" author="Synadia" date="2024-10-01" />
 
 Notifications use Core NATS (not JetStream) because:
 1. **Ephemeral** - Old notifications aren't useful
@@ -524,6 +549,27 @@ Notifications use Core NATS (not JetStream) because:
 3. **Simple** - No consumer state to manage
 
 Document events use JetStream for guaranteed delivery.
+
+## Conclusion
+
+Creating these architecture diagrams was as much a design review exercise as it was documentation. Seeing every flow laid out -- from account linking to RAG queries to document uploads -- revealed assumptions I had made without realizing it. The API-first refactor came directly from staring at the system architecture diagram and noticing the bot's direct database connections. The long polling decision, the Core NATS vs JetStream split, and the environment-prefixed subjects all look obvious in hindsight, but each emerged from a concrete problem I hit during development.
+
+If you are building a similar integration, I strongly recommend diagramming your architecture early and revisiting it often. The diagrams are not just documentation -- they are a thinking tool.
+
+## Next Steps
+
+- **Add webhook support as an optional mode** for environments with stable public endpoints
+- **Introduce a notification preferences UI** in the Mini App so users can toggle notification types directly from Telegram
+- **Extend the RAG flow** with streaming responses for long answers, using Telegram's edit-message API for progressive updates
+- **Build a monitoring dashboard** that visualizes NATS subject traffic across environments in real time
+
+## Further Reading
+
+- [Telegram Bot API Documentation](https://core.telegram.org/bots/api) -- The official reference for all Bot API methods and update types
+- [NATS by Example](https://natsbyexample.com/) -- Practical patterns for Core NATS and JetStream usage
+- [WebAuthn Guide by MDN](https://developer.mozilla.org/en-US/docs/Web/API/Web_Authentication_API) -- Comprehensive guide to the Web Authentication API
+- [Telegram Mini Apps Documentation](https://core.telegram.org/bots/webapps) -- Official reference for building Mini Apps with the WebApp SDK
+- [FluxCD Documentation](https://fluxcd.io/docs/) -- GitOps toolkit used in our deployment architecture
 
 ## Related Articles
 

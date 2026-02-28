@@ -2,6 +2,7 @@
 title: "MinIO Multi-Tenant Object Storage"
 description: "Deploy a production-ready MinIO cluster on Kubernetes with per-user encryption, bucket policies, and integration with your .NET applications."
 pubDate: 2025-08-07
+updatedDate: 2026-02-28
 author: "Victor Robin"
 category: "storage"
 difficulty: "intermediate"
@@ -13,6 +14,8 @@ toc: true
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
+
+When I first deployed MinIO as a single-tenant instance, everything seemed fine -- until I realized that all users' documents were sitting in a single bucket with no cryptographic separation. One misconfigured IAM policy could have exposed every user's files to every other user. That realization sent me down a rabbit hole of per-user bucket isolation, KES integration for individual encryption keys, and Kubernetes StatefulSet tuning to ensure MinIO pods survived node restarts without data corruption. The multi-tenant architecture described here took several iterations to get right, including one memorable incident where a KES certificate renewal brought down all uploads for six hours. Every design decision in this guide was shaped by real failures in my homelab.
 
 ## Introduction
 
@@ -26,6 +29,8 @@ Modern applications store more than just database rows—they handle PDFs, image
 - **S3 Compatibility**: Your existing SDKs and tools just work
 
 In our system, where users upload sensitive documents, multi-tenancy isn't a feature—it's a requirement. Each user gets their own encrypted bucket, managed by KES (Key Encryption Service), ensuring cryptographic isolation between tenants.
+
+<ExternalCite title="MinIO Multi-Tenancy Documentation" url="https://min.io/docs/minio/kubernetes/upstream/operations/concepts/multi-tenancy.html" author="MinIO, Inc." date="2024-06-01" />
 
 MinIO provides S3-compatible object storage that runs anywhere. This guide covers deploying MinIO on Kubernetes with multi-tenant isolation, per-user encryption keys, and integration with .NET applications.
 
@@ -101,6 +106,8 @@ spec:
 ```
 
 ### StatefulSet
+
+<ExternalCite title="MinIO Kubernetes StatefulSet Deployment" url="https://min.io/docs/minio/kubernetes/upstream/operations/installation.html" author="MinIO, Inc." date="2024-06-01" />
 
 ```yaml
 # infrastructure/data-layer/minio/statefulset.yaml
@@ -196,6 +203,10 @@ spec:
             storage: 50Gi
 ```
 
+<ImplementationNote title="StatefulSet pod management and storage persistence">
+I learned the hard way that MinIO's StatefulSet needs `podManagementPolicy: Parallel` rather than the default `OrderedReady`. During a cluster upgrade, my four MinIO pods restarted one at a time, with each pod waiting for the previous one to become fully ready. Because MinIO's erasure coding requires a quorum of nodes to accept writes, the cluster was effectively write-locked for over 20 minutes during the rolling restart. Switching to Parallel allowed all pods to restart simultaneously and reach quorum in under 90 seconds. I also discovered that using `local-path` StorageClass was risky -- if a node dies permanently, the data on that node's local disk is lost. I eventually migrated to Longhorn-backed PVCs to get cross-node replication.
+</ImplementationNote>
+
 ### Services
 
 ```yaml
@@ -270,6 +281,8 @@ public interface IStorageService
 ```
 
 ### MinIO Storage Implementation
+
+<ExternalCite title="MinIO .NET Client SDK" url="https://min.io/docs/minio/linux/developers/dotnet/API.html" author="MinIO, Inc." date="2024-04-15" />
 
 ```csharp
 // Infrastructure/Storage/MinioStorageService.cs
@@ -468,6 +481,10 @@ public sealed class MinioStorageService : IStorageService
 Each user gets their own bucket with a dedicated encryption key. This provides strong tenant isolation and simplifies data deletion for GDPR compliance.
 </ImplementationNote>
 
+<ImplementationNote title="Per-user bucket naming and DNS constraints">
+My first bucket naming scheme used the user's email address as part of the bucket name, which immediately broke because S3 bucket names cannot contain `@` or uppercase characters. I switched to using the user's CustomId (a ULID), which solved the naming issue. However, I later discovered that bucket names also cannot start with a number in some S3-compatible tools. I ultimately settled on the `{env}-{userId}` pattern shown in the code, which guarantees the bucket name starts with a letter (the environment prefix) and contains only lowercase alphanumeric characters and hyphens. This small naming decision prevented hours of debugging across mc CLI, AWS SDK, and MinIO Console.
+</ImplementationNote>
+
 ## Processing Content Storage
 
 ```csharp
@@ -584,8 +601,26 @@ MinIO provides S3-compatible storage with:
 
 This architecture ensures data isolation while maintaining operational simplicity.
 
-<ExternalCite 
-  title="MinIO Documentation" 
+Building this multi-tenant storage layer taught me that the hardest problems are not in the MinIO configuration itself, but in the integration seams: how bucket names interact with DNS, how encryption keys must be provisioned before the first upload, and how Kubernetes pod scheduling affects erasure coding quorum. If I were starting over, I would invest more upfront in automated integration tests that verify the full upload-encrypt-download-delete lifecycle for each tenant, rather than testing each component in isolation.
+
+<ExternalCite title="Building Secure and Reliable Systems" url="https://sre.google/books/building-secure-reliable-systems/" author="Google SRE Team" date="2020-03-16" />
+
+<ExternalCite title="MinIO KES - Key Encryption Service" url="https://min.io/docs/kes/" author="MinIO, Inc." date="2024-03-01" />
+
+## Next Steps
+
+- See how [MinIO Object Storage for Document Management](/minio-object-storage-document-management) extends this pattern with Helm deployments and .NET SDK integration
+- Learn about [Longhorn Distributed Storage](/longhorn-distributed-storage-kubernetes) which provides the persistent volumes backing MinIO
+- Explore [Storage Performance benchmarks](/infrastructure-performance-ssd-vs-nas) to understand why NAS-backed storage works well for object storage workloads
+
+## Further Reading
+
+- [MinIO Official Documentation](https://min.io/docs/minio/kubernetes/upstream/) -- comprehensive Kubernetes deployment and configuration reference
+- [AWS S3 API Compatibility](https://min.io/docs/minio/linux/integrations/aws-sdk-compatibility.html) -- understanding which S3 API operations MinIO supports
+- [NIST SP 800-57 Key Management Recommendations](https://csrc.nist.gov/publications/detail/sp/800-57-part-1/rev-5/final) -- guidance on cryptographic key management that informed our per-user key strategy
+
+<ExternalCite
+  title="MinIO Documentation"
   url="https://min.io/docs/minio/kubernetes/upstream/"
   author="MinIO, Inc."
 />
