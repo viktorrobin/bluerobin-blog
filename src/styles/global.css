@@ -3,7 +3,7 @@
 /* ============================================
    BLUEROBIN BLOG DESIGN SYSTEM
    Based on BlueRobin App v5.4 Design Tokens
-   Light-only theme optimized for blog readability
+   Dark theme matching the BlueRobin web UI
    Floating Glass Interface with Neural Colors
    ============================================ */
 
@@ -62,39 +62,41 @@
     --color-glow-800: oklch(47% 0.11 50);
     --color-glow-900: oklch(40% 0.09 45);
 
-    /* Neutrals: Slate (Refined Gray Scale) */
-    --color-slate-50: #f8fafc;
-    --color-slate-100: #f1f5f9;
-    --color-slate-200: #e2e8f0;
-    --color-slate-300: #cbd5e1;
-    --color-slate-400: #94a3b8;
-    --color-slate-500: #64748b;
-    --color-slate-600: #475569;
-    --color-slate-700: #334155;
-    --color-slate-800: #1e293b;
-    --color-slate-900: #0f172a;
-    --color-slate-950: #020617;
+    /* Neutrals: Slate — remapped to dark mode (surface-base through text-primary)
+       bg-slate-50 = body bg, text-slate-900 = primary text, etc. */
+    --color-slate-50:  #101012;   /* surface-base — body background */
+    --color-slate-100: #1c1c1f;   /* surface-card */
+    --color-slate-200: #252529;   /* surface-overlay */
+    --color-slate-300: #36363b;   /* subtle border */
+    --color-slate-400: #6a6a72;   /* text-disabled */
+    --color-slate-500: #a3a3a3;   /* text-muted */
+    --color-slate-600: #c2c2c1;   /* text-secondary */
+    --color-slate-700: #d4d0cb;   /* mid text */
+    --color-slate-800: #e8e5e0;   /* near-white text */
+    --color-slate-900: #f7f4ef;   /* text-primary */
+    --color-slate-950: #ffffff;   /* pure white */
 
     /* ==================== GLASSMORPHISM ==================== */
-    --glass-white-10: rgba(255, 255, 255, 0.10);
-    --glass-white-12: rgba(255, 255, 255, 0.12);
-    --glass-white-15: rgba(255, 255, 255, 0.15);
-    --glass-white-20: rgba(255, 255, 255, 0.20);
-    --glass-white-25: rgba(255, 255, 255, 0.25);
-    --glass-white-30: rgba(255, 255, 255, 0.30);
-    --glass-white-35: rgba(255, 255, 255, 0.35);
-    --glass-white-40: rgba(255, 255, 255, 0.40);
-    --glass-white-60: rgba(255, 255, 255, 0.60);
-    --glass-white-70: rgba(255, 255, 255, 0.70);
-    --glass-white-80: rgba(255, 255, 255, 0.80);
-    --glass-dark-10: rgba(15, 23, 42, 0.10);
-    --glass-dark-15: rgba(15, 23, 42, 0.15);
-    --glass-dark-20: rgba(15, 23, 42, 0.20);
-    --glass-dark-40: rgba(15, 23, 42, 0.40);
-    --glass-dark-60: rgba(15, 23, 42, 0.60);
+    /* Dark-mode glass: white-alpha panels over #101012 surface */
+    --glass-white-10: rgba(255, 255, 255, 0.04);
+    --glass-white-12: rgba(255, 255, 255, 0.05);
+    --glass-white-15: rgba(255, 255, 255, 0.07);
+    --glass-white-20: rgba(255, 255, 255, 0.08);
+    --glass-white-25: rgba(255, 255, 255, 0.10);
+    --glass-white-30: rgba(255, 255, 255, 0.12);
+    --glass-white-35: rgba(255, 255, 255, 0.15);
+    --glass-white-40: rgba(16, 16, 18, 0.85);   /* header/overlay dark glass */
+    --glass-white-60: rgba(16, 16, 18, 0.90);
+    --glass-white-70: rgba(16, 16, 18, 0.92);
+    --glass-white-80: rgba(16, 16, 18, 0.95);
+    --glass-dark-10: rgba(0, 0, 0, 0.10);
+    --glass-dark-15: rgba(0, 0, 0, 0.15);
+    --glass-dark-20: rgba(0, 0, 0, 0.20);
+    --glass-dark-40: rgba(0, 0, 0, 0.40);
+    --glass-dark-60: rgba(0, 0, 0, 0.60);
 
-    /* Semantic border color */
-    --glass-border: rgba(148, 163, 184, 0.35);
+    /* Semantic border color — fine white edge on dark surfaces */
+    --glass-border: rgba(255, 255, 255, 0.08);
 
     /* Backdrop blur scale */
     --blur-xs: blur(4px);
@@ -143,14 +145,14 @@
     --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
     --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
 
-    /* Slate color with opacity variants */
-    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
-    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
-    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
-    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
-    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
-    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
-    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+    /* Slate alpha — black-based for dark-bg elevation shadows */
+    --color-slate-alpha-3: rgba(0, 0, 0, 0.25);
+    --color-slate-alpha-5: rgba(0, 0, 0, 0.35);
+    --color-slate-alpha-6: rgba(0, 0, 0, 0.40);
+    --color-slate-alpha-8: rgba(0, 0, 0, 0.45);
+    --color-slate-alpha-10: rgba(0, 0, 0, 0.50);
+    --color-slate-alpha-12: rgba(0, 0, 0, 0.55);
+    --color-slate-alpha-15: rgba(0, 0, 0, 0.60);
 
     /* ==================== GRADIENTS ==================== */
     /* Gradients using oklch for perceptual uniformity */
@@ -177,11 +179,11 @@
             oklch(74% 0.17 70) 40%,
             oklch(63% 0.190 127) 100%);
 
-    /* Mesh Background - barely perceptible color wash */
-    --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.04) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(63% 0.190 127 / 0.03) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.03) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.03) 0px, transparent 50%);
+    /* Mesh Background — more vivid on dark surface */
+    --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(63% 0.190 127 / 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.08) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.08) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
     --radius-sm: 0.375rem;
@@ -191,18 +193,19 @@
     --radius-2xl: 1.25rem;
 
     /* ==================== SHADOWS ==================== */
-    --shadow-sm: 0 2px 4px 0 var(--color-slate-alpha-6), 0 1px 2px 0 var(--color-slate-alpha-3);
-    --shadow-md: 0 4px 12px 0 var(--color-slate-alpha-8), 0 2px 4px 0 var(--color-slate-alpha-5);
-    --shadow-lg: 0 8px 24px 0 var(--color-slate-alpha-10), 0 4px 8px 0 var(--color-slate-alpha-5);
-    --shadow-xl: 0 16px 48px 0 var(--color-slate-alpha-12), 0 8px 16px 0 var(--color-slate-alpha-6);
-    --shadow-2xl: 0 24px 64px 0 var(--color-slate-alpha-15), 0 12px 24px 0 var(--color-slate-alpha-8);
+    /* Dark elevation system: thin white ring + black depth shadow */
+    --shadow-sm:  0 0 0 1px rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.40);
+    --shadow-md:  0 0 0 1px rgba(255,255,255,0.05), 0 4px 16px rgba(0,0,0,0.50);
+    --shadow-lg:  0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.55);
+    --shadow-xl:  0 0 0 1px rgba(255,255,255,0.06), 0 16px 48px rgba(0,0,0,0.60);
+    --shadow-2xl: 0 0 0 1px rgba(255,255,255,0.06), 0 24px 64px rgba(0,0,0,0.70);
 
-    /* Colored shadows */
-    --shadow-neural: 0 8px 32px -4px var(--color-neural-alpha-30);
-    --shadow-neural-sm: 0 4px 16px -2px var(--color-neural-alpha-20);
-    --shadow-aurora: 0 8px 32px -4px var(--color-aurora-alpha-30);
-    --shadow-quantum: 0 8px 32px -4px var(--color-quantum-alpha-30);
-    --shadow-glow-colored: 0 8px 32px -4px var(--color-glow-alpha-30);
+    /* Colored glow shadows */
+    --shadow-neural:       0 0 40px var(--color-neural-alpha-25),  0 8px 24px rgba(0,0,0,0.50);
+    --shadow-neural-sm:    0 0 20px var(--color-neural-alpha-20),  0 4px 12px rgba(0,0,0,0.45);
+    --shadow-aurora:       0 0 40px var(--color-aurora-alpha-25),  0 8px 24px rgba(0,0,0,0.50);
+    --shadow-quantum:      0 0 40px var(--color-quantum-alpha-25), 0 8px 24px rgba(0,0,0,0.50);
+    --shadow-glow-colored: 0 0 40px var(--color-glow-alpha-30),   0 8px 24px rgba(0,0,0,0.50);
 
     /* Focus ring tokens */
     --ring-neural: 0 0 0 4px var(--color-neural-alpha-20);
@@ -215,12 +218,12 @@
     --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
 
     /* ==================== CODE BLOCK TOKENS ==================== */
-    --code-bg: var(--color-slate-50);
-    --code-text: var(--color-slate-800);
-    --code-border: var(--color-slate-200);
-    --code-shadow: var(--color-slate-alpha-5);
-    --code-inline-bg: oklch(25% 0.02 260 / 0.06);
-    --code-inline-text: var(--color-slate-700);
+    --code-bg: rgba(0, 0, 0, 0.40);
+    --code-text: #c2c2c1;
+    --code-border: rgba(255, 255, 255, 0.08);
+    --code-shadow: rgba(0, 0, 0, 0.30);
+    --code-inline-bg: rgba(255, 255, 255, 0.10);
+    --code-inline-text: oklch(76% 0.20 43);  /* neural-600 pumpkin for inline code */
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -236,15 +239,15 @@
     --duration-slow: 350ms;
 
     /* ==================== LAVA BLOB TOKENS ==================== */
-    /* BlueRobin brand palette: neural orange + quantum green + aurora vermilion + glow amber */
-    --lava-color-1: oklch(69% 0.235 43 / 0.30);
-    --lava-color-1-outer: oklch(76% 0.20 43 / 0.12);
-    --lava-color-2: oklch(63% 0.190 127 / 0.25);
-    --lava-color-2-outer: oklch(55% 0.170 127 / 0.10);
-    --lava-color-3: oklch(60% 0.240 29 / 0.18);
-    --lava-color-3-outer: oklch(51% 0.230 27 / 0.07);
-    --lava-color-4: oklch(74% 0.17 70 / 0.22);
-    --lava-color-4-outer: oklch(65% 0.16 60 / 0.08);
+    /* Higher opacity for visibility on dark #101012 surface */
+    --lava-color-1: oklch(69% 0.235 43 / 0.50);
+    --lava-color-1-outer: oklch(76% 0.20 43 / 0.20);
+    --lava-color-2: oklch(63% 0.190 127 / 0.35);
+    --lava-color-2-outer: oklch(55% 0.170 127 / 0.15);
+    --lava-color-3: oklch(60% 0.240 29 / 0.28);
+    --lava-color-3-outer: oklch(51% 0.230 27 / 0.10);
+    --lava-color-4: oklch(74% 0.17 70 / 0.32);
+    --lava-color-4-outer: oklch(65% 0.16 60 / 0.12);
 }
 
 /* ==================== BASE STYLES ==================== */
@@ -254,8 +257,10 @@ html {
 }
 
 body {
-    @apply bg-slate-50 text-slate-800 antialiased;
+    @apply antialiased;
     font-family: var(--font-sans);
+    background-color: var(--color-slate-50);  /* #101012 */
+    color: var(--color-slate-900);            /* #f7f4ef */
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
     background-size: 100% 100%;
@@ -270,7 +275,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-white rounded-sm;
+    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-slate-50 rounded-sm;
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -295,7 +300,8 @@ pre {
 /* Comprehensive typography for blog articles */
 
 .prose {
-    @apply max-w-none text-slate-800 leading-relaxed;
+    @apply max-w-none leading-relaxed;
+    color: var(--color-slate-900);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -311,22 +317,27 @@ pre {
 
 /* Headings */
 .prose h1 {
-    @apply text-2xl sm:text-3xl font-semibold text-slate-900 mt-10 mb-5;
+    @apply text-2xl sm:text-3xl font-semibold mt-10 mb-5;
+    color: var(--color-slate-900);
     font-family: var(--font-display);
 }
 
 .prose h2 {
-    @apply text-xl sm:text-2xl font-semibold text-slate-900 mt-8 mb-3 pb-2 border-b border-slate-200;
+    @apply text-xl sm:text-2xl font-semibold mt-8 mb-3 pb-2;
+    color: var(--color-slate-900);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-display);
 }
 
 .prose h3 {
-    @apply text-lg sm:text-xl font-semibold text-slate-900 mt-6 mb-2;
+    @apply text-lg sm:text-xl font-semibold mt-6 mb-2;
+    color: var(--color-slate-900);
     font-family: var(--font-display);
 }
 
 .prose h4 {
-    @apply text-base sm:text-lg font-semibold text-slate-900 mt-5 mb-2;
+    @apply text-base sm:text-lg font-semibold mt-5 mb-2;
+    color: var(--color-slate-900);
     font-family: var(--font-display);
 }
 
@@ -359,7 +370,8 @@ pre {
 
 /* Blockquotes */
 .prose blockquote {
-    @apply my-6 pl-6 border-l-4 border-neural-500 italic text-slate-600;
+    @apply my-6 pl-6 border-l-4 border-neural-500 italic;
+    color: var(--color-slate-600);
     quotes: none;
 }
 
@@ -369,7 +381,8 @@ pre {
 
 /* Horizontal Rules */
 .prose hr {
-    @apply my-10 border-slate-200;
+    @apply my-10;
+    border-color: rgba(255, 255, 255, 0.08);
 }
 
 /* Images */
@@ -383,29 +396,32 @@ pre {
 }
 
 .prose thead {
-    @apply bg-slate-100;
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 .prose th {
-    @apply px-4 py-3 text-left font-semibold text-slate-900 border-b-2 border-slate-300;
+    @apply px-4 py-3 text-left font-semibold;
+    color: var(--color-slate-900);
+    border-bottom: 2px solid rgba(255, 255, 255, 0.12);
 }
 
 .prose td {
-    @apply px-4 py-3 border-b border-slate-200;
+    @apply px-4 py-3;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .prose tbody tr:hover {
-    @apply bg-slate-50;
+    background-color: rgba(255, 255, 255, 0.04);
 }
 
-/* Inline Code - tokenized */
+/* Inline Code */
 .prose code:not(pre code) {
     @apply px-1.5 py-0.5 rounded text-sm font-medium;
     background-color: var(--code-inline-bg);
     color: var(--code-inline-text);
 }
 
-/* Code Blocks - tokenized light theme */
+/* Code Blocks — dark theme */
 .prose pre {
     @apply my-6 rounded-lg overflow-hidden;
     background-color: var(--code-bg);
@@ -437,7 +453,8 @@ pre {
 
 /* Strong and Emphasis */
 .prose strong {
-    @apply font-semibold text-slate-900;
+    @apply font-semibold;
+    color: var(--color-slate-900);
 }
 
 .prose em {
@@ -446,23 +463,24 @@ pre {
 
 /* First paragraph styling (lead) */
 .prose>p:first-of-type {
-    @apply text-base text-slate-600 leading-relaxed;
+    @apply text-base leading-relaxed;
+    color: var(--color-slate-600);
 }
 
 /* ==================== GLASS CARD ==================== */
 
 .glass-card {
     background-color: var(--glass-white-20);
-    backdrop-filter: var(--blur-2xl) saturate(1.8);
-    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    backdrop-filter: var(--blur-2xl) saturate(1.4);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.4);
     border-radius: var(--radius-2xl);
-    border: 1px solid var(--glass-white-15);
+    border: 1px solid var(--glass-border);
     transition: background-color 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
 }
 
 .glass-card:hover {
     background-color: var(--glass-white-25);
-    border-color: var(--glass-white-25);
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 /* ==================== BENTO FEATURE GRID ==================== */
@@ -502,20 +520,20 @@ pre {
     border-radius: var(--radius-2xl);
     padding: 2rem;
     overflow: hidden;
-    background-color: var(--glass-white-25);
-    border: 1px solid var(--glass-white-15);
+    background-color: var(--glass-white-20);
+    border: 1px solid var(--glass-border);
     transition: background-color 0.3s var(--ease-smooth);
 }
 
 .bento-card:hover {
-    background-color: var(--glass-white-35);
+    background-color: var(--glass-white-25);
 }
 
 .bento-card h3 {
     font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--color-slate-800);
+    color: var(--color-slate-900);
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
 }
@@ -554,12 +572,12 @@ pre {
     justify-content: center;
     flex-shrink: 0;
     margin-bottom: 1rem;
-    color: var(--color-slate-400);
+    color: var(--color-slate-500);
     transition: color 0.3s var(--ease-smooth);
 }
 
 .bento-card:hover .bento-icon {
-    color: var(--color-slate-500);
+    color: var(--color-slate-600);
 }
 
 .bento-icon svg {
@@ -578,21 +596,21 @@ pre {
     height: 1.75rem;
 }
 
-/* Color variants — flat tinted backgrounds, no shadows or glows */
+/* Color variants */
 .bento-neural .bento-icon {
-    color: var(--color-neural-400);
+    color: var(--color-neural-500);
 }
 
 .bento-neural:hover .bento-icon {
-    color: var(--color-neural-500);
+    color: var(--color-neural-600);
 }
 
 .bento-signature .bento-icon {
-    color: var(--color-neural-400);
+    color: var(--color-neural-500);
 }
 
 .bento-signature:hover .bento-icon {
-    color: var(--color-neural-500);
+    color: var(--color-neural-600);
 }
 
 .bento-aurora .bento-icon {
@@ -608,7 +626,7 @@ pre {
 }
 
 .bento-glow:hover .bento-icon {
-    color: var(--color-glow-600);
+    color: var(--color-glow-400);
 }
 
 .bento-quantum .bento-icon {
@@ -620,29 +638,34 @@ pre {
 }
 
 .bento-slate .bento-icon {
-    color: var(--color-slate-400);
+    color: var(--color-slate-500);
 }
 
 .bento-slate:hover .bento-icon {
-    color: var(--color-slate-500);
+    color: var(--color-slate-600);
 }
 
 /* ==================== TAG STYLES ==================== */
 
 .tag {
-    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-600 transition-colors;
+    @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--color-slate-600);
 }
 
 .tag:hover {
-    @apply bg-slate-200;
+    background-color: rgba(255, 255, 255, 0.12);
 }
 
 .tag-series {
-    @apply bg-neural-50 text-neural-700 border border-neural-200;
+    background-color: var(--color-neural-alpha-12);
+    color: var(--color-neural-600);
+    border: 1px solid var(--color-neural-alpha-25);
 }
 
 .tag-series:hover {
-    @apply bg-neural-100 border-neural-300;
+    background-color: var(--color-neural-alpha-20);
+    border-color: var(--color-neural-alpha-35);
 }
 
 /* ==================== TECH PILLS (Homepage) ==================== */
@@ -794,15 +817,15 @@ pre {
 }
 
 .arch-node-slate {
-    background: linear-gradient(135deg, var(--color-slate-600), var(--color-slate-700), var(--color-slate-800));
-    border-color: var(--color-slate-alpha-15);
+    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06), rgba(255,255,255,0.08));
+    border-color: rgba(255, 255, 255, 0.12);
 }
 
 .arch-node-slate:hover {
     box-shadow:
-        0 0 18px var(--color-slate-alpha-15),
-        0 0 40px var(--color-slate-alpha-10),
-        0 4px 12px var(--color-slate-alpha-12);
+        0 0 18px rgba(255,255,255,0.08),
+        0 0 40px rgba(255,255,255,0.04),
+        0 4px 12px rgba(0,0,0,0.50);
 }
 
 /* Per-layer label colors */
@@ -811,15 +834,15 @@ pre {
 }
 
 .arch-label-aurora {
-    color: var(--color-aurora-600);
+    color: var(--color-aurora-400);
 }
 
 .arch-label-glow {
-    color: var(--color-glow-600);
+    color: var(--color-glow-500);
 }
 
 .arch-label-quantum {
-    color: var(--color-quantum-600);
+    color: var(--color-quantum-400);
 }
 
 .arch-label-signature {
@@ -874,15 +897,16 @@ pre {
 /* ==================== NAVIGATION ==================== */
 
 .nav-link {
-    @apply text-slate-600 transition-colors font-medium;
+    @apply transition-colors font-medium;
+    color: var(--color-slate-500);
 }
 
 .nav-link:hover {
-    @apply text-neural-600;
+    color: var(--color-neural-600);
 }
 
 .nav-link-active {
-    @apply text-neural-600;
+    color: var(--color-neural-500);
 }
 
 /* ==================== BUTTONS ==================== */
@@ -904,7 +928,7 @@ pre {
 }
 
 .btn-primary:focus-visible {
-    @apply ring-2 ring-neural-400 ring-offset-2;
+    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-slate-50;
 }
 
 .btn-primary:disabled {
@@ -913,11 +937,15 @@ pre {
 }
 
 .btn-secondary {
-    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl bg-slate-200 text-slate-700 font-medium text-sm tracking-wide transition-all gap-2;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-medium text-sm tracking-wide transition-all gap-2;
+    background-color: rgba(255, 255, 255, 0.08);
+    color: var(--color-slate-600);
+    border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
 .btn-secondary:hover {
-    @apply bg-slate-300;
+    background-color: rgba(255, 255, 255, 0.12);
+    color: var(--color-slate-900);
     transform: translateY(-1px);
 }
 
@@ -934,10 +962,10 @@ pre {
 
 .article-card {
     background-color: var(--glass-white-20);
-    backdrop-filter: var(--blur-2xl) saturate(1.8);
-    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    backdrop-filter: var(--blur-2xl) saturate(1.4);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.4);
     border-radius: var(--radius-2xl);
-    border: 1px solid var(--glass-white-15);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-sm);
     padding: 1.5rem;
     transition: all 0.3s var(--ease-smooth);
@@ -945,51 +973,57 @@ pre {
 
 .article-card:hover {
     box-shadow: var(--shadow-neural-sm), 0 0 20px var(--color-neural-alpha-10);
-    border-color: var(--glass-white-25);
+    border-color: rgba(255, 255, 255, 0.12);
     transform: translateY(-3px);
 }
 
 .article-card h2 {
-    @apply text-lg font-medium text-slate-800 mb-2 transition-colors;
+    @apply text-lg font-medium mb-2 transition-colors;
+    color: var(--color-slate-900);
 }
 
 .article-card h2:hover {
-    @apply text-neural-600;
+    color: var(--color-neural-600);
 }
 
 .article-card p {
-    @apply text-slate-600 line-clamp-3;
+    @apply line-clamp-3;
+    color: var(--color-slate-600);
 }
 
 /* ==================== CODE BLOCKS ==================== */
 
 .code-filename {
-    @apply bg-slate-100 text-slate-600 px-4 py-2 text-sm rounded-t-lg border-b border-slate-200;
+    @apply px-4 py-2 text-sm rounded-t-lg;
+    background-color: rgba(255, 255, 255, 0.06);
+    color: var(--color-slate-600);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-mono);
 }
 
 .code-block {
     @apply rounded-b-lg;
-    background: linear-gradient(145deg, var(--color-slate-50) 0%, var(--color-slate-100) 100%);
-    border: 1px solid var(--color-neural-alpha-15);
-    box-shadow: 0 2px 12px -4px var(--color-slate-alpha-10);
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    box-shadow: 0 2px 12px -4px rgba(0, 0, 0, 0.40);
 }
 
 /* ==================== SERIES NAVIGATION ==================== */
 
 .series-nav {
     background-color: var(--glass-white-20);
-    backdrop-filter: var(--blur-2xl) saturate(1.8);
-    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    backdrop-filter: var(--blur-2xl) saturate(1.4);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.4);
     border-radius: var(--radius-2xl);
-    border: 1px solid var(--glass-white-15);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-sm);
     padding: 1rem;
     margin: 2rem 0;
 }
 
 .series-nav-title {
-    @apply text-sm font-semibold text-slate-600 uppercase tracking-wide mb-2;
+    @apply text-sm font-semibold uppercase tracking-wide mb-2;
+    color: var(--color-slate-500);
 }
 
 .series-nav-list {
@@ -1000,10 +1034,10 @@ pre {
 
 .toc {
     background-color: var(--glass-white-20);
-    backdrop-filter: var(--blur-2xl) saturate(1.8);
-    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.8);
+    backdrop-filter: var(--blur-2xl) saturate(1.4);
+    -webkit-backdrop-filter: var(--blur-2xl) saturate(1.4);
     border-radius: var(--radius-2xl);
-    border: 1px solid var(--glass-white-15);
+    border: 1px solid var(--glass-border);
     box-shadow: var(--shadow-sm);
     padding: 1rem;
     position: sticky;
@@ -1011,97 +1045,119 @@ pre {
 }
 
 .toc-title {
-    @apply text-sm font-semibold text-slate-900 uppercase tracking-wide mb-3;
+    @apply text-sm font-semibold uppercase tracking-wide mb-3;
+    color: var(--color-slate-900);
 }
 
 .toc a {
-    @apply text-sm text-slate-600 block py-1 border-l-2 border-transparent pl-3 transition-colors;
+    @apply text-sm block py-1 border-l-2 border-transparent pl-3 transition-colors;
+    color: var(--color-slate-600);
 }
 
 .toc a:hover {
-    @apply text-neural-600 border-neural-500;
+    color: var(--color-neural-500);
+    border-left-color: var(--color-neural-500);
 }
 
 .toc a.active {
-    @apply text-neural-600 border-neural-500;
+    color: var(--color-neural-500);
+    border-left-color: var(--color-neural-500);
 }
 
 /* ==================== DIFFICULTY BADGES ==================== */
-/* Color-coded per level using design token palettes */
+/* Dark-mode: alpha tinted backgrounds, vibrant text */
 
 .difficulty-beginner {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 .difficulty-intermediate {
-    @apply bg-glow-100 text-glow-700;
+    background-color: var(--color-glow-alpha-10);
+    color: var(--color-glow-400);
 }
 
 .difficulty-advanced {
-    @apply bg-aurora-100 text-aurora-700;
+    background-color: var(--color-aurora-alpha-10);
+    color: var(--color-aurora-400);
 }
 
 .difficulty-expert {
-    @apply bg-neural-100 text-neural-700;
+    background-color: var(--color-neural-alpha-12);
+    color: var(--color-neural-600);
 }
 
 /* ==================== CATEGORY BADGES ==================== */
-/* Color-coded per domain using design token palettes */
+/* Dark-mode: alpha tinted backgrounds, vibrant text */
 
 .category-cookbook {
-    @apply bg-glow-100 text-glow-700;
+    background-color: var(--color-glow-alpha-10);
+    color: var(--color-glow-400);
 }
 
 .category-guide {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 .category-architecture {
-    @apply bg-neural-100 text-neural-700;
+    background-color: var(--color-neural-alpha-12);
+    color: var(--color-neural-600);
 }
 
 .category-troubleshooting {
-    @apply bg-aurora-100 text-aurora-700;
+    background-color: var(--color-aurora-alpha-10);
+    color: var(--color-aurora-400);
 }
 
 .category-messaging {
-    @apply bg-glow-100 text-glow-700;
+    background-color: var(--color-glow-alpha-10);
+    color: var(--color-glow-400);
 }
 
 .category-infrastructure {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 .category-security {
-    @apply bg-aurora-100 text-aurora-700;
+    background-color: var(--color-aurora-alpha-10);
+    color: var(--color-aurora-400);
 }
 
 .category-ai {
-    @apply bg-neural-100 text-neural-700;
+    background-color: var(--color-neural-alpha-12);
+    color: var(--color-neural-600);
 }
 
 .category-frontend {
-    @apply bg-neural-100 text-neural-700;
+    background-color: var(--color-neural-alpha-12);
+    color: var(--color-neural-600);
 }
 
 .category-backend {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 .category-database {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 .category-ci-cd {
-    @apply bg-glow-100 text-glow-700;
+    background-color: var(--color-glow-alpha-10);
+    color: var(--color-glow-400);
 }
 
 .category-observability {
-    @apply bg-glow-100 text-glow-700;
+    background-color: var(--color-glow-alpha-10);
+    color: var(--color-glow-400);
 }
 
 .category-storage {
-    @apply bg-quantum-100 text-quantum-700;
+    background-color: var(--color-quantum-alpha-12);
+    color: var(--color-quantum-400);
 }
 
 /* ==================== CALLOUT STYLES ==================== */
@@ -1112,8 +1168,7 @@ pre {
 }
 
 /* ==================== LAVA BLOB BACKGROUND ==================== */
-/* Animated organic blobs using design system oklch color tokens */
-/* Reduced opacity for light-theme readability */
+/* Animated organic blobs — higher opacity/blur for dark #101012 surface */
 
 .lava-background-global {
     position: fixed;
@@ -1134,10 +1189,10 @@ pre {
 .lava-blob {
     position: absolute;
     border-radius: 50%;
-    filter: blur(80px);
+    filter: blur(120px);
     mix-blend-mode: normal;
     will-change: transform, border-radius;
-    opacity: 0.55;
+    opacity: 0.75;
     transition: background 0.8s ease;
 }
 
@@ -1241,10 +1296,9 @@ pre {
 }
 
 /* ==================== MERMAID DIAGRAM FIXES ==================== */
-/* 
-   Mermaid uses foreignObjects with <p> tags for labels.
-   The .prose styles add margins to <p> tags, causing labels to be cut off.
-   We must reset these.
+/*
+   Mermaid diagrams always render on white (themeVariables.background: '#ffffff').
+   Hardcode dark text so it remains readable inside the white diagram panels.
 */
 .mermaid-diagram p {
     margin: 0 !important;
@@ -1258,13 +1312,13 @@ pre {
     line-height: normal !important;
 }
 
-/* Mermaid text readability — ensure dark text on light fills */
+/* Mermaid text — hardcoded dark for white diagram backgrounds */
 .mermaid-diagram text,
 .mermaid-diagram .nodeLabel,
 .mermaid-diagram .edgeLabel,
 .mermaid-diagram .label {
-    fill: var(--color-slate-800) !important;
-    color: var(--color-slate-800) !important;
+    fill: #334155 !important;
+    color: #334155 !important;
 }
 
 /* Note: Node fills, link strokes, and markers are controlled by the
