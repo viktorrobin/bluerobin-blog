@@ -9,41 +9,46 @@
 
 @theme {
     /* ==================== COLOR PALETTE ==================== */
-    /* Primary: Neural Blue-Purple (AI/Intelligence) - oklch for perceptual uniformity */
-    --color-neural-50: oklch(96.5% 0.02 275);
-    --color-neural-100: oklch(93% 0.04 275);
-    --color-neural-200: oklch(87% 0.08 275);
-    --color-neural-300: oklch(78% 0.12 275);
-    --color-neural-400: oklch(68% 0.17 275);
-    --color-neural-500: oklch(58% 0.20 275);
-    --color-neural-600: oklch(52% 0.22 280);
-    --color-neural-700: oklch(46% 0.21 280);
-    --color-neural-800: oklch(40% 0.17 280);
-    --color-neural-900: oklch(35% 0.14 280);
+    /* Primary: Neural Orange — Suno pumpkin palette, centered on #ff6a00 */
+    --color-neural-50: oklch(98% 0.015 75);
+    --color-neural-100: oklch(20% 0.08 43);
+    --color-neural-200: oklch(32% 0.13 43);
+    --color-neural-300: oklch(42% 0.17 43);
+    --color-neural-400: oklch(52% 0.21 43);
+    --color-neural-500: oklch(69% 0.235 43);
+    /* pumpkin-500 #ff6a00 — SUNO PRIMARY */
+    --color-neural-600: oklch(76% 0.20 43);
+    /* pumpkin-600 #ff9448 */
+    --color-neural-700: oklch(83% 0.15 45);
+    /* pumpkin-700 #ffb27b */
+    --color-neural-800: oklch(89% 0.10 50);
+    --color-neural-900: oklch(94% 0.06 55);
 
-    /* Accent: Aurora Pink-Red (CTAs) - oklch for P3 gamut support */
-    --color-aurora-50: oklch(97% 0.02 10);
-    --color-aurora-100: oklch(93% 0.05 10);
-    --color-aurora-200: oklch(88% 0.09 10);
-    --color-aurora-300: oklch(78% 0.15 10);
-    --color-aurora-400: oklch(68% 0.22 10);
-    --color-aurora-500: oklch(60% 0.26 10);
-    --color-aurora-600: oklch(52% 0.25 5);
-    --color-aurora-700: oklch(45% 0.22 5);
-    --color-aurora-800: oklch(40% 0.18 5);
-    --color-aurora-900: oklch(35% 0.15 5);
+    /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
+    --color-aurora-50: oklch(97% 0.020 28);
+    --color-aurora-100: oklch(93% 0.060 28);
+    --color-aurora-200: oklch(88% 0.100 28);
+    --color-aurora-300: oklch(78% 0.160 28);
+    --color-aurora-400: oklch(68% 0.215 28);
+    --color-aurora-500: oklch(60% 0.240 29);
+    /* Suno #f8441b — vermilion */
+    --color-aurora-600: oklch(51% 0.230 27);
+    --color-aurora-700: oklch(44% 0.200 25);
+    --color-aurora-800: oklch(38% 0.165 23);
+    --color-aurora-900: oklch(33% 0.135 21);
 
-    /* Secondary: Quantum Cyan (Info/Health) - oklch for wide gamut */
-    --color-quantum-50: oklch(97% 0.02 195);
-    --color-quantum-100: oklch(94% 0.05 195);
-    --color-quantum-200: oklch(90% 0.10 195);
-    --color-quantum-300: oklch(84% 0.14 195);
-    --color-quantum-400: oklch(76% 0.16 195);
-    --color-quantum-500: oklch(68% 0.15 195);
-    --color-quantum-600: oklch(58% 0.13 195);
-    --color-quantum-700: oklch(50% 0.11 195);
-    --color-quantum-800: oklch(43% 0.09 195);
-    --color-quantum-900: oklch(38% 0.07 195);
+    /* Success: Quantum — Suno grass green #4aab04 (yellow-green, not emerald) */
+    --color-quantum-50: oklch(97% 0.025 130);
+    --color-quantum-100: oklch(94% 0.060 130);
+    --color-quantum-200: oklch(89% 0.110 130);
+    --color-quantum-300: oklch(82% 0.155 128);
+    --color-quantum-400: oklch(74% 0.185 127);
+    --color-quantum-500: oklch(63% 0.190 127);
+    /* Suno #4aab04 — grass */
+    --color-quantum-600: oklch(55% 0.170 127);
+    --color-quantum-700: oklch(47% 0.145 126);
+    --color-quantum-800: oklch(40% 0.115 125);
+    --color-quantum-900: oklch(35% 0.085 124);
 
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
@@ -101,37 +106,37 @@
 
     /* ==================== COLOR OPACITY TOKENS ==================== */
     /* Neural color with opacity variants - for shadows, glows, rings */
-    --color-neural-alpha-10: oklch(58% 0.20 275 / 0.10);
-    --color-neural-alpha-12: oklch(58% 0.20 275 / 0.12);
-    --color-neural-alpha-15: oklch(58% 0.20 275 / 0.15);
-    --color-neural-alpha-20: oklch(58% 0.20 275 / 0.20);
-    --color-neural-alpha-25: oklch(58% 0.20 275 / 0.25);
-    --color-neural-alpha-30: oklch(58% 0.20 275 / 0.30);
-    --color-neural-alpha-35: oklch(58% 0.20 275 / 0.35);
-    --color-neural-alpha-40: oklch(58% 0.20 275 / 0.40);
-    --color-neural-alpha-50: oklch(58% 0.20 275 / 0.50);
+    --color-neural-alpha-10: oklch(69% 0.235 43 / 0.10);
+    --color-neural-alpha-12: oklch(69% 0.235 43 / 0.12);
+    --color-neural-alpha-15: oklch(69% 0.235 43 / 0.15);
+    --color-neural-alpha-20: oklch(69% 0.235 43 / 0.20);
+    --color-neural-alpha-25: oklch(69% 0.235 43 / 0.25);
+    --color-neural-alpha-30: oklch(69% 0.235 43 / 0.30);
+    --color-neural-alpha-35: oklch(69% 0.235 43 / 0.35);
+    --color-neural-alpha-40: oklch(69% 0.235 43 / 0.40);
+    --color-neural-alpha-50: oklch(69% 0.235 43 / 0.50);
 
     /* Aurora color with opacity variants */
-    --color-aurora-alpha-10: oklch(60% 0.26 10 / 0.10);
-    --color-aurora-alpha-15: oklch(60% 0.26 10 / 0.15);
-    --color-aurora-alpha-20: oklch(60% 0.26 10 / 0.20);
-    --color-aurora-alpha-30: oklch(60% 0.26 10 / 0.30);
-    --color-aurora-alpha-40: oklch(60% 0.26 10 / 0.40);
+    --color-aurora-alpha-10: oklch(60% 0.240 29 / 0.10);
+    --color-aurora-alpha-15: oklch(60% 0.240 29 / 0.15);
+    --color-aurora-alpha-20: oklch(60% 0.240 29 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
 
     /* Quantum color with opacity variants */
-    --color-quantum-alpha-08: oklch(68% 0.15 195 / 0.08);
-    --color-quantum-alpha-10: oklch(68% 0.15 195 / 0.10);
-    --color-quantum-alpha-12: oklch(68% 0.15 195 / 0.12);
-    --color-quantum-alpha-15: oklch(68% 0.15 195 / 0.15);
-    --color-quantum-alpha-20: oklch(68% 0.15 195 / 0.20);
-    --color-quantum-alpha-25: oklch(68% 0.15 195 / 0.25);
-    --color-quantum-alpha-30: oklch(68% 0.15 195 / 0.30);
-    --color-quantum-alpha-40: oklch(68% 0.15 195 / 0.40);
+    --color-quantum-alpha-08: oklch(63% 0.190 127 / 0.08);
+    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
+    --color-quantum-alpha-12: oklch(63% 0.190 127 / 0.12);
+    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
+    --color-quantum-alpha-25: oklch(63% 0.190 127 / 0.25);
+    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
 
-    /* Signature-mid (neural→quantum bridge, hue 250) with opacity variants */
-    --color-signature-mid: oklch(52% 0.18 250);
-    --color-signature-mid-alpha-15: oklch(52% 0.18 250 / 0.15);
-    --color-signature-mid-alpha-20: oklch(52% 0.18 250 / 0.20);
+    /* Signature-mid (neural→quantum bridge, hue 85 amber) with opacity variants */
+    --color-signature-mid: oklch(74% 0.17 70);
+    --color-signature-mid-alpha-15: oklch(74% 0.17 70 / 0.15);
+    --color-signature-mid-alpha-20: oklch(74% 0.17 70 / 0.20);
 
     /* Glow color with opacity variants */
     --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
@@ -150,32 +155,32 @@
     /* ==================== GRADIENTS ==================== */
     /* Gradients using oklch for perceptual uniformity */
     --gradient-neural: linear-gradient(135deg,
-            oklch(58% 0.20 275) 0%,
-            oklch(52% 0.22 280) 50%,
-            oklch(46% 0.21 280) 100%);
+            oklch(69% 0.235 43) 0%,
+            oklch(76% 0.20 43) 50%,
+            oklch(83% 0.15 45) 100%);
     --gradient-aurora: linear-gradient(135deg,
-            oklch(68% 0.22 10) 0%,
-            oklch(60% 0.26 10) 50%,
-            oklch(52% 0.25 5) 100%);
+            oklch(68% 0.215 28) 0%,
+            oklch(60% 0.240 29) 50%,
+            oklch(51% 0.230 27) 100%);
     --gradient-quantum: linear-gradient(135deg,
-            oklch(76% 0.16 195) 0%,
-            oklch(68% 0.15 195) 50%,
-            oklch(58% 0.13 195) 100%);
+            oklch(74% 0.185 127) 0%,
+            oklch(63% 0.190 127) 50%,
+            oklch(55% 0.170 127) 100%);
     --gradient-glow: linear-gradient(135deg,
             oklch(80% 0.18 80) 0%,
             oklch(74% 0.17 70) 50%,
             oklch(65% 0.16 60) 100%);
 
-    /* Signature gradient - neural to quantum (purple to cyan) */
+    /* Signature gradient - neural to quantum (orange to green via amber) */
     --gradient-signature: linear-gradient(135deg,
-            oklch(58% 0.20 275) 0%,
-            oklch(52% 0.18 250) 40%,
-            oklch(68% 0.15 195) 100%);
+            oklch(69% 0.235 43) 0%,
+            oklch(74% 0.17 70) 40%,
+            oklch(63% 0.190 127) 100%);
 
     /* Mesh Background - barely perceptible color wash */
-    --gradient-mesh: radial-gradient(at 0% 0%, oklch(58% 0.20 275 / 0.04) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(68% 0.15 195 / 0.03) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, oklch(60% 0.26 10 / 0.03) 0px, transparent 50%),
+    --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.04) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(63% 0.190 127 / 0.03) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.03) 0px, transparent 50%),
         radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.03) 0px, transparent 50%);
 
     /* ==================== BORDER RADIUS ==================== */
@@ -231,15 +236,15 @@
     --duration-slow: 350ms;
 
     /* ==================== LAVA BLOB TOKENS ==================== */
-    /* BlueRobin brand palette: neural purple + quantum cyan + aurora accents */
-    --lava-color-1: oklch(58% 0.20 275 / 0.30);
-    --lava-color-1-outer: oklch(52% 0.22 280 / 0.12);
-    --lava-color-2: oklch(68% 0.15 195 / 0.25);
-    --lava-color-2-outer: oklch(58% 0.13 195 / 0.10);
-    --lava-color-3: oklch(60% 0.22 10 / 0.18);
-    --lava-color-3-outer: oklch(52% 0.25 5 / 0.07);
-    --lava-color-4: oklch(52% 0.18 250 / 0.22);
-    --lava-color-4-outer: oklch(46% 0.21 280 / 0.08);
+    /* BlueRobin brand palette: neural orange + quantum green + aurora vermilion + glow amber */
+    --lava-color-1: oklch(69% 0.235 43 / 0.30);
+    --lava-color-1-outer: oklch(76% 0.20 43 / 0.12);
+    --lava-color-2: oklch(63% 0.190 127 / 0.25);
+    --lava-color-2-outer: oklch(55% 0.170 127 / 0.10);
+    --lava-color-3: oklch(60% 0.240 29 / 0.18);
+    --lava-color-3-outer: oklch(51% 0.230 27 / 0.07);
+    --lava-color-4: oklch(74% 0.17 70 / 0.22);
+    --lava-color-4-outer: oklch(65% 0.16 60 / 0.08);
 }
 
 /* ==================== BASE STYLES ==================== */
