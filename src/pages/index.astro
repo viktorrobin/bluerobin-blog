@@ -30,7 +30,7 @@ const techStack = [
       <div class="text-center animate-entry">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-quantum-alpha-12); border: 1px solid var(--color-quantum-alpha-25); color: var(--color-quantum-400);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          Knowledge Graph &middot; Entity Intelligence &middot; Multi-Model RAG
+          Document Intelligence &middot; Semantic Search &middot; Self-Hosted AI
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
@@ -38,14 +38,14 @@ const techStack = [
         </h1>
 
         <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-5">
-          An AI document archive that doesn&rsquo;t just store &mdash; it models, connects, and reasons
-          over everything you&rsquo;ve ever uploaded.
+          Upload any document. Ask any question.<br>
+          Get answers cited directly from your own archive.
         </p>
 
         <p class="text-base text-slate-500 max-w-2xl mx-auto mb-10">
-          Ask questions and get answers cited from your own documents.
-          Discover hidden connections between entities across your entire archive.
-          Search by <em>meaning</em>, not keywords.
+          BlueRobin automatically extracts entities, builds a knowledge graph of relationships,
+          and indexes everything for semantic search &mdash; so you find answers by <em>meaning</em>,
+          not keywords.
         </p>
 
         <div class="flex flex-wrap justify-center gap-4 mb-14">
@@ -61,11 +61,11 @@ const techStack = [
         <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
           <span class="flex items-center gap-2 text-slate-500">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-quantum-400"></span>
-            8 Embedding Models
+            Ensemble Semantic Search
           </span>
           <span class="flex items-center gap-2 text-slate-500">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-quantum-400"></span>
-            12+ NER Entity Types
+            Knowledge Graph
           </span>
           <span class="flex items-center gap-2 text-slate-500">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
@@ -110,12 +110,12 @@ const techStack = [
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
           <div>
             <h3 class="font-display font-semibold text-slate-900 mb-1.5">Model &amp; Enrich</h3>
-            <p class="text-sm text-slate-500 leading-relaxed">spaCy extracts 12+ entity types. Ollama generates embeddings across 8 models in parallel. Summaries and keywords are inferred. The knowledge graph grows.</p>
+            <p class="text-sm text-slate-500 leading-relaxed">Entities are automatically extracted and connected into a knowledge graph. Summaries, keywords, and vector embeddings are generated &mdash; turning every page into structured, searchable intelligence.</p>
           </div>
           <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">spaCy NER</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">8&times; Embeddings</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">FalkorDB Graph</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Entity Extraction</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Knowledge Graph</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Embeddings</span>
           </div>
         </div>
 
@@ -124,7 +124,7 @@ const techStack = [
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-quantum);">3</div>
           <div>
             <h3 class="font-display font-semibold text-slate-900 mb-1.5">Search &amp; Ask</h3>
-            <p class="text-sm text-slate-500 leading-relaxed">Reciprocal Rank Fusion across all 8 Qdrant collections surfaces the most relevant passages. Ask anything &mdash; the LLM answers with paragraph-level citations.</p>
+            <p class="text-sm text-slate-500 leading-relaxed">Ensemble search fuses results across vector collections to surface the most relevant passages. Ask anything &mdash; the LLM answers with paragraph-level citations from your own documents.</p>
           </div>
           <div class="flex flex-wrap gap-2 mt-auto pt-1">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Qdrant</span>
@@ -140,8 +140,8 @@ const techStack = [
   <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Built for Complexity at Every Layer</h2>
-        <p class="text-slate-500 max-w-xl mx-auto">Not a wrapper around a cloud API &mdash; a fully modelled, graph-connected, multi-model document intelligence system.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Built for Depth, Not Demo Day</h2>
+        <p class="text-slate-500 max-w-xl mx-auto">Not a wrapper around a cloud API. A production system designed, built, and operated end-to-end on self-hosted infrastructure.</p>
       </div>
 
       <div class="bento-grid">
@@ -151,10 +151,10 @@ const techStack = [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
           </div>
           <h3>Knowledge Graph &amp; Entity Intelligence</h3>
-          <p>spaCy NER extracts 12+ entity types &mdash; people, organizations, dates, medical terms, financial figures &mdash; from every document. FalkorDB builds a traversable graph of relationships that evolves as your archive grows. Inferred connections surface links your keyword search would never find.</p>
+          <p>Every document is automatically analysed to extract entities &mdash; people, organisations, dates, financial figures, and more. These are deduplicated, resolved to canonical records, and connected into a traversable graph that grows with every upload. The result: connections your keyword search would never find.</p>
           <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">spaCy NER</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">FalkorDB</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Entity Extraction</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Canonical Resolution</span>
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Graph Traversal</span>
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Inferred Relationships</span>
           </div>
@@ -164,13 +164,13 @@ const techStack = [
           <div class="bento-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg>
           </div>
-          <h3>Multi-Model Search &amp; RAG</h3>
-          <p>8 embedding models &mdash; nomic, mxbai-large, bge-m3, snowflake-arctic, granite, paraphrase-multilingual and more &mdash; run in parallel across 8 dedicated Qdrant collections. Reciprocal Rank Fusion combines results for best-of-ensemble recall. Ask questions and get answers cited directly from your source paragraphs.</p>
+          <h3>Semantic Search &amp; RAG</h3>
+          <p>Documents are embedded across multiple vector dimensions and indexed for ensemble retrieval. Reciprocal Rank Fusion combines results for best-of-breed recall. Ask a question in plain language &mdash; the LLM synthesises an answer and cites the exact source paragraphs it drew from.</p>
           <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">8 Qdrant Collections</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">RRF Ensemble</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Ollama RAG</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Source Citations</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Ensemble Retrieval</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Reciprocal Rank Fusion</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Cited Answers</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Self-Hosted LLM</span>
           </div>
         </div>
 
@@ -334,8 +334,8 @@ const techStack = [
             </div>
             <div class="arch-node arch-node-compact arch-node-signature">
               <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="6.5" y1="6.5" x2="10" y2="10" stroke="currentColor" stroke-width="1.4"/><line x1="17.5" y1="6.5" x2="14" y2="10" stroke="currentColor" stroke-width="1.4"/><line x1="6.5" y1="17.5" x2="10" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="17.5" y1="17.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.4"/></svg>
-              <div class="font-semibold">spaCy NER</div>
-              <div class="text-xs opacity-70">Entity Extraction</div>
+              <div class="font-semibold">Entity Extraction</div>
+              <div class="text-xs opacity-70">NER Pipeline</div>
             </div>
           </div>
           
@@ -365,10 +365,10 @@ const techStack = [
       <!-- Gradient divider -->
       <div class="w-24 h-1 mx-auto mb-10 rounded-full" style="background: var(--gradient-signature);"></div>
       <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold text-slate-900 mb-6">
-        Explore the Intelligence
+        100+ Engineering Articles
       </h2>
       <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-        Deep dives into building a production AI system &mdash; from knowledge graph modelling and multi-model embeddings to event-driven architecture and self-hosted RAG on a homelab K3s cluster.
+        Every architectural decision, failure, and lesson from designing, building, and operating a production AI system on self-hosted infrastructure &mdash; documented in depth.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="/articles/" class="btn-primary text-lg px-8 py-3.5">
@@ -377,8 +377,8 @@ const techStack = [
         <a href="/architecture/" class="btn-secondary text-lg px-8 py-3.5">
           View Architecture
         </a>
-        <a href="/articles/knowledge-graph/" class="btn-secondary text-lg px-8 py-3.5">
-          Knowledge Graph
+        <a href="/tags/" class="btn-secondary text-lg px-8 py-3.5">
+          Explore by Topic
         </a>
       </div>
     </div>
