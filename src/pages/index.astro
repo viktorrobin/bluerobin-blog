@@ -93,7 +93,7 @@ const techStack = [
         <div class="hidden sm:block absolute top-[3.25rem] left-[calc(33.33%+1rem)] right-[calc(33.33%+1rem)] h-px opacity-50" style="background: linear-gradient(to right, var(--color-neural-alpha-30), var(--color-quantum-alpha-30));"></div>
 
         <!-- Step 1 -->
-        <div class="glass-card p-6 flex flex-col gap-4">
+        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">1</div>
           <div>
             <h3 class="font-display font-semibold text-slate-900 mb-1.5">Upload &amp; Extract</h3>
@@ -106,7 +106,7 @@ const techStack = [
         </div>
 
         <!-- Step 2 -->
-        <div class="glass-card p-6 flex flex-col gap-4">
+        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
           <div>
             <h3 class="font-display font-semibold text-slate-900 mb-1.5">Model &amp; Enrich</h3>
@@ -120,7 +120,7 @@ const techStack = [
         </div>
 
         <!-- Step 3 -->
-        <div class="glass-card p-6 flex flex-col gap-4">
+        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-quantum);">3</div>
           <div>
             <h3 class="font-display font-semibold text-slate-900 mb-1.5">Search &amp; Ask</h3>
@@ -133,6 +133,96 @@ const techStack = [
           </div>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Entity Insights Section -->
+  <section class="py-16 relative" style="background: var(--gradient-mesh);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">The Archive Knows More Than You Remember</h2>
+        <p class="text-slate-500 max-w-2xl mx-auto">Entities extracted from each document are connected across your entire archive. Over time, the graph builds a picture no single document could reveal on its own.</p>
+      </div>
+
+      <!-- Scenario card -->
+      <div class="glass-card p-8 max-w-4xl mx-auto">
+        <div class="flex flex-col gap-8">
+
+          <!-- Row: Documents in -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400">3 Documents</div>
+            <div class="flex flex-wrap gap-3 flex-1">
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Medical letter &mdash; Jan 2024</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Lab results &mdash; Mar 2024</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Prescription &mdash; Apr 2024</span>
+            </div>
+          </div>
+
+          <!-- Divider with arrow -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-quantum-alpha-20);"></div>
+            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
+              Entity extraction &amp; graph linking
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-quantum-alpha-20);"></div>
+          </div>
+
+          <!-- Row: Graph connections -->
+          <div class="flex flex-col sm:flex-row items-start gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400 pt-1">Graph links</div>
+            <div class="flex flex-col gap-2 flex-1 text-sm">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-quantum-alpha-12); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-25);">Dr. Nguyen</span>
+                <span class="text-slate-400 text-xs">&rarr; mentioned in</span>
+                <span class="text-slate-500">all 3 documents</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-quantum-alpha-12); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-25);">Diagnosis</span>
+                <span class="text-slate-400 text-xs">&rarr; linked to</span>
+                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-quantum-alpha-12); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-25);">Treatment</span>
+                <span class="text-slate-400 text-xs">&rarr; linked to</span>
+                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-quantum-alpha-12); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-25);">Prescription</span>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-quantum-alpha-12); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-25);">Lab value: HbA1c 7.2</span>
+                <span class="text-slate-400 text-xs">&rarr; referenced in</span>
+                <span class="text-slate-500">follow-up letter + prescription context</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Divider with arrow -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+            <div class="text-xs text-slate-400 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              RAG query across graph + vectors
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+          </div>
+
+          <!-- Row: The answer -->
+          <div class="flex flex-col sm:flex-row items-start gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400 pt-2">You ask</div>
+            <div class="flex-1">
+              <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-700 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+                &ldquo;What has Dr. Nguyen prescribed since my diagnosis, and why?&rdquo;
+              </div>
+              <div class="rounded-xl px-4 py-3 text-sm text-slate-600 leading-relaxed" style="background: var(--glass-white-60); border: 1px solid var(--color-quantum-alpha-15);">
+                <span class="font-medium text-slate-800">BlueRobin:</span> Based on your medical letter (Jan 2024) and prescription (Apr 2024), Dr. Nguyen prescribed Lisinopril 10mg following a diagnosis of stage-1 hypertension. The decision was informed by the HbA1c reading of 7.2 from your March lab results, which indicated elevated cardiovascular risk.
+                <div class="flex gap-2 mt-2.5 flex-wrap">
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-20);">Cited: medical-letter-jan-2024.pdf</span>
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-500); border: 1px solid var(--color-quantum-alpha-20);">Cited: lab-results-mar-2024.pdf</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-slate-400 mt-6">This is not keyword search. The graph connected three documents. The LLM reasoned across them.</p>
     </div>
   </section>
 
