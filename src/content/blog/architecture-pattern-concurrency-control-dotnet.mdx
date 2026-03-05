@@ -168,13 +168,17 @@ We ran into a deadlock in our inventory service on a busy Saturday. Two concurre
 
 Having implemented both strategies across different services in our platform, my takeaway is that optimistic concurrency should always be your starting point. It is simpler, scales better, and keeps your transaction windows short. I only reach for pessimistic locks when I can prove that conflict rates are high enough to make retry loops wasteful, or when the business cost of even a single conflict-and-retry is unacceptable. The PostgreSQL `xmin` column combined with EF Core's built-in conflict detection covers the vast majority of real-world scenarios with minimal ceremony.
 
-**Next Steps**:
+### Next Steps
 - Read about [Postgres Isolation Levels] (Read Committed vs Serializable).
 - Explore [ETags] in HTTP to extend optimistic concurrency to the browser client.
 
 ### Further Reading
 
-- [EF Core Concurrency Conflicts documentation](https://learn.microsoft.com/en-us/ef/core/saving/concurrency) -- official Microsoft guide to configuring concurrency tokens.
-- [PostgreSQL MVCC documentation](https://www.postgresql.org/docs/current/mvcc-intro.html) -- how PostgreSQL implements multiversion concurrency control under the hood.
-- [Npgsql EF Core concurrency tokens](https://www.npgsql.org/efcore/modeling/concurrency.html) -- PostgreSQL-specific guidance on using `xmin` as a concurrency token.
-- [Designing Data-Intensive Applications](https://dataintensive.net/) by Martin Kleppmann -- chapters 7 and 9 cover transactions and consistency in depth.
+
+<ExternalCite title="EF Core Concurrency Conflicts documentation" url="https://learn.microsoft.com/en-us/ef/core/saving/concurrency" author="Microsoft" date="2024" />
+
+<ExternalCite title="PostgreSQL MVCC documentation" url="https://www.postgresql.org/docs/current/mvcc-intro.html" author="PostgreSQL Global Development Group" date="2024" />
+
+<ExternalCite title="Npgsql EF Core concurrency tokens" url="https://www.npgsql.org/efcore/modeling/concurrency.html" author="Npgsql Project" date="2024" />
+
+<ExternalCite title="Designing Data-Intensive Applications" url="https://dataintensive.net/" author="Martin Kleppmann" date="2017" />

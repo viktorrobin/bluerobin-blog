@@ -264,14 +264,20 @@ We have established a robust GitOps pipeline.
 
 This setup significantly reduces "fear of deployment" because every state change is versioned and reversible via `git revert`.
 
-**Next Steps:**
-- Explore [External Secrets](/external-secrets-infisical-kubernetes) to handle sensitive data.
-- Set up [Slack Notifications](/nats-monitoring-prometheus-grafana) for deployment alerts.
+### Next Steps
+
+- Explore [External Secrets](/blog/external-secrets-infisical-kubernetes) to handle sensitive data.
+- Set up [Monitoring & Notifications](/blog/nats-monitoring-prometheus-grafana) for deployment alerts.
 
 ### Further Reading
 
-- [Flux CD Official Documentation](https://fluxcd.io/flux/) -- comprehensive guide to all Flux components, including source-controller, kustomize-controller, helm-controller, and image automation controllers.
-- [OpenGitOps Principles](https://opengitops.dev/) -- the CNCF working group's formal definition of GitOps principles, including declarative configuration, versioned and immutable storage, and continuous reconciliation.
-- [Kustomize Reference](https://kustomize.io/) -- full documentation on Kustomize overlays, strategic merge patches, and JSON patches for managing multi-environment Kubernetes manifests.
-- [GitOps with Flux v2 (Weaveworks)](https://www.weave.works/technologies/gitops/) -- the original GitOps guide from the team that coined the term, covering patterns, anti-patterns, and enterprise adoption strategies.
-- [Kubernetes Documentation](https://kubernetes.io/docs/home/) -- the official Kubernetes docs for understanding the underlying platform that Flux orchestrates.
+
+<ExternalCite title="Flux CD Official Documentation" url="https://fluxcd.io/flux/" author="CNCF Flux Project" date="2024" />
+
+<ExternalCite title="OpenGitOps Principles" url="https://opengitops.dev/" author="CNCF OpenGitOps" date="2024" />
+
+<ExternalCite title="Kustomize Reference" url="https://kustomize.io/" author="Kubernetes SIG CLI" date="2024" />
+
+<ExternalCite title="GitOps with Flux v2 (Weaveworks)" url="https://www.weave.works/technologies/gitops/" author="Weaveworks" date="2024" />
+
+<ExternalCite title="Kubernetes Documentation" url="https://kubernetes.io/docs/home/" author="Kubernetes Authors" date="2024" />

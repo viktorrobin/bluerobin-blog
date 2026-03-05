@@ -41,6 +41,21 @@ We will transform our Dockerfile from a standard 300MB image to a highly optimiz
 
 We rely on Microsoft's "Chiseled" images—stripped-down versions of Ubuntu designed solely for running an app, no administration tools included.
 
+```mermaid
+flowchart LR
+    SRC["Source Code"] --> SDK["SDK Build Stage\n(mcr.microsoft.com/dotnet/sdk:10.0)"]
+
+    SDK --> A["Chiseled Runtime\n~90 MB image\n~80 MB RAM"]
+    SDK --> B["Chiseled + Trimmed\n~50 MB image\n~55 MB RAM"]
+    SDK --> C["Native AOT\n~25 MB image\n~18 MB RAM"]
+
+    style SRC fill:#1a2744,stroke:#94a3b8,color:#e2e8f0
+    style SDK fill:#1a2744,stroke:#94a3b8,color:#e2e8f0
+    style A fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style B fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style C fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+```
+
 ## Section 1: The Multi-Stage Build
 
 We compile in a full SDK container, but publish to a minimal runtime.
@@ -135,6 +150,9 @@ The optimization work described here turned my cluster from a fragile, OOMKill-p
 
 ### Further Reading
 
-- [Microsoft .NET Container Images Documentation](https://learn.microsoft.com/en-us/dotnet/core/docker/container-images) -- Official guidance on choosing the right base image for .NET containers.
-- [Ubuntu Chiselled Containers](https://ubuntu.com/blog/chiselled-ubuntu-for-dotnet) -- Canonical's explanation of Chiselled images and their security benefits.
-- [Native AOT Deployment Overview](https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/) -- Deep dive into AOT compilation trade-offs, limitations, and best practices.
+
+<ExternalCite title="Microsoft .NET Container Images Documentation" url="https://learn.microsoft.com/en-us/dotnet/core/docker/container-images" author="Microsoft" date="2024" />
+
+<ExternalCite title="Ubuntu Chiselled Containers" url="https://ubuntu.com/blog/chiselled-ubuntu-for-dotnet" author="Ubuntu" date="2024" />
+
+<ExternalCite title="Native AOT Deployment Overview" url="https://learn.microsoft.com/en-us/dotnet/core/deploying/native-aot/" author="Microsoft" date="2024" />

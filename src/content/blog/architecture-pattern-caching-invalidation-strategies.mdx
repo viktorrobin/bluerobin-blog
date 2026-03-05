@@ -187,13 +187,18 @@ Event-Driven Cache Invalidation allows your application to be highly responsive 
 
 Looking back, the shift from TTL-based expiration to event-driven invalidation was one of the most impactful performance improvements I have made in production. The combination of Redis and NATS gave us sub-millisecond cache reads with near-instant invalidation, and the system has been running reliably for months with cache hit ratios above 98%. The key lesson is that investing in a proper invalidation pipeline pays for itself many times over in reduced database load and improved user experience.
 
-**Next Steps**:
-- Investigate [Redis Scavenger] patterns for cleanup.
-- Learn about [Distributed Locking] (Redlock) if you need to prevent cache stampedes during regeneration.
+### Next Steps
+
+- Investigate [Redis caching strategies](/blog/dotnet-caching-strategies-redis) for advanced cleanup and eviction patterns.
+- Learn about [concurrency control and distributed locking](/blog/architecture-pattern-concurrency-control-dotnet) (including Redlock) to prevent cache stampedes during regeneration.
 
 ### Further Reading
 
-- [Redis documentation on caching patterns](https://redis.io/docs/latest/develop/use/) -- covers cache-aside, write-through, and write-behind strategies.
-- [NATS by Example](https://natsbyexample.com/) -- hands-on examples for pub/sub, request-reply, and JetStream patterns.
-- [Designing Data-Intensive Applications](https://dataintensive.net/) by Martin Kleppmann -- the definitive guide to understanding distributed system trade-offs including caching consistency.
-- [Microsoft's distributed caching guidance](https://learn.microsoft.com/en-us/aspnet/core/performance/caching/distributed) -- official ASP.NET Core documentation for `IDistributedCache`.
+
+<ExternalCite title="Redis documentation on caching patterns" url="https://redis.io/docs/latest/develop/use/" author="Redis" date="2024" />
+
+<ExternalCite title="NATS by Example" url="https://natsbyexample.com/" author="Example" date="2024" />
+
+<ExternalCite title="Microsoft's distributed caching guidance" url="https://learn.microsoft.com/en-us/aspnet/core/performance/caching/distributed" author="Microsoft" date="2024" />
+
+<ExternalCite title="Designing Data-Intensive Applications" url="https://dataintensive.net/" author="Martin Kleppmann" date="2017" />

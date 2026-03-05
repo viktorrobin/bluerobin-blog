@@ -553,12 +553,16 @@ Looking back, the decision to use Core NATS for notifications and JetStream for 
 - **Build a dead-letter subject** for notifications that fail Telegram API delivery after retries, enabling manual re-send from an admin UI
 - **Add priority-based routing** so high-priority failure notifications bypass any batching or rate-limiting logic
 
-## Further Reading
+### Further Reading
 
-- [NATS by Example](https://natsbyexample.com/) -- Practical patterns for Core NATS and JetStream with runnable examples
-- [NATS.Net Client Documentation](https://github.com/nats-io/nats.net) -- The official .NET client library for NATS
-- [Telegram Bot API - sendMessage](https://core.telegram.org/bots/api#sendmessage) -- Reference for the message-sending API used by the notification worker
-- [OpenTelemetry .NET](https://opentelemetry.io/docs/languages/net/) -- Distributed tracing instrumentation for .NET services
-- [Kustomize Documentation](https://kustomize.io/) -- Kubernetes-native configuration management used in the deployment setup
 
+<ExternalCite title="NATS by Example" url="https://natsbyexample.com/" author="Example" date="2024" />
+
+<ExternalCite title="NATS.Net Client Documentation" url="https://github.com/nats-io/nats.net" author="GitHub Community" date="2024" />
+
+<ExternalCite title="Telegram Bot API - sendMessage" url="https://core.telegram.org/bots/api#sendmessage" author="Telegram" date="2024" />
+
+<ExternalCite title="OpenTelemetry .NET" url="https://opentelemetry.io/docs/languages/net/" author="OpenTelemetry Authors" date="2024" />
+
+<ExternalCite title="Kustomize Documentation" url="https://kustomize.io/" author="Kubernetes SIG CLI" date="2024" />
 **Next in Series:** [Complete Telegram Bot Deployment Guide](/articles/telegram-bot-kubernetes-deployment) - Kubernetes manifests, secrets management, and Flux GitOps configuration.

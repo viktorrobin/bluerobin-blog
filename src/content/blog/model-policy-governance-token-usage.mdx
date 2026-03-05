@@ -28,6 +28,27 @@ Without governance:
 - A misbehaving agent can loop indefinitely, consuming thousands of tokens
 - Cost allocation across teams or features is impossible
 
+```mermaid
+flowchart TD
+    REQ["Incoming LLM Request"] --> CHK_EN{"Policy\nEnabled?"}
+    CHK_EN -->|No| ERR1["FeatureDisabledException"]
+    CHK_EN -->|Yes| EST["Estimate Input Tokens"]
+    EST --> CHK_TOK{"Within\nMaxInputTokens?"}
+    CHK_TOK -->|No| ERR2["TokenLimitExceededException"]
+    CHK_TOK -->|Yes| CHK_RATE{"Within\nMaxRequestsPerMinute?"}
+    CHK_RATE -->|No| ERR3["RateLimitExceededException"]
+    CHK_RATE -->|Yes| CALL["Call Ollama"]
+    CALL --> REC["Record Output Tokens"]
+    REC --> OTEL["Emit OpenTelemetry Metrics"]
+
+    style REQ fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style CALL fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+    style ERR1 fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+    style ERR2 fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+    style ERR3 fill:#3b1a1a,stroke:#ef4444,color:#fca5a5
+    style OTEL fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+```
+
 <ExternalCite title="OpenAI API Rate Limits and Usage Tiers" url="https://platform.openai.com/docs/guides/rate-limits" author="OpenAI" date="2024" />
 
 ## Model Policy Configuration
@@ -209,7 +230,10 @@ Building this governance layer was not glamorous work, but it is the kind of inf
 
 ### Further Reading
 
-- [OpenTelemetry .NET Metrics](https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics) - Official guide to .NET metrics instrumentation
-- [Ollama API Reference](https://github.com/ollama/ollama/blob/main/docs/api.md) - Token usage fields in local model responses
-- [OpenAI Tokenizer](https://platform.openai.com/tokenizer) - Interactive tool for understanding tokenization behavior
-- [Rate Limiting with Redis](https://redis.io/glossary/rate-limiting/) - Patterns for distributed rate limiting
+<ExternalCite title="OpenTelemetry .NET Metrics" url="https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics" author="Microsoft" date="2024" />
+
+<ExternalCite title="Ollama API Reference" url="https://github.com/ollama/ollama/blob/main/docs/api.md" author="Ollama" date="2024" />
+
+<ExternalCite title="OpenAI Tokenizer" url="https://platform.openai.com/tokenizer" author="OpenAI" date="2024" />
+
+<ExternalCite title="Rate Limiting with Redis" url="https://redis.io/glossary/rate-limiting/" author="Redis" date="2024" />

@@ -175,6 +175,37 @@ The archive pipeline transforms a raw file into a rich, searchable record in und
 
 This pipeline is the foundation everything else in BlueRobin builds on. Entities can only be extracted from text. Search can only be semantic if embeddings exist. The quality of what happens downstream is entirely determined by the quality of what the archive pipeline produces.
 
+The hardest lesson from building this pipeline was that idempotency is not optional in an event-driven architecture — it is the architecture. Early on, a NATS redelivery would re-trigger OCR and re-emit downstream events, causing duplicate embeddings in Qdrant and duplicate entities in FalkorDB. Adding fingerprint-based deduplication at the document level and NATS KV-based event deduplication at the worker level finally made the pipeline reliable under retries. The second lesson was that OCR quality varies wildly by document type: scanned handwritten forms produce noisy Markdown that confuses the summarization model. I now run a confidence-score heuristic after OCR and fall back to a simpler extraction path for low-confidence pages, which improved downstream analysis accuracy significantly.
+
+### Next Steps
+
+- **[Docling OCR Integration in .NET](/blog/docling-ocr-dotnet-integration)** -- the implementation details behind the OCR stage of this pipeline.
+- **[Multi-Model Embedding Pipeline](/blog/embedding-pipeline-ollama-qdrant)** -- how the 8 embedding models process the chunks produced by OCR.
+- **[MinIO Multi-Tenant Storage](/blog/minio-kubernetes-multi-tenant)** -- the per-user bucket architecture that stores every uploaded file.
+
+### Further Reading
+
+<ExternalCite
+  title="Docling: An Efficient Document Understanding Library"
+  url="https://ds4sd.github.io/docling/"
+  author="IBM Research"
+  date="2024"
+/>
+
+<ExternalCite
+  title="MinIO Server-Side Encryption with KMS"
+  url="https://min.io/docs/minio/linux/operations/server-side-encryption.html"
+  author="MinIO"
+  date="2024"
+/>
+
+<ExternalCite
+  title="OCR State of the Art: A Survey"
+  url="https://arxiv.org/abs/2401.05418"
+  author="Subramani et al."
+  date="2024"
+/>
+
 **In this series:**
 - Part 2 — [Knowledge Graph & Entity Modelling: How BlueRobin Connects the Dots](/blog/bluerobin-features-knowledge-graph-entity-modelling)
 - Part 3 — [Advanced Retrieval: Combining Embeddings and Graph Context](/blog/bluerobin-features-advanced-search-retrieval)

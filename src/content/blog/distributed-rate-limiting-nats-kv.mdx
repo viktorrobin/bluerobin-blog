@@ -41,6 +41,34 @@ If you already run NATS JetStream for messaging, NATS KV gives you a distributed
 - **No extra infrastructure** — it's built into NATS
 - **Replication** matching your NATS cluster topology
 
+```mermaid
+sequenceDiagram
+    participant C1 as Client A
+    participant R1 as API Replica 1
+    participant R2 as API Replica 2
+    participant KV as NATS KV
+    participant C2 as Client B
+
+    C1->>R1: POST /documents
+    C2->>R2: POST /documents
+
+    R1->>KV: Get(rate:upload:user1)
+    KV-->>R1: value=4, rev=7
+    R2->>KV: Get(rate:upload:user1)
+    KV-->>R2: value=4, rev=7
+
+    R1->>KV: Update(key, 5, rev=7)
+    KV-->>R1: OK, rev=8
+
+    R2->>KV: Update(key, 5, rev=7)
+    KV-->>R2: WrongLastRevision!
+
+    R2->>KV: Get(rate:upload:user1)
+    KV-->>R2: value=5, rev=8
+    R2->>KV: Update(key, 6, rev=8)
+    KV-->>R2: OK, rev=9
+```
+
 <ExternalCite title="NATS Key/Value Store" url="https://docs.nats.io/nats-concepts/jetstream/key-value-store" author="NATS Authors" date="2024-03-20" />
 
 ## Implementation
@@ -228,10 +256,15 @@ Looking back, the most valuable lesson from implementing distributed rate limiti
 - Build a rate limit dashboard in Grafana to visualize quota consumption per user over time
 - Explore token bucket algorithms for smoother traffic shaping on bursty endpoints
 
-## Further Reading
+### Further Reading
 
-- [ASP.NET Core Rate Limiting](https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit)
-- [NATS KV Documentation](https://docs.nats.io/nats-concepts/jetstream/key-value-store)
-- [IETF RateLimit Header Fields for HTTP](https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/)
-- [Google Cloud Rate Limiting Strategies](https://cloud.google.com/architecture/rate-limiting-strategies-techniques)
-- [Cloudflare: Counting Things at Scale](https://blog.cloudflare.com/counting-things-a-lot-of-different-things/)
+
+<ExternalCite title="ASP.NET Core Rate Limiting" url="https://learn.microsoft.com/en-us/aspnet/core/performance/rate-limit" author="Microsoft" date="2024" />
+
+<ExternalCite title="NATS KV Documentation" url="https://docs.nats.io/nats-concepts/jetstream/key-value-store" author="NATS Authors" date="2024" />
+
+<ExternalCite title="IETF RateLimit Header Fields for HTTP" url="https://datatracker.ietf.org/doc/draft-ietf-httpapi-ratelimit-headers/" author="IETF" date="2024" />
+
+<ExternalCite title="Google Cloud Rate Limiting Strategies" url="https://cloud.google.com/architecture/rate-limiting-strategies-techniques" author="Google Cloud" date="2024" />
+
+<ExternalCite title="Cloudflare: Counting Things at Scale" url="https://blog.cloudflare.com/counting-things-a-lot-of-different-things/" author="Cloudflare" date="2024" />

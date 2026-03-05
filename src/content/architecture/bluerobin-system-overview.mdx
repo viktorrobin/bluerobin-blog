@@ -22,38 +22,37 @@ BlueRobin is a personal document management system I built to organize, search, 
 
 BlueRobin follows a **modular monolith** architecture deployed on Kubernetes, with event-driven communication between components. The system processes documents through a multi-stage pipeline: upload → OCR → analysis → embedding → indexing.
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              User Interface                                  │
-│                         Blazor Server (.NET 10)                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                                     ▼
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              API Gateway                                     │
-│                    FastEndpoints + OIDC (Authelia)                          │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
-│     PostgreSQL       │  │      MinIO       │  │    NATS JetStream    │
-│  (User Data, Docs)   │  │ (Document Files) │  │      (Events)        │
-└──────────────────────┘  └──────────────────┘  └──────────────────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
-│    OCR Worker        │  │  Analysis Worker │  │  Embedding Worker    │
-│   (Docling OCR)      │  │    (Ollama)      │  │    (Ollama)          │
-└──────────────────────┘  └──────────────────┘  └──────────────────────┘
-                                     │
-                    ┌────────────────┼────────────────┐
-                    ▼                ▼                ▼
-┌──────────────────────┐  ┌──────────────────┐  ┌──────────────────────┐
-│       Qdrant         │  │    FalkorDB      │  │      spaCy NER       │
-│  (Vector Search)     │  │ (Knowledge Graph)│  │  (Entity Extraction) │
-└──────────────────────┘  └──────────────────┘  └──────────────────────┘
+```mermaid
+flowchart TD
+    UI["Blazor Server (.NET 10)"] --> API["Archives API\nFastEndpoints + Authelia OIDC"]
+
+    API --> PG["PostgreSQL\n(Users · Documents · Metadata)"]
+    API --> MINIO["MinIO\n(Document Files · SSE-KMS)"]
+    API --> NATS["NATS JetStream\n(Event Bus)"]
+
+    NATS --> OCR["OCR Worker\n(Docling)"]
+    OCR -->|"ocr.completed"| ANALYSIS["Analysis Worker\n(Ollama)"]
+    OCR -->|"ocr.completed"| NER["Entity Extraction\n(spaCy NER)"]
+    ANALYSIS -->|"analysis.completed"| EMB["Embedding Workers\n(Ollama · 8 Models)"]
+    NER -->|"entities.extracted"| GRAPH["Graph Sync\n(FalkorDB)"]
+
+    EMB --> QDRANT["Qdrant\n(Vector Search)"]
+    GRAPH --> FALKOR["FalkorDB\n(Knowledge Graph)"]
+
+    NATS -.->|"real-time updates"| UI
+
+    style UI fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style API fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style PG fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+    style MINIO fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+    style NATS fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style OCR fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style ANALYSIS fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style NER fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style EMB fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style GRAPH fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style QDRANT fill:#1a2744,stroke:#a855f7,color:#e2e8f0
+    style FALKOR fill:#1a2744,stroke:#a855f7,color:#e2e8f0
 ```
 
 ## Technology Stack
@@ -620,6 +619,12 @@ Building BlueRobin has been a journey through nearly every layer of modern softw
 - **GitOps** provides reproducible, auditable deployments
 
 This architecture supports a single-user/family scale while providing a foundation for future growth. Every piece described in this overview has a dedicated deep-dive article in this blog—follow the series links to explore each component in detail.
+
+### Next Steps
+
+- **[Document Archives: From Upload to Intelligence](/blog/bluerobin-features-document-archives-ocr)** -- the archive processing pipeline in detail.
+- **[Knowledge Graph & Entity Modelling](/blog/bluerobin-features-knowledge-graph-entity-modelling)** -- how entities are extracted and connected.
+- **[Advanced Retrieval: Embeddings, Graphs, and Context](/blog/bluerobin-features-advanced-search-retrieval)** -- the multi-stage retrieval pipeline.
 
 ## Further Reading
 

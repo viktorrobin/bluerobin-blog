@@ -652,12 +652,41 @@ Effective chunking is the foundation of a performant RAG system. The key princip
 - **Context preservation**: Include headers and use overlap to prevent information loss
 - **Retrieval quality**: Smaller, focused chunks produce more precise similarity matches
 
+<Callout type="warning" title="Token estimation vs actual tokenizer">
+    The `len/4` heuristic for estimating token count diverges significantly from actual tokenizer output for code blocks, non-Latin scripts, and mixed-language documents. If precision matters for your embedding model's context window, use a proper tokenizer like `tiktoken` or the model's native tokenizer instead of character-length approximations.
+</Callout>
+
 Start with semantic chunking for structured documents, then tune based on your retrieval metrics. Monitor which chunks get retrieved for your test queries—if they're missing critical context, increase overlap or adjust your chunking strategy.
 
 The `ChunkingService` we built supports all five strategies through a simple interface, making it easy to experiment and find what works best for your document corpus.
 
-<ExternalCite 
-  title="Chunking Strategies for LLM Applications" 
+After months of tuning chunking parameters across different document types, the biggest lesson is that there is no universal chunk size. Medical letters need large chunks to preserve clinical context. Financial statements need smaller chunks because each line item carries independent meaning. The `ChunkingService` abstraction we built makes it easy to experiment per-document-type, and I wish I had built that flexibility in from the start instead of hardcoding a single strategy.
+
+### Next Steps
+
+- **[Building a RAG Pipeline with Ollama and Qdrant](/blog/rag-pipeline-ollama-qdrant)** -- see how chunks flow into the retrieval pipeline and affect answer quality.
+- **[Multi-Model Embedding Pipeline](/blog/embedding-pipeline-ollama-qdrant)** -- learn how different embedding models handle the same chunks differently.
+- **[Improving RAG Query Quality and Relevance](/blog/improving-rag-query-quality-and-relevance)** -- tune the retrieval side once your chunking is solid.
+
+### Further Reading
+
+<ExternalCite
+  title="Chunking Strategies for LLM Applications"
   url="https://www.pinecone.io/learn/chunking-strategies/"
   author="Pinecone"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Evaluating the Ideal Chunk Size for a RAG System"
+  url="https://research.trychroma.com/evaluating-chunking"
+  author="Chroma Research"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Text Splitting and Chunking for LLMs"
+  url="https://www.llamaindex.ai/blog/evaluating-the-ideal-chunk-size-for-a-rag-system-using-llamaindex-6207e5d3fec5"
+  author="LlamaIndex"
+  date="2023"
 />

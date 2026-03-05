@@ -251,7 +251,38 @@ BlueRobin's retrieval pipeline is not a RAG wrapper around a vector database. It
 
 The three articles in this series follow the complete data flow: OCR and analysis convert raw files into text, the knowledge graph extracts and connects the entities within that text, and this retrieval pipeline uses both the text and the graph to answer questions that neither source could answer alone.
 
+The most surprising lesson from building this pipeline was how much answer quality depends on the preprocessing step rather than the retrieval step. My first version skipped query rewriting entirely — the raw user query went straight into embedding and search. Results were mediocre for conversational questions like "what did my doctor say about the blood test last month" because the embedding model struggled with temporal references and pronouns. Adding query decomposition (splitting into sub-queries and expanding temporal references) improved top-5 retrieval precision by over 30% without touching the vector search code at all. The second surprise was that RRF weight tuning is empirical, not theoretical — the optimal weights for medical documents differed significantly from financial documents, and I ended up storing per-category weights in configuration rather than using a single global set.
+
 The documents have always contained the answers. Getting them reliably requires treating language, structure, and relationships as equally important dimensions of the retrieval problem.
+
+### Next Steps
+
+- **[Agentic RRF: Ensembling for Production Search](/blog/agentic-rrf-ensembling-production-search)** -- the weight-tuning research behind the Reciprocal Rank Fusion scores.
+- **[GraphRAG Hybrid Retrieval with FalkorDB and Qdrant](/blog/graphrag-hybrid-retrieval-falkordb-qdrant)** -- how vector and graph retrievers are combined at the API level.
+- **[Hybrid Search: Semantic + Keyword](/blog/hybrid-search-semantic-keyword)** -- the fusion algorithm that powers multi-model search.
+
+### Further Reading
+
+<ExternalCite
+  title="Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods"
+  url="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf"
+  author="Cormack, Clarke & Butt"
+  date="2009"
+/>
+
+<ExternalCite
+  title="Qdrant Vector Search Engine Documentation"
+  url="https://qdrant.tech/documentation/"
+  author="Qdrant"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+  url="https://arxiv.org/abs/2005.11401"
+  author="Lewis et al."
+  date="2020"
+/>
 
 **In this series:**
 - Part 1 — [Document Archives: From Raw Upload to Searchable Intelligence](/blog/bluerobin-features-document-archives-ocr)

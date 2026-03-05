@@ -3,7 +3,6 @@ title: "Figma MCP: The Self-Optimizing Design Loop"
 description: "How we use Model Context Protocol to create a closed-loop design system where agents verify implementation against Figma specs automatically."
 pubDate: 2026-02-23
 updatedDate: 2026-02-28
-draft: true
 author: "Victor Robin"
 category: "ai"
 difficulty: "advanced"
@@ -152,10 +151,15 @@ The experience of building this system changed how I think about the design-to-c
 - **Integrate with pull request workflows** so that design drift detected in CI triggers an automated PR with the visual diff and proposed fixes
 - **Support dark mode variants** by running the loop against both light and dark Figma frames and their corresponding browser states
 
-## Further Reading
+### Further Reading
 
-- [Model Context Protocol Documentation](https://modelcontextprotocol.io/) -- The official MCP specification and guides for building servers and clients
-- [Figma REST API Reference](https://www.figma.com/developers/api) -- Complete API reference including the image export endpoints used by the loop
-- [Chrome DevTools Protocol](https://chromedevtools.github.io/devtools-protocol/) -- The protocol underlying the Chrome MCP server for screenshot capture
-- [Visual Regression Testing Strategies](https://web.dev/articles/vitals-tools) -- Google's guidance on measuring visual fidelity and web vitals
-- [Tailwind CSS v4 Documentation](https://tailwindcss.com/docs) -- The utility-first CSS framework that the agent uses to generate fix patches
+
+<ExternalCite title="Model Context Protocol Documentation" url="https://modelcontextprotocol.io/" author="Anthropic" date="2024" />
+
+<ExternalCite title="Figma REST API Reference" url="https://www.figma.com/developers/api" author="Figma" date="2024" />
+
+<ExternalCite title="Chrome DevTools Protocol" url="https://chromedevtools.github.io/devtools-protocol/" author="Chromedevtools" date="2024" />
+
+<ExternalCite title="Visual Regression Testing Strategies" url="https://web.dev/articles/vitals-tools" author="Web" date="2024" />
+
+<ExternalCite title="Tailwind CSS v4 Documentation" url="https://tailwindcss.com/docs" author="Tailwind Labs" date="2024" />

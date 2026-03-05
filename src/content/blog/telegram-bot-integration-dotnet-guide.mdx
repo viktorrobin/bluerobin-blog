@@ -202,7 +202,7 @@ Combining .NET's robust hosting model with NATS and Telegram creates a powerful 
 
 Looking back, the biggest lesson was keeping the bot thin. Early on I was tempted to put business logic directly in the command handlers---querying databases, triggering pipelines, managing state. That turned the bot into a second API with none of the safeguards. Once I moved everything behind the main API and made the bot a pure interface layer, things got dramatically simpler: easier to test, easier to secure, and easier to extend. If I were starting over, I would treat the bot as just another frontend from day one.
 
-**Next Steps**:
+### Next Steps
 - See how we [configure the infrastructure](/homelab-setup-truenas-server-guide) supporting this bot.
 - Learn about the [observability stack](/observability-lessons-why-we-dropped-signoz) that generates the alerts.
 - Explore the [document processing pipeline](/blog) that feeds events into NATS.

@@ -20,7 +20,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 ## Introduction
 
-After building the [Telegram Bot service](/articles/telegram-bot-integration-dotnet-guide) and [notification pipeline](/articles/telegram-nats-notification-flow), we need to deploy it to our Kubernetes cluster. This article covers the complete deployment stack:
+After building the [Telegram Bot service](/blog/telegram-bot-integration-dotnet-guide) and [notification pipeline](/blog/telegram-nats-notification-flow), we need to deploy it to our Kubernetes cluster. This article covers the complete deployment stack:
 
 - **Docker**: Multi-stage build with chiseled base images
 - **Kustomize**: Base + overlay pattern for staging/production
@@ -675,9 +675,40 @@ We've deployed a production-ready Telegram bot with:
 
 The entire deployment is infrastructure-as-code, version controlled, and follows our zero-touch deployment philosophy.
 
+Looking back, the most valuable lesson from this deployment was how much time Kustomize overlays save compared to maintaining separate manifest files per environment. The overlay diffs are tiny — usually just replica counts, resource limits, and image tags — but they give you complete confidence that staging and production diverge only where you intended. The second lesson was that ExternalSecrets plus Infisical eliminated the last manual step from our deployment pipeline: we no longer copy secrets between environments by hand.
+
+### Next Steps
+
+- **[GitOps with Flux CD](/blog/gitops-flux-cd-introduction)** -- deep dive into the Flux reconciliation loop that automates our deployments.
+- **[External Secrets with Infisical](/blog/external-secrets-infisical-kubernetes)** -- how we manage secrets across staging and production.
+- **[Container Security Best Practices](/blog/container-security-best-practices-dotnet)** -- hardening the Docker images we built in this article.
+
+### Further Reading
+
+<ExternalCite
+  title="Telegram Bot API Documentation"
+  url="https://core.telegram.org/bots/api"
+  author="Telegram"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Kustomize: Kubernetes Native Configuration Management"
+  url="https://kustomize.io/"
+  author="Kubernetes SIG CLI"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Flux CD Documentation"
+  url="https://fluxcd.io/flux/"
+  author="CNCF Flux Project"
+  date="2024"
+/>
+
 **Complete Telegram Integration Series:**
 
-1. [Building a Telegram Bot for System Notifications](/articles/telegram-bot-integration-dotnet-guide)
-2. [Building a Telegram Mini App with Blazor Server](/articles/telegram-miniapp-blazor-integration)
-3. [NATS-Powered Telegram Notification System](/articles/telegram-nats-notification-flow)
+1. [Building a Telegram Bot for System Notifications](/blog/telegram-bot-integration-dotnet-guide)
+2. [Building a Telegram Mini App with Blazor Server](/blog/telegram-miniapp-blazor-integration)
+3. [NATS-Powered Telegram Notification System](/blog/telegram-nats-notification-flow)
 4. **Deploying a Telegram Bot to Kubernetes with Flux** (this article)

@@ -24,6 +24,32 @@ Developing against a Kubernetes cluster from a local machine means port-forwardi
 
 <ExternalCite title="VS Code Remote Development Overview" url="https://code.visualstudio.com/docs/remote/remote-overview" author="Microsoft" date="2024-11-15" />
 
+```mermaid
+flowchart LR
+    subgraph Laptop
+        VSCODE["VS Code\n(UI only)"]
+    end
+
+    VSCODE -->|"kubectl exec"| POD
+
+    subgraph "K8s Cluster"
+        POD["Dev Container Pod\n(StatefulSet)"]
+        PVC[("PVC\nWorkspace Storage")]
+        ES["ExternalSecrets\n(Credentials)"]]
+        POD --- PVC
+        POD --- ES
+
+        POD -.->|"native DNS"| PG["PostgreSQL"]
+        POD -.->|"native DNS"| NATS["NATS"]
+        POD -.->|"native DNS"| MINIO["MinIO"]
+        POD -.->|"native DNS"| OLLAMA["Ollama"]
+        POD -.->|"native DNS"| QDRANT["Qdrant"]
+    end
+
+    style VSCODE fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style POD fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+```
+
 | Concern | Local Dev | Remote (in-cluster) |
 |---------|----------|-------------------|
 | Service access | Port-forward each service | Native DNS resolution |

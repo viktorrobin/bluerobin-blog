@@ -217,13 +217,17 @@ By using FastEndpoints, we make this separation explicit in our project structur
 
 After running this pattern across multiple services in production, I can say confidently that the biggest win is not performance -- it is clarity. When a new developer opens a vertical slice folder and sees a `Command`, a `Validator`, and a `Handler` all in one place, they understand exactly what happens when a request arrives. The read side is equally transparent: a query, a DTO, and a projection, nothing more. That clarity compounds over time as your team grows and your codebase evolves.
 
-**Next Steps**:
+### Next Steps
 - Explore [Projections] to pre-calculate expensive reads.
 - Learn about [Event Sourcing], the natural evolution of CQRS.
 
 ### Further Reading
 
-- [Microsoft CQRS pattern guide](https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs) -- the canonical reference for when and how to apply CQRS.
-- [FastEndpoints documentation](https://fast-endpoints.com/) -- the official docs covering the REPR pattern, validation, and endpoint configuration.
-- [MediatR Wiki](https://github.com/jbogard/MediatR/wiki) -- Jimmy Bogard's documentation on pipeline behaviors, notifications, and request handling.
-- [Kamil Grzybek's modular monolith series](https://www.kamilgrzybek.com/blog/posts/simple-cqrs) -- a thorough walkthrough of CQRS in .NET with DDD principles.
+
+<ExternalCite title="Microsoft CQRS pattern guide" url="https://learn.microsoft.com/en-us/azure/architecture/patterns/cqrs" author="Microsoft" date="2024" />
+
+<ExternalCite title="FastEndpoints documentation" url="https://fast-endpoints.com/" author="Dhananjay Kumar" date="2024" />
+
+<ExternalCite title="MediatR Wiki" url="https://github.com/jbogard/MediatR/wiki" author="GitHub Community" date="2024" />
+
+<ExternalCite title="Kamil Grzybek's modular monolith series" url="https://www.kamilgrzybek.com/blog/posts/simple-cqrs" author="Kamil Grzybek" date="2024" />

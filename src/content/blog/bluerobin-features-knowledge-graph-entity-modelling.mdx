@@ -215,9 +215,42 @@ Manual review accumulates training signal. Confirmed merges and splits feed back
 
 The knowledge graph transforms BlueRobin from a searchable file store into a structured representation of the relationships that matter in your life. Entities aren't extracted as a side effect — they're a first-class output of document processing, persisted as a graph that grows, connects, and improves with every new document.
 
-Ensemble NER handles the extraction. Canonical entities handle the deduplication. FalkorDB handles the graph storage. Entity types handle the taxonomy. Together, they create a structure that vector search alone cannot produce.
+Ensemble NER handles the extraction. Canonical entities handle the deduplication. FalkorDB handles the graph storage. Entity types handle the taxonomy.
+
+The biggest lesson from building the knowledge graph was that extraction accuracy is meaningless without deduplication. The first version of the pipeline extracted entities with high precision, but every name variation — "Dr. Smith", "J. Smith", "Dr. John Smith" — became a separate node. Within 50 documents the graph had thousands of disconnected fragments instead of a clean web of relationships. Embedding-based deduplication with a cosine similarity threshold of 0.88 collapsed most duplicates, but edge cases like common last names still required manual merge capabilities. The second lesson was that the taxonomy cannot be fixed at design time. Medical documents surfaced entity types (medications, diagnoses, lab values) that did not exist in my initial schema. Building the taxonomy as a configurable registry rather than a hard-coded enum made the graph adaptable without code changes.
+
+Together, they create a structure that vector search alone cannot produce.
 
 The next article covers how BlueRobin's retrieval pipeline combines vector search and graph traversal to answer questions that neither approach can answer independently.
+
+### Next Steps
+
+- **[FalkorDB Graph Database for Knowledge Graphs](/blog/falkordb-graph-database-knowledge-graph)** -- the implementation details behind entity storage and Cypher queries.
+- **[Ensemble NER with spaCy and LLM Voting](/blog/ensemble-ner-spacy-llm-voting)** -- how the NER providers are orchestrated and their results fused.
+- **[spaCy NER for Document Analysis](/blog/spacy-ner-document-analysis)** -- deep dive into spaCy's entity extraction pipeline.
+
+### Further Reading
+
+<ExternalCite
+  title="From Local to Global: A Graph RAG Approach to Query-Focused Summarization"
+  url="https://arxiv.org/abs/2404.16130"
+  author="Edge et al. (Microsoft Research)"
+  date="2024"
+/>
+
+<ExternalCite
+  title="FalkorDB Documentation"
+  url="https://docs.falkordb.com/"
+  author="FalkorDB"
+  date="2024"
+/>
+
+<ExternalCite
+  title="Knowledge Graphs: Opportunities and Challenges"
+  url="https://arxiv.org/abs/2312.06816"
+  author="Pan et al."
+  date="2023"
+/>
 
 **In this series:**
 - Part 1 — [Document Archives: From Raw Upload to Searchable Intelligence](/blog/bluerobin-features-document-archives-ocr)

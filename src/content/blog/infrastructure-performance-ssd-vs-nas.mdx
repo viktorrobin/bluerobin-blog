@@ -40,6 +40,30 @@ We use **Longhorn** as our Block Storage provider, but configured differently fo
 - **Fast Path**: Longhorn utilizing `hostPath` on NVMe. Good for Databases.
 - **Bulk Path**: NFS mount backed by TrueNAS ZFS. Good for MinIO/Backups.
 
+```mermaid
+flowchart TD
+    subgraph Workloads
+        DB["PostgreSQL / Qdrant / FalkorDB"]
+        OBJ["MinIO Object Storage"]
+        BK["Backups & Snapshots"]
+    end
+
+    DB -->|"random 4K I/O"| NVME
+    OBJ -->|"sequential 1M I/O"| NAS
+    BK -->|"sequential writes"| NAS
+
+    subgraph "Fast Path — Local NVMe"
+        NVME["WD Black SN850X\n650K IOPS · 0.04ms · 2.5 GB/s"]
+    end
+
+    subgraph "Bulk Path — 10GbE NAS"
+        NAS["TrueNAS RAIDZ2 (40 TB)\n45K IOPS · 0.8ms · 980 MB/s"]
+    end
+
+    style NVME fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style NAS fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+```
+
 <ExternalCite title="Longhorn Data Locality Settings" url="https://longhorn.io/docs/latest/high-availability/data-locality/" author="SUSE Rancher" date="2024-03-15" />
 
 ## Section 1: The Benchmarks
@@ -135,8 +159,11 @@ The biggest takeaway from this benchmarking exercise was that raw throughput num
 - Read about [RAG Query Improvement](/improving-rag-query-quality-and-relevance) where database speed matters.
 - Dive into [Longhorn Distributed Storage](/longhorn-distributed-storage-kubernetes) for the distributed block storage layer that powers the NVMe tier.
 
-## Further Reading
+### Further Reading
 
-- [fio Documentation](https://fio.readthedocs.io/en/latest/) -- comprehensive reference for the Flexible I/O tester used in these benchmarks
-- [NFS Performance Tuning](https://wiki.linux-nfs.org/wiki/index.php/Performance_Tuning) -- Linux NFS wiki with mount option recommendations
-- [Brendan Gregg's Storage Analysis](https://www.brendangregg.com/storageperfanalysis.html) -- methodology for diagnosing storage performance bottlenecks
+
+<ExternalCite title="fio Documentation" url="https://fio.readthedocs.io/en/latest/" author="Fio" date="2024" />
+
+<ExternalCite title="NFS Performance Tuning" url="https://wiki.linux-nfs.org/wiki/index.php/Performance_Tuning" author="Wiki" date="2024" />
+
+<ExternalCite title="Brendan Gregg's Storage Analysis" url="https://www.brendangregg.com/storageperfanalysis.html" author="Brendangregg" date="2024" />

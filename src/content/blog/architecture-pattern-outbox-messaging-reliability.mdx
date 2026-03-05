@@ -210,13 +210,17 @@ In our architecture, we rely on this pattern for all critical events, ensuring t
 
 Reflecting on the journey from naive publish-after-save to a proper outbox implementation, the biggest shift was mental: accepting that the database is perfectly fine as a short-lived message queue. Once I stopped thinking of the outbox as a "hack" and started treating it as a first-class reliability primitive, the design decisions around idempotency, ordering, and scaling all became much clearer. If you are building event-driven microservices on .NET with NATS, the outbox is not optional -- it is foundational.
 
-**Next Steps**:
+### Next Steps
 - Explore [Idempotency Consumers] to handle duplicate messages.
 - Look into **CDC (Change Data Capture)** tools like Debezium for a zero-code outbox implementation.
 
 ### Further Reading
 
-- [Microservices.io Transactional Outbox pattern](https://microservices.io/patterns/data/transactional-outbox.html) -- Chris Richardson's canonical description of the pattern and its trade-offs.
-- [Debezium outbox event router](https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html) -- CDC-based alternative that eliminates the polling relay worker entirely.
-- [NATS JetStream documentation](https://docs.nats.io/nats-concepts/jetstream) -- official guide to durable, at-least-once messaging with NATS.
-- [Microservices Patterns](https://www.manning.com/books/microservices-patterns) by Chris Richardson -- comprehensive treatment of messaging reliability patterns.
+
+<ExternalCite title="Microservices.io Transactional Outbox pattern" url="https://microservices.io/patterns/data/transactional-outbox.html" author="Chris Richardson" date="2024" />
+
+<ExternalCite title="Debezium outbox event router" url="https://debezium.io/documentation/reference/stable/transformations/outbox-event-router.html" author="Debezium Community" date="2024" />
+
+<ExternalCite title="NATS JetStream documentation" url="https://docs.nats.io/nats-concepts/jetstream" author="NATS Authors" date="2024" />
+
+<ExternalCite title="Microservices Patterns" url="https://www.manning.com/books/microservices-patterns" author="Chris Richardson" date="2018" />

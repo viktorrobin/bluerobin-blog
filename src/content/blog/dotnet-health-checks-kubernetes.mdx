@@ -553,8 +553,11 @@ Implementing health checks properly has been one of the highest-leverage improve
 - Set up Grafana dashboards using the `health_status` gauge metric published by the `MetricsHealthCheckPublisher` to track health trends over time.
 - Consider implementing [warm-up health checks](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks#use-health-checks-routing) that validate cache priming and connection pool establishment before marking the pod as ready.
 
-## Further Reading
+### Further Reading
 
-- [ASP.NET Core Health Checks Documentation](https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks) -- The official Microsoft guide covering all health check features and configuration options.
-- [Kubernetes Probes Deep Dive](https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/) -- Detailed reference for configuring liveness, readiness, and startup probes.
-- [AspNetCore.Diagnostics.HealthChecks](https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks) -- Community library providing pre-built health checks for dozens of infrastructure components.
+
+<ExternalCite title="ASP.NET Core Health Checks Documentation" url="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks" author="Microsoft" date="2024" />
+
+<ExternalCite title="Kubernetes Probes Deep Dive" url="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" author="Kubernetes Authors" date="2024" />
+
+<ExternalCite title="AspNetCore.Diagnostics.HealthChecks" url="https://github.com/Xabaril/AspNetCore.Diagnostics.HealthChecks" author="GitHub Community" date="2024" />

@@ -19,6 +19,25 @@ K3s is a lightweight, certified Kubernetes distribution designed for resource-co
 
 This cookbook walks you through setting up K3s on a home server, from initial installation to production-ready configuration.
 
+```mermaid
+flowchart TD
+    INET["Internet"] --> ROUTER["Router / Firewall"]
+    ROUTER --> LB["MetalLB\n(L2 / BGP)"]
+
+    subgraph "K3s Cluster"
+        LB --> TRAEFIK["Traefik Ingress"]
+        TRAEFIK --> SVC1["App Services"]
+        TRAEFIK --> SVC2["Monitoring"]
+
+        CM["cert-manager"] -.->|"TLS certs"| TRAEFIK
+        LP["local-path-provisioner"] -.->|"PVCs"| SVC1
+    end
+
+    style INET fill:#1a2744,stroke:#94a3b8,color:#e2e8f0
+    style TRAEFIK fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style LB fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+```
+
 ## Prerequisites
 
 Before starting, ensure you have:
@@ -550,8 +569,33 @@ You now have a production-ready K3s cluster with:
 
 This foundation supports running complex workloads like databases, message queues, and web applications—all on a single home server.
 
-<ExternalCite 
-  title="K3s Documentation" 
-  url="https://docs.k3s.io/" 
+The most surprising discovery was how capable a single-node K3s cluster is for a home lab. I expected to hit resource limits quickly, but between K3s's small footprint and careful resource requests, I'm running PostgreSQL, MinIO, NATS, Qdrant, and several .NET services on a modest mini-PC. The key was starting with `--disable traefik` to install my own Traefik version with the exact configuration I needed.
+
+### Next Steps
+
+- **[MetalLB Load Balancer for Bare Metal](/blog/metallb-load-balancer-bare-metal)** -- make services accessible from your LAN.
+- **[Networking with Tailscale](/blog/networking-setup-tailscale-homelab)** -- secure remote access to your cluster.
+- **[Homelab Dashboarding](/blog/homelab-dashboarding-homepage-backstage)** -- monitor your services with Homepage and Backstage.
+
+### Further Reading
+
+<ExternalCite
+  title="K3s Documentation"
+  url="https://docs.k3s.io/"
   author="Rancher / SUSE"
+  date="2024"
+/>
+
+<ExternalCite
+  title="K3s: Lightweight Kubernetes"
+  url="https://www.suse.com/products/k3s/"
+  author="SUSE"
+  date="2024"
+/>
+
+<ExternalCite
+  title="The Home Lab Kubernetes Handbook"
+  url="https://www.jeffgeerling.com/blog/2024/ive-mass-mass-migrated-my-home-lab-k3s"
+  author="Jeff Geerling"
+  date="2024"
 />

@@ -16,6 +16,28 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 CloudNative-PG (CNPG) is a Kubernetes operator that manages the full lifecycle of PostgreSQL clusters. It provides high availability, automated failover, backup/recovery, and connection pooling—all with declarative configuration.
 
+```mermaid
+flowchart TD
+    subgraph "CNPG Cluster"
+        OP["CNPG Operator"] -->|"manages"| PRI["Primary"]
+        OP -->|"manages"| STB1["Standby 1"]
+        OP -->|"manages"| STB2["Standby 2"]
+        PRI -->|"streaming replication"| STB1
+        PRI -->|"streaming replication"| STB2
+    end
+
+    PRI -->|"WAL archive"| MINIO["MinIO\n(Backups)"]
+    PGB["PgBouncer\n(Connection Pool)"] --> PRI
+    APP["Archives API"] --> PGB
+    WORK["Workers"] --> PGB
+
+    style OP fill:#1a2744,stroke:#6366f1,color:#e2e8f0
+    style PRI fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+    style STB1 fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style STB2 fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
+    style MINIO fill:#1a2744,stroke:#a855f7,color:#e2e8f0
+```
+
 ## Why CNPG?
 
 | Feature | CNPG | StatefulSet | Helm Chart |
@@ -536,3 +558,34 @@ We've deployed a production-ready PostgreSQL cluster with CNPG:
 - **Point-in-time recovery** capability
 
 CNPG transforms PostgreSQL management from complex operations into declarative Kubernetes resources.
+
+The most valuable lesson from running CNPG in production was the importance of testing failover before you need it. We scheduled monthly failover drills and discovered that our connection pooler configuration needed tuning — PgBouncer's default `pool_mode=session` caused a 15-second connection storm after failover. Switching to `transaction` mode eliminated the issue entirely.
+
+### Next Steps
+
+- **[PostgreSQL Security Design](/blog/postgresql-security-design-high-assurance)** -- harden your CNPG cluster with row-level security and audit logging.
+- **[External Secrets with Infisical](/blog/external-secrets-infisical-kubernetes)** -- manage database credentials through Infisical instead of static secrets.
+- **[Infrastructure Performance: SSD vs NAS](/blog/infrastructure-performance-ssd-vs-nas)** -- choose the right storage backend for your PostgreSQL data.
+
+### Further Reading
+
+<ExternalCite
+  title="CloudNative-PG Documentation"
+  url="https://cloudnative-pg.io/documentation/current/"
+  author="CloudNative-PG Community"
+  date="2024"
+/>
+
+<ExternalCite
+  title="PostgreSQL High Availability with Kubernetes"
+  url="https://www.enterprisedb.com/blog/postgresql-kubernetes-high-availability"
+  author="EDB"
+  date="2024"
+/>
+
+<ExternalCite
+  title="PostgreSQL Documentation"
+  url="https://www.postgresql.org/docs/16/"
+  author="The PostgreSQL Global Development Group"
+  date="2024"
+/>

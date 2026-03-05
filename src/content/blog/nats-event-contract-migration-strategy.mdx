@@ -37,11 +37,41 @@ Common triggers for contract changes:
 
 Instead of a hard cutover, run **parallel subjects** during a transition window:
 
-```
-Phase 1: Producer writes to OLD and NEW subjects
-Phase 2: Consumers migrate to NEW subjects
-Phase 3: Producer stops writing to OLD subjects
-Phase 4: Remove OLD subject configuration
+```mermaid
+sequenceDiagram
+    participant P as Producer
+    participant OLD as Old Subject
+    participant NEW as New Subject
+    participant CA as Consumer A
+    participant CB as Consumer B
+
+    rect rgb(30, 40, 68)
+    note over P,CB: Phase 1 — Dual Publish
+    P->>OLD: publish(v1)
+    P->>NEW: publish(v2)
+    CA->>OLD: consume(v1)
+    CB->>OLD: consume(v1)
+    end
+
+    rect rgb(30, 50, 58)
+    note over P,CB: Phase 2 — Consumer Migration
+    P->>OLD: publish(v1)
+    P->>NEW: publish(v2)
+    CA->>NEW: consume(v2)
+    CB->>OLD: consume(v1)
+    end
+
+    rect rgb(40, 50, 38)
+    note over P,CB: Phase 3 — Stop Old
+    P->>NEW: publish(v2)
+    CA->>NEW: consume(v2)
+    CB->>NEW: consume(v2)
+    end
+
+    rect rgb(50, 40, 38)
+    note over P,CB: Phase 4 — Cleanup
+    note over OLD: Subject removed
+    end
 ```
 
 This is the distributed equivalent of a database migration with zero downtime.
@@ -240,10 +270,15 @@ Reflecting on the migrations I have run over the past year, the most important l
 - Explore NATS subject mapping rules as a server-side alternative to application-level dual publishing
 - Add automated phase progression that advances the migration state when old-subject consumer counts reach zero
 
-## Further Reading
+### Further Reading
 
-- [NATS Subject Naming Best Practices](https://docs.nats.io/nats-concepts/subjects)
-- [Tolerant Reader Pattern](https://martinfowler.com/bliki/TolerantReader.html)
-- [Parallel Change (Expand and Contract)](https://martinfowler.com/bliki/ParallelChange.html)
-- [Pact Contract Testing](https://pact.io/)
-- [Confluent Schema Evolution Guide](https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html)
+
+<ExternalCite title="NATS Subject Naming Best Practices" url="https://docs.nats.io/nats-concepts/subjects" author="NATS Authors" date="2024" />
+
+<ExternalCite title="Tolerant Reader Pattern" url="https://martinfowler.com/bliki/TolerantReader.html" author="Martin Fowler" date="2024" />
+
+<ExternalCite title="Parallel Change (Expand and Contract)" url="https://martinfowler.com/bliki/ParallelChange.html" author="Martin Fowler" date="2024" />
+
+<ExternalCite title="Pact Contract Testing" url="https://pact.io/" author="Pact Foundation" date="2024" />
+
+<ExternalCite title="Confluent Schema Evolution Guide" url="https://docs.confluent.io/platform/current/schema-registry/fundamentals/schema-evolution.html" author="Docs" date="2024" />
