@@ -37,18 +37,18 @@
     --color-aurora-800: oklch(38% 0.165 23);
     --color-aurora-900: oklch(33% 0.135 21);
 
-    /* Success: Quantum — Suno grass green #4aab04 (yellow-green, not emerald) */
-    --color-quantum-50: oklch(97% 0.025 130);
-    --color-quantum-100: oklch(94% 0.060 130);
-    --color-quantum-200: oklch(89% 0.110 130);
-    --color-quantum-300: oklch(82% 0.155 128);
-    --color-quantum-400: oklch(74% 0.185 127);
-    --color-quantum-500: oklch(63% 0.190 127);
-    /* Suno #4aab04 — grass */
-    --color-quantum-600: oklch(55% 0.170 127);
-    --color-quantum-700: oklch(47% 0.145 126);
-    --color-quantum-800: oklch(40% 0.115 125);
-    --color-quantum-900: oklch(35% 0.085 124);
+    /* Accent: Quantum — Celestial Blue, complements Neural Orange */
+    --color-quantum-50: oklch(97% 0.025 260);
+    --color-quantum-100: oklch(94% 0.060 260);
+    --color-quantum-200: oklch(89% 0.110 260);
+    --color-quantum-300: oklch(82% 0.155 260);
+    --color-quantum-400: oklch(74% 0.185 260);
+    --color-quantum-500: oklch(63% 0.190 260);
+    /* celestial blue — pairs with neural orange */
+    --color-quantum-600: oklch(55% 0.170 260);
+    --color-quantum-700: oklch(47% 0.145 260);
+    --color-quantum-800: oklch(40% 0.115 260);
+    --color-quantum-900: oklch(35% 0.085 260);
 
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
@@ -64,17 +64,28 @@
 
     /* Neutrals: Slate — remapped to dark mode (surface-base through text-primary)
        bg-slate-50 = body bg, text-slate-900 = primary text, etc. */
-    --color-slate-50:  #101012;   /* surface-base — body background */
-    --color-slate-100: #1c1c1f;   /* surface-card */
-    --color-slate-200: #252529;   /* surface-overlay */
-    --color-slate-300: #36363b;   /* subtle border */
-    --color-slate-400: #6a6a72;   /* text-disabled */
-    --color-slate-500: #a3a3a3;   /* text-muted */
-    --color-slate-600: #c2c2c1;   /* text-secondary */
-    --color-slate-700: #d4d0cb;   /* mid text */
-    --color-slate-800: #e8e5e0;   /* near-white text */
-    --color-slate-900: #f7f4ef;   /* text-primary */
-    --color-slate-950: #ffffff;   /* pure white */
+    --color-slate-50: #101012;
+    /* surface-base — body background */
+    --color-slate-100: #1c1c1f;
+    /* surface-card */
+    --color-slate-200: #252529;
+    /* surface-overlay */
+    --color-slate-300: #36363b;
+    /* subtle border */
+    --color-slate-400: #6a6a72;
+    /* text-disabled */
+    --color-slate-500: #a3a3a3;
+    /* text-muted */
+    --color-slate-600: #c2c2c1;
+    /* text-secondary */
+    --color-slate-700: #d4d0cb;
+    /* mid text */
+    --color-slate-800: #e8e5e0;
+    /* near-white text */
+    --color-slate-900: #f7f4ef;
+    /* text-primary */
+    --color-slate-950: #ffffff;
+    /* pure white */
 
     /* ==================== GLASSMORPHISM ==================== */
     /* Dark-mode glass: white-alpha panels over #101012 surface */
@@ -85,7 +96,8 @@
     --glass-white-25: rgba(255, 255, 255, 0.10);
     --glass-white-30: rgba(255, 255, 255, 0.12);
     --glass-white-35: rgba(255, 255, 255, 0.15);
-    --glass-white-40: rgba(16, 16, 18, 0.85);   /* header/overlay dark glass */
+    --glass-white-40: rgba(16, 16, 18, 0.85);
+    /* header/overlay dark glass */
     --glass-white-60: rgba(16, 16, 18, 0.90);
     --glass-white-70: rgba(16, 16, 18, 0.92);
     --glass-white-80: rgba(16, 16, 18, 0.95);
@@ -126,14 +138,14 @@
     --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
 
     /* Quantum color with opacity variants */
-    --color-quantum-alpha-08: oklch(63% 0.190 127 / 0.08);
-    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
-    --color-quantum-alpha-12: oklch(63% 0.190 127 / 0.12);
-    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
-    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
-    --color-quantum-alpha-25: oklch(63% 0.190 127 / 0.25);
-    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
-    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+    --color-quantum-alpha-08: oklch(63% 0.190 260 / 0.08);
+    --color-quantum-alpha-10: oklch(63% 0.190 260 / 0.10);
+    --color-quantum-alpha-12: oklch(63% 0.190 260 / 0.12);
+    --color-quantum-alpha-15: oklch(63% 0.190 260 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 260 / 0.20);
+    --color-quantum-alpha-25: oklch(63% 0.190 260 / 0.25);
+    --color-quantum-alpha-30: oklch(63% 0.190 260 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 260 / 0.40);
 
     /* Signature-mid (neural→quantum bridge, hue 85 amber) with opacity variants */
     --color-signature-mid: oklch(74% 0.17 70);
@@ -165,23 +177,23 @@
             oklch(60% 0.240 29) 50%,
             oklch(51% 0.230 27) 100%);
     --gradient-quantum: linear-gradient(135deg,
-            oklch(74% 0.185 127) 0%,
-            oklch(63% 0.190 127) 50%,
-            oklch(55% 0.170 127) 100%);
+            oklch(74% 0.185 260) 0%,
+            oklch(63% 0.190 260) 50%,
+            oklch(55% 0.170 260) 100%);
     --gradient-glow: linear-gradient(135deg,
             oklch(80% 0.18 80) 0%,
             oklch(74% 0.17 70) 50%,
             oklch(65% 0.16 60) 100%);
 
-    /* Signature gradient - neural to quantum (orange to green via amber) */
+    /* Signature gradient - neural to blue (orange to blue via amber) */
     --gradient-signature: linear-gradient(135deg,
             oklch(69% 0.235 43) 0%,
             oklch(74% 0.17 70) 40%,
-            oklch(63% 0.190 127) 100%);
+            oklch(63% 0.190 260) 100%);
 
-    /* Mesh Background — more vivid on dark surface */
+    /* Mesh Background — quantum blob is now blue */
     --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(63% 0.190 127 / 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(63% 0.190 260 / 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.08) 0px, transparent 50%),
         radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.08) 0px, transparent 50%);
 
@@ -194,18 +206,18 @@
 
     /* ==================== SHADOWS ==================== */
     /* Dark elevation system: thin white ring + black depth shadow */
-    --shadow-sm:  0 0 0 1px rgba(255,255,255,0.05), 0 2px 8px rgba(0,0,0,0.40);
-    --shadow-md:  0 0 0 1px rgba(255,255,255,0.05), 0 4px 16px rgba(0,0,0,0.50);
-    --shadow-lg:  0 0 0 1px rgba(255,255,255,0.06), 0 8px 24px rgba(0,0,0,0.55);
-    --shadow-xl:  0 0 0 1px rgba(255,255,255,0.06), 0 16px 48px rgba(0,0,0,0.60);
-    --shadow-2xl: 0 0 0 1px rgba(255,255,255,0.06), 0 24px 64px rgba(0,0,0,0.70);
+    --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.40);
+    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.50);
+    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.55);
+    --shadow-xl: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.60);
+    --shadow-2xl: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 64px rgba(0, 0, 0, 0.70);
 
     /* Colored glow shadows */
-    --shadow-neural:       0 0 40px var(--color-neural-alpha-25),  0 8px 24px rgba(0,0,0,0.50);
-    --shadow-neural-sm:    0 0 20px var(--color-neural-alpha-20),  0 4px 12px rgba(0,0,0,0.45);
-    --shadow-aurora:       0 0 40px var(--color-aurora-alpha-25),  0 8px 24px rgba(0,0,0,0.50);
-    --shadow-quantum:      0 0 40px var(--color-quantum-alpha-25), 0 8px 24px rgba(0,0,0,0.50);
-    --shadow-glow-colored: 0 0 40px var(--color-glow-alpha-30),   0 8px 24px rgba(0,0,0,0.50);
+    --shadow-neural: 0 0 40px var(--color-neural-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
+    --shadow-neural-sm: 0 0 20px var(--color-neural-alpha-20), 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-aurora: 0 0 40px var(--color-aurora-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
+    --shadow-quantum: 0 0 40px var(--color-quantum-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
+    --shadow-glow-colored: 0 0 40px var(--color-glow-alpha-30), 0 8px 24px rgba(0, 0, 0, 0.50);
 
     /* Focus ring tokens */
     --ring-neural: 0 0 0 4px var(--color-neural-alpha-20);
@@ -223,7 +235,8 @@
     --code-border: rgba(255, 255, 255, 0.08);
     --code-shadow: rgba(0, 0, 0, 0.30);
     --code-inline-bg: rgba(255, 255, 255, 0.10);
-    --code-inline-text: oklch(76% 0.20 43);  /* neural-600 pumpkin for inline code */
+    --code-inline-text: oklch(76% 0.20 43);
+    /* neural-600 pumpkin for inline code */
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -242,8 +255,8 @@
     /* Higher opacity for visibility on dark #101012 surface */
     --lava-color-1: oklch(69% 0.235 43 / 0.50);
     --lava-color-1-outer: oklch(76% 0.20 43 / 0.20);
-    --lava-color-2: oklch(63% 0.190 127 / 0.35);
-    --lava-color-2-outer: oklch(55% 0.170 127 / 0.15);
+    --lava-color-2: oklch(63% 0.190 260 / 0.35);
+    --lava-color-2-outer: oklch(55% 0.170 260 / 0.15);
     --lava-color-3: oklch(60% 0.240 29 / 0.28);
     --lava-color-3-outer: oklch(51% 0.230 27 / 0.10);
     --lava-color-4: oklch(74% 0.17 70 / 0.32);
@@ -259,8 +272,10 @@ html {
 body {
     @apply antialiased;
     font-family: var(--font-sans);
-    background-color: var(--color-slate-50);  /* #101012 */
-    color: var(--color-slate-900);            /* #f7f4ef */
+    background-color: var(--color-slate-50);
+    /* #101012 */
+    color: var(--color-slate-900);
+    /* #f7f4ef */
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
     background-size: 100% 100%;
@@ -817,15 +832,15 @@ pre {
 }
 
 .arch-node-slate {
-    background: linear-gradient(135deg, rgba(255,255,255,0.10), rgba(255,255,255,0.06), rgba(255,255,255,0.08));
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.08));
     border-color: rgba(255, 255, 255, 0.12);
 }
 
 .arch-node-slate:hover {
     box-shadow:
-        0 0 18px rgba(255,255,255,0.08),
-        0 0 40px rgba(255,255,255,0.04),
-        0 4px 12px rgba(0,0,0,0.50);
+        0 0 18px rgba(255, 255, 255, 0.08),
+        0 0 40px rgba(255, 255, 255, 0.04),
+        0 4px 12px rgba(0, 0, 0, 0.50);
 }
 
 /* Per-layer label colors */

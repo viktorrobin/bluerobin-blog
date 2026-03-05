@@ -40,18 +40,18 @@
         --color-aurora-800: oklch(38% 0.165 23);
         --color-aurora-900: oklch(33% 0.135 21);
 
-        /* Success: Quantum — Suno grass green #4aab04 (yellow-green, not emerald) */
-        --color-quantum-50: oklch(97% 0.025 130);
-        --color-quantum-100: oklch(94% 0.060 130);
-        --color-quantum-200: oklch(89% 0.110 130);
-        --color-quantum-300: oklch(82% 0.155 128);
-        --color-quantum-400: oklch(74% 0.185 127);
-        --color-quantum-500: oklch(63% 0.190 127);
-        /* Suno #4aab04 — grass */
-        --color-quantum-600: oklch(55% 0.170 127);
-        --color-quantum-700: oklch(47% 0.145 126);
-        --color-quantum-800: oklch(40% 0.115 125);
-        --color-quantum-900: oklch(35% 0.085 124);
+        /* Accent: Quantum — Celestial Blue, complements Neural Orange */
+        --color-quantum-50: oklch(97% 0.025 260);
+        --color-quantum-100: oklch(94% 0.060 260);
+        --color-quantum-200: oklch(89% 0.110 260);
+        --color-quantum-300: oklch(82% 0.155 260);
+        --color-quantum-400: oklch(74% 0.185 260);
+        --color-quantum-500: oklch(63% 0.190 260);
+        /* celestial blue — pairs with neural orange */
+        --color-quantum-600: oklch(55% 0.170 260);
+        --color-quantum-700: oklch(47% 0.145 260);
+        --color-quantum-800: oklch(40% 0.115 260);
+        --color-quantum-900: oklch(35% 0.085 260);
 
         /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
         --color-glow-50: oklch(98% 0.03 85);
@@ -113,10 +113,10 @@
         --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
         --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
 
-        --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
-        --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
-        --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
-        --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+        --color-quantum-alpha-10: oklch(63% 0.190 260 / 0.10);
+        --color-quantum-alpha-20: oklch(63% 0.190 260 / 0.20);
+        --color-quantum-alpha-30: oklch(63% 0.190 260 / 0.30);
+        --color-quantum-alpha-40: oklch(63% 0.190 260 / 0.40);
 
         --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
         --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
@@ -140,19 +140,19 @@
                         oklch(60% 0.240 29) 50%,
                         oklch(51% 0.230 27) 100%);
         --gradient-quantum: linear-gradient(135deg,
-                        oklch(74% 0.185 127) 0%,
-                        oklch(63% 0.190 127) 50%,
-                        oklch(55% 0.170 127) 100%);
+                        oklch(74% 0.185 260) 0%,
+                        oklch(63% 0.190 260) 50%,
+                        oklch(55% 0.170 260) 100%);
         --gradient-glow: linear-gradient(135deg,
                         oklch(80% 0.18 80) 0%,
                         oklch(74% 0.17 70) 50%,
                         oklch(65% 0.16 60) 100%);
 
-        /* Signature gradient - neural to quantum (orange to green via amber) */
+        /* Signature gradient - neural to blue (orange to blue via amber) */
         --gradient-signature: linear-gradient(135deg,
                         oklch(69% 0.235 43) 0%,
                         oklch(74% 0.17 70) 40%,
-                        oklch(63% 0.190 127) 100%);
+                        oklch(63% 0.190 260) 100%);
 
         /* Mesh Background */
         --gradient-mesh: radial-gradient(at 0% 0%, var(--color-neural-alpha-10) 0px, transparent 50%),

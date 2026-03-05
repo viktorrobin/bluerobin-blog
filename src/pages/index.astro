@@ -26,24 +26,29 @@ const techStack = [
     </div>
     
     <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      <div class="text-center mb-12 animate-entry">
-        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-display font-bold text-slate-900 mb-6">
-          <span class="text-transparent bg-clip-text" style="background-image: var(--gradient-signature);">The BlueRobin Project</span>
+      <!-- Hero Text -->
+      <div class="text-center animate-entry">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-quantum-alpha-12); border: 1px solid var(--color-quantum-alpha-25); color: var(--color-quantum-400);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
+          Knowledge Graph &middot; Entity Intelligence &middot; Multi-Model RAG
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+          <span class="text-transparent bg-clip-text" style="background-image: var(--gradient-signature);">Your Documents,<br>Deeply Understood</span>
         </h1>
-        
-        <p class="text-lg sm:text-xl text-slate-600 max-w-4xl mx-auto mb-6">
-          An AI-powered personal document archive that transforms how you organize, 
-          search, and understand your documents.
+
+        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-5">
+          An AI document archive that doesn&rsquo;t just store &mdash; it models, connects, and reasons
+          over everything you&rsquo;ve ever uploaded.
         </p>
-        
-        <p class="text-base text-slate-500 max-w-3xl mx-auto mb-10">
-          From homelab experiment to production-ready system — documenting every step of building 
-          a modern cloud-native application with <strong class="text-neural-600">.NET</strong>, 
-          <strong class="text-quantum-600">Kubernetes</strong>, and 
-          <strong class="text-aurora-600">AI/ML</strong>.
+
+        <p class="text-base text-slate-500 max-w-2xl mx-auto mb-10">
+          Ask questions and get answers cited from your own documents.
+          Discover hidden connections between entities across your entire archive.
+          Search by <em>meaning</em>, not keywords.
         </p>
-        
-        <div class="flex flex-wrap justify-center gap-4">
+
+        <div class="flex flex-wrap justify-center gap-4 mb-14">
           <a href="/architecture/" class="btn-primary">
             Architecture
           </a>
@@ -51,57 +56,157 @@ const techStack = [
             All Articles
           </a>
         </div>
+
+        <!-- Stats strip -->
+        <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
+          <span class="flex items-center gap-2 text-slate-500">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-quantum-400"></span>
+            8 Embedding Models
+          </span>
+          <span class="flex items-center gap-2 text-slate-500">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-quantum-400"></span>
+            12+ NER Entity Types
+          </span>
+          <span class="flex items-center gap-2 text-slate-500">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
+            Per-User Encryption
+          </span>
+          <span class="flex items-center gap-2 text-slate-500">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
+            100% Self-Hosted
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How It Works Section -->
+  <section class="py-20 relative">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">From Upload to Intelligence</h2>
+        <p class="text-slate-500 max-w-xl mx-auto">Every document passes through a multi-stage AI pipeline before it becomes searchable and queryable.</p>
       </div>
 
-      <!-- Feature Bento Grid — Apple-style dark cards with gradient accents -->
-      <div class="bento-grid max-w-5xl mx-auto animate-entry-delay-1">
-        <!-- Row 1: Two large feature cards -->
-        <div class="bento-card bento-lg bento-neural">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6M8 11h6"/></svg>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
+        <!-- Connector line on desktop -->
+        <div class="hidden sm:block absolute top-[3.25rem] left-[calc(33.33%+1rem)] right-[calc(33.33%+1rem)] h-px opacity-50" style="background: linear-gradient(to right, var(--color-neural-alpha-30), var(--color-quantum-alpha-30));"></div>
+
+        <!-- Step 1 -->
+        <div class="glass-card p-6 flex flex-col gap-4">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">1</div>
+          <div>
+            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Upload &amp; Extract</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Docling OCR preserves document structure &mdash; tables, headings, and layout &mdash; producing a rich semantic representation, not just raw text.</p>
           </div>
-          <h3>Semantic Search</h3>
-          <p>Find documents by meaning, not keywords. Multi-model RAG with 8 embedding models and reciprocal rank fusion.</p>
+          <div class="flex flex-wrap gap-2 mt-auto pt-1">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-600); border: 1px solid var(--color-neural-alpha-20);">Docling OCR</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-600); border: 1px solid var(--color-neural-alpha-20);">Structure Extraction</span>
+          </div>
         </div>
-        <div class="bento-card bento-lg bento-signature">
+
+        <!-- Step 2 -->
+        <div class="glass-card p-6 flex flex-col gap-4">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
+          <div>
+            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Model &amp; Enrich</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">spaCy extracts 12+ entity types. Ollama generates embeddings across 8 models in parallel. Summaries and keywords are inferred. The knowledge graph grows.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-auto pt-1">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">spaCy NER</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">8&times; Embeddings</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">FalkorDB Graph</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="glass-card p-6 flex flex-col gap-4">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-quantum);">3</div>
+          <div>
+            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Search &amp; Ask</h3>
+            <p class="text-sm text-slate-500 leading-relaxed">Reciprocal Rank Fusion across all 8 Qdrant collections surfaces the most relevant passages. Ask anything &mdash; the LLM answers with paragraph-level citations.</p>
+          </div>
+          <div class="flex flex-wrap gap-2 mt-auto pt-1">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Qdrant</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">RRF Ensemble</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Ollama RAG</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Core Capabilities Section -->
+  <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Built for Complexity at Every Layer</h2>
+        <p class="text-slate-500 max-w-xl mx-auto">Not a wrapper around a cloud API &mdash; a fully modelled, graph-connected, multi-model document intelligence system.</p>
+      </div>
+
+      <div class="bento-grid">
+        <!-- Row 1: Two primary intelligence feature cards -->
+        <div class="bento-card bento-lg bento-quantum">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
+          </div>
+          <h3>Knowledge Graph &amp; Entity Intelligence</h3>
+          <p>spaCy NER extracts 12+ entity types &mdash; people, organizations, dates, medical terms, financial figures &mdash; from every document. FalkorDB builds a traversable graph of relationships that evolves as your archive grows. Inferred connections surface links your keyword search would never find.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">spaCy NER</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">FalkorDB</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Graph Traversal</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Inferred Relationships</span>
+          </div>
+        </div>
+
+        <div class="bento-card bento-lg bento-quantum">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg>
+          </div>
+          <h3>Multi-Model Search &amp; RAG</h3>
+          <p>8 embedding models &mdash; nomic, mxbai-large, bge-m3, snowflake-arctic, granite, paraphrase-multilingual and more &mdash; run in parallel across 8 dedicated Qdrant collections. Reciprocal Rank Fusion combines results for best-of-ensemble recall. Ask questions and get answers cited directly from your source paragraphs.</p>
+          <div class="flex flex-wrap gap-2 mt-5">
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">8 Qdrant Collections</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">RRF Ensemble</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Ollama RAG</span>
+            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-quantum-alpha-10); color: var(--color-quantum-400); border: 1px solid var(--color-quantum-alpha-20);">Source Citations</span>
+          </div>
+        </div>
+
+        <!-- Row 2: Three supporting features -->
+        <div class="bento-card bento-neural">
           <div class="bento-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
           </div>
-          <h3>AI-Powered OCR</h3>
-          <p>Docling preserves document structure — tables, headings, and layout. Self-hosted, no cloud dependencies.</p>
+          <h3>Archive Management</h3>
+          <p>Per-document lifecycle: <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.25rem; border-radius: 0.25rem;">Pending &rarr; Stored &rarr; Processing &rarr; Enriched &rarr; Indexed</code>. Per-user isolated storage. Real-time Blazor UI updates via NATS JetStream.</p>
         </div>
 
-        <!-- Row 2: Three medium cards -->
         <div class="bento-card bento-aurora">
           <div class="bento-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           </div>
           <h3>Per-User Encryption</h3>
-          <p>Isolated MinIO buckets with dedicated KES keys per user.</p>
-        </div>
-        <div class="bento-card bento-glow">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 7-7 7 7"/><path d="M12 19V5"/></svg>
-          </div>
-          <h3>Event-Driven</h3>
-          <p>NATS JetStream for async processing with real-time updates.</p>
-        </div>
-        <div class="bento-card bento-quantum">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          </div>
-          <h3>Knowledge Graph</h3>
-          <p>FalkorDB links entities across your entire archive.</p>
+          <p>Dedicated MinIO bucket per user. Unique KES encryption key per user. SSE-KMS at rest. Physically and cryptographically isolated from every other account.</p>
         </div>
 
-        <!-- Row 3: Full-width card -->
+        <div class="bento-card bento-glow">
+          <div class="bento-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><path d="M18 9v12"/><path d="M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M15 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
+          </div>
+          <h3>Event-Driven Pipeline</h3>
+          <p>NATS JetStream for async processing, distributed worker deduplication via KV store, and real-time status propagation to the Blazor UI without polling.</p>
+        </div>
+
+        <!-- Full-width -->
         <div class="bento-card bento-full bento-slate">
           <div class="bento-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
           </div>
           <div>
-            <h3>Self-Hosted on a Homelab K3s Cluster</h3>
-            <p>Everything runs locally — Ollama for AI, Flux for GitOps, Linkerd for mTLS. Your data never leaves your hardware.</p>
+            <h3>100% Self-Hosted on a Homelab K3s Cluster</h3>
+            <p>Every component runs locally &mdash; Ollama for AI inference, Flux for GitOps, Linkerd for mTLS service mesh, KES for key management. Your data never leaves your hardware.</p>
           </div>
         </div>
       </div>
@@ -113,10 +218,10 @@ const techStack = [
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-8">
         <h2 class="text-3xl font-display font-semibold text-slate-900 mb-4">
-          System Architecture
+          Intelligence Pipeline
         </h2>
         <p class="text-slate-600 max-w-2xl mx-auto mb-8">
-          A cloud-native document intelligence platform built on DDD principles with event-driven microservices.
+          A cloud-native document intelligence platform built on DDD principles, event-driven microservices, and a multi-layer AI pipeline from OCR to graph-connected knowledge.
         </p>
 
         <!-- Tech Stack Pills -->
@@ -260,10 +365,10 @@ const techStack = [
       <!-- Gradient divider -->
       <div class="w-24 h-1 mx-auto mb-10 rounded-full" style="background: var(--gradient-signature);"></div>
       <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold text-slate-900 mb-6">
-        Follow the Journey
+        Explore the Intelligence
       </h2>
       <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-        Deep dives into building a production AI system — from Domain-Driven Design to multi-model embeddings, event-driven architecture, and self-hosted infrastructure.
+        Deep dives into building a production AI system &mdash; from knowledge graph modelling and multi-model embeddings to event-driven architecture and self-hosted RAG on a homelab K3s cluster.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="/articles/" class="btn-primary text-lg px-8 py-3.5">
@@ -271,6 +376,9 @@ const techStack = [
         </a>
         <a href="/architecture/" class="btn-secondary text-lg px-8 py-3.5">
           View Architecture
+        </a>
+        <a href="/articles/knowledge-graph/" class="btn-secondary text-lg px-8 py-3.5">
+          Knowledge Graph
         </a>
       </div>
     </div>
