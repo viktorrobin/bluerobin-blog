@@ -311,7 +311,7 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
                 </svg>
                 <span>Copied!</span>
               `;
-              button.classList.add('bg-quantum-600/80', 'text-white');
+              button.classList.add('bg-complement-600/80', 'text-white');
               
               setTimeout(() => {
                 button.innerHTML = `
@@ -320,7 +320,7 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
                   </svg>
                   <span>Copy</span>
                 `;
-                button.classList.remove('bg-quantum-600/80', 'text-white');
+                button.classList.remove('bg-complement-600/80', 'text-white');
               }, 2000);
             } catch (err) {
               console.error('Failed to copy:', err);

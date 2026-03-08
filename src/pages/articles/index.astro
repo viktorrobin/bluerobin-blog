@@ -30,7 +30,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
         {Object.entries(SERIES).map(([key, series]) => {
           const borderColor = {
             neural: "border-neural-400",
-            quantum: "border-quantum-400",
+            complement: "border-complement-400",
             aurora: "border-aurora-400",
             glow: "border-glow-400",
           }[series.color] ?? "border-neural-400";
@@ -53,7 +53,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
         {Object.entries(CATEGORIES).map(([key, cat]) => {
           const borderColor = {
             neural: "border-neural-400",
-            quantum: "border-quantum-400",
+            complement: "border-complement-400",
             aurora: "border-aurora-400",
             glow: "border-glow-400",
           }[cat.color] ?? "border-neural-400";

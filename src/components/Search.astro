@@ -19,60 +19,68 @@ const searchDataJson = JSON.stringify(searchData);
 <div class="search-container relative">
   <button
     id="search-trigger"
-    class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:text-slate-900 bg-slate-100 rounded-lg border border-slate-200 hover:border-slate-300 transition-colors"
+    class="flex items-center gap-2 px-3 py-2 text-sm transition-all rounded-xl border backdrop-blur-sm"
+    style="color: var(--color-slate-600); background: rgba(28,28,31,0.70); border-color: rgba(255,255,255,0.08); "
+    onmouseover="this.style.borderColor='rgba(0,153,253,0.35)'"
+    onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"
     aria-label="Open search"
   >
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
-    <span class="hidden sm:inline">Search</span>
-    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono bg-slate-200 rounded">⌘K</kbd>
+    <span class="hidden sm:inline" style="color: var(--color-slate-600);">Search</span>
+    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono rounded-md" style="background: rgba(255,255,255,0.06); color: var(--color-slate-500); border: 1px solid rgba(255,255,255,0.08);">&#8984;K</kbd>
   </button>
 </div>
 
 <!-- Search Modal -->
 <div id="search-modal" class="search-modal hidden fixed inset-0 z-50">
-  <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm" id="search-backdrop"></div>
+  <div class="absolute inset-0 backdrop-blur-md" id="search-backdrop" style="background: rgba(0,0,0,0.65);"></div>
   <div class="relative flex items-start justify-center pt-[15vh] px-4">
-    <div class="w-full max-w-2xl bg-white rounded-xl shadow-2xl border border-slate-200 overflow-hidden">
+    <div class="w-full max-w-2xl rounded-2xl overflow-hidden" style="background: rgba(28,28,31,0.92); border: 1px solid rgba(255,255,255,0.10); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 24px 64px rgba(0,0,0,0.70), 0 0 80px rgba(0,153,253,0.08);">
       <!-- Search Input -->
-      <div class="flex items-center gap-3 px-4 py-3 border-b border-slate-200">
-        <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="flex items-center gap-3 px-4 py-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-complement-500);">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
           type="text"
           id="search-input"
           placeholder="Search articles..."
-          class="flex-1 bg-transparent text-slate-900 placeholder:text-slate-400 outline-none text-lg"
+          class="flex-1 bg-transparent outline-none text-lg"
+          style="color: rgba(255,255,255,0.90); caret-color: var(--color-complement-500);"
           autocomplete="off"
         />
-        <button id="search-close" class="p-1 hover:bg-slate-100 rounded-md transition-colors">
-          <kbd class="px-2 py-0.5 text-xs font-mono text-slate-500 bg-slate-100 rounded">ESC</kbd>
+        <button id="search-close" class="flex items-center justify-center p-1.5 rounded-lg search-close-btn">
+          <kbd class="px-2 py-0.5 text-xs font-mono rounded-md search-kbd">ESC</kbd>
         </button>
       </div>
       
       <!-- Search Results -->
-      <div id="search-results" class="max-h-[60vh] overflow-y-auto">
-        <div class="p-4 text-center text-slate-500">
-          <p>Start typing to search...</p>
+      <div id="search-results" class="max-h-[60vh] overflow-y-auto search-results-scroll">
+        <div class="p-6 text-center" style="color: var(--color-slate-500);">
+          <p>Start typing to search&hellip;</p>
         </div>
       </div>
       
       <!-- Footer -->
-      <div class="px-4 py-2 border-t border-slate-200 flex items-center justify-between text-xs text-slate-500">
+      <div class="px-4 py-2.5 flex items-center justify-between text-xs" style="border-top: 1px solid rgba(255,255,255,0.06); background: rgba(16,16,18,0.50); color: var(--color-slate-500);">
         <div class="flex items-center gap-4">
-          <span class="flex items-center gap-1">
-            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 rounded">↑</kbd>
-            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 rounded">↓</kbd>
-            <span>to navigate</span>
+          <span class="flex items-center gap-1.5">
+            <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">↑</kbd>
+            <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">↓</kbd>
+            <span>navigate</span>
           </span>
-          <span class="flex items-center gap-1">
-            <kbd class="px-1.5 py-0.5 font-mono bg-slate-100 rounded">↵</kbd>
-            <span>to select</span>
+          <span class="flex items-center gap-1.5">
+            <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">↵</kbd>
+            <span>select</span>
+          </span>
+          <span class="flex items-center gap-1.5">
+            <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">ESC</kbd>
+            <span>close</span>
           </span>
         </div>
-        <span>Powered by Fuse.js</span>
+        <span style="color: var(--color-slate-400);">Powered by Fuse.js</span>
       </div>
     </div>
   </div>
@@ -147,8 +155,8 @@ const searchDataJson = JSON.stringify(searchData);
   function renderEmptyState(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-4 text-center text-slate-500">
-          <p>Start typing to search...</p>
+        <div class="p-6 text-center" style="color: var(--color-slate-500);">
+          <p>Start typing to search&hellip;</p>
         </div>
       `;
     }
@@ -157,12 +165,12 @@ const searchDataJson = JSON.stringify(searchData);
   function renderNoResults(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-8 text-center text-slate-500">
-          <svg class="w-12 h-12 mx-auto mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="p-10 text-center" style="color: var(--color-slate-500);">
+          <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.35; color: var(--color-complement-600);">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="font-medium">No results found</p>
-          <p class="text-sm mt-1">Try different keywords or check your spelling</p>
+          <p class="font-medium" style="color: var(--color-slate-700);">No results found</p>
+          <p class="text-sm mt-1" style="color: var(--color-slate-500);">Try different keywords or check your spelling</p>
         </div>
       `;
     }
@@ -188,29 +196,32 @@ const searchDataJson = JSON.stringify(searchData);
         highlightedTitle = highlightText(item.title, titleMatch.indices);
       }
       
+      const selectedStyle = isSelected ? 'background: rgba(0,153,253,0.10); border-left: 2px solid rgba(0,153,253,0.60);' : 'border-left: 2px solid transparent;';
+      
       return `
         <a
           href="/articles/${item.slug}/"
-          class="search-result block px-4 py-3 hover:bg-slate-100 transition-colors ${isSelected ? 'bg-slate-100' : ''}"
+          class="search-result block px-4 py-3 transition-all"
+          style="${selectedStyle}"
           data-index="${index}"
         >
           <div class="flex items-start gap-3">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-slate-200 text-slate-600 text-sm shrink-0">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style="background: rgba(0,153,253,0.12); color: var(--color-complement-500);">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </span>
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium text-slate-900 truncate">
+              <h4 class="font-medium truncate" style="color: var(--color-slate-900);">
                 ${highlightedTitle}
               </h4>
-              <p class="text-sm text-slate-500 line-clamp-2 mt-0.5">
+              <p class="text-sm line-clamp-2 mt-0.5" style="color: var(--color-slate-500);">
                 ${item.description}
               </p>
               <div class="flex items-center gap-2 mt-1.5">
-                <span class="text-xs px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 capitalize">
+                <span class="text-xs px-2 py-0.5 rounded-full capitalize" style="background: rgba(0,153,253,0.12); color: var(--color-complement-400); border: 1px solid rgba(0,153,253,0.20);">
                   ${item.category}
                 </span>
                 ${item.tags.slice(0, 3).map((tag) => `
-                  <span class="text-xs text-slate-400">#${tag}</span>
+                  <span class="text-xs" style="color: var(--color-slate-400);">#${tag}</span>
                 `).join('')}
               </div>
             </div>
@@ -228,7 +239,7 @@ const searchDataJson = JSON.stringify(searchData);
     
     for (const [start, end] of indices) {
       result += text.slice(lastIndex, start);
-      result += `<mark class="bg-neural-200 text-neural-900 rounded px-0.5">${text.slice(start, end + 1)}</mark>`;
+      result += `<mark class="search-highlight">${text.slice(start, end + 1)}</mark>`;
       lastIndex = end + 1;
     }
     result += text.slice(lastIndex);
@@ -250,10 +261,13 @@ const searchDataJson = JSON.stringify(searchData);
   function updateSelection(): void {
     const resultElements = searchResults?.querySelectorAll('.search-result');
     resultElements?.forEach((el, i) => {
+      const htmlEl = el as HTMLElement;
       if (i === selectedIndex) {
-        el.classList.add('bg-slate-100');
+        htmlEl.style.background = 'rgba(0,153,253,0.10)';
+        htmlEl.style.borderLeftColor = 'rgba(0,153,253,0.60)';
       } else {
-        el.classList.remove('bg-slate-100');
+        htmlEl.style.background = '';
+        htmlEl.style.borderLeftColor = 'transparent';
       }
     });
     
@@ -319,12 +333,8 @@ const searchDataJson = JSON.stringify(searchData);
   }
   
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; transform: scale(0.98); }
+    to   { opacity: 1; transform: scale(1); }
   }
   
   .line-clamp-2 {
@@ -332,5 +342,75 @@ const searchDataJson = JSON.stringify(searchData);
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  /* Highlight marks in results */
+  .search-highlight {
+    background: oklch(66% 0.21 232 / 0.25);
+    color: oklch(74% 0.19 232);
+    border-radius: 0.2rem;
+    padding: 0 0.15rem;
+    font-style: normal;
+  }
+
+  /* Hover state for result rows */
+  .search-result {
+    border-left: 2px solid transparent;
+    transition: background 0.15s ease, border-color 0.15s ease;
+  }
+
+  .search-result:hover {
+    background: rgba(255, 255, 255, 0.04);
+    border-left-color: rgba(0, 153, 253, 0.35);
+  }
+
+  /* Custom scrollbar for results panel */
+  .search-results-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255,255,255,0.12) transparent;
+  }
+  .search-results-scroll::-webkit-scrollbar {
+    width: 4px;
+  }
+  .search-results-scroll::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .search-results-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.12);
+    border-radius: 2px;
+  }
+  .search-results-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(0,153,253,0.35);
+  }
+
+  /* Result row separator */
+  .search-result + .search-result {
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  /* Input placeholder color */
+  #search-input::placeholder {
+    color: var(--color-slate-400, #6a6a72);
+  }
+
+  /* Keyboard shortcut badges */
+  .search-kbd {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.55);
+    font-size: 0.7rem;
+    line-height: 1;
+  }
+
+  /* Close button */
+  .search-close-btn {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: rgba(255,255,255,0.40);
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .search-close-btn:hover {
+    background: rgba(255,255,255,0.10);
+    color: rgba(255,255,255,0.75);
   }
 </style>

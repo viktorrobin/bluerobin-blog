@@ -38,17 +38,17 @@
     --color-aurora-900: oklch(33% 0.135 21);
 
     /* Accent: Quantum — Celestial Blue, complements Neural Orange */
-    --color-quantum-50: oklch(97% 0.025 260);
-    --color-quantum-100: oklch(94% 0.060 260);
-    --color-quantum-200: oklch(89% 0.110 260);
-    --color-quantum-300: oklch(82% 0.155 260);
-    --color-quantum-400: oklch(74% 0.185 260);
-    --color-quantum-500: oklch(63% 0.190 260);
+    --color-complement-50: oklch(97% 0.02 232);
+    --color-complement-100: oklch(93% 0.06 232);
+    --color-complement-200: oklch(87% 0.12 232);
+    --color-complement-300: oklch(80% 0.16 232);
+    --color-complement-400: oklch(74% 0.19 232);
+    --color-complement-500: oklch(66% 0.21 232);
     /* celestial blue — pairs with neural orange */
-    --color-quantum-600: oklch(55% 0.170 260);
-    --color-quantum-700: oklch(47% 0.145 260);
-    --color-quantum-800: oklch(40% 0.115 260);
-    --color-quantum-900: oklch(35% 0.085 260);
+    --color-complement-600: oklch(57% 0.19 232);
+    --color-complement-700: oklch(48% 0.16 232);
+    --color-complement-800: oklch(40% 0.12 232);
+    --color-complement-900: oklch(34% 0.08 232);
 
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
@@ -138,16 +138,16 @@
     --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
 
     /* Quantum color with opacity variants */
-    --color-quantum-alpha-08: oklch(63% 0.190 260 / 0.08);
-    --color-quantum-alpha-10: oklch(63% 0.190 260 / 0.10);
-    --color-quantum-alpha-12: oklch(63% 0.190 260 / 0.12);
-    --color-quantum-alpha-15: oklch(63% 0.190 260 / 0.15);
-    --color-quantum-alpha-20: oklch(63% 0.190 260 / 0.20);
-    --color-quantum-alpha-25: oklch(63% 0.190 260 / 0.25);
-    --color-quantum-alpha-30: oklch(63% 0.190 260 / 0.30);
-    --color-quantum-alpha-40: oklch(63% 0.190 260 / 0.40);
+    --color-complement-alpha-08: oklch(66% 0.21 232 / 0.08);
+    --color-complement-alpha-10: oklch(66% 0.21 232 / 0.10);
+    --color-complement-alpha-12: oklch(66% 0.21 232 / 0.12);
+    --color-complement-alpha-15: oklch(66% 0.21 232 / 0.15);
+    --color-complement-alpha-20: oklch(66% 0.21 232 / 0.20);
+    --color-complement-alpha-25: oklch(66% 0.21 232 / 0.25);
+    --color-complement-alpha-30: oklch(66% 0.21 232 / 0.30);
+    --color-complement-alpha-40: oklch(66% 0.21 232 / 0.40);
 
-    /* Signature-mid (neural→quantum bridge, hue 85 amber) with opacity variants */
+    /* Signature-mid (neural→complement bridge, hue 85 amber) with opacity variants */
     --color-signature-mid: oklch(74% 0.17 70);
     --color-signature-mid-alpha-15: oklch(74% 0.17 70 / 0.15);
     --color-signature-mid-alpha-20: oklch(74% 0.17 70 / 0.20);
@@ -176,10 +176,10 @@
             oklch(68% 0.215 28) 0%,
             oklch(60% 0.240 29) 50%,
             oklch(51% 0.230 27) 100%);
-    --gradient-quantum: linear-gradient(135deg,
-            oklch(74% 0.185 260) 0%,
-            oklch(63% 0.190 260) 50%,
-            oklch(55% 0.170 260) 100%);
+    --gradient-complement: linear-gradient(135deg,
+            oklch(74% 0.19 232) 0%,
+            oklch(66% 0.21 232) 50%,
+            oklch(57% 0.19 232) 100%);
     --gradient-glow: linear-gradient(135deg,
             oklch(80% 0.18 80) 0%,
             oklch(74% 0.17 70) 50%,
@@ -189,11 +189,11 @@
     --gradient-signature: linear-gradient(135deg,
             oklch(69% 0.235 43) 0%,
             oklch(74% 0.17 70) 40%,
-            oklch(63% 0.190 260) 100%);
+            oklch(66% 0.21 232) 100%);
 
-    /* Mesh Background — quantum blob is now blue */
+    /* Mesh Background — complement blob is now blue */
     --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(63% 0.190 260 / 0.08) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, oklch(66% 0.21 232 / 0.08) 0px, transparent 50%),
         radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.08) 0px, transparent 50%),
         radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.08) 0px, transparent 50%);
 
@@ -216,18 +216,18 @@
     --shadow-neural: 0 0 40px var(--color-neural-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
     --shadow-neural-sm: 0 0 20px var(--color-neural-alpha-20), 0 4px 12px rgba(0, 0, 0, 0.45);
     --shadow-aurora: 0 0 40px var(--color-aurora-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
-    --shadow-quantum: 0 0 40px var(--color-quantum-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
+    --shadow-complement: 0 0 40px var(--color-complement-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
     --shadow-glow-colored: 0 0 40px var(--color-glow-alpha-30), 0 8px 24px rgba(0, 0, 0, 0.50);
 
     /* Focus ring tokens */
     --ring-neural: 0 0 0 4px var(--color-neural-alpha-20);
     --ring-aurora: 0 0 0 4px var(--color-aurora-alpha-20);
-    --ring-quantum: 0 0 0 4px var(--color-quantum-alpha-20);
+    --ring-complement: 0 0 0 4px var(--color-complement-alpha-20);
 
     /* Glow effect tokens - for hover states */
     --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
     --glow-aurora: 0 0 32px var(--color-aurora-alpha-40), 0 0 64px var(--color-aurora-alpha-20);
-    --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
+    --glow-complement: 0 0 32px var(--color-complement-alpha-40), 0 0 64px var(--color-complement-alpha-20);
 
     /* ==================== CODE BLOCK TOKENS ==================== */
     --code-bg: rgba(0, 0, 0, 0.40);
@@ -255,8 +255,8 @@
     /* Higher opacity for visibility on dark #101012 surface */
     --lava-color-1: oklch(69% 0.235 43 / 0.50);
     --lava-color-1-outer: oklch(76% 0.20 43 / 0.20);
-    --lava-color-2: oklch(63% 0.190 260 / 0.35);
-    --lava-color-2-outer: oklch(55% 0.170 260 / 0.15);
+    --lava-color-2: oklch(66% 0.21 232 / 0.35);
+    --lava-color-2-outer: oklch(57% 0.19 232 / 0.15);
     --lava-color-3: oklch(60% 0.240 29 / 0.28);
     --lava-color-3-outer: oklch(51% 0.230 27 / 0.10);
     --lava-color-4: oklch(74% 0.17 70 / 0.32);
@@ -644,12 +644,12 @@ pre {
     color: var(--color-glow-400);
 }
 
-.bento-quantum .bento-icon {
-    color: var(--color-quantum-400);
+.bento-complement .bento-icon {
+    color: var(--color-complement-400);
 }
 
-.bento-quantum:hover .bento-icon {
-    color: var(--color-quantum-500);
+.bento-complement:hover .bento-icon {
+    color: var(--color-complement-500);
 }
 
 .bento-slate .bento-icon {
@@ -696,21 +696,21 @@ pre {
     color: white;
     background: var(--gradient-signature);
     background-size: 200% 200%;
-    border: 1px solid var(--color-quantum-alpha-25);
+    border: 1px solid var(--color-complement-alpha-25);
     backdrop-filter: var(--blur-sm);
     -webkit-backdrop-filter: var(--blur-sm);
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
         0 2px 8px var(--color-neural-alpha-15),
-        0 1px 3px var(--color-quantum-alpha-10);
+        0 1px 3px var(--color-complement-alpha-10);
 }
 
 .tech-pill:hover {
     background-position: 100% 100%;
-    border-color: var(--color-quantum-alpha-40);
+    border-color: var(--color-complement-alpha-40);
     box-shadow:
         0 0 18px var(--color-neural-alpha-30),
-        0 0 40px var(--color-quantum-alpha-12),
+        0 0 40px var(--color-complement-alpha-12),
         0 4px 12px var(--color-signature-mid-alpha-20);
     transform: translateY(-2px);
 }
@@ -743,13 +743,13 @@ pre {
     color: white;
     background: var(--gradient-signature);
     background-size: 200% 200%;
-    border: 1px solid var(--color-quantum-alpha-25);
+    border: 1px solid var(--color-complement-alpha-25);
     backdrop-filter: var(--blur-sm);
     -webkit-backdrop-filter: var(--blur-sm);
     transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow:
         0 2px 8px var(--color-neural-alpha-12),
-        0 1px 3px var(--color-quantum-alpha-08);
+        0 1px 3px var(--color-complement-alpha-08);
     text-align: left;
 }
 
@@ -757,7 +757,7 @@ pre {
     background-position: 100% 100%;
     box-shadow:
         0 0 18px var(--color-neural-alpha-25),
-        0 0 40px var(--color-quantum-alpha-10),
+        0 0 40px var(--color-complement-alpha-10),
         0 4px 12px var(--color-signature-mid-alpha-15);
     transform: translateY(-2px);
 }
@@ -807,16 +807,16 @@ pre {
         0 4px 12px var(--color-glow-alpha-20);
 }
 
-.arch-node-quantum {
-    background: var(--gradient-quantum);
-    border-color: var(--color-quantum-alpha-25);
+.arch-node-complement {
+    background: var(--gradient-complement);
+    border-color: var(--color-complement-alpha-25);
 }
 
-.arch-node-quantum:hover {
+.arch-node-complement:hover {
     box-shadow:
-        0 0 18px var(--color-quantum-alpha-30),
-        0 0 40px var(--color-quantum-alpha-12),
-        0 4px 12px var(--color-quantum-alpha-20);
+        0 0 18px var(--color-complement-alpha-30),
+        0 0 40px var(--color-complement-alpha-12),
+        0 4px 12px var(--color-complement-alpha-20);
 }
 
 .arch-node-signature {
@@ -827,7 +827,7 @@ pre {
 .arch-node-signature:hover {
     box-shadow:
         0 0 18px var(--color-neural-alpha-25),
-        0 0 40px var(--color-quantum-alpha-10),
+        0 0 40px var(--color-complement-alpha-10),
         0 4px 12px var(--color-signature-mid-alpha-15);
 }
 
@@ -856,8 +856,8 @@ pre {
     color: var(--color-glow-500);
 }
 
-.arch-label-quantum {
-    color: var(--color-quantum-400);
+.arch-label-complement {
+    color: var(--color-complement-400);
 }
 
 .arch-label-signature {
@@ -881,8 +881,8 @@ pre {
     color: var(--color-glow-alpha-30);
 }
 
-.arch-arrow-quantum {
-    color: var(--color-quantum-alpha-30);
+.arch-arrow-complement {
+    color: var(--color-complement-alpha-30);
 }
 
 .arch-arrow-signature {
@@ -1083,8 +1083,8 @@ pre {
 /* Dark-mode: alpha tinted backgrounds, vibrant text */
 
 .difficulty-beginner {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 .difficulty-intermediate {
@@ -1111,8 +1111,8 @@ pre {
 }
 
 .category-guide {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 .category-architecture {
@@ -1131,8 +1131,8 @@ pre {
 }
 
 .category-infrastructure {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 .category-security {
@@ -1151,13 +1151,13 @@ pre {
 }
 
 .category-backend {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 .category-database {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 .category-ci-cd {
@@ -1171,8 +1171,8 @@ pre {
 }
 
 .category-storage {
-    background-color: var(--color-quantum-alpha-12);
-    color: var(--color-quantum-400);
+    background-color: var(--color-complement-alpha-12);
+    color: var(--color-complement-400);
 }
 
 /* ==================== CALLOUT STYLES ==================== */

@@ -41,7 +41,7 @@ export const SERIES = {
   "nats-series": {
     title: "Event-Driven Architecture with NATS",
     description: "Async messaging patterns for distributed systems",
-    color: "quantum",
+    color: "complement",
   },
   "gitops-series": {
     title: "GitOps with Flux",
@@ -83,7 +83,7 @@ export const CATEGORIES = {
     title: "Infrastructure",
     description: "Kubernetes, GitOps, and DevOps",
     icon: "",
-    color: "quantum",
+    color: "complement",
   },
   security: {
     title: "Security",
@@ -107,13 +107,13 @@ export const CATEGORIES = {
     title: "Backend",
     description: ".NET, APIs, and server-side",
     icon: "",
-    color: "quantum",
+    color: "complement",
   },
   database: {
     title: "Database",
     description: "PostgreSQL, EF Core, and data storage",
     icon: "",
-    color: "quantum",
+    color: "complement",
   },
   "ci-cd": {
     title: "CI/CD",
@@ -131,7 +131,7 @@ export const CATEGORIES = {
     title: "Storage",
     description: "Object storage and file management",
     icon: "",
-    color: "quantum",
+    color: "complement",
   },
 } as const;
 
@@ -140,7 +140,7 @@ export const DIFFICULTIES = {
   beginner: {
     label: "Beginner",
     description: "Basic concepts, minimal prerequisites",
-    color: "quantum",
+    color: "complement",
   },
   intermediate: {
     label: "Intermediate",
