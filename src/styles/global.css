@@ -9,20 +9,26 @@
 
 @theme {
     /* ==================== COLOR PALETTE ==================== */
-    /* Primary: Neural Orange — Suno pumpkin palette, centered on #ff6a00 */
-    --color-neural-50: oklch(98% 0.015 75);
-    --color-neural-100: oklch(20% 0.08 43);
-    --color-neural-200: oklch(32% 0.13 43);
-    --color-neural-300: oklch(42% 0.17 43);
-    --color-neural-400: oklch(52% 0.21 43);
-    --color-neural-500: oklch(69% 0.235 43);
-    /* pumpkin-500 #ff6a00 — SUNO PRIMARY */
-    --color-neural-600: oklch(76% 0.20 43);
-    /* pumpkin-600 #ff9448 */
-    --color-neural-700: oklch(83% 0.15 45);
+    /* Primary: Blue — Neural palette, centered on #0099fd */
+    --color-neural-50: oklch(98% 0.015 232);
+    --color-neural-100: oklch(20% 0.08 232);
+    /* pumpkin-100 #3b1900 */
+    --color-neural-200: oklch(32% 0.13 232);
+    /* pumpkin-200 #652a00 */
+    --color-neural-300: oklch(42% 0.17 232);
+    /* pumpkin-300 #8d3b00 */
+    --color-neural-400: oklch(52% 0.21 232);
+    /* pumpkin-400 #bc4e00 */
+    --color-neural-500: oklch(69% 0.235 232);
+    /* pumpkin-500 #0099fd — SUNO PRIMARY */
+    --color-neural-600: oklch(76% 0.20 232);
+    /* pumpkin-600 #3db5ff */
+    --color-neural-700: oklch(83% 0.15 232);
     /* pumpkin-700 #ffb27b */
-    --color-neural-800: oklch(89% 0.10 50);
-    --color-neural-900: oklch(94% 0.06 55);
+    --color-neural-800: oklch(89% 0.10 232);
+    /* pumpkin-800 #ffcba6 */
+    --color-neural-900: oklch(94% 0.06 232);
+    /* pumpkin-900 #ffe4d1 */
 
     /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
     --color-aurora-50: oklch(97% 0.020 28);
@@ -37,18 +43,18 @@
     --color-aurora-800: oklch(38% 0.165 23);
     --color-aurora-900: oklch(33% 0.135 21);
 
-    /* Accent: Quantum — Celestial Blue, complements Neural Orange */
-    --color-complement-50: oklch(97% 0.02 232);
-    --color-complement-100: oklch(93% 0.06 232);
-    --color-complement-200: oklch(87% 0.12 232);
-    --color-complement-300: oklch(80% 0.16 232);
-    --color-complement-400: oklch(74% 0.19 232);
-    --color-complement-500: oklch(66% 0.21 232);
-    /* celestial blue — pairs with neural orange */
-    --color-complement-600: oklch(57% 0.19 232);
-    --color-complement-700: oklch(48% 0.16 232);
-    --color-complement-800: oklch(40% 0.12 232);
-    --color-complement-900: oklch(34% 0.08 232);
+    /* Success: Quantum — Suno grass green #4aab04 (yellow-green, not emerald) */
+    --color-quantum-50: oklch(97% 0.025 130);
+    --color-quantum-100: oklch(94% 0.060 130);
+    --color-quantum-200: oklch(89% 0.110 130);
+    --color-quantum-300: oklch(82% 0.155 128);
+    --color-quantum-400: oklch(74% 0.185 127);
+    --color-quantum-500: oklch(63% 0.190 127);
+    /* Suno #4aab04 — grass */
+    --color-quantum-600: oklch(55% 0.170 127);
+    --color-quantum-700: oklch(47% 0.145 126);
+    --color-quantum-800: oklch(40% 0.115 125);
+    --color-quantum-900: oklch(35% 0.085 124);
 
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
@@ -62,55 +68,98 @@
     --color-glow-800: oklch(47% 0.11 50);
     --color-glow-900: oklch(40% 0.09 45);
 
-    /* Neutrals: Slate — remapped to dark mode (surface-base through text-primary)
-       bg-slate-50 = body bg, text-slate-900 = primary text, etc. */
-    --color-slate-50: #101012;
-    /* surface-base — body background */
-    --color-slate-100: #1c1c1f;
-    /* surface-card */
-    --color-slate-200: #252529;
-    /* surface-overlay */
-    --color-slate-300: #36363b;
-    /* subtle border */
-    --color-slate-400: #6a6a72;
-    /* text-disabled */
-    --color-slate-500: #a3a3a3;
-    /* text-muted */
-    --color-slate-600: #c2c2c1;
-    /* text-secondary */
-    --color-slate-700: #d4d0cb;
-    /* mid text */
-    --color-slate-800: #e8e5e0;
-    /* near-white text */
-    --color-slate-900: #f7f4ef;
-    /* text-primary */
-    --color-slate-950: #ffffff;
-    /* pure white */
+    /* Neutrals: Slate (Refined Gray Scale) */
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
+
+    /* Complement: Pumpkin Orange — pairs with Neural Blue */
+    --color-complement-100: oklch(20% 0.08 43);
+    /* #0a1a2e - darkest navy */
+    --color-complement-200: oklch(29% 0.13 43);
+    /* #0d2a52 */
+    --color-complement-300: oklch(39% 0.17 43);
+    /* #0b4080 - deep blue */
+    --color-complement-400: oklch(52% 0.20 43);
+    /* #0070c8 - medium electric blue */
+    --color-complement-500: oklch(66% 0.21 43);
+    /* #0099FD - electric blue PRIMARY */
+    --color-complement-600: oklch(74% 0.18 43);
+    /* #3db5ff - lighter blue */
+    --color-complement-700: oklch(81% 0.14 43);
+    /* #7dceff */
+    --color-complement-800: oklch(88% 0.09 43);
+    /* #b3e3ff */
+    --color-complement-900: oklch(94% 0.05 43);
+    /* #def2ff - lightest */
+
+    /* Complement color with opacity variants */
+    --color-complement-alpha-10: oklch(66% 0.21 43 / 0.10);
+    --color-complement-alpha-20: oklch(66% 0.21 43 / 0.20);
+    --color-complement-alpha-30: oklch(66% 0.21 43 / 0.30);
+    --color-complement-alpha-40: oklch(66% 0.21 43 / 0.40);
+    --color-complement-alpha-50: oklch(66% 0.21 43 / 0.50);
+
+    /* ==================== SEMANTIC DESIGN TOKENS ==================== */
+    /* Surface hierarchy — exact Suno values from suno-chakra-desing.js */
+    --surface-base: #101012;
+    /* Suno --color-background-primary (was #101012) */
+    --surface-canvas: #101012;
+    /* same as base */
+    --surface-card: #1c1c1f;
+    /* Suno --color-gray-100 / background-secondary (was #1c1c1f) */
+    --surface-overlay: #252529;
+    /* Suno --color-background-tertiary (was #252529) */
+    --surface-sunken: #252529;
+    /* Suno --color-background-button-inactive (was #252529) */
+
+    /* Interaction state surfaces */
+    --surface-hover: rgba(255, 255, 255, 0.04);
+    --surface-pressed: rgba(255, 255, 255, 0.07);
+    --surface-selected: oklch(69% 0.235 232 / 0.15);
+    /* Neural blue tint */
+    --surface-selected-border: oklch(69% 0.235 232 / 0.30);
+
+    /* Border system — Suno exact values */
+    --border-hairline: rgba(255, 255, 255, 0.04);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.10);
+    /* Suno --color-border-primary */
+    --border-strong: rgba(255, 255, 255, 0.20);
+    /* Suno --color-border-secondary */
+    --border-neural: oklch(69% 0.235 232 / 0.40);
+    /* brand-colored border */
 
     /* ==================== GLASSMORPHISM ==================== */
-    /* Dark-mode glass: white-alpha panels over #101012 surface */
-    --glass-white-10: rgba(255, 255, 255, 0.04);
-    --glass-white-12: rgba(255, 255, 255, 0.05);
-    --glass-white-15: rgba(255, 255, 255, 0.07);
-    --glass-white-20: rgba(255, 255, 255, 0.08);
-    --glass-white-25: rgba(255, 255, 255, 0.10);
-    --glass-white-30: rgba(255, 255, 255, 0.12);
-    --glass-white-35: rgba(255, 255, 255, 0.15);
-    --glass-white-40: rgba(16, 16, 18, 0.85);
-    /* header/overlay dark glass */
-    --glass-white-60: rgba(16, 16, 18, 0.90);
-    --glass-white-70: rgba(16, 16, 18, 0.92);
-    --glass-white-80: rgba(16, 16, 18, 0.95);
-    --glass-dark-10: rgba(0, 0, 0, 0.10);
-    --glass-dark-15: rgba(0, 0, 0, 0.15);
-    --glass-dark-20: rgba(0, 0, 0, 0.20);
-    --glass-dark-40: rgba(0, 0, 0, 0.40);
-    --glass-dark-60: rgba(0, 0, 0, 0.60);
+    /* Apple-style: lower opacity + higher blur for frosted translucency */
+    --glass-white-10: rgba(255, 255, 255, 0.10);
+    --glass-white-12: rgba(255, 255, 255, 0.12);
+    --glass-white-15: rgba(255, 255, 255, 0.15);
+    --glass-white-20: rgba(255, 255, 255, 0.20);
+    --glass-white-25: rgba(255, 255, 255, 0.25);
+    --glass-white-30: rgba(255, 255, 255, 0.30);
+    --glass-white-35: rgba(255, 255, 255, 0.35);
+    --glass-white-40: rgba(255, 255, 255, 0.40);
+    --glass-white-60: rgba(255, 255, 255, 0.60);
+    --glass-white-70: rgba(255, 255, 255, 0.70);
+    --glass-white-80: rgba(255, 255, 255, 0.80);
+    --glass-dark-10: rgba(15, 23, 42, 0.10);
+    --glass-dark-15: rgba(15, 23, 42, 0.15);
+    --glass-dark-20: rgba(15, 23, 42, 0.20);
+    --glass-dark-40: rgba(15, 23, 42, 0.40);
+    --glass-dark-60: rgba(15, 23, 42, 0.60);
 
-    /* Semantic border color — fine white edge on dark surfaces */
+    /* Semantic border color — dark-mode calibrated (white-alpha) */
     --glass-border: rgba(255, 255, 255, 0.08);
 
-    /* Backdrop blur scale */
     --blur-xs: blur(4px);
     --blur-sm: blur(8px);
     --blur-md: blur(16px);
@@ -119,148 +168,290 @@
     --blur-2xl: blur(48px);
 
     /* ==================== COLOR OPACITY TOKENS ==================== */
-    /* Neural color with opacity variants - for shadows, glows, rings */
-    --color-neural-alpha-10: oklch(69% 0.235 43 / 0.10);
-    --color-neural-alpha-12: oklch(69% 0.235 43 / 0.12);
-    --color-neural-alpha-15: oklch(69% 0.235 43 / 0.15);
-    --color-neural-alpha-20: oklch(69% 0.235 43 / 0.20);
-    --color-neural-alpha-25: oklch(69% 0.235 43 / 0.25);
-    --color-neural-alpha-30: oklch(69% 0.235 43 / 0.30);
-    --color-neural-alpha-35: oklch(69% 0.235 43 / 0.35);
-    --color-neural-alpha-40: oklch(69% 0.235 43 / 0.40);
-    --color-neural-alpha-50: oklch(69% 0.235 43 / 0.50);
+    /* Neural color with opacity variants — Suno pumpkin #0099fd */
+    --color-neural-alpha-10: oklch(69% 0.235 232 / 0.10);
+    --color-neural-alpha-15: oklch(69% 0.235 232 / 0.15);
+    --color-neural-alpha-20: oklch(69% 0.235 232 / 0.20);
+    --color-neural-alpha-30: oklch(69% 0.235 232 / 0.30);
+    --color-neural-alpha-40: oklch(69% 0.235 232 / 0.40);
+    --color-neural-alpha-50: oklch(69% 0.235 232 / 0.50);
 
-    /* Aurora color with opacity variants */
+    /* Aurora color with opacity variants — Suno vermilion #f8441b */
     --color-aurora-alpha-10: oklch(60% 0.240 29 / 0.10);
     --color-aurora-alpha-15: oklch(60% 0.240 29 / 0.15);
     --color-aurora-alpha-20: oklch(60% 0.240 29 / 0.20);
     --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
     --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
+    --color-aurora-alpha-50: oklch(60% 0.240 29 / 0.50);
 
-    /* Quantum color with opacity variants */
-    --color-complement-alpha-08: oklch(66% 0.21 232 / 0.08);
-    --color-complement-alpha-10: oklch(66% 0.21 232 / 0.10);
-    --color-complement-alpha-12: oklch(66% 0.21 232 / 0.12);
-    --color-complement-alpha-15: oklch(66% 0.21 232 / 0.15);
-    --color-complement-alpha-20: oklch(66% 0.21 232 / 0.20);
-    --color-complement-alpha-25: oklch(66% 0.21 232 / 0.25);
-    --color-complement-alpha-30: oklch(66% 0.21 232 / 0.30);
-    --color-complement-alpha-40: oklch(66% 0.21 232 / 0.40);
-
-    /* Signature-mid (neural→complement bridge, hue 85 amber) with opacity variants */
-    --color-signature-mid: oklch(74% 0.17 70);
-    --color-signature-mid-alpha-15: oklch(74% 0.17 70 / 0.15);
-    --color-signature-mid-alpha-20: oklch(74% 0.17 70 / 0.20);
+    /* Quantum color with opacity variants — Suno grass #4aab04 */
+    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
+    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
+    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+    --color-quantum-alpha-50: oklch(63% 0.190 127 / 0.50);
 
     /* Glow color with opacity variants */
     --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-15: oklch(74% 0.17 70 / 0.15);
     --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
     --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+    --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
 
-    /* Slate alpha — black-based for dark-bg elevation shadows */
-    --color-slate-alpha-3: rgba(0, 0, 0, 0.25);
-    --color-slate-alpha-5: rgba(0, 0, 0, 0.35);
-    --color-slate-alpha-6: rgba(0, 0, 0, 0.40);
-    --color-slate-alpha-8: rgba(0, 0, 0, 0.45);
-    --color-slate-alpha-10: rgba(0, 0, 0, 0.50);
-    --color-slate-alpha-12: rgba(0, 0, 0, 0.55);
-    --color-slate-alpha-15: rgba(0, 0, 0, 0.60);
+    /* Slate color with opacity variants - for shadows and borders */
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+    --color-slate-alpha-80: oklch(25% 0.02 260 / 0.80);
 
     /* ==================== GRADIENTS ==================== */
-    /* Gradients using oklch for perceptual uniformity */
+    /* Gradients using oklch for consistency */
     --gradient-neural: linear-gradient(135deg,
-            oklch(69% 0.235 43) 0%,
-            oklch(76% 0.20 43) 50%,
-            oklch(83% 0.15 45) 100%);
+            oklch(71% 0.235 232) 0%,
+            oklch(66% 0.235 232) 50%,
+            oklch(56% 0.22 232) 100%);
     --gradient-aurora: linear-gradient(135deg,
-            oklch(68% 0.215 28) 0%,
-            oklch(60% 0.240 29) 50%,
-            oklch(51% 0.230 27) 100%);
-    --gradient-complement: linear-gradient(135deg,
-            oklch(74% 0.19 232) 0%,
-            oklch(66% 0.21 232) 50%,
-            oklch(57% 0.19 232) 100%);
+            oklch(68% 0.210 22) 0%,
+            oklch(58% 0.250 22) 50%,
+            oklch(50% 0.240 20) 100%);
+    --gradient-quantum: linear-gradient(135deg,
+            oklch(73% 0.165 145) 0%,
+            oklch(63% 0.175 145) 50%,
+            oklch(55% 0.155 145) 100%);
     --gradient-glow: linear-gradient(135deg,
             oklch(80% 0.18 80) 0%,
             oklch(74% 0.17 70) 50%,
             oklch(65% 0.16 60) 100%);
 
-    /* Signature gradient - neural to blue (orange to blue via amber) */
+    /* Signature gradient - rich blue to deep blue */
     --gradient-signature: linear-gradient(135deg,
-            oklch(69% 0.235 43) 0%,
-            oklch(74% 0.17 70) 40%,
-            oklch(66% 0.21 232) 100%);
+            oklch(71% 0.235 232) 0%,
+            oklch(65% 0.225 232) 40%,
+            oklch(56% 0.20 232) 100%);
 
-    /* Mesh Background — complement blob is now blue */
-    --gradient-mesh: radial-gradient(at 0% 0%, oklch(69% 0.235 43 / 0.12) 0px, transparent 50%),
-        radial-gradient(at 100% 0%, oklch(66% 0.21 232 / 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, oklch(60% 0.240 29 / 0.08) 0px, transparent 50%),
-        radial-gradient(at 0% 100%, oklch(74% 0.17 70 / 0.08) 0px, transparent 50%);
+    /* Complement Electric Blue — deep navy to electric blue */
+    --gradient-complement: linear-gradient(135deg,
+            oklch(29% 0.13 43) 0%,
+            oklch(52% 0.20 43) 50%,
+            oklch(66% 0.21 43) 100%);
+
+    /* BlueRobin signature — orange to blue (bird → breast) */
+    --gradient-bluerobin: linear-gradient(135deg,
+            oklch(29% 0.13 43) 0%,
+            oklch(52% 0.20 43) 38%,
+            oklch(69% 0.235 232) 100%);
+
+    /* Aura — shifting blue ↔ pumpkin orange for lava button effect */
+    --gradient-aura: linear-gradient(45deg,
+            oklch(29% 0.13 43) 0%,
+            /* deep navy */
+            oklch(66% 0.21 43) 18%,
+            /* electric blue */
+            oklch(71% 0.235 232) 38%,
+            /* bright blue */
+            oklch(56% 0.22 232) 55%,
+            /* deep blue */
+            oklch(52% 0.20 43) 76%,
+            /* medium blue */
+            oklch(29% 0.13 43) 100%
+            /* deep navy */
+        );
+
+    /* Mesh Background — dark neutral architectural gradient */
+    --gradient-mesh-light:
+        radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.10) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.06) 0%, transparent 52%);
+
+    /* ==================== SPACING ==================== */
+    --spacing-xs: 0.25rem;
+    --spacing-sm: 0.5rem;
+    --spacing-md: 1rem;
+    --spacing-lg: 1.5rem;
+    --spacing-xl: 2rem;
+    --spacing-2xl: 3rem;
+    --spacing-3xl: 4rem;
+    --spacing-4xl: 6rem;
+
+    /* ==================== MAX-WIDTH ==================== */
+    --max-width-xs: 20rem;
+    /* 320px */
+    --max-width-sm: 24rem;
+    /* 384px */
+    --max-width-md: 28rem;
+    /* 448px */
+    --max-width-lg: 32rem;
+    /* 512px */
+    --max-width-xl: 36rem;
+    /* 576px */
+    --max-width-2xl: 42rem;
+    /* 672px */
+    --max-width-3xl: 48rem;
+    /* 768px */
+    --max-width-4xl: 56rem;
+    /* 896px */
+    --max-width-5xl: 64rem;
+    /* 1024px */
+    --max-width-6xl: 72rem;
+    /* 1152px */
+    --max-width-7xl: 80rem;
+    /* 1280px */
+    --max-width-full: 100%;
+    --max-width-screen: 100vw;
 
     /* ==================== BORDER RADIUS ==================== */
-    --radius-sm: 0.375rem;
-    --radius-md: 0.5rem;
-    --radius-lg: 0.75rem;
-    --radius-xl: 1rem;
-    --radius-2xl: 1.25rem;
+    --radius-xs: 0.375rem;
+    --radius-sm: 0.5rem;
+    --radius-md: 0.75rem;
+    --radius-lg: 1rem;
+    --radius-xl: 1.25rem;
+    --radius-2xl: 1.5rem;
+    --radius-3xl: 2rem;
+    --radius-full: 9999px;
 
     /* ==================== SHADOWS ==================== */
-    /* Dark elevation system: thin white ring + black depth shadow */
-    --shadow-sm: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 2px 8px rgba(0, 0, 0, 0.40);
-    --shadow-md: 0 0 0 1px rgba(255, 255, 255, 0.05), 0 4px 16px rgba(0, 0, 0, 0.50);
-    --shadow-lg: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 8px 24px rgba(0, 0, 0, 0.55);
-    --shadow-xl: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 16px 48px rgba(0, 0, 0, 0.60);
-    --shadow-2xl: 0 0 0 1px rgba(255, 255, 255, 0.06), 0 24px 64px rgba(0, 0, 0, 0.70);
+    /* Base shadows using alpha tokens */
+    --shadow-xs: 0 1px 2px 0 var(--color-slate-alpha-5);
+    --shadow-sm: 0 2px 4px 0 var(--color-slate-alpha-6), 0 1px 2px 0 var(--color-slate-alpha-3);
+    --shadow-md: 0 4px 12px 0 var(--color-slate-alpha-8), 0 2px 4px 0 var(--color-slate-alpha-5);
+    --shadow-lg: 0 8px 24px 0 var(--color-slate-alpha-10), 0 4px 8px 0 var(--color-slate-alpha-5);
+    --shadow-xl: 0 16px 48px 0 var(--color-slate-alpha-12), 0 8px 16px 0 var(--color-slate-alpha-6);
+    --shadow-2xl: 0 24px 64px 0 var(--color-slate-alpha-15), 0 12px 24px 0 var(--color-slate-alpha-8);
 
-    /* Colored glow shadows */
-    --shadow-neural: 0 0 40px var(--color-neural-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
-    --shadow-neural-sm: 0 0 20px var(--color-neural-alpha-20), 0 4px 12px rgba(0, 0, 0, 0.45);
-    --shadow-aurora: 0 0 40px var(--color-aurora-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
-    --shadow-complement: 0 0 40px var(--color-complement-alpha-25), 0 8px 24px rgba(0, 0, 0, 0.50);
-    --shadow-glow-colored: 0 0 40px var(--color-glow-alpha-30), 0 8px 24px rgba(0, 0, 0, 0.50);
+    /* Colored shadows using alpha tokens */
+    --shadow-neural: 0 8px 32px -4px var(--color-neural-alpha-30);
+    --shadow-neural-sm: 0 4px 16px -2px var(--color-neural-alpha-20);
+    --shadow-neural-lg: 0 12px 48px -6px var(--color-neural-alpha-40);
+    --shadow-aurora: 0 8px 32px -4px var(--color-aurora-alpha-30);
+    --shadow-aurora-sm: 0 4px 16px -2px var(--color-aurora-alpha-20);
+    --shadow-quantum: 0 8px 32px -4px var(--color-quantum-alpha-30);
+    --shadow-quantum-sm: 0 4px 16px -2px var(--color-quantum-alpha-20);
+    --shadow-glow: 0 8px 32px -4px var(--color-glow-alpha-30);
+    --shadow-complement: 0 8px 32px -4px var(--color-complement-alpha-30);
+    --shadow-complement-sm: 0 4px 16px -2px var(--color-complement-alpha-20);
+    --shadow-complement-lg: 0 12px 48px -6px var(--color-complement-alpha-40);
 
-    /* Focus ring tokens */
-    --ring-neural: 0 0 0 4px var(--color-neural-alpha-20);
-    --ring-aurora: 0 0 0 4px var(--color-aurora-alpha-20);
-    --ring-complement: 0 0 0 4px var(--color-complement-alpha-20);
+    --shadow-inner-sm: inset 0 2px 4px 0 var(--color-slate-alpha-5);
+    --shadow-inner-md: inset 0 4px 8px 0 var(--color-slate-alpha-8);
+
+    /* Focus ring tokens (calibrated for dark backgrounds) */
+    --ring-neural: 0 0 0 3px oklch(69% 0.235 232 / 0.40);
+    --ring-aurora: 0 0 0 3px oklch(58% 0.250 22 / 0.40);
+    --ring-quantum: 0 0 0 3px oklch(63% 0.175 145 / 0.40);
+    --ring-slate: 0 0 0 3px rgba(255, 255, 255, 0.25);
 
     /* Glow effect tokens - for hover states */
     --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
     --glow-aurora: 0 0 32px var(--color-aurora-alpha-40), 0 0 64px var(--color-aurora-alpha-20);
-    --glow-complement: 0 0 32px var(--color-complement-alpha-40), 0 0 64px var(--color-complement-alpha-20);
+    --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
+    --glow-glow: 0 0 32px var(--color-glow-alpha-40), 0 0 64px var(--color-glow-alpha-20);
 
-    /* ==================== CODE BLOCK TOKENS ==================== */
-    --code-bg: #1a1a2e;
-    --code-text: #c2c2c1;
-    --code-border: rgba(255, 255, 255, 0.08);
-    --code-shadow: rgba(0, 0, 0, 0.30);
-    --code-inline-bg: rgba(255, 255, 255, 0.10);
-    --code-inline-text: oklch(76% 0.20 43);
-    /* neural-600 pumpkin for inline code */
+    /* === 4-TIER SEMANTIC ELEVATION SHADOWS (dark-mode) === */
+    /* Tier 1 — Float: card sitting on dark page */
+    --shadow-float:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 1px 3px 0 rgba(0, 0, 0, 0.30),
+        0 1px 2px 0 rgba(0, 0, 0, 0.20);
+
+    /* Tier 2 — Card: clear separation, standard card depth */
+    --shadow-card-premium:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 3px 8px 0 rgba(0, 0, 0, 0.40),
+        0 1px 3px 0 rgba(0, 0, 0, 0.25);
+
+    /* Tier 3 — Modal: dialog-level depth, clearly floating */
+    --shadow-modal-premium:
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 8px 24px 0 rgba(0, 0, 0, 0.55),
+        0 3px 8px 0 rgba(0, 0, 0, 0.35),
+        0 1px 3px 0 rgba(0, 0, 0, 0.20);
+
+    /* Tier 4 — Sheet: maximum elevation, overlay panels */
+    --shadow-sheet:
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 20px 60px 0 rgba(0, 0, 0, 0.70),
+        0 8px 20px 0 rgba(0, 0, 0, 0.45),
+        0 2px 6px 0 rgba(0, 0, 0, 0.30);
+
+    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
+    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
+    --shadow-glow-sm: 0 0 20px rgba(0, 153, 253, 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-glow-md: 0 0 40px rgba(0, 153, 253, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
+    --shadow-glow-lg: 0 0 60px rgba(0, 153, 253, 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);
+    --shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
+    --shadow-dark-md: 0 4px 20px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-dark-lg: 0 8px 40px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.40);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
+    --text-xs: 0.6875rem;
+    --text-sm: 0.8125rem;
+    --text-base: 0.9375rem;
+    --text-lg: 1.0625rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+    --text-6xl: 3.75rem;
+    --text-7xl: 4.5rem;
+
+    --leading-tight: 1.25;
+    --leading-snug: 1.375;
+    --leading-normal: 1.5;
+    --leading-relaxed: 1.625;
+    --leading-loose: 2;
+
+    --tracking-tighter: -0.05em;
+    --tracking-tight: -0.025em;
+    --tracking-ui: -0.011em;
+    --tracking-normal: 0em;
+    --tracking-wide: 0.025em;
+    --tracking-wider: 0.05em;
+
+    /* === TYPOGRAPHY HIERARCHY WEIGHTS === */
+    --font-weight-display: 700;
+    /* H1, hero headings */
+    --font-weight-heading: 600;
+    /* H2, H3, section titles */
+    --font-weight-ui: 500;
+    /* nav labels, button text, UI chrome */
+    --font-weight-body: 400;
+    /* body copy, descriptions */
+    --font-weight-caption: 400;
+    /* captions, footnotes, metadata */
+
     /* ==================== ANIMATIONS ==================== */
     --ease-smooth: cubic-bezier(0.4, 0.0, 0.2, 1);
     --ease-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
     --ease-gentle: cubic-bezier(0.25, 0.1, 0.25, 1);
+    --ease-swift: cubic-bezier(0.55, 0, 0.1, 1);
+
     --duration-fast: 150ms;
     --duration-normal: 250ms;
     --duration-slow: 350ms;
+    --duration-slower: 500ms;
+    --duration-orb: 20s;
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    /* ==================== LAVA BLOB TOKENS ==================== */
-    /* Higher opacity for visibility on dark #101012 surface */
-    --lava-color-1: oklch(69% 0.235 43 / 0.50);
-    --lava-color-1-outer: oklch(76% 0.20 43 / 0.20);
-    --lava-color-2: oklch(66% 0.21 232 / 0.35);
-    --lava-color-2-outer: oklch(57% 0.19 232 / 0.15);
-    --lava-color-3: oklch(60% 0.240 29 / 0.28);
-    --lava-color-3-outer: oklch(51% 0.230 27 / 0.10);
-    --lava-color-4: oklch(74% 0.17 70 / 0.32);
-    --lava-color-4-outer: oklch(65% 0.16 60 / 0.12);
+    /* ==================== Z-INDEX ==================== */
+    --z-base: 0;
+    --z-dropdown: 1000;
+    --z-sticky: 1100;
+    --z-fixed: 1200;
+    --z-modal-backdrop: 1300;
+    --z-modal: 1400;
+    --z-popover: 1500;
+    --z-tooltip: 1600;
+    --z-notification: 1700;
+    --z-command-palette: 1800;
 }
 
 /* ==================== BASE STYLES ==================== */

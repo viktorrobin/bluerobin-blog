@@ -11,73 +11,161 @@
    ============================================ */
 
 @theme {
-        /* ==================== COLOR PALETTE ==================== */
-        /* Primary: Neural Orange — Suno pumpkin palette, centered on #ff6a00 */
-        --color-neural-50: oklch(98% 0.015 75);
-        --color-neural-100: oklch(20% 0.08 43);
-        --color-neural-200: oklch(32% 0.13 43);
-        --color-neural-300: oklch(42% 0.17 43);
-        --color-neural-400: oklch(52% 0.21 43);
-        --color-neural-500: oklch(69% 0.235 43);
-        /* pumpkin-500 #ff6a00 — SUNO PRIMARY */
-        --color-neural-600: oklch(76% 0.20 43);
-        /* pumpkin-600 #ff9448 */
-        --color-neural-700: oklch(83% 0.15 45);
-        /* pumpkin-700 #ffb27b */
-        --color-neural-800: oklch(89% 0.10 50);
-        --color-neural-900: oklch(94% 0.06 55);
+    /* ==================== COLOR PALETTE ==================== */
+    /* Primary: Blue — Neural palette, centered on #0099fd */
+    --color-neural-50: oklch(98% 0.015 232);
+    --color-neural-100: oklch(20% 0.08 232);
+    --color-neural-200: oklch(32% 0.13 232);
+    --color-neural-300: oklch(42% 0.17 232);
+    --color-neural-400: oklch(52% 0.21 232);
+    --color-neural-500: oklch(69% 0.235 232);
+    /* pumpkin-500 #0099fd — SUNO PRIMARY */
+    --color-neural-600: oklch(76% 0.20 232);
+    --color-neural-700: oklch(83% 0.15 232);
+    --color-neural-800: oklch(89% 0.10 232);
+    --color-neural-900: oklch(94% 0.06 232);
 
-        /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
-        --color-aurora-50: oklch(97% 0.020 28);
-        --color-aurora-100: oklch(93% 0.060 28);
-        --color-aurora-200: oklch(88% 0.100 28);
-        --color-aurora-300: oklch(78% 0.160 28);
-        --color-aurora-400: oklch(68% 0.215 28);
-        --color-aurora-500: oklch(60% 0.240 29);
-        /* Suno #f8441b — vermilion */
-        --color-aurora-600: oklch(51% 0.230 27);
-        --color-aurora-700: oklch(44% 0.200 25);
-        --color-aurora-800: oklch(38% 0.165 23);
-        --color-aurora-900: oklch(33% 0.135 21);
+    /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
+    --color-aurora-50: oklch(97% 0.020 28);
+    --color-aurora-100: oklch(93% 0.060 28);
+    --color-aurora-200: oklch(88% 0.100 28);
+    --color-aurora-300: oklch(78% 0.160 28);
+    --color-aurora-400: oklch(68% 0.215 28);
+    --color-aurora-500: oklch(60% 0.240 29);
+    --color-aurora-600: oklch(51% 0.230 27);
+    --color-aurora-700: oklch(44% 0.200 25);
+    --color-aurora-800: oklch(38% 0.165 23);
+    --color-aurora-900: oklch(33% 0.135 21);
 
-        /* Complement: Electric Blue — #0099FD, pairs with Neural Orange */
-        --color-complement-50: oklch(97% 0.02 232);
-        --color-complement-100: oklch(93% 0.06 232);
-        --color-complement-200: oklch(87% 0.12 232);
-        --color-complement-300: oklch(80% 0.16 232);
-        --color-complement-400: oklch(74% 0.19 232);
-        --color-complement-500: oklch(66% 0.21 232);
-        /* #0099FD — electric blue, pairs with neural orange */
-        --color-complement-600: oklch(57% 0.19 232);
-        --color-complement-700: oklch(48% 0.16 232);
-        --color-complement-800: oklch(40% 0.12 232);
-        --color-complement-900: oklch(34% 0.08 232);
+    /* Success: Quantum — Suno grass green #4aab04 (yellow-green, not emerald) */
+    --color-quantum-50: oklch(97% 0.025 130);
+    --color-quantum-100: oklch(94% 0.060 130);
+    --color-quantum-200: oklch(89% 0.110 130);
+    --color-quantum-300: oklch(82% 0.155 128);
+    --color-quantum-400: oklch(74% 0.185 127);
+    --color-quantum-500: oklch(63% 0.190 127);
+    --color-quantum-600: oklch(55% 0.170 127);
+    --color-quantum-700: oklch(47% 0.145 126);
+    --color-quantum-800: oklch(40% 0.115 125);
+    --color-quantum-900: oklch(35% 0.085 124);
 
-        /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
-        --color-glow-50: oklch(98% 0.03 85);
-        --color-glow-100: oklch(95% 0.08 85);
-        --color-glow-200: oklch(90% 0.14 85);
-        --color-glow-300: oklch(85% 0.18 85);
-        --color-glow-400: oklch(80% 0.18 80);
-        --color-glow-500: oklch(74% 0.17 70);
-        --color-glow-600: oklch(65% 0.16 60);
-        --color-glow-700: oklch(55% 0.14 55);
-        --color-glow-800: oklch(47% 0.11 50);
-        --color-glow-900: oklch(40% 0.09 45);
+    /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
+    --color-glow-50: oklch(98% 0.03 85);
+    --color-glow-100: oklch(95% 0.08 85);
+    --color-glow-200: oklch(90% 0.14 85);
+    --color-glow-300: oklch(85% 0.18 85);
+    --color-glow-400: oklch(80% 0.18 80);
+    --color-glow-500: oklch(74% 0.17 70);
+    --color-glow-600: oklch(65% 0.16 60);
+    --color-glow-700: oklch(55% 0.14 55);
+    --color-glow-800: oklch(47% 0.11 50);
+    --color-glow-900: oklch(40% 0.09 45);
 
-        /* Neutrals: Slate (Refined Gray Scale) */
-        --color-slate-50: #f8fafc;
-        --color-slate-100: #f1f5f9;
-        --color-slate-200: #e2e8f0;
-        --color-slate-300: #cbd5e1;
-        --color-slate-400: #94a3b8;
-        --color-slate-500: #64748b;
-        --color-slate-600: #475569;
-        --color-slate-700: #334155;
-        --color-slate-800: #1e293b;
-        --color-slate-900: #0f172a;
-        --color-slate-950: #020617;
+    /* Neutrals: Slate (Refined Gray Scale) */
+    --color-slate-50: #f8fafc;
+    --color-slate-100: #f1f5f9;
+    --color-slate-200: #e2e8f0;
+    --color-slate-300: #cbd5e1;
+    --color-slate-400: #94a3b8;
+    --color-slate-500: #64748b;
+    --color-slate-600: #475569;
+    --color-slate-700: #334155;
+    --color-slate-800: #1e293b;
+    --color-slate-900: #0f172a;
+    --color-slate-950: #020617;
 
+    /* Complement: Pumpkin Orange — pairs with Neural Blue */
+    --color-complement-100: oklch(20% 0.08 43);
+    --color-complement-200: oklch(29% 0.13 43);
+    --color-complement-300: oklch(39% 0.17 43);
+    --color-complement-400: oklch(52% 0.20 43);
+    --color-complement-500: oklch(66% 0.21 43);
+    /* #0099FD - electric blue PRIMARY */
+    --color-complement-600: oklch(74% 0.18 43);
+    --color-complement-700: oklch(81% 0.14 43);
+    --color-complement-800: oklch(88% 0.09 43);
+    --color-complement-900: oklch(94% 0.05 43);
+
+    /* Complement color with opacity variants */
+    --color-complement-alpha-10: oklch(66% 0.21 43 / 0.10);
+    --color-complement-alpha-20: oklch(66% 0.21 43 / 0.20);
+    --color-complement-alpha-30: oklch(66% 0.21 43 / 0.30);
+    --color-complement-alpha-40: oklch(66% 0.21 43 / 0.40);
+    --color-complement-alpha-50: oklch(66% 0.21 43 / 0.50);
+
+    /* Suno --color-background-primary (was #101012) */
+
+    /* Neural blue tint */
+
+    /* Suno --color-border-primary */
+
+
+
+
+    /* Neural color with opacity variants — Suno pumpkin #0099fd */
+    --color-neural-alpha-10: oklch(69% 0.235 232 / 0.10);
+    --color-neural-alpha-15: oklch(69% 0.235 232 / 0.15);
+    --color-neural-alpha-20: oklch(69% 0.235 232 / 0.20);
+    --color-neural-alpha-30: oklch(69% 0.235 232 / 0.30);
+    --color-neural-alpha-40: oklch(69% 0.235 232 / 0.40);
+    --color-neural-alpha-50: oklch(69% 0.235 232 / 0.50);
+
+    /* Aurora color with opacity variants — Suno vermilion #f8441b */
+    --color-aurora-alpha-10: oklch(60% 0.240 29 / 0.10);
+    --color-aurora-alpha-15: oklch(60% 0.240 29 / 0.15);
+    --color-aurora-alpha-20: oklch(60% 0.240 29 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
+    --color-aurora-alpha-50: oklch(60% 0.240 29 / 0.50);
+
+    /* Quantum color with opacity variants — Suno grass #4aab04 */
+    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
+    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
+    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+    --color-quantum-alpha-50: oklch(63% 0.190 127 / 0.50);
+
+    /* Glow color with opacity variants */
+    --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-15: oklch(74% 0.17 70 / 0.15);
+    --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
+    --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+    --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
+
+    /* Slate color with opacity variants - for shadows and borders */
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+    --color-slate-alpha-80: oklch(25% 0.02 260 / 0.80);
+
+
+
+    /* Complement Electric Blue — deep navy to electric blue */
+
+
+
+    /* Mesh Background — dark neutral architectural gradient */
+
+
+
+
+
+
+
+
+    /* Glow effect tokens - for hover states */
+
+
+
+
+
+    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
+    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
         /* ==================== GLASSMORPHISM ==================== */
         --glass-white-10: rgba(255, 255, 255, 0.10);
         --glass-white-20: rgba(255, 255, 255, 0.20);
