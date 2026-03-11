@@ -31,10 +31,7 @@ export default defineConfig({
       ],
     ],
     shikiConfig: {
-      themes: {
-        light: "github-light",
-        dark: "dracula",
-      },
+      theme: "dracula",
       wrap: true,
     },
   },

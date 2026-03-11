@@ -230,7 +230,7 @@
     --glow-complement: 0 0 32px var(--color-complement-alpha-40), 0 0 64px var(--color-complement-alpha-20);
 
     /* ==================== CODE BLOCK TOKENS ==================== */
-    --code-bg: rgba(0, 0, 0, 0.40);
+    --code-bg: #1a1a2e;
     --code-text: #c2c2c1;
     --code-border: rgba(255, 255, 255, 0.08);
     --code-shadow: rgba(0, 0, 0, 0.30);
@@ -439,7 +439,7 @@ pre {
 /* Code Blocks — dark theme */
 .prose pre {
     @apply my-6 rounded-lg overflow-hidden;
-    background-color: var(--code-bg);
+    background-color: var(--code-bg) !important;
     border: 1px solid var(--code-border);
     box-shadow: 0 1px 4px var(--code-shadow);
     line-height: 1.4;
@@ -455,6 +455,7 @@ pre {
 }
 
 /* Shiki code highlighting - ensure transparent backgrounds */
+.astro-code,
 .astro-code span {
     background-color: transparent !important;
 }
@@ -783,6 +784,21 @@ pre {
         0 4px 12px var(--color-neural-alpha-20);
 }
 
+.arch-node-neural-muted {
+    background: linear-gradient(135deg,
+        oklch(69% 0.235 43 / 0.70) 0%,
+        oklch(76% 0.20 43 / 0.50) 50%,
+        oklch(83% 0.15 45 / 0.40) 100%);
+    border-color: var(--color-neural-alpha-20);
+}
+
+.arch-node-neural-muted:hover {
+    box-shadow:
+        0 0 18px var(--color-neural-alpha-25),
+        0 0 40px var(--color-neural-alpha-10),
+        0 4px 12px var(--color-neural-alpha-15);
+}
+
 .arch-node-aurora {
     background: var(--gradient-aurora);
     border-color: var(--color-aurora-alpha-20);
@@ -928,14 +944,56 @@ pre {
 
 .btn-primary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-white font-medium text-sm tracking-wide transition-all gap-2;
-    background: var(--gradient-neural);
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+    background: var(--color-slate-200);
     box-shadow: var(--shadow-sm);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -2;
+    background: radial-gradient(circle at 30% 50%,
+        oklch(69% 0.235 43 / 0.85) 0%,
+        oklch(76% 0.20 43 / 0.4) 40%,
+        transparent 70%);
+    animation: btn-lava-1 8s ease-in-out infinite;
+    filter: blur(20px);
+}
+
+.btn-primary::after {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -1;
+    background: radial-gradient(circle at 70% 50%,
+        oklch(66% 0.21 232 / 0.5) 0%,
+        oklch(57% 0.19 232 / 0.2) 40%,
+        transparent 70%);
+    animation: btn-lava-2 10s ease-in-out infinite;
+    filter: blur(25px);
 }
 
 .btn-primary:hover {
     box-shadow: var(--shadow-neural-sm);
     transform: translateY(-2px);
-    background: linear-gradient(135deg, var(--color-neural-400), var(--color-neural-600), var(--color-neural-700));
+}
+
+.btn-primary:hover::before {
+    animation-duration: 5s;
+    filter: blur(15px);
+}
+
+.btn-primary:hover::after {
+    animation-duration: 6s;
+    filter: blur(18px);
 }
 
 .btn-primary:active {
@@ -951,17 +1009,64 @@ pre {
     transform: none;
 }
 
+.btn-primary:disabled::before,
+.btn-primary:disabled::after {
+    animation: none;
+}
+
 .btn-secondary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-medium text-sm tracking-wide transition-all gap-2;
-    background-color: rgba(255, 255, 255, 0.08);
+    position: relative;
+    overflow: hidden;
+    z-index: 0;
+    background: var(--glass-white-20);
     color: var(--color-slate-600);
     border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
+.btn-secondary::before {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -2;
+    background: radial-gradient(circle at 30% 50%,
+        oklch(69% 0.235 43 / 0.3) 0%,
+        oklch(76% 0.20 43 / 0.1) 40%,
+        transparent 70%);
+    animation: btn-lava-1 12s ease-in-out infinite;
+    filter: blur(25px);
+}
+
+.btn-secondary::after {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    width: 200%;
+    height: 200%;
+    z-index: -1;
+    background: radial-gradient(circle at 70% 50%,
+        oklch(66% 0.21 232 / 0.2) 0%,
+        oklch(57% 0.19 232 / 0.08) 40%,
+        transparent 70%);
+    animation: btn-lava-2 14s ease-in-out infinite;
+    filter: blur(30px);
+}
+
 .btn-secondary:hover {
-    background-color: rgba(255, 255, 255, 0.12);
     color: var(--color-slate-900);
     transform: translateY(-1px);
+}
+
+.btn-secondary:hover::before {
+    animation-duration: 8s;
+    filter: blur(20px);
+}
+
+.btn-secondary:hover::after {
+    animation-duration: 10s;
+    filter: blur(22px);
 }
 
 .btn-secondary:active {
@@ -971,6 +1076,41 @@ pre {
 .btn-secondary:disabled {
     @apply opacity-50 cursor-not-allowed;
     transform: none;
+}
+
+.btn-secondary:disabled::before,
+.btn-secondary:disabled::after {
+    animation: none;
+}
+
+@keyframes btn-lava-1 {
+    0%, 100% {
+        transform: translate(0%, 0%) scale(1);
+        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    }
+    33% {
+        transform: translate(10%, -5%) scale(1.05);
+        border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%;
+    }
+    66% {
+        transform: translate(-5%, 5%) scale(0.95);
+        border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%;
+    }
+}
+
+@keyframes btn-lava-2 {
+    0%, 100% {
+        transform: translate(0%, 0%) scale(1);
+        border-radius: 40% 60% 60% 40% / 70% 30% 50% 50%;
+    }
+    33% {
+        transform: translate(-8%, 5%) scale(1.08);
+        border-radius: 55% 45% 50% 50% / 45% 55% 45% 55%;
+    }
+    66% {
+        transform: translate(5%, -3%) scale(0.98);
+        border-radius: 60% 40% 40% 60% / 30% 70% 50% 50%;
+    }
 }
 
 /* ==================== ARTICLE CARD ==================== */
@@ -1306,6 +1446,13 @@ pre {
 /* Reduced motion: disable lava animations */
 @media (prefers-reduced-motion: reduce) {
     .lava-blob {
+        animation: none !important;
+    }
+
+    .btn-primary::before,
+    .btn-primary::after,
+    .btn-secondary::before,
+    .btn-secondary::after {
         animation: none !important;
     }
 }
