@@ -5,6 +5,7 @@ metadata:
   description: BlueRobin technical blog built with Astro
   annotations:
     github.com/project-slug: viktorrobin/bluerobin-blog
+    github.com/ci-workflow: deploy.yml
     backstage.io/kubernetes-id: bluerobin-blog
     backstage.io/kubernetes-namespace: blog
   tags:
