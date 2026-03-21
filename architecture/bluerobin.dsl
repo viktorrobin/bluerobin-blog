@@ -15,14 +15,14 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
         # External Systems
         user = person "User" "A person who manages personal documents and searches for information" "User"
         
-        autheliaIdp = softwareSystem "Authelia" "OpenID Connect Identity Provider for authentication" "External System"
+        autheliaIdp = softwareSystem "Authelia" "OpenID Connect Identity Provider for authentication" "External System,Authelia"
         openAiApi = softwareSystem "OpenAI/Azure OpenAI" "Cloud LLM for complex reasoning tasks" "External System"
         
         # BlueRobin System
         blueRobin = softwareSystem "BlueRobin" "Personal document management system with AI-powered semantic search and RAG capabilities" {
             
             # Frontend Container
-            blazorWeb = container "Blazor Web App" "Server-side Blazor application providing interactive UI for document management" ".NET 10, Blazor Server, Tailwind CSS 4" "Web Browser" {
+            blazorWeb = container "Blazor Web App" "Server-side Blazor application providing interactive UI for document management" ".NET 10, Blazor Server, Tailwind CSS 4" "Web Browser,Blazor" {
                 documentUpload = component "Document Upload" "Handles file upload with drag-drop, validation, and progress tracking" "Blazor Component"
                 documentBrowser = component "Document Browser" "Displays documents with grid/list views, filtering, and sorting" "Blazor Component"
                 ragChat = component "RAG Chat Interface" "Conversational UI for asking questions about documents" "Blazor Component"
@@ -31,7 +31,7 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
             }
 
             # API Container
-            archivesApi = container "Archives API" "RESTful API providing document management, search, and RAG endpoints" ".NET 10, FastEndpoints" "API" {
+            archivesApi = container "Archives API" "RESTful API providing document management, search, and RAG endpoints" ".NET 10, FastEndpoints" "API,DotNet" {
                 documentEndpoints = component "Document Endpoints" "CRUD operations for documents: upload, download, delete, metadata" "FastEndpoints"
                 ragEndpoints = component "RAG Endpoints" "Question-answering with context retrieval and streaming responses" "FastEndpoints"
                 searchEndpoints = component "Search Endpoints" "Semantic and hybrid search across user documents" "FastEndpoints"
@@ -41,7 +41,7 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
             }
 
             # Application Layer
-            applicationServices = container "Application Services" "Business logic and orchestration layer" ".NET 10" "Service" {
+            applicationServices = container "Application Services" "Business logic and orchestration layer" ".NET 10" "Service,DotNet" {
                 ragService = component "RAG Service" "Orchestrates semantic search, context building, and LLM generation" "Application Service"
                 documentService = component "Document Service" "Document lifecycle management and metadata operations" "Application Service"
                 archiveResolver = component "Archive Resolver" "Resolves user context to storage archive mapping" "Application Service"
@@ -51,7 +51,7 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
             }
 
             # Workers Container
-            archivesWorkers = container "Archives Workers" "Background processing for document ingestion pipeline" ".NET 10, BackgroundService" "Worker" {
+            archivesWorkers = container "Archives Workers" "Background processing for document ingestion pipeline" ".NET 10, BackgroundService" "Worker,DotNet" {
                 ocrWorker = component "OCR Worker" "Extracts text from PDFs using Docling service" "Event Consumer"
                 analysisWorker = component "Content Analysis Worker" "Generates summaries, keywords, friendly names via LLM" "Event Consumer"
                 chunkingWorker = component "Chunking Worker" "Splits documents into semantic chunks for embedding" "Event Consumer"
@@ -64,47 +64,47 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
             }
 
             # Data Stores
-            postgresql = container "PostgreSQL" "Stores user accounts, document metadata, archives, entity types" "PostgreSQL 16, CNPG" "Database" {
+            postgresql = container "PostgreSQL" "Stores user accounts, document metadata, archives, entity types" "PostgreSQL 16, CNPG" "Database,PostgreSQL" {
                 usersTable = component "Users Table" "Application user accounts linked to OIDC identities" "Table"
                 documentsTable = component "Documents Table" "Document metadata, status, analysis results" "Table"
                 archivesTable = component "Archives Table" "User document collections" "Table"
                 entityTypesTable = component "Entity Types Table" "Canonical entity definitions" "Table"
             }
 
-            qdrant = container "Qdrant" "Vector database storing document embeddings for semantic search" "Qdrant" "Database" {
+            qdrant = container "Qdrant" "Vector database storing document embeddings for semantic search" "Qdrant" "Database,Qdrant" {
                 nomicCollection = component "nomic-embed-text" "Primary embedding model collection" "Vector Collection"
                 mxbaiCollection = component "mxbai-embed-large" "Secondary embedding model collection" "Vector Collection"
                 snowflakeCollection = component "snowflake-arctic-embed" "Tertiary embedding model collection" "Vector Collection"
                 bgeCollection = component "bge-large-en" "BGE model collection" "Vector Collection"
             }
 
-            minio = container "MinIO" "S3-compatible object storage for document files" "MinIO with SSE-KMS" "Storage" {
+            minio = container "MinIO" "S3-compatible object storage for document files" "MinIO with SSE-KMS" "Storage,MinIO" {
                 userBuckets = component "User Buckets" "Per-user encrypted buckets: {env}-{bluerobinId}" "Bucket"
                 processedContent = component "Processed Content" "OCR text stored at processed/{docId}/content.md" "Object Path"
             }
 
-            nats = container "NATS JetStream" "Message broker for event-driven document processing pipeline" "NATS 2.x" "Messaging" {
+            nats = container "NATS JetStream" "Message broker for event-driven document processing pipeline" "NATS 2.x" "Messaging,NATS" {
                 documentStream = component "Document Stream" "Document lifecycle events (uploaded, ocr.completed, etc.)" "Stream"
                 embeddingStream = component "Embedding Stream" "Per-model embedding job distribution" "Stream"
                 userStream = component "User Stream" "User provisioning and sync events" "Stream"
             }
 
-            falkordb = container "FalkorDB" "Graph database for entity relationships and knowledge graph" "FalkorDB (Redis Graph)" "Database" {
+            falkordb = container "FalkorDB" "Graph database for entity relationships and knowledge graph" "FalkorDB (Redis Graph)" "Database,FalkorDB" {
                 entitiesGraph = component "Entities Graph" "Named entities extracted from documents" "Graph"
                 relationshipsGraph = component "Relationships Graph" "Connections between entities" "Graph"
             }
 
             # AI Services
-            ollama = container "Ollama" "Self-hosted LLM and embedding model server" "Ollama" "AI" {
+            ollama = container "Ollama" "Self-hosted LLM and embedding model server" "Ollama" "AI,Ollama" {
                 embeddingModels = component "Embedding Models" "8 models: nomic, mxbai, snowflake, bge, granite, etc." "Model Server"
                 llmModels = component "LLM Models" "Fast inference models for analysis and classification" "Model Server"
             }
 
-            docling = container "Docling OCR" "PDF text extraction service using IBM Docling" "Python, FastAPI" "AI" {
+            docling = container "Docling OCR" "PDF text extraction service using IBM Docling" "Python, FastAPI" "AI,Python" {
                 pdfExtractor = component "PDF Extractor" "Extracts text and structure from PDF documents" "Service"
             }
 
-            spacyNer = container "Spacy NER" "Named Entity Recognition service" "Python, Spacy" "AI" {
+            spacyNer = container "Spacy NER" "Named Entity Recognition service" "Python, Spacy" "AI,Python" {
                 nerExtractor = component "NER Extractor" "Extracts named entities: persons, orgs, locations, dates" "Service"
             }
         }
@@ -311,6 +311,38 @@ workspace "BlueRobin" "Personal Document Management System with AI-Powered Searc
             }
             element "Service" {
                 shape Component
+            }
+
+            # Technology icons (displayed on Container View)
+            element "Blazor" {
+                icon https://cdn.simpleicons.org/blazor
+            }
+            element "DotNet" {
+                icon https://cdn.simpleicons.org/dotnet
+            }
+            element "PostgreSQL" {
+                icon https://cdn.simpleicons.org/postgresql
+            }
+            element "Qdrant" {
+                icon https://cdn.simpleicons.org/qdrant
+            }
+            element "MinIO" {
+                icon https://cdn.simpleicons.org/minio
+            }
+            element "NATS" {
+                icon https://cdn.simpleicons.org/nats.io
+            }
+            element "FalkorDB" {
+                icon https://cdn.simpleicons.org/redis
+            }
+            element "Ollama" {
+                icon https://cdn.simpleicons.org/ollama
+            }
+            element "Python" {
+                icon https://cdn.simpleicons.org/python
+            }
+            element "Authelia" {
+                icon https://cdn.simpleicons.org/authelia
             }
         }
     }
