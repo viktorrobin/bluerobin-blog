@@ -32,7 +32,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
       <!-- Article Header -->
       <header class="mb-8">
         <!-- Breadcrumb -->
-        <nav class="text-sm text-slate-500 mb-4" aria-label="Breadcrumb">
+        <nav class="text-sm text-slate-400 mb-4" aria-label="Breadcrumb">
           <a href="/" class="hover:text-neural-600 transition-colors">Home</a>
           <span class="mx-2">/</span>
           <a href="/articles/" class="hover:text-neural-600 transition-colors">Articles</a>
@@ -49,7 +49,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
             {difficultyMeta.label}
           </span>
           {readTime && (
-            <span class="text-sm text-slate-500">
+            <span class="text-sm text-slate-400">
               {readTime}
             </span>
           )}
@@ -66,7 +66,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
         </p>
 
         <!-- Meta info -->
-        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-6">
+        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400 mb-6">
           <span>By {author}</span>
           <span>•</span>
           <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>

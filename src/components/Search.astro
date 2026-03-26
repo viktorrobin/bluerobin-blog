@@ -20,7 +20,7 @@ const searchDataJson = JSON.stringify(searchData);
   <button
     id="search-trigger"
     class="flex items-center gap-2 px-3 py-2 text-sm transition-all rounded-xl border backdrop-blur-sm"
-    style="color: var(--color-slate-600); background: rgba(28,28,31,0.70); border-color: rgba(255,255,255,0.08); "
+    style="color: var(--color-slate-400); background: rgba(28,28,31,0.70); border-color: rgba(255,255,255,0.08); "
     onmouseover="this.style.borderColor='rgba(0,153,253,0.35)'"
     onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"
     aria-label="Open search"
@@ -28,8 +28,8 @@ const searchDataJson = JSON.stringify(searchData);
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
-    <span class="hidden sm:inline" style="color: var(--color-slate-600);">Search</span>
-    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono rounded-md" style="background: rgba(255,255,255,0.06); color: var(--color-slate-500); border: 1px solid rgba(255,255,255,0.08);">&#8984;K</kbd>
+    <span class="hidden sm:inline" style="color: var(--color-slate-400);">Search</span>
+    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono rounded-md" style="background: rgba(255,255,255,0.06); color: var(--color-slate-400); border: 1px solid rgba(255,255,255,0.08);">&#8984;K</kbd>
   </button>
 </div>
 
@@ -58,13 +58,13 @@ const searchDataJson = JSON.stringify(searchData);
       
       <!-- Search Results -->
       <div id="search-results" class="max-h-[60vh] overflow-y-auto search-results-scroll">
-        <div class="p-6 text-center" style="color: var(--color-slate-500);">
+        <div class="p-6 text-center" style="color: var(--color-slate-400);">
           <p>Start typing to search&hellip;</p>
         </div>
       </div>
       
       <!-- Footer -->
-      <div class="px-4 py-2.5 flex items-center justify-between text-xs" style="border-top: 1px solid rgba(255,255,255,0.06); background: rgba(16,16,18,0.50); color: var(--color-slate-500);">
+      <div class="px-4 py-2.5 flex items-center justify-between text-xs" style="border-top: 1px solid rgba(255,255,255,0.06); background: rgba(16,16,18,0.50); color: var(--color-slate-400);">
         <div class="flex items-center gap-4">
           <span class="flex items-center gap-1.5">
             <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">↑</kbd>
@@ -155,7 +155,7 @@ const searchDataJson = JSON.stringify(searchData);
   function renderEmptyState(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-6 text-center" style="color: var(--color-slate-500);">
+        <div class="p-6 text-center" style="color: var(--color-slate-400);">
           <p>Start typing to search&hellip;</p>
         </div>
       `;
@@ -165,12 +165,12 @@ const searchDataJson = JSON.stringify(searchData);
   function renderNoResults(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-10 text-center" style="color: var(--color-slate-500);">
+        <div class="p-10 text-center" style="color: var(--color-slate-400);">
           <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.35; color: var(--color-complement-600);">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="font-medium" style="color: var(--color-slate-700);">No results found</p>
-          <p class="text-sm mt-1" style="color: var(--color-slate-500);">Try different keywords or check your spelling</p>
+          <p class="font-medium" style="color: var(--color-slate-100);">No results found</p>
+          <p class="text-sm mt-1" style="color: var(--color-slate-400);">Try different keywords or check your spelling</p>
         </div>
       `;
     }
@@ -210,10 +210,10 @@ const searchDataJson = JSON.stringify(searchData);
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </span>
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium truncate" style="color: var(--color-slate-900);">
+              <h4 class="font-medium truncate" style="color: var(--color-slate-100);">
                 ${highlightedTitle}
               </h4>
-              <p class="text-sm line-clamp-2 mt-0.5" style="color: var(--color-slate-500);">
+              <p class="text-sm line-clamp-2 mt-0.5" style="color: var(--color-slate-400);">
                 ${item.description}
               </p>
               <div class="flex items-center gap-2 mt-1.5">
