@@ -1143,15 +1143,15 @@ pre {
 
 .nav-link {
     @apply transition-colors font-medium;
-    color: var(--color-slate-500);
+    color: var(--color-slate-300);
 }
 
 .nav-link:hover {
-    color: var(--color-neural-600);
+    color: var(--color-neural-400);
 }
 
 .nav-link-active {
-    color: var(--color-neural-500);
+    color: var(--color-neural-400);
 }
 
 /* ==================== BUTTONS ==================== */
