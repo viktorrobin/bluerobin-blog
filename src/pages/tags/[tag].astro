@@ -45,22 +45,22 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
     <header class="mb-12">
       {isSeries && seriesMeta ? (
         <>
-          <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-600 mb-4">
+          <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-white/8 text-slate-300 mb-4">
             Series
           </div>
-          <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
+          <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-100 mb-4">
             {seriesMeta.title}
           </h1>
-          <p class="text-lg text-slate-600">
+          <p class="text-lg text-slate-400">
             {seriesMeta.description}
           </p>
         </>
       ) : (
         <>
-          <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
+          <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-100 mb-4">
             Articles tagged: <span class="text-neural-600">{tag}</span>
           </h1>
-          <p class="text-lg text-slate-600">
+          <p class="text-lg text-slate-400">
             {posts.length} article{posts.length !== 1 ? "s" : ""} found
           </p>
         </>
@@ -77,8 +77,8 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
             <div class="flex flex-col md:flex-row md:items-start gap-4">
               {/* Series Order Number */}
               {isSeries && post.data.seriesOrder && (
-                <div class="flex-shrink-0 w-12 h-12 bg-neural-100 rounded-full flex items-center justify-center">
-                  <span class="text-lg font-bold text-neural-600">
+                <div class="flex-shrink-0 w-12 h-12 bg-neural-500/15 rounded-full flex items-center justify-center">
+                  <span class="text-lg font-bold text-neural-400">
                     {post.data.seriesOrder}
                   </span>
                 </div>
@@ -100,12 +100,12 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                 </div>
                 
                 <a href={`/articles/${post.slug}/`}>
-                  <h2 class="text-xl font-medium text-slate-800 hover:text-neural-600 transition-colors mb-2">
+                  <h2 class="text-xl font-medium text-slate-200 hover:text-neural-600 transition-colors mb-2">
                     {post.data.title}
                   </h2>
                 </a>
                 
-                <p class="text-slate-600 mb-3">
+                <p class="text-slate-400 mb-3">
                   {post.data.description}
                 </p>
                 

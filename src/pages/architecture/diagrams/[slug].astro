@@ -63,11 +63,11 @@ marked.setOptions({ renderer });
 const htmlContent = marked.parse(markdownContent);
 
 const topicColors: Record<string, string> = {
-  "ai": "bg-neural-100 text-neural-700",
-  "architecture": "bg-neural-100 text-neural-700",
-  "infrastructure": "bg-complement-100 text-complement-700",
-  "ddd": "bg-glow-100 text-glow-700",
-  "devops": "bg-glow-100 text-glow-700"
+  "ai": "bg-neural-500/15 text-neural-400",
+  "architecture": "bg-neural-500/15 text-neural-400",
+  "infrastructure": "bg-complement-500/15 text-complement-400",
+  "ddd": "bg-glow-500/10 text-glow-400",
+  "devops": "bg-glow-500/10 text-glow-400"
 };
 ---
 
@@ -82,7 +82,7 @@ const topicColors: Record<string, string> = {
         <li>/</li>
         <li><a href="/architecture/diagrams" class="hover:text-neural-600 transition-colors">Diagrams</a></li>
         <li>/</li>
-        <li class="text-slate-900">{title}</li>
+        <li class="text-slate-300">{title}</li>
       </ol>
     </nav>
 
@@ -96,17 +96,17 @@ const topicColors: Record<string, string> = {
           {diagramType}
         </span>
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-100 mb-4">
         {title}
       </h1>
-      <p class="text-lg text-slate-600">
+      <p class="text-lg text-slate-400">
         {description}
       </p>
     </header>
 
     <!-- Diagram Content -->
     <article class="glass-card p-8">
-      <div class="prose prose-lg max-w-none prose-pre:bg-slate-100 prose-pre:text-slate-800" set:html={htmlContent}>
+      <div class="prose prose-lg max-w-none" set:html={htmlContent}>
       </div>
     </article>
 

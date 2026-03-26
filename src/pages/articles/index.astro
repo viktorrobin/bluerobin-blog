@@ -13,17 +13,17 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 <MainLayout title="Blog | BlueRobin Tech Blog" description="All articles on .NET, Kubernetes, LLM integration, and Domain-Driven Design">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-100 mb-4">
         All Articles
       </h1>
-      <p class="text-lg text-slate-600">
+      <p class="text-lg text-slate-400">
         Deep dives, cookbooks, and implementation guides from the BlueRobin project.
       </p>
     </header>
 
     <!-- Article Series -->
     <section class="mb-12">
-      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-100 mb-6">
         Article Series
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -36,8 +36,8 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
           }[series.color] ?? "border-neural-400";
           return (
             <a href={`/tags/${key}/`} class={`glass-card p-5 hover:shadow-lg transition-all hover:-translate-y-1 border-l-4 ${borderColor}`}>
-              <h3 class="font-medium text-slate-800 mb-1">{series.title}</h3>
-              <p class="text-sm text-slate-600">{series.description}</p>
+              <h3 class="font-medium text-slate-200 mb-1">{series.title}</h3>
+              <p class="text-sm text-slate-400">{series.description}</p>
             </a>
           );
         })}
@@ -46,7 +46,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
     <!-- Browse by Category -->
     <section class="mb-12">
-      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-100 mb-6">
         Browse by Category
       </h2>
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -59,8 +59,8 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
           }[cat.color] ?? "border-neural-400";
           return (
             <a href={`/${key}/`} class={`glass-card p-5 transition-all border-l-4 ${borderColor}`}>
-              <h3 class="font-medium text-slate-800 mb-1">{cat.title}</h3>
-              <p class="text-sm text-slate-600">{cat.description}</p>
+              <h3 class="font-medium text-slate-200 mb-1">{cat.title}</h3>
+              <p class="text-sm text-slate-400">{cat.description}</p>
             </a>
           );
         })}
@@ -69,7 +69,7 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 text-lg">
+          <p class="text-slate-400 text-lg">
           Articles coming soon. The first article in the DDD series is being prepared.
         </p>
       </div>
@@ -86,12 +86,12 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
               <div class="flex flex-col md:flex-row md:items-start gap-4">
                 <div class="flex-1">
                   <a href={`/articles/${post.slug}/`}>
-                    <h2 class="text-xl font-medium text-slate-800 hover:text-neural-600 transition-colors mb-2">
+                    <h2 class="text-xl font-medium text-slate-200 hover:text-neural-600 transition-colors mb-2">
                       {post.data.title}
                     </h2>
                   </a>
                   
-                  <p class="text-slate-600 mb-3 line-clamp-2">
+                  <p class="text-slate-400 mb-3 line-clamp-2">
                     {post.data.description}
                   </p>
                   

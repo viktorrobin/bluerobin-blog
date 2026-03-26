@@ -69,24 +69,24 @@ const diagrams = [
 ];
 
 const topicColors: Record<string, string> = {
-  "AI": "bg-neural-100 text-neural-700",
-  "Architecture": "bg-neural-100 text-neural-700",
-  "Infrastructure": "bg-complement-100 text-complement-700",
-  "DDD": "bg-glow-100 text-glow-700",
-  "DevOps": "bg-glow-100 text-glow-700"
+  "AI": "bg-neural-500/15 text-neural-400",
+  "Architecture": "bg-neural-500/15 text-neural-400",
+  "Infrastructure": "bg-complement-500/15 text-complement-400",
+  "DDD": "bg-glow-500/10 text-glow-400",
+  "DevOps": "bg-glow-500/10 text-glow-400"
 };
 ---
 
 <MainLayout title="Architecture Diagrams | BlueRobin Tech Blog" description="Visual architecture diagrams for BlueRobin system design">
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
-      <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neural-100 text-neural-800 mb-4">
+      <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-neural-500/15 text-neural-400 mb-4">
         📊 Architecture Diagrams
       </div>
-      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-900 mb-4">
+      <h1 class="text-3xl sm:text-4xl font-display font-semibold text-slate-100 mb-4">
         System Architecture Diagrams
       </h1>
-      <p class="text-lg text-slate-600 max-w-2xl">
+      <p class="text-lg text-slate-400 max-w-2xl">
         Visual representations of BlueRobin's architecture using Mermaid diagrams. 
         Each diagram is interactive and can be embedded in documentation or presentations.
       </p>
@@ -94,17 +94,17 @@ const topicColors: Record<string, string> = {
 
     <!-- Structurizr DSL Notice -->
     <div class="glass-card p-6 mb-8 border-l-4 border-neural-500">
-      <h3 class="font-medium text-slate-800 mb-2">
+      <h3 class="font-medium text-slate-200 mb-2">
         📐 Full C4 Model Available
       </h3>
-      <p class="text-slate-600 text-sm mb-3">
+      <p class="text-slate-400 text-sm mb-3">
         For the complete interactive C4 model with drill-down navigation (System Context → Container → Component → Deployment), 
         use the Structurizr DSL file:
       </p>
-      <code class="text-sm bg-slate-100 px-3 py-1 rounded">
+      <code class="text-sm bg-white/8 text-neural-400 px-3 py-1 rounded">
         /architecture/bluerobin.dsl
       </code>
-      <p class="text-slate-500 text-xs mt-2">
+      <p class="text-slate-400 text-xs mt-2">
         Open at <a href="https://structurizr.com/dsl" class="text-neural-600 hover:underline">structurizr.com/dsl</a> 
         or export to PlantUML with structurizr-cli.
       </p>
@@ -121,13 +121,13 @@ const topicColors: Record<string, string> = {
             </span>
           </div>
           
-          <h2 class="text-xl font-medium text-slate-800 mb-2 group-hover:text-neural-600 transition-colors">
+          <h2 class="text-xl font-medium text-slate-200 mb-2 group-hover:text-neural-600 transition-colors">
             <a href={`/architecture/diagrams/${diagram.slug}`}>
               {diagram.title}
             </a>
           </h2>
           
-          <p class="text-slate-600 text-sm mb-4">
+          <p class="text-slate-400 text-sm mb-4">
             {diagram.description}
           </p>
           
@@ -148,33 +148,33 @@ const topicColors: Record<string, string> = {
 
     <!-- Diagram Types Legend -->
     <section class="mt-12">
-      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-100 mb-6">
         Diagram Types Used
       </h2>
       
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="glass-card p-4">
-          <h3 class="font-medium text-slate-800 mb-1">Sequence Diagrams</h3>
-          <p class="text-sm text-slate-600">Show interactions between components over time</p>
+          <h3 class="font-medium text-slate-200 mb-1">Sequence Diagrams</h3>
+          <p class="text-sm text-slate-400">Show interactions between components over time</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-medium text-slate-800 mb-1">Flowcharts</h3>
-          <p class="text-sm text-slate-600">Illustrate process flows and decision points</p>
+          <h3 class="font-medium text-slate-200 mb-1">Flowcharts</h3>
+          <p class="text-sm text-slate-400">Illustrate process flows and decision points</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-medium text-slate-800 mb-1">Class Diagrams</h3>
-          <p class="text-sm text-slate-600">Model domain entities and relationships</p>
+          <h3 class="font-medium text-slate-200 mb-1">Class Diagrams</h3>
+          <p class="text-sm text-slate-400">Model domain entities and relationships</p>
         </div>
         <div class="glass-card p-4">
-          <h3 class="font-medium text-slate-800 mb-1">C4 Diagrams</h3>
-          <p class="text-sm text-slate-600">Multi-level architecture visualization</p>
+          <h3 class="font-medium text-slate-200 mb-1">C4 Diagrams</h3>
+          <p class="text-sm text-slate-400">Multi-level architecture visualization</p>
         </div>
       </div>
     </section>
 
     <!-- Usage Instructions -->
     <section class="mt-12">
-      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-6">
+      <h2 class="text-2xl font-display font-semibold text-slate-100 mb-6">
         Using These Diagrams
       </h2>
       

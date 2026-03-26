@@ -56,12 +56,12 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
         </div>
 
         <!-- Title -->
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold text-slate-900 mb-4 leading-tight">
+        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold text-slate-100 mb-4 leading-tight">
           {title}
         </h1>
 
         <!-- Description -->
-        <p class="text-lg text-slate-600 mb-6">
+        <p class="text-lg text-slate-400 mb-6">
           {description}
         </p>
 
@@ -95,8 +95,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
           <div class="series-nav-title">
             Part of the "{seriesMeta.title}" series
           </div>
-          <p class="text-sm text-slate-600">
-            {seriesMeta.description}
+          <p class="text-sm text-slate-400">
           </p>
           <a href={`/tags/${series}/`} class="text-sm text-neural-600 hover:underline transition-colors mt-2 inline-block">
             View all articles in this series →
@@ -110,7 +109,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
       </div>
 
       <!-- Article Footer -->
-      <footer class="mt-12 pt-8 border-t border-slate-200">
+        <footer class="mt-12 pt-8 border-t border-white/8">
         <div class="flex flex-wrap gap-2 mb-6">
           {tags.map((tag) => (
             <a href={`/tags/${tag}/`} class={`tag ${tag.endsWith("-series") ? "tag-series" : ""}`}>

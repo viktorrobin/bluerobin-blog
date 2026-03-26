@@ -267,6 +267,31 @@
         radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.10) 0%, transparent 58%),
         radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.06) 0%, transparent 52%);
 
+    /* Dark ambient mesh — used as body background-image on dark surface */
+    --gradient-mesh:
+        radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.15) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.10) 0%, transparent 52%);
+
+    /* ==================== LAVA BLOB COLORS ==================== */
+    /* Dark-theme ambient glow — neural blue + complement navy at low opacity */
+    --lava-color-1: oklch(56% 0.22 232 / 0.18);
+    --lava-color-1-outer: oklch(52% 0.20 232 / 0.06);
+    --lava-color-2: oklch(52% 0.20 43 / 0.15);
+    --lava-color-2-outer: oklch(44% 0.17 43 / 0.05);
+    --lava-color-3: oklch(69% 0.235 232 / 0.10);
+    --lava-color-3-outer: oklch(56% 0.22 232 / 0.04);
+    --lava-color-4: oklch(39% 0.17 43 / 0.12);
+    --lava-color-4-outer: oklch(29% 0.13 43 / 0.04);
+
+    /* ==================== CODE BLOCK TOKENS ==================== */
+    /* Dark theme — matches Shiki Dracula highlight palette */
+    --code-bg: #161618;
+    --code-border: rgba(255, 255, 255, 0.08);
+    --code-shadow: rgba(0, 0, 0, 0.40);
+    --code-text: var(--color-slate-200);
+    --code-inline-bg: rgba(255, 255, 255, 0.08);
+    --code-inline-text: var(--color-neural-600);
+
     /* ==================== SPACING ==================== */
     --spacing-xs: 0.25rem;
     --spacing-sm: 0.5rem;
@@ -463,10 +488,8 @@ html {
 body {
     @apply antialiased;
     font-family: var(--font-sans);
-    background-color: var(--color-slate-50);
-    /* #101012 */
-    color: var(--color-slate-900);
-    /* #f7f4ef */
+    background-color: var(--surface-base);
+    color: var(--color-slate-200);
     background-image: var(--gradient-mesh);
     background-attachment: fixed;
     background-size: 100% 100%;
@@ -481,7 +504,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-slate-50 rounded-sm;
+    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-[#101012] rounded-sm;
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -507,7 +530,7 @@ pre {
 
 .prose {
     @apply max-w-none leading-relaxed;
-    color: var(--color-slate-900);
+    color: var(--color-slate-200);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -524,26 +547,26 @@ pre {
 /* Headings */
 .prose h1 {
     @apply text-2xl sm:text-3xl font-semibold mt-10 mb-5;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     font-family: var(--font-display);
 }
 
 .prose h2 {
     @apply text-xl sm:text-2xl font-semibold mt-8 mb-3 pb-2;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-display);
 }
 
 .prose h3 {
     @apply text-lg sm:text-xl font-semibold mt-6 mb-2;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     font-family: var(--font-display);
 }
 
 .prose h4 {
     @apply text-base sm:text-lg font-semibold mt-5 mb-2;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     font-family: var(--font-display);
 }
 
@@ -577,7 +600,7 @@ pre {
 /* Blockquotes */
 .prose blockquote {
     @apply my-6 pl-6 border-l-4 border-neural-500 italic;
-    color: var(--color-slate-600);
+    color: var(--color-slate-400);
     quotes: none;
 }
 
@@ -607,7 +630,7 @@ pre {
 
 .prose th {
     @apply px-4 py-3 text-left font-semibold;
-    color: var(--color-slate-900);
+    color: var(--color-slate-200);
     border-bottom: 2px solid rgba(255, 255, 255, 0.12);
 }
 
@@ -661,7 +684,7 @@ pre {
 /* Strong and Emphasis */
 .prose strong {
     @apply font-semibold;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
 }
 
 .prose em {
@@ -671,7 +694,7 @@ pre {
 /* First paragraph styling (lead) */
 .prose>p:first-of-type {
     @apply text-base leading-relaxed;
-    color: var(--color-slate-600);
+    color: var(--color-slate-400);
 }
 
 /* ==================== GLASS CARD ==================== */
@@ -740,7 +763,7 @@ pre {
     font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
 }
@@ -748,7 +771,7 @@ pre {
 .bento-card p {
     font-size: 0.9375rem;
     line-height: 1.65;
-    color: var(--color-slate-500);
+    color: var(--color-slate-400);
 }
 
 .bento-lg {
@@ -1138,7 +1161,7 @@ pre {
     position: relative;
     overflow: hidden;
     z-index: 0;
-    background: var(--color-slate-200);
+    background: var(--surface-card);
     box-shadow: var(--shadow-sm);
 }
 
@@ -1192,7 +1215,7 @@ pre {
 }
 
 .btn-primary:focus-visible {
-    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-slate-50;
+    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-[#101012];
 }
 
 .btn-primary:disabled {
@@ -1211,7 +1234,7 @@ pre {
     overflow: hidden;
     z-index: 0;
     background: var(--glass-white-20);
-    color: var(--color-slate-600);
+    color: var(--color-slate-300);
     border: 1px solid rgba(255, 255, 255, 0.10);
 }
 
@@ -1246,7 +1269,7 @@ pre {
 }
 
 .btn-secondary:hover {
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
     transform: translateY(-1px);
 }
 
@@ -1325,7 +1348,7 @@ pre {
 
 .article-card h2 {
     @apply text-lg font-medium mb-2 transition-colors;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
 }
 
 .article-card h2:hover {
@@ -1334,7 +1357,7 @@ pre {
 
 .article-card p {
     @apply line-clamp-3;
-    color: var(--color-slate-600);
+    color: var(--color-slate-400);
 }
 
 /* ==================== CODE BLOCKS ==================== */
@@ -1342,7 +1365,7 @@ pre {
 .code-filename {
     @apply px-4 py-2 text-sm rounded-t-lg;
     background-color: rgba(255, 255, 255, 0.06);
-    color: var(--color-slate-600);
+    color: var(--color-slate-400);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-mono);
 }
@@ -1369,7 +1392,7 @@ pre {
 
 .series-nav-title {
     @apply text-sm font-semibold uppercase tracking-wide mb-2;
-    color: var(--color-slate-500);
+    color: var(--color-slate-400);
 }
 
 .series-nav-list {
@@ -1392,12 +1415,12 @@ pre {
 
 .toc-title {
     @apply text-sm font-semibold uppercase tracking-wide mb-3;
-    color: var(--color-slate-900);
+    color: var(--color-slate-100);
 }
 
 .toc a {
     @apply text-sm block py-1 border-l-2 border-transparent pl-3 transition-colors;
-    color: var(--color-slate-600);
+    color: var(--color-slate-400);
 }
 
 .toc a:hover {
