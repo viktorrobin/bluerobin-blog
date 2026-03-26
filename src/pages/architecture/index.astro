@@ -45,11 +45,11 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   {difficultyMeta.label}
                 </span>
                 {post.data.readTime && (
-                  <span class="text-xs text-slate-500">
+                  <span class="text-xs text-slate-400">
                     {post.data.readTime}
                   </span>
                 )}
-                <time class="text-xs text-slate-500" datetime={post.data.pubDate.toISOString()}>
+                <time class="text-xs text-slate-400" datetime={post.data.pubDate.toISOString()}>
                   {formatDate(post.data.pubDate)}
                 </time>
               </div>

@@ -75,7 +75,7 @@ const topicColors: Record<string, string> = {
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Breadcrumb -->
     <nav class="text-sm mb-8" aria-label="Breadcrumb">
-      <ol class="flex items-center space-x-2 text-slate-500">
+      <ol class="flex items-center space-x-2 text-slate-400">
         <li><a href="/" class="hover:text-neural-600 transition-colors">Home</a></li>
         <li>/</li>
         <li><a href="/architecture" class="hover:text-neural-600 transition-colors">Architecture</a></li>
@@ -92,7 +92,7 @@ const topicColors: Record<string, string> = {
         <span class={`text-xs px-2 py-1 rounded-full ${topicColors[topic.toLowerCase()] || topicColors['architecture']}`}>
           {topic}
         </span>
-        <span class="text-xs text-slate-500">
+        <span class="text-xs text-slate-400">
           {diagramType}
         </span>
       </div>
