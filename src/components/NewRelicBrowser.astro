@@ -1,0 +1,45 @@
+---
+/**
+ * New Relic Browser Agent
+ *
+ * Initializes the NR browser agent for RUM (Real User Monitoring).
+ * Requires the following PUBLIC env vars at build time:
+ *   PUBLIC_NR_ACCOUNT_ID          - New Relic account ID (numeric)
+ *   PUBLIC_NR_BROWSER_LICENSE_KEY - Browser-specific license key (NRJS-...)
+ *   PUBLIC_NR_BROWSER_APP_ID      - Browser application ID (numeric)
+ *
+ * Silently skips initialization if any var is missing (dev / preview builds).
+ */
+---
+
+<script>
+  import { BrowserAgent } from "@newrelic/browser-agent/loaders/browser-agent";
+
+  const accountId = import.meta.env.PUBLIC_NR_ACCOUNT_ID;
+  const licenseKey = import.meta.env.PUBLIC_NR_BROWSER_LICENSE_KEY;
+  const appId = import.meta.env.PUBLIC_NR_BROWSER_APP_ID;
+
+  if (accountId && licenseKey && appId) {
+    new BrowserAgent({
+      init: {
+        distributed_tracing: { enabled: true },
+        privacy: { cookies_enabled: true },
+        ajax: { deny_list: ["bam.eu01.nr-data.net"] },
+      },
+      info: {
+        beacon: "bam.eu01.nr-data.net",
+        errorBeacon: "bam.eu01.nr-data.net",
+        licenseKey,
+        applicationID: appId,
+        sa: 1,
+      },
+      loader_config: {
+        accountID: accountId,
+        trustKey: accountId,
+        agentID: appId,
+        licenseKey,
+        applicationID: appId,
+      },
+    });
+  }
+</script>

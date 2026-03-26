@@ -19,7 +19,7 @@ interface Props {
 
 const { recipe } = Astro.props;
 const { Content } = await recipe.render();
-const { title, description, pubDate, updatedDate, author, difficulty, tags, readTime, ogImage } = recipe.data;
+const { title, description, pubDate, updatedDate, author, difficulty, tags, readTime } = recipe.data;
 
 const difficultyMeta = DIFFICULTIES[difficulty];
 const seriesTags = tags.filter(tag => tag.endsWith("-series"));
@@ -28,7 +28,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
 ---
 
-<BaseLayout title={`${title} | BlueRobin Cookbook`} description={description} ogImage={ogImage}>
+<BaseLayout title={`${title} | BlueRobin Cookbook`} description={description}>
   <Header />
 
   <main class="flex-1">
