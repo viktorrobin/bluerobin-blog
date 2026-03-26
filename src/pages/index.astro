@@ -30,11 +30,11 @@ const techStack = [
       <div class="text-center animate-entry">
         <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-complement-alpha-12); border: 1px solid var(--color-complement-alpha-25); color: var(--color-complement-400);">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          Document Intelligence &middot; Semantic Search &middot; Self-Hosted AI
+          Personal Project &middot; Document AI &middot; Self-Hosted
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-100 mb-6 leading-tight tracking-tight">
-          <span class="text-transparent bg-clip-text" style="background-image: var(--gradient-signature);">Your Documents,<br>Deeply Understood</span>
+          <span class="text-transparent bg-clip-text" style="background-image: var(--gradient-signature);">Self-hosted document AI,<br>built end-to-end</span>
         </h1>
 
         <p class="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto mb-5">
@@ -43,9 +43,7 @@ const techStack = [
         </p>
 
         <p class="text-base text-slate-400 max-w-2xl mx-auto mb-10">
-          BlueRobin automatically extracts entities, builds a knowledge graph of relationships,
-          and indexes everything for semantic search &mdash; so you find answers by <em>meaning</em>,
-          not keywords.
+          A homelab project &mdash; a complete document intelligence stack covering OCR, entity extraction, knowledge graphs, multi-model vector search, and LLM-powered RAG. All running on self-hosted Kubernetes.
         </p>
 
         <div class="flex flex-wrap justify-center gap-4 mb-14">
@@ -61,7 +59,7 @@ const techStack = [
         <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
           <span class="flex items-center gap-2 text-slate-400">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
-            Ensemble Semantic Search
+            Multi-model Vector Search
           </span>
           <span class="flex items-center gap-2 text-slate-400">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
@@ -84,8 +82,8 @@ const techStack = [
   <section class="py-20 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">From Upload to Intelligence</h2>
-        <p class="text-slate-400 max-w-xl mx-auto">Every document passes through a multi-stage AI pipeline before it becomes searchable and queryable.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">How It Works</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">Three steps: parse with OCR, enrich with AI, then index across multiple vector models. Each step is a separate background worker communicating over NATS.</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
@@ -96,8 +94,8 @@ const techStack = [
         <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">1</div>
           <div>
-            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Upload &amp; Extract</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Docling OCR preserves document structure &mdash; tables, headings, and layout &mdash; producing a rich semantic representation, not just raw text.</p>
+            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Upload &amp; Parse</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Docling converts uploaded documents to structured text, preserving tables, headings, and layout. The structure is used for accurate chunking during indexing.</p>
           </div>
           <div class="flex flex-wrap gap-2 mt-auto pt-1">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-600); border: 1px solid var(--color-neural-alpha-20);">Docling OCR</span>
@@ -109,8 +107,8 @@ const techStack = [
         <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
           <div>
-            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Model &amp; Enrich</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Entities are automatically extracted and connected into a knowledge graph. Summaries, keywords, and vector embeddings are generated &mdash; turning every page into structured, searchable intelligence.</p>
+            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Extract &amp; Index</h3>
+            <p class="text-sm text-slate-400 leading-relaxed">Named entities are extracted and linked into a knowledge graph. Each chunk is embedded across 8 vector models and stored in Qdrant, alongside a generated summary and keyword set.</p>
           </div>
           <div class="flex flex-wrap gap-2 mt-auto pt-1">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Entity Extraction</span>
@@ -124,7 +122,7 @@ const techStack = [
           <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">3</div>
           <div>
             <h3 class="font-display font-semibold text-slate-100 mb-1.5">Search &amp; Ask</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Ensemble search fuses results across vector collections to surface the most relevant passages. Ask anything &mdash; the LLM answers with paragraph-level citations from your own documents.</p>
+            <p class="text-sm text-slate-400 leading-relaxed">Reciprocal Rank Fusion combines scores from all vector models to find the most relevant passages. A locally hosted LLM answers in plain English, with citations to the exact source paragraphs.</p>
           </div>
           <div class="flex flex-wrap gap-2 mt-auto pt-1">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Qdrant</span>
@@ -140,8 +138,8 @@ const techStack = [
   <section class="py-16 relative" style="background: var(--gradient-mesh);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">The Archive Knows More Than You Remember</h2>
-        <p class="text-slate-400 max-w-2xl mx-auto">Entities extracted from each document are connected across your entire archive. Over time, the graph builds a picture no single document could reveal on its own.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">Cross-document reasoning with a knowledge graph</h2>
+        <p class="text-slate-400 max-w-2xl mx-auto">Entities from each document are linked across your archive. When a question spans multiple files, the graph connects them &mdash; the LLM then reasons across the combined result.</p>
       </div>
 
       <!-- Scenario card -->
@@ -230,8 +228,8 @@ const techStack = [
   <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">Built for Depth, Not Demo Day</h2>
-        <p class="text-slate-400 max-w-xl mx-auto">Not a wrapper around a cloud API. A production system designed, built, and operated end-to-end on self-hosted infrastructure.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">What's under the hood</h2>
+        <p class="text-slate-400 max-w-xl mx-auto">The full stack &mdash; API, workers, frontend, messaging, vector search, graph, and AI inference &mdash; running on a homelab K3s cluster.</p>
       </div>
 
       <div class="bento-grid">
@@ -241,7 +239,7 @@ const techStack = [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
           </div>
           <h3>Knowledge Graph &amp; Entity Intelligence</h3>
-          <p>Every document is automatically analysed to extract entities &mdash; people, organisations, dates, financial figures, and more. These are deduplicated, resolved to canonical records, and connected into a traversable graph that grows with every upload. The result: connections your keyword search would never find.</p>
+          <p>Each document is analysed to extract named entities &mdash; people, organisations, dates, financial figures, medical terms. Entities are deduplicated, resolved to canonical records, and linked into a queryable graph that grows with every upload. Connections surface across the full archive, not just within a single document.</p>
           <div class="flex flex-wrap gap-2 mt-5">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Entity Extraction</span>
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Canonical Resolution</span>
@@ -255,7 +253,7 @@ const techStack = [
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg>
           </div>
           <h3>Semantic Search &amp; RAG</h3>
-          <p>Documents are embedded across multiple vector dimensions and indexed for ensemble retrieval. Reciprocal Rank Fusion combines results for best-of-breed recall. Ask a question in plain language &mdash; the LLM synthesises an answer and cites the exact source paragraphs it drew from.</p>
+          <p>Documents are embedded across 8 vector models and stored in Qdrant. At query time, Reciprocal Rank Fusion combines rankings from each model. A locally hosted LLM answers the question, citing the exact source paragraphs it used.</p>
           <div class="flex flex-wrap gap-2 mt-5">
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Ensemble Retrieval</span>
             <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Reciprocal Rank Fusion</span>
@@ -308,10 +306,10 @@ const techStack = [
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-8">
         <h2 class="text-3xl font-display font-semibold text-slate-100 mb-4">
-          Intelligence Pipeline
+          Architecture
         </h2>
         <p class="text-slate-400 max-w-2xl mx-auto mb-8">
-          A cloud-native document intelligence platform built on DDD principles, event-driven microservices, and a multi-layer AI pipeline from OCR to graph-connected knowledge.
+          .NET 10 with Clean Architecture and DDD aggregates. NATS JetStream for async event processing. Flux GitOps on K3s. Full documentation in the Architecture section.
         </p>
 
         <!-- Tech Stack Pills -->
@@ -458,7 +456,7 @@ const techStack = [
         100+ Engineering Articles
       </h2>
       <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-        Every architectural decision, failure, and lesson from designing, building, and operating a production AI system on self-hosted infrastructure &mdash; documented in depth.
+        The decisions behind each component: why NATS, how multi-model RAG works in practice, what broke in production, and how it was fixed.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
         <a href="/articles/" class="btn-primary text-lg px-8 py-3.5">
