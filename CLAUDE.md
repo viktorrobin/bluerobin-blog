@@ -15,7 +15,7 @@ Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX art
 | Search | Fuse.js (client-side) |
 | Diagrams | Mermaid |
 | Deployment | Docker multi-stage → nginx |
-| Analytics | New Relic Browser Agent |
+| Analytics | Self-hosted analytics (optional) |
 
 ## Commands
 
