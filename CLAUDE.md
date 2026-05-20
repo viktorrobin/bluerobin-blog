@@ -4,6 +4,13 @@
 
 Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX articles about homelab AI, .NET architecture, Kubernetes, and observability.
 
+## Requirements as Code
+
+The blog is part of the BlueRobin monorepo. Product requirements live in
+[`/requirements`](../requirements/README.md) — the single source of truth for the
+platform. Blog *content* is not governed by feature specs, but technical articles
+should stay consistent with the architecture and ADRs documented there.
+
 ## Tech Stack
 
 | Component | Detail |
