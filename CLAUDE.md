@@ -24,6 +24,16 @@ should stay consistent with the architecture and ADRs documented there.
 | Deployment | Docker multi-stage → nginx |
 | Analytics | Self-hosted analytics (optional) |
 
+## MCP Servers
+
+For articles that reference external libraries or current platform state:
+
+- **`context7`** — fact-check external API references before publishing.
+- **`github-cluster`** — link directly to commits / PRs when citing implementation.
+
+Canonical inventory:
+[`../requirements/infra/mcp-servers.md`](../requirements/infra/mcp-servers.md).
+
 ## Commands
 
 ```bash
