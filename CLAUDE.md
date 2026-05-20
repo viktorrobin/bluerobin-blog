@@ -7,7 +7,7 @@ Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX art
 ## Requirements as Code
 
 The blog is part of the BlueRobin monorepo. Product requirements live in
-[`/requirements`](../requirements/README.md) — the single source of truth for the
+[`/requirements`](../bluerobin-requirements/README.md) — the single source of truth for the
 platform. Blog *content* is not governed by feature specs, but technical articles
 should stay consistent with the architecture and ADRs documented there.
 
@@ -32,7 +32,7 @@ For articles that reference external libraries or current platform state:
 - **`github-cluster`** — link directly to commits / PRs when citing implementation.
 
 Canonical inventory:
-[`../requirements/infra/mcp-servers.md`](../requirements/infra/mcp-servers.md).
+[`../bluerobin-requirements/infra/mcp-servers.md`](../bluerobin-requirements/infra/mcp-servers.md).
 
 ## Commands
 

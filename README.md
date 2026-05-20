@@ -106,7 +106,7 @@ The blog is automatically built and deployed when pushing to `main`:
 ## Related Requirements
 
 The blog is part of the BlueRobin monorepo. Product requirements — the single source of
-truth for the platform — live under [`/requirements`](../requirements/README.md). Blog
+truth for the platform — live under [`/requirements`](../bluerobin-requirements/README.md). Blog
 content is not governed by feature specs.
 
 ## License
