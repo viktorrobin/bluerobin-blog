@@ -1,5 +1,12 @@
 # BlueRobin Blog — CLAUDE.md
 
+## Mandatory reading — BlueRobin requirements framework
+
+Auto-loaded on session start. The full framework at `../bluerobin-requirements/` is the source of truth — blog content MUST stay consistent with the architecture and ADRs documented there.
+
+@../bluerobin-requirements/CLAUDE.md
+@../bluerobin-requirements/agent-charters.md
+
 ## Project Overview
 
 Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX articles about homelab AI, .NET architecture, Kubernetes, and observability.

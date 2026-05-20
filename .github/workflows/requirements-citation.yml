@@ -1,0 +1,29 @@
+name: Requirements Citation
+on:
+  pull_request:
+    types: [opened, edited, reopened, labeled, unlabeled, synchronize]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  cite:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body cites a requirement ID
+        env:
+          BODY: ${{ github.event.pull_request.body }}
+          LABELS: ${{ toJson(github.event.pull_request.labels) }}
+        run: |
+          set -euo pipefail
+          if echo "$LABELS" | grep -q '"requirements-exempt"'; then
+            echo "::notice::Exempt via 'requirements-exempt' label."
+            exit 0
+          fi
+          if echo "$BODY" | grep -qE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT)-[0-9]+'; then
+            ID=$(echo "$BODY" | grep -oE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT)-[0-9]+' | head -1)
+            echo "::notice::Citation found ($ID)."
+            exit 0
+          fi
+          echo "::error::PR body must cite at least one requirement ID (e.g. FR-1, NFR-3, SEC-12, FEAT-005) from bluerobin-requirements/, or carry the 'requirements-exempt' label with Lead approval."
+          exit 1
