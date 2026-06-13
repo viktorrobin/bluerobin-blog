@@ -20,10 +20,10 @@ jobs:
             echo "::notice::Exempt via 'requirements-exempt' label."
             exit 0
           fi
-          if echo "$BODY" | grep -qE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT)-[0-9]+'; then
-            ID=$(echo "$BODY" | grep -oE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT)-[0-9]+' | head -1)
+          if echo "$BODY" | grep -qE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT|CT|NET|IB|DT|BAK|GIT|COST|ASM|PROD|MCP|DA|SA|ENV|SC)-[0-9]+'; then
+            ID=$(echo "$BODY" | grep -oE '(FR|NFR|SEC|OBS|PRIV|HS|RT|SLO|IP|TR|TS|FEAT|CT|NET|IB|DT|BAK|GIT|COST|ASM|PROD|MCP|DA|SA|ENV|SC)-[0-9]+' | head -1)
             echo "::notice::Citation found ($ID)."
             exit 0
           fi
-          echo "::error::PR body must cite at least one requirement ID (e.g. FR-1, NFR-3, SEC-12, FEAT-005) from bluerobin-requirements/, or carry the 'requirements-exempt' label with Lead approval."
+          echo "::error::PR body must cite at least one requirement ID (e.g. FR-1, NFR-3, SEC-12, FEAT-005, CT-1, NET-13, GIT-1) from bluerobin-requirements/, or carry the 'requirements-exempt' label with Lead approval."
           exit 1
