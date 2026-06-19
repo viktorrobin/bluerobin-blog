@@ -18,6 +18,10 @@ flowchart TB
         GitHub["GitHub<br/>(Webhooks)"]
     end
 
+    subgraph LaptopDev["💻 Developer Laptop (off-cluster — ADR-034)"]
+        DevStack["Dev environment<br/>local PostgreSQL · NATS · API/Web<br/>(prod is the only in-cluster env)"]
+    end
+
     subgraph Cluster["K3s Cluster (bluerobin-local)"]
         subgraph Gateway["🚪 Gateway Layer"]
             Traefik["Traefik Ingress<br/>*.bluerobin.local"]
@@ -28,18 +32,11 @@ flowchart TB
             Authelia["Authelia<br/>OIDC Provider<br/>auth.bluerobin.local"]
         end
 
-        subgraph AppsProd["📦 archives-prod"]
+        subgraph AppsProd["📦 archives-prod (prod-only, in-cluster)"]
             direction TB
             WebProd["Archives Web<br/>Blazor Server<br/>replicas: 2"]
             APIProd["Archives API<br/>FastEndpoints<br/>replicas: 2"]
             WorkersProd["Archives Workers<br/>BackgroundService<br/>replicas: 1"]
-        end
-
-        subgraph AppsStaging["📦 archives-staging"]
-            direction TB
-            WebStaging["Archives Web<br/>(staging)"]
-            APIStaging["Archives API<br/>(staging)"]
-            WorkersStaging["Archives Workers<br/>(staging)"]
         end
 
         subgraph DataLayer["💾 data-layer (Shared)"]
@@ -110,13 +107,14 @@ flowchart TB
     MinIO -.->|Keys| KES
 
     Flux -->|Deploy| AppsProd
-    Flux -->|Deploy| AppsStaging
     ARC -->|Build| AppsProd
+
+    DevStack -.->|Tailscale<br/>shared data-layer| DataLayer
 
     style Gateway fill:#eee9f5
     style Auth fill:#fdf8ea
     style AppsProd fill:#edf5f6
-    style AppsStaging fill:#ddd4ed
+    style LaptopDev fill:#ddd4ed
     style DataLayer fill:#f8eded
     style AI fill:#faf2d0
     style Platform fill:#d5eef0
@@ -135,7 +133,7 @@ flowchart LR
     end
 
     subgraph Tailscale["Tailscale Network<br/>100.x.x.x"]
-        DevMachine["Dev Machine<br/>100.x.x.1"]
+        DevMachine["Dev Laptop<br/>(off-cluster dev env)<br/>100.x.x.1"]
     end
 
     subgraph ClusterNetwork["Cluster Network"]
@@ -183,9 +181,8 @@ pie showData
 
 | Namespace | Purpose | Environment Isolation |
 |-----------|---------|----------------------|
-| `archives-prod` | Production workloads | Prod databases, buckets |
-| `archives-staging` | Staging workloads | Staging databases, buckets |
-| `data-layer` | Shared infrastructure | Per-env prefixes |
+| `archives-prod` | Production workloads (the only in-cluster app env — ADR-034) | Prod databases, buckets |
+| `data-layer` | Shared infrastructure (also reachable from the laptop dev env over Tailscale) | `prod.` prefixes |
 | `ai` | AI/ML services | Shared models |
 | `platform` | Platform services | N/A |
 | `flux-system` | GitOps controller | N/A |
