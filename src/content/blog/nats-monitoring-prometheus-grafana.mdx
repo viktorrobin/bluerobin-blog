@@ -254,11 +254,11 @@ spec:
 
 ```yaml
 # These come from /jsz endpoint
-gnatsd_jsz_stream_messages{stream="staging.archives.documents"}
-gnatsd_jsz_stream_bytes{stream="staging.archives.documents"}
-gnatsd_jsz_stream_consumer_count{stream="staging.archives.documents"}
-gnatsd_jsz_stream_first_seq{stream="staging.archives.documents"}
-gnatsd_jsz_stream_last_seq{stream="staging.archives.documents"}
+gnatsd_jsz_stream_messages{stream="prod.archives.documents"}
+gnatsd_jsz_stream_bytes{stream="prod.archives.documents"}
+gnatsd_jsz_stream_consumer_count{stream="prod.archives.documents"}
+gnatsd_jsz_stream_first_seq{stream="prod.archives.documents"}
+gnatsd_jsz_stream_last_seq{stream="prod.archives.documents"}
 ```
 
 ## Grafana Dashboard
@@ -603,13 +603,13 @@ nats server info --server nats://192.168.0.6:30422
 nats stream ls --server nats://192.168.0.6:30422
 
 # Stream details
-nats stream info staging.archives.documents
+nats stream info prod.archives.documents
 
 # Consumer status
-nats consumer info staging.archives.documents ocr-worker
+nats consumer info prod.archives.documents ocr-worker
 
 # Watch messages in real-time
-nats sub "staging.archives.documents.>" --server nats://192.168.0.6:30422
+nats sub "prod.archives.documents.>" --server nats://192.168.0.6:30422
 
 # Check JetStream account
 nats account info

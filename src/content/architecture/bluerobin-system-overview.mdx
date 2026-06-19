@@ -165,7 +165,7 @@ Document Upload Flow:
 ```
 
 <ImplementationNote>
-Events use environment-prefixed subjects (e.g., `dev.archives.documents.ocr.requested`, `staging.archives.documents.ocr.requested`) to isolate environments on a shared NATS cluster.
+Events use environment-prefixed subjects (e.g., `prod.archives.documents.ocr.requested`) to namespace traffic on the shared NATS cluster. BlueRobin now runs prod-only in-cluster with development on a laptop (ADR-034), so production carries the `prod.` prefix; the prefix scheme would still isolate additional environments if they were ever reintroduced.
 </ImplementationNote>
 
 ## Component Deep Dives
@@ -213,7 +213,7 @@ Each user has a dedicated MinIO bucket with server-side encryption. I chose MinI
 />
 
 ```
-Bucket: staging-abc12345  (environment-userId)
+Bucket: prod-abc12345  (environment-userId)
 ├── original/
 │   └── {documentId}.pdf     # Original uploaded file
 ├── processed/
@@ -236,7 +236,7 @@ Workers must use the bucket name from event payloads (`evt.Bucket`), never const
 
 ### Database Design
 
-PostgreSQL stores structured data with per-environment databases. I run PostgreSQL via the CloudNativePG operator, which handles automatic failover, backups, and replication—it's one of the best Kubernetes operators I've worked with.
+PostgreSQL stores structured data. I run PostgreSQL via the CloudNativePG operator, which handles automatic failover, backups, and replication—it's one of the best Kubernetes operators I've worked with.
 
 <ExternalCite
   title="CloudNativePG Documentation"
@@ -245,11 +245,12 @@ PostgreSQL stores structured data with per-environment databases. I run PostgreS
   date="2024"
 />
 
+BlueRobin runs prod-only in the cluster, with development on a laptop (ADR-034). The in-cluster CNPG cluster therefore serves a single production database; the laptop dev environment runs its own local PostgreSQL.
+
 | Environment | Database | Purpose |
 |-------------|----------|---------|
-| Development | `archives_dev` | Local development |
-| Staging | `archives_staging` | Integration testing |
-| Production | `archives_prod` | Production data |
+| Development (laptop) | `archives_dev` | Local development |
+| Production (in-cluster) | `archives_prod` | Production data |
 
 Key tables:
 
@@ -434,15 +435,15 @@ BlueRobin uses a shared infrastructure model:
 │  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │   │
 │  └──────────────────────────────────────────────────────────┘   │
 │                                                                  │
-│  ┌─────────────────────┐  ┌─────────────────────┐              │
-│  │ archives-staging    │  │ archives-prod       │              │
-│  │ ┌─────┐ ┌─────┐    │  │ ┌─────┐ ┌─────┐    │              │
-│  │ │ API │ │ Web │    │  │ │ API │ │ Web │    │              │
-│  │ └─────┘ └─────┘    │  │ └─────┘ └─────┘    │              │
-│  │ ┌─────────────┐    │  │ ┌─────────────┐    │              │
-│  │ │   Workers   │    │  │ │   Workers   │    │              │
-│  │ └─────────────┘    │  │ └─────────────┘    │              │
-│  └─────────────────────┘  └─────────────────────┘              │
+│  ┌─────────────────────┐                                       │
+│  │ archives-prod       │   (prod-only in-cluster; dev runs     │
+│  │ ┌─────┐ ┌─────┐    │    on a laptop off-cluster — ADR-034)  │
+│  │ │ API │ │ Web │    │                                        │
+│  │ └─────┘ └─────┘    │                                        │
+│  │ ┌─────────────┐    │                                        │
+│  │ │   Workers   │    │                                        │
+│  │ └─────────────┘    │                                        │
+│  └─────────────────────┘                                       │
 │                                                                  │
 │  ┌──────────────────────────────────────────────────────────┐   │
 │  │                       ai namespace                        │   │
@@ -456,7 +457,7 @@ BlueRobin uses a shared infrastructure model:
 
 **Rationale**: 
 - Single data infrastructure reduces operational complexity
-- Environment isolation achieved through per-environment databases, collections, and credentials
+- BlueRobin runs prod-only in the cluster with development on a laptop (ADR-034); the `prod.`-prefixed subjects, databases, collections, and credentials still namespace traffic and would isolate additional environments if reintroduced
 - Shared AI services reduce GPU memory requirements
 
 ### GitOps with Flux

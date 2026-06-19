@@ -45,27 +45,18 @@ flowchart TB
         P --> Q[Self-hosted Runner<br/>Action Runner Controller]
         Q --> R[Docker build<br/>linux/amd64]
         R --> S[Push to Registry<br/>registry.bluerobin.local]
-        S --> T[Tag: sha-abc123]
-        S --> U[Tag: latest]
+        S --> T[Immutable digest<br/>sha256:...]
     end
 
-    subgraph GitOps["📦 GitOps Deployment"]
-        T --> V[Update manifests<br/>bluerobin-infra repo]
+    subgraph GitOps["📦 GitOps Deployment (prod-only — ADR-034)"]
+        T --> V[deploy-prod.yml pins<br/>image digest in overlay<br/>bluerobin-infra repo]
         V --> W[Flux detects change]
         W --> X[Reconcile resources]
-        
-        subgraph Staging["Staging First"]
-            X --> Y[Deploy to archives-staging]
-            Y --> Z{Health checks?}
-            Z -->|Fail| AA[Rollback<br/>Alert team]
-            Z -->|Pass| AB[✅ Staging verified]
-        end
-        
-        subgraph Production["Production Promotion"]
-            AB --> AC[Manual approval<br/>or auto-promote]
-            AC --> AD[Deploy to archives-prod]
+
+        subgraph Production["Production Deploy"]
+            X --> AD[Deploy to archives-prod]
             AD --> AE{Health checks?}
-            AE -->|Fail| AF[Rollback<br/>Alert team]
+            AE -->|Fail| AF[Flux rollback<br/>Alert team]
             AE -->|Pass| AG[✅ Production live]
         end
     end
@@ -149,19 +140,18 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    subgraph Tags["Image Tags"]
-        SHA["sha-abc123<br/>Immutable, traceable"]
+    subgraph Tags["Image References"]
+        Digest["sha256:...<br/>Immutable digest (prod)"]
         Latest["latest<br/>Current main build"]
         Semver["v1.2.3<br/>Release versions"]
     end
 
     subgraph Environments["Environment References"]
-        Staging["archives-staging<br/>image: sha-abc123"]
-        Prod["archives-prod<br/>image: v1.2.3"]
+        Prod["archives-prod<br/>image: sha256:... (digest-pinned)"]
+        Dev["laptop dev<br/>local build"]
     end
 
-    SHA --> Staging
-    Semver --> Prod
+    Digest --> Prod
 ```
 
 ## Self-Hosted Runner Architecture
@@ -210,10 +200,8 @@ bluerobin-infra/
 │   │   │   ├── service.yaml
 │   │   │   └── kustomization.yaml
 │   │   └── overlays/
-│   │       ├── staging/
-│   │       │   └── kustomization.yaml  # image: sha-xxx
 │   │       └── production/
-│   │           └── kustomization.yaml  # image: v1.x.x
+│   │           └── kustomization.yaml  # image: sha256:... (digest-pinned)
 │   ├── archives-web/
 │   └── archives-workers/
 ├── clusters/
@@ -230,6 +218,6 @@ bluerobin-infra/
 |--------|--------|---------|
 | PR Check Time | < 5 min | ~3 min |
 | Build Time | < 10 min | ~7 min |
-| Deploy to Staging | < 2 min | ~1 min |
+| Deploy to Production | < 2 min | ~1 min |
 | Rollback Time | < 1 min | ~30 sec |
 | MTTR (Mean Time to Recovery) | < 15 min | ~10 min |
