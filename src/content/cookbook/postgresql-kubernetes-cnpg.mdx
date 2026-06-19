@@ -16,7 +16,7 @@ import ExternalCite from '@components/ExternalCite.astro';
 
 CloudNative-PG (CNPG) is a Kubernetes operator that manages the full lifecycle of PostgreSQL clusters. It provides high availability, automated failover, backup/recovery, and connection pooling—all with declarative configuration.
 
-<Callout type="note">
+<Callout type="info">
 The multi-database (`myapp_staging` / `myapp_prod`) setup below is a generic teaching example—hosting several environment databases in one CNPG cluster is a valid pattern. BlueRobin itself now runs **prod-only in-cluster with development on a laptop** (ADR-034), so its in-cluster CNPG cluster serves a single production database.
 </Callout>
 
