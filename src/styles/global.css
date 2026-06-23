@@ -248,12 +248,15 @@
             oklch(52% 0.20 43) 38%,
             oklch(69% 0.235 232) 100%);
 
-    /* Display title gradient — one deep, readable blue used for every page H1
-       (Home / Archives / Debug Agent). Replaces the muddy navy→orange→blue mix
-       that read dark-reddish and inconsistent on a light surface. */
+    /* Display title gradients — a deep, readable BLUE (Archives context) and its
+       deep ORANGE counterpart (Debug Agent). Single-hue each, so no muddy
+       blue↔orange blend; together they restore the blue+orange brand balance. */
     --gradient-title: linear-gradient(115deg,
             oklch(60% 0.21 235) 0%,
             oklch(50% 0.19 250) 100%);
+    --gradient-title-warm: linear-gradient(115deg,
+            oklch(66% 0.19 52) 0%,
+            oklch(54% 0.175 34) 100%);
 
     /* Aura — shifting blue ↔ pumpkin orange for lava button effect */
     --gradient-aura: linear-gradient(45deg,
@@ -532,6 +535,23 @@ h6 {
     font-family: var(--font-display);
     @apply font-semibold tracking-tight;
     text-wrap: balance;
+}
+
+/* Gradient page titles — blue for Archives context, orange for Debug Agent.
+   Applied to every page/article H1 so titles stay consistent and on-brand. */
+.title-blue,
+.title-warm {
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+.title-blue {
+    background-image: var(--gradient-title);
+}
+
+.title-warm {
+    background-image: var(--gradient-title-warm);
 }
 
 code,
