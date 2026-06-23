@@ -10,7 +10,10 @@ const debugAgentCount = allPosts.filter((p) => p.data.project === "debug-agent")
 const projects = [
   {
     href: "/archives/",
-    badge: "Project 01",
+    kind: "Homelab project",
+    kindBg: "--color-neural-alpha-10",
+    kindBorder: "--color-neural-alpha-20",
+    kindIcon: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>`,
     label: "The Archives",
     tagline: "Self-hosted document intelligence",
     description:
@@ -24,7 +27,10 @@ const projects = [
   },
   {
     href: "/debug-agent/",
-    badge: "Project 02",
+    kind: "Research project",
+    kindBg: "--color-complement-alpha-10",
+    kindBorder: "--color-complement-alpha-20",
+    kindIcon: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6l5.5 9.5a2 2 0 0 1-1.7 3H6.2a2 2 0 0 1-1.7-3L10 8V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>`,
     label: "The Debug Agent",
     tagline: "Autonomous, graph-grounded root-cause analysis",
     description:
@@ -63,7 +69,8 @@ const projects = [
 
       <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
         I build production-grade AI on self-hosted infrastructure — and write about it.
-        Two projects, two stories. Pick where you'd like to start.
+        One is the <strong class="font-semibold text-slate-800">homelab product</strong> I run;
+        the other is the <strong class="font-semibold text-slate-800">research</strong> behind making it debug itself.
       </p>
     </div>
   </section>
@@ -86,8 +93,9 @@ const projects = [
                 style={`background: ${p.grad};`}
                 set:html={p.icon}
               />
-              <span class="text-xs font-semibold uppercase tracking-widest" style={`color: var(${p.accentVar});`}>
-                {p.badge}
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={`background: var(${p.kindBg}); color: var(${p.accentVar}); border: 1px solid var(${p.kindBorder});`}>
+                <span class="inline-flex" set:html={p.kindIcon} />
+                {p.kind}
               </span>
             </div>
 
