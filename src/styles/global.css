@@ -109,56 +109,58 @@
     --color-complement-alpha-50: oklch(66% 0.21 43 / 0.50);
 
     /* ==================== SEMANTIC DESIGN TOKENS ==================== */
-    /* Surface hierarchy — exact Suno values from suno-chakra-desing.js */
-    --surface-base: #101012;
-    /* Suno --color-background-primary (was #101012) */
-    --surface-canvas: #101012;
+    /* Surface hierarchy — LIGHT theme (cool near-white canvas, crisp white cards) */
+    --surface-base: #f6f8fb;
+    /* page background — soft cool off-white so blue/orange pop */
+    --surface-canvas: #f6f8fb;
     /* same as base */
-    --surface-card: #1c1c1f;
-    /* Suno --color-gray-100 / background-secondary (was #1c1c1f) */
-    --surface-overlay: #252529;
-    /* Suno --color-background-tertiary (was #252529) */
-    --surface-sunken: #252529;
-    /* Suno --color-background-button-inactive (was #252529) */
+    --surface-card: #ffffff;
+    /* elevated card / panel surface */
+    --surface-overlay: #ffffff;
+    /* popovers, menus, modals */
+    --surface-sunken: #eef2f7;
+    /* inset wells, code chrome on light */
 
-    /* Interaction state surfaces */
-    --surface-hover: rgba(255, 255, 255, 0.04);
-    --surface-pressed: rgba(255, 255, 255, 0.07);
-    --surface-selected: oklch(69% 0.235 232 / 0.15);
+    /* Interaction state surfaces — dark-alpha for a light theme */
+    --surface-hover: rgba(15, 23, 42, 0.04);
+    --surface-pressed: rgba(15, 23, 42, 0.07);
+    --surface-selected: oklch(69% 0.235 232 / 0.10);
     /* Neural blue tint */
     --surface-selected-border: oklch(69% 0.235 232 / 0.30);
 
-    /* Border system — Suno exact values */
-    --border-hairline: rgba(255, 255, 255, 0.04);
-    --border-subtle: rgba(255, 255, 255, 0.06);
-    --border-default: rgba(255, 255, 255, 0.10);
-    /* Suno --color-border-primary */
-    --border-strong: rgba(255, 255, 255, 0.20);
-    /* Suno --color-border-secondary */
+    /* Border system — slate hairlines (dark-alpha) for a light theme */
+    --border-hairline: rgba(15, 23, 42, 0.04);
+    --border-subtle: rgba(15, 23, 42, 0.07);
+    --border-default: rgba(15, 23, 42, 0.10);
+    /* default border on light */
+    --border-strong: rgba(15, 23, 42, 0.16);
+    /* emphasized border on light */
     --border-neural: oklch(69% 0.235 232 / 0.40);
     /* brand-colored border */
 
     /* ==================== GLASSMORPHISM ==================== */
-    /* Apple-style: lower opacity + higher blur for frosted translucency */
-    --glass-white-10: rgba(255, 255, 255, 0.10);
-    --glass-white-12: rgba(255, 255, 255, 0.12);
-    --glass-white-15: rgba(255, 255, 255, 0.15);
-    --glass-white-20: rgba(255, 255, 255, 0.20);
-    --glass-white-25: rgba(255, 255, 255, 0.25);
-    --glass-white-30: rgba(255, 255, 255, 0.30);
-    --glass-white-35: rgba(255, 255, 255, 0.35);
-    --glass-white-40: rgba(255, 255, 255, 0.40);
-    --glass-white-60: rgba(255, 255, 255, 0.60);
-    --glass-white-70: rgba(255, 255, 255, 0.70);
-    --glass-white-80: rgba(255, 255, 255, 0.80);
+    /* LIGHT theme: frosted-white panels — high white opacity over the cool
+       canvas + lava so cards read as crisp glass. (Token names kept stable;
+       values re-tuned from translucent → frosted for the light surface.) */
+    --glass-white-10: rgba(255, 255, 255, 0.50);
+    --glass-white-12: rgba(255, 255, 255, 0.55);
+    --glass-white-15: rgba(255, 255, 255, 0.60);
+    --glass-white-20: rgba(255, 255, 255, 0.70);
+    --glass-white-25: rgba(255, 255, 255, 0.82);
+    --glass-white-30: rgba(255, 255, 255, 0.85);
+    --glass-white-35: rgba(255, 255, 255, 0.88);
+    --glass-white-40: rgba(255, 255, 255, 0.78);
+    --glass-white-60: rgba(255, 255, 255, 0.90);
+    --glass-white-70: rgba(255, 255, 255, 0.93);
+    --glass-white-80: rgba(255, 255, 255, 0.96);
     --glass-dark-10: rgba(15, 23, 42, 0.10);
     --glass-dark-15: rgba(15, 23, 42, 0.15);
     --glass-dark-20: rgba(15, 23, 42, 0.20);
     --glass-dark-40: rgba(15, 23, 42, 0.40);
     --glass-dark-60: rgba(15, 23, 42, 0.60);
 
-    /* Semantic border color — dark-mode calibrated (white-alpha) */
-    --glass-border: rgba(255, 255, 255, 0.08);
+    /* Semantic border color — slate hairline for frosted-white cards on light */
+    --glass-border: rgba(15, 23, 42, 0.08);
 
     --blur-xs: blur(4px);
     --blur-sm: blur(8px);
@@ -246,6 +248,13 @@
             oklch(52% 0.20 43) 38%,
             oklch(69% 0.235 232) 100%);
 
+    /* Display title gradient — one deep, readable blue used for every page H1
+       (Home / Archives / Debug Agent). Replaces the muddy navy→orange→blue mix
+       that read dark-reddish and inconsistent on a light surface. */
+    --gradient-title: linear-gradient(115deg,
+            oklch(60% 0.21 235) 0%,
+            oklch(50% 0.19 250) 100%);
+
     /* Aura — shifting blue ↔ pumpkin orange for lava button effect */
     --gradient-aura: linear-gradient(45deg,
             oklch(29% 0.13 43) 0%,
@@ -273,24 +282,26 @@
         radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.10) 0%, transparent 52%);
 
     /* ==================== LAVA BLOB COLORS ==================== */
-    /* Dark-theme ambient glow — neural blue + complement navy at low opacity */
-    --lava-color-1: oklch(56% 0.22 232 / 0.18);
-    --lava-color-1-outer: oklch(52% 0.20 232 / 0.06);
-    --lava-color-2: oklch(52% 0.20 43 / 0.15);
-    --lava-color-2-outer: oklch(44% 0.17 43 / 0.05);
-    --lava-color-3: oklch(69% 0.235 232 / 0.10);
-    --lava-color-3-outer: oklch(56% 0.22 232 / 0.04);
-    --lava-color-4: oklch(39% 0.17 43 / 0.12);
-    --lava-color-4-outer: oklch(29% 0.13 43 / 0.04);
+    /* Light-theme ambient glow — soft neural-blue + complement-orange clouds,
+       brightened so they read as gentle tints over the near-white canvas */
+    --lava-color-1: oklch(64% 0.20 232 / 0.22);
+    --lava-color-1-outer: oklch(60% 0.18 232 / 0.08);
+    --lava-color-2: oklch(72% 0.17 43 / 0.20);
+    --lava-color-2-outer: oklch(66% 0.15 43 / 0.07);
+    --lava-color-3: oklch(72% 0.20 232 / 0.14);
+    --lava-color-3-outer: oklch(66% 0.18 232 / 0.05);
+    --lava-color-4: oklch(70% 0.17 43 / 0.16);
+    --lava-color-4-outer: oklch(62% 0.15 43 / 0.05);
 
     /* ==================== CODE BLOCK TOKENS ==================== */
-    /* Dark theme — matches Shiki Dracula highlight palette */
-    --code-bg: #161618;
-    --code-border: rgba(255, 255, 255, 0.08);
-    --code-shadow: rgba(0, 0, 0, 0.40);
+    /* Code blocks stay DARK ISLANDS on the light page (Shiki Dracula).
+       Inline code is re-tuned for the light prose surface. */
+    --code-bg: #1b1b1f;
+    --code-border: rgba(15, 23, 42, 0.10);
+    --code-shadow: rgba(15, 23, 42, 0.18);
     --code-text: var(--color-slate-200);
-    --code-inline-bg: rgba(255, 255, 255, 0.08);
-    --code-inline-text: var(--color-neural-600);
+    --code-inline-bg: rgba(15, 23, 42, 0.05);
+    --code-inline-text: var(--color-neural-300);
 
     /* ==================== SPACING ==================== */
     --spacing-xs: 0.25rem;
@@ -363,11 +374,11 @@
     --shadow-inner-sm: inset 0 2px 4px 0 var(--color-slate-alpha-5);
     --shadow-inner-md: inset 0 4px 8px 0 var(--color-slate-alpha-8);
 
-    /* Focus ring tokens (calibrated for dark backgrounds) */
+    /* Focus ring tokens (calibrated for light backgrounds) */
     --ring-neural: 0 0 0 3px oklch(69% 0.235 232 / 0.40);
     --ring-aurora: 0 0 0 3px oklch(58% 0.250 22 / 0.40);
     --ring-quantum: 0 0 0 3px oklch(63% 0.175 145 / 0.40);
-    --ring-slate: 0 0 0 3px rgba(255, 255, 255, 0.25);
+    --ring-slate: 0 0 0 3px rgba(15, 23, 42, 0.20);
 
     /* Glow effect tokens - for hover states */
     --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
@@ -375,45 +386,48 @@
     --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
     --glow-glow: 0 0 32px var(--color-glow-alpha-40), 0 0 64px var(--color-glow-alpha-20);
 
-    /* === 4-TIER SEMANTIC ELEVATION SHADOWS (dark-mode) === */
-    /* Tier 1 — Float: card sitting on dark page */
+    /* === 4-TIER SEMANTIC ELEVATION SHADOWS (light-mode) === */
+    /* Soft slate shadows + faint slate ring — no white inset, no harsh black */
+    /* Tier 1 — Float: card sitting on the light page */
     --shadow-float:
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 1px 3px 0 rgba(0, 0, 0, 0.30),
-        0 1px 2px 0 rgba(0, 0, 0, 0.20);
+        0 0 0 1px rgba(15, 23, 42, 0.04),
+        0 1px 2px 0 rgba(15, 23, 42, 0.06),
+        0 2px 6px -1px rgba(15, 23, 42, 0.05);
 
     /* Tier 2 — Card: clear separation, standard card depth */
     --shadow-card-premium:
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 3px 8px 0 rgba(0, 0, 0, 0.40),
-        0 1px 3px 0 rgba(0, 0, 0, 0.25);
+        0 0 0 1px rgba(15, 23, 42, 0.05),
+        0 4px 12px -2px rgba(15, 23, 42, 0.10),
+        0 2px 4px -1px rgba(15, 23, 42, 0.06);
 
     /* Tier 3 — Modal: dialog-level depth, clearly floating */
     --shadow-modal-premium:
-        0 0 0 1px rgba(255, 255, 255, 0.06),
-        0 8px 24px 0 rgba(0, 0, 0, 0.55),
-        0 3px 8px 0 rgba(0, 0, 0, 0.35),
-        0 1px 3px 0 rgba(0, 0, 0, 0.20);
+        0 0 0 1px rgba(15, 23, 42, 0.06),
+        0 12px 32px -6px rgba(15, 23, 42, 0.18),
+        0 6px 12px -3px rgba(15, 23, 42, 0.10),
+        0 2px 4px -1px rgba(15, 23, 42, 0.06);
 
     /* Tier 4 — Sheet: maximum elevation, overlay panels */
     --shadow-sheet:
-        0 0 0 1px rgba(255, 255, 255, 0.05),
-        0 20px 60px 0 rgba(0, 0, 0, 0.70),
-        0 8px 20px 0 rgba(0, 0, 0, 0.45),
-        0 2px 6px 0 rgba(0, 0, 0, 0.30);
+        0 0 0 1px rgba(15, 23, 42, 0.06),
+        0 24px 64px -12px rgba(15, 23, 42, 0.24),
+        0 12px 24px -8px rgba(15, 23, 42, 0.14),
+        0 4px 8px -2px rgba(15, 23, 42, 0.08);
 
-    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
+    /* === BLUE AMBIENT GLOW SHADOWS — on light === */
     /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
-    --shadow-glow-sm: 0 0 20px rgba(0, 153, 253, 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
-    --shadow-glow-md: 0 0 40px rgba(0, 153, 253, 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
-    --shadow-glow-lg: 0 0 60px rgba(0, 153, 253, 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);
-    --shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
-    --shadow-dark-md: 0 4px 20px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
-    --shadow-dark-lg: 0 8px 40px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.40);
+    --shadow-glow-sm: 0 0 20px rgba(0, 153, 253, 0.14), 0 4px 12px rgba(15, 23, 42, 0.08);
+    --shadow-glow-md: 0 0 36px rgba(0, 153, 253, 0.16), 0 8px 24px rgba(15, 23, 42, 0.10);
+    --shadow-glow-lg: 0 0 56px rgba(0, 153, 253, 0.20), 0 16px 40px rgba(15, 23, 42, 0.14);
+    --shadow-dark-sm: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
+    --shadow-dark-md: 0 4px 16px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
+    --shadow-dark-lg: 0 8px 32px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.08);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
+    /* Headings use Inter too — a single highly-legible typeface reads far better
+       for long technical titles than the condensed Cal Sans display face. */
+    --font-display: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
     --text-xs: 0.6875rem;
@@ -489,8 +503,8 @@ body {
     @apply antialiased;
     font-family: var(--font-sans);
     background-color: var(--surface-base);
-    color: var(--color-slate-200);
-    background-image: var(--gradient-mesh);
+    color: var(--color-slate-700);
+    background-image: var(--gradient-mesh-light);
     background-attachment: fixed;
     background-size: 100% 100%;
 }
@@ -504,7 +518,7 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-[#101012] rounded-sm;
+    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-[#f6f8fb] rounded-sm;
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -530,7 +544,7 @@ pre {
 
 .prose {
     @apply max-w-none leading-relaxed;
-    color: var(--color-slate-200);
+    color: var(--color-slate-700);
     font-size: 1rem;
     line-height: 1.7;
 }
@@ -547,36 +561,36 @@ pre {
 /* Headings */
 .prose h1 {
     @apply text-2xl sm:text-3xl font-semibold mt-10 mb-5;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
     font-family: var(--font-display);
 }
 
 .prose h2 {
     @apply text-xl sm:text-2xl font-semibold mt-8 mb-3 pb-2;
-    color: var(--color-slate-100);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    color: var(--color-slate-900);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.10);
     font-family: var(--font-display);
 }
 
 .prose h3 {
     @apply text-lg sm:text-xl font-semibold mt-6 mb-2;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
     font-family: var(--font-display);
 }
 
 .prose h4 {
     @apply text-base sm:text-lg font-semibold mt-5 mb-2;
-    color: var(--color-slate-100);
+    color: var(--color-slate-800);
     font-family: var(--font-display);
 }
 
 /* Links */
 .prose a {
-    @apply text-neural-600 underline decoration-neural-300/50 underline-offset-2 transition-all duration-200;
+    @apply text-neural-400 underline decoration-neural-400/40 underline-offset-2 transition-all duration-200;
 }
 
 .prose a:hover {
-    @apply text-neural-500 decoration-neural-500;
+    @apply text-neural-300 decoration-neural-300;
 }
 
 /* Lists */
@@ -599,8 +613,8 @@ pre {
 
 /* Blockquotes */
 .prose blockquote {
-    @apply my-6 pl-6 border-l-4 border-neural-500 italic;
-    color: var(--color-slate-400);
+    @apply my-6 pl-6 border-l-4 border-neural-400 italic;
+    color: var(--color-slate-600);
     quotes: none;
 }
 
@@ -611,7 +625,7 @@ pre {
 /* Horizontal Rules */
 .prose hr {
     @apply my-10;
-    border-color: rgba(255, 255, 255, 0.08);
+    border-color: rgba(15, 23, 42, 0.10);
 }
 
 /* Images */
@@ -625,22 +639,22 @@ pre {
 }
 
 .prose thead {
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: rgba(15, 23, 42, 0.04);
 }
 
 .prose th {
     @apply px-4 py-3 text-left font-semibold;
-    color: var(--color-slate-200);
-    border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+    color: var(--color-slate-700);
+    border-bottom: 2px solid rgba(15, 23, 42, 0.14);
 }
 
 .prose td {
     @apply px-4 py-3;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.07);
 }
 
 .prose tbody tr:hover {
-    background-color: rgba(255, 255, 255, 0.04);
+    background-color: rgba(15, 23, 42, 0.03);
 }
 
 /* Inline Code */
@@ -684,7 +698,7 @@ pre {
 /* Strong and Emphasis */
 .prose strong {
     @apply font-semibold;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
 }
 
 .prose em {
@@ -694,7 +708,7 @@ pre {
 /* First paragraph styling (lead) */
 .prose>p:first-of-type {
     @apply text-base leading-relaxed;
-    color: var(--color-slate-400);
+    color: var(--color-slate-600);
 }
 
 /* ==================== GLASS CARD ==================== */
@@ -710,7 +724,7 @@ pre {
 
 .glass-card:hover {
     background-color: var(--glass-white-25);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(15, 23, 42, 0.10);
 }
 
 /* ==================== BENTO FEATURE GRID ==================== */
@@ -763,7 +777,7 @@ pre {
     font-family: var(--font-display);
     font-weight: 600;
     font-size: 1.25rem;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
     margin-bottom: 0.5rem;
     letter-spacing: -0.01em;
 }
@@ -771,7 +785,7 @@ pre {
 .bento-card p {
     font-size: 0.9375rem;
     line-height: 1.65;
-    color: var(--color-slate-400);
+    color: var(--color-slate-600);
 }
 
 .bento-lg {
@@ -879,24 +893,24 @@ pre {
 
 .tag {
     @apply inline-flex items-center px-3 py-1 rounded-full text-sm font-medium transition-colors;
-    background-color: rgba(255, 255, 255, 0.08);
-    color: var(--color-slate-300);
+    background-color: rgba(15, 23, 42, 0.05);
+    color: var(--color-slate-600);
 }
 
 .tag:hover {
-    background-color: rgba(255, 255, 255, 0.12);
-    color: var(--color-slate-100);
+    background-color: rgba(15, 23, 42, 0.09);
+    color: var(--color-slate-900);
 }
 
 .tag-series {
-    background-color: var(--color-neural-alpha-12);
-    color: var(--color-neural-600);
-    border: 1px solid var(--color-neural-alpha-25);
+    background-color: var(--color-neural-alpha-10);
+    color: var(--color-neural-300);
+    border: 1px solid var(--color-neural-alpha-20);
 }
 
 .tag-series:hover {
     background-color: var(--color-neural-alpha-20);
-    border-color: var(--color-neural-alpha-35);
+    border-color: var(--color-neural-alpha-30);
 }
 
 /* ==================== TECH PILLS (Homepage) ==================== */
@@ -950,133 +964,80 @@ pre {
     padding: 0.25rem 0;
 }
 
+/* Unified glass-card node — one consistent treatment for the whole diagram.
+   Frosted glass over the lava background, a single accent (left bar + icon) per
+   node, dark readable text, and a soft "liquid" accent glow on hover. Variants
+   only swap the accent color; the primary spine gets a subtle blue glass tint. */
 .arch-node {
+    --arch-accent: var(--color-neural-500);
+    --arch-glow: var(--color-neural-alpha-20);
     display: inline-flex;
     align-items: center;
-    gap: 0.625rem;
-    padding: 0.75rem 1.25rem;
-    border-radius: 0.75rem;
-    color: white;
-    background: var(--gradient-signature);
-    background-size: 200% 200%;
-    border: 1px solid var(--color-complement-alpha-25);
-    backdrop-filter: var(--blur-sm);
-    -webkit-backdrop-filter: var(--blur-sm);
-    transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow:
-        0 2px 8px var(--color-neural-alpha-12),
-        0 1px 3px var(--color-complement-alpha-08);
+    gap: 0.7rem;
+    padding: 0.8rem 1.15rem;
+    border-radius: 0.9rem;
+    color: var(--color-slate-800);
+    background: var(--glass-white-30);
+    backdrop-filter: var(--blur-md) saturate(1.3);
+    -webkit-backdrop-filter: var(--blur-md) saturate(1.3);
+    border: 1px solid var(--glass-border);
+    border-left: 3px solid var(--arch-accent);
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
     text-align: left;
 }
 
-.arch-node:hover {
-    background-position: 100% 100%;
-    box-shadow:
-        0 0 18px var(--color-neural-alpha-25),
-        0 0 40px var(--color-complement-alpha-10),
-        0 4px 12px var(--color-signature-mid-alpha-15);
-    transform: translateY(-2px);
-}
-
 .arch-node svg {
-    opacity: 0.9;
-}
-
-.arch-node:hover svg {
+    color: var(--arch-accent);
     opacity: 1;
+    flex-shrink: 0;
 }
 
-/* Per-layer color variants */
-.arch-node-neural {
-    background: var(--gradient-neural);
-    border-color: var(--color-neural-alpha-25);
+.arch-node:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md), 0 0 24px var(--arch-glow);
+    border-left-color: var(--arch-accent);
 }
 
-.arch-node-neural:hover {
-    box-shadow:
-        0 0 18px var(--color-neural-alpha-30),
-        0 0 40px var(--color-neural-alpha-12),
-        0 4px 12px var(--color-neural-alpha-20);
+/* Crisp, solid sub-label inside nodes (was a faint 70%-opacity slate) */
+.arch-node .opacity-70 {
+    opacity: 1;
+    color: var(--color-slate-500);
 }
 
-.arch-node-neural-muted {
-    background: linear-gradient(135deg,
-        oklch(69% 0.235 43 / 0.70) 0%,
-        oklch(76% 0.20 43 / 0.50) 50%,
-        oklch(83% 0.15 45 / 0.40) 100%);
-    border-color: var(--color-neural-alpha-20);
+/* Per-layer accent variants — identical glass card, distinct accent */
+.arch-node-neural,
+.arch-node-signature {
+    --arch-accent: var(--color-neural-500);
+    --arch-glow: var(--color-neural-alpha-20);
+    /* subtle blue glass tint marks the primary spine */
+    background: linear-gradient(135deg, var(--color-neural-alpha-15), var(--color-neural-alpha-10));
 }
 
-.arch-node-neural-muted:hover {
-    box-shadow:
-        0 0 18px var(--color-neural-alpha-25),
-        0 0 40px var(--color-neural-alpha-10),
-        0 4px 12px var(--color-neural-alpha-15);
+.arch-node-neural-muted,
+.arch-node-complement {
+    --arch-accent: var(--color-complement-500);
+    --arch-glow: var(--color-complement-alpha-20);
 }
 
 .arch-node-aurora {
-    background: var(--gradient-aurora);
-    border-color: var(--color-aurora-alpha-20);
-}
-
-.arch-node-aurora:hover {
-    box-shadow:
-        0 0 18px var(--color-aurora-alpha-30),
-        0 0 40px var(--color-aurora-alpha-10),
-        0 4px 12px var(--color-aurora-alpha-20);
+    --arch-accent: var(--color-aurora-500);
+    --arch-glow: var(--color-aurora-alpha-20);
 }
 
 .arch-node-glow {
-    background: var(--gradient-glow);
-    border-color: var(--color-glow-alpha-20);
-}
-
-.arch-node-glow:hover {
-    box-shadow:
-        0 0 18px var(--color-glow-alpha-30),
-        0 0 40px var(--color-glow-alpha-10),
-        0 4px 12px var(--color-glow-alpha-20);
-}
-
-.arch-node-complement {
-    background: var(--gradient-complement);
-    border-color: var(--color-complement-alpha-25);
-}
-
-.arch-node-complement:hover {
-    box-shadow:
-        0 0 18px var(--color-complement-alpha-30),
-        0 0 40px var(--color-complement-alpha-12),
-        0 4px 12px var(--color-complement-alpha-20);
-}
-
-.arch-node-signature {
-    background: var(--gradient-signature);
-    border-color: var(--color-neural-alpha-20);
-}
-
-.arch-node-signature:hover {
-    box-shadow:
-        0 0 18px var(--color-neural-alpha-25),
-        0 0 40px var(--color-complement-alpha-10),
-        0 4px 12px var(--color-signature-mid-alpha-15);
+    --arch-accent: var(--color-glow-600);
+    --arch-glow: var(--color-glow-alpha-20);
 }
 
 .arch-node-slate {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.08));
-    border-color: rgba(255, 255, 255, 0.12);
-}
-
-.arch-node-slate:hover {
-    box-shadow:
-        0 0 18px rgba(255, 255, 255, 0.08),
-        0 0 40px rgba(255, 255, 255, 0.04),
-        0 4px 12px rgba(0, 0, 0, 0.50);
+    --arch-accent: var(--color-slate-500);
+    --arch-glow: var(--color-slate-alpha-15);
 }
 
 /* Per-layer label colors */
 .arch-label-neural {
-    color: var(--color-neural-600);
+    color: var(--color-neural-400);
 }
 
 .arch-label-aurora {
@@ -1144,7 +1105,7 @@ pre {
 
 .nav-link {
     @apply transition-colors font-medium;
-    color: var(--color-slate-300);
+    color: var(--color-slate-600);
 }
 
 .nav-link:hover {
@@ -1162,7 +1123,7 @@ pre {
     position: relative;
     overflow: hidden;
     z-index: 0;
-    background: var(--surface-card);
+    background: linear-gradient(135deg, oklch(60% 0.21 232) 0%, oklch(53% 0.20 232) 100%);
     box-shadow: var(--shadow-sm);
 }
 
@@ -1216,7 +1177,7 @@ pre {
 }
 
 .btn-primary:focus-visible {
-    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-[#101012];
+    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-[#f6f8fb];
 }
 
 .btn-primary:disabled {
@@ -1235,8 +1196,8 @@ pre {
     overflow: hidden;
     z-index: 0;
     background: var(--glass-white-20);
-    color: var(--color-slate-300);
-    border: 1px solid rgba(255, 255, 255, 0.10);
+    color: var(--color-slate-700);
+    border: 1px solid rgba(15, 23, 42, 0.10);
 }
 
 .btn-secondary::before {
@@ -1270,7 +1231,7 @@ pre {
 }
 
 .btn-secondary:hover {
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
     transform: translateY(-1px);
 }
 
@@ -1343,29 +1304,29 @@ pre {
 
 .article-card:hover {
     box-shadow: var(--shadow-neural-sm), 0 0 20px var(--color-neural-alpha-10);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: var(--color-neural-alpha-30);
     transform: translateY(-3px);
 }
 
 .article-card h2 {
     @apply text-lg font-medium mb-2 transition-colors;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
 }
 
 .article-card h2:hover {
-    color: var(--color-neural-600);
+    color: var(--color-neural-400);
 }
 
 .article-card p {
     @apply line-clamp-3;
-    color: var(--color-slate-400);
+    color: var(--color-slate-600);
 }
 
 /* ==================== CODE BLOCKS ==================== */
 
 .code-filename {
     @apply px-4 py-2 text-sm rounded-t-lg;
-    background-color: rgba(255, 255, 255, 0.06);
+    background-color: #232329;
     color: var(--color-slate-400);
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     font-family: var(--font-mono);
@@ -1393,7 +1354,7 @@ pre {
 
 .series-nav-title {
     @apply text-sm font-semibold uppercase tracking-wide mb-2;
-    color: var(--color-slate-400);
+    color: var(--color-slate-600);
 }
 
 .series-nav-list {
@@ -1416,12 +1377,12 @@ pre {
 
 .toc-title {
     @apply text-sm font-semibold uppercase tracking-wide mb-3;
-    color: var(--color-slate-100);
+    color: var(--color-slate-900);
 }
 
 .toc a {
     @apply text-sm block py-1 border-l-2 border-transparent pl-3 transition-colors;
-    color: var(--color-slate-400);
+    color: var(--color-slate-600);
 }
 
 .toc a:hover {
@@ -1435,99 +1396,99 @@ pre {
 }
 
 /* ==================== DIFFICULTY BADGES ==================== */
-/* Dark-mode: alpha tinted backgrounds, vibrant text */
+/* Light theme: soft alpha-tinted pills, deep readable text */
 
 .difficulty-beginner {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 .difficulty-intermediate {
-    background-color: var(--color-glow-alpha-10);
-    color: var(--color-glow-400);
+    background-color: var(--color-glow-alpha-15);
+    color: var(--color-glow-700);
 }
 
 .difficulty-advanced {
     background-color: var(--color-aurora-alpha-10);
-    color: var(--color-aurora-400);
+    color: var(--color-aurora-600);
 }
 
 .difficulty-expert {
-    background-color: var(--color-neural-alpha-12);
-    color: var(--color-neural-600);
+    background-color: var(--color-neural-alpha-10);
+    color: var(--color-neural-300);
 }
 
 /* ==================== CATEGORY BADGES ==================== */
-/* Dark-mode: alpha tinted backgrounds, vibrant text */
+/* Light theme: soft alpha-tinted pills, deep readable text */
 
 .category-cookbook {
-    background-color: var(--color-glow-alpha-10);
-    color: var(--color-glow-400);
+    background-color: var(--color-glow-alpha-15);
+    color: var(--color-glow-700);
 }
 
 .category-guide {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 .category-architecture {
-    background-color: var(--color-neural-alpha-12);
-    color: var(--color-neural-600);
+    background-color: var(--color-neural-alpha-10);
+    color: var(--color-neural-300);
 }
 
 .category-troubleshooting {
     background-color: var(--color-aurora-alpha-10);
-    color: var(--color-aurora-400);
+    color: var(--color-aurora-600);
 }
 
 .category-messaging {
-    background-color: var(--color-glow-alpha-10);
-    color: var(--color-glow-400);
+    background-color: var(--color-glow-alpha-15);
+    color: var(--color-glow-700);
 }
 
 .category-infrastructure {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 .category-security {
     background-color: var(--color-aurora-alpha-10);
-    color: var(--color-aurora-400);
+    color: var(--color-aurora-600);
 }
 
 .category-ai {
-    background-color: var(--color-neural-alpha-12);
-    color: var(--color-neural-600);
+    background-color: var(--color-neural-alpha-10);
+    color: var(--color-neural-300);
 }
 
 .category-frontend {
-    background-color: var(--color-neural-alpha-12);
-    color: var(--color-neural-600);
+    background-color: var(--color-neural-alpha-10);
+    color: var(--color-neural-300);
 }
 
 .category-backend {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 .category-database {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 .category-ci-cd {
-    background-color: var(--color-glow-alpha-10);
-    color: var(--color-glow-400);
+    background-color: var(--color-glow-alpha-15);
+    color: var(--color-glow-700);
 }
 
 .category-observability {
-    background-color: var(--color-glow-alpha-10);
-    color: var(--color-glow-400);
+    background-color: var(--color-glow-alpha-15);
+    color: var(--color-glow-700);
 }
 
 .category-storage {
-    background-color: var(--color-complement-alpha-12);
-    color: var(--color-complement-400);
+    background-color: var(--color-complement-alpha-10);
+    color: var(--color-complement-300);
 }
 
 /* ==================== CALLOUT STYLES ==================== */
@@ -1562,7 +1523,7 @@ pre {
     filter: blur(120px);
     mix-blend-mode: normal;
     will-change: transform, border-radius;
-    opacity: 0.75;
+    opacity: 0.6;
     transition: background 0.8s ease;
 }
 

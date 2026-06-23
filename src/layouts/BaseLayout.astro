@@ -24,7 +24,8 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/bluerobin-logo.png" />
+    <link rel="apple-touch-icon" href="/bluerobin-logo.png" />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
 
@@ -53,11 +54,6 @@ const socialImageURL = new URL(ogImage ?? SITE.ogImage, Astro.url.origin).href;
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
-      rel="stylesheet"
-    />
-    <!-- Cal Sans for display headings (matches main BlueRobin app) -->
-    <link
-      href="https://cdn.jsdelivr.net/npm/cal-sans@1.0.1/index.css"
       rel="stylesheet"
     />
 

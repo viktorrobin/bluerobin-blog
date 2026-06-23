@@ -1,0 +1,166 @@
+@misc{rasmussen2025zep,
+  title        = {Zep: A Temporal Knowledge Graph Architecture for Agent Memory},
+  author       = {Rasmussen, Preston and Paliychuk, Pavlo and Beauvais, Travis and Ryan, Jack and Chalef, Daniel},
+  year         = {2025},
+  eprint       = {2501.13956},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  note         = {arXiv:2501.13956; introduces bi-temporal edges (valid time vs. ingestion time) and a no-LLM-at-retrieval hybrid (semantic + BM25 + graph BFS); reports a P95 of roughly 300\,ms and +18.5\% on LongMemEval at roughly 90\% lower latency than full-context replay; the Graphiti pattern},
+  url          = {https://arxiv.org/abs/2501.13956}
+}
+
+@misc{chhikara2025mem0,
+  title        = {Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory},
+  author       = {Chhikara, Prateek and Khant, Dev and Aryan, Saket and Singh, Taranjeet and Yadav, Deshraj},
+  year         = {2025},
+  eprint       = {2504.19413},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  note         = {arXiv:2504.19413; an extract-then-update memory pipeline (ADD/UPDATE/DELETE/NOOP); reports roughly 90\% token and roughly 91\% p95-latency savings versus full context},
+  url          = {https://arxiv.org/abs/2504.19413}
+}
+
+@misc{packer2023memgpt,
+  title        = {{MemGPT}: Towards {LLMs} as Operating Systems},
+  author       = {Packer, Charles and Wooders, Sarah and Lin, Kevin and Fang, Vivian and Patil, Shishir G. and Stoica, Ion and Gonzalez, Joseph E.},
+  year         = {2023},
+  eprint       = {2310.08560},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.AI},
+  note         = {arXiv:2310.08560; treats the LLM as an operating system managing tiered virtual context through tool calls; later released as Letta},
+  url          = {https://arxiv.org/abs/2310.08560}
+}
+
+@misc{xu2025amem,
+  title        = {{A-MEM}: Agentic Memory for {LLM} Agents},
+  author       = {Xu, Wujiang and Liang, Zujie and Mei, Kai and Gao, Hang and Tan, Juntao and Zhang, Yongfeng},
+  year         = {2025},
+  eprint       = {2502.12110},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  note         = {arXiv:2502.12110; Zettelkasten-style atomic notes with dynamic linking and memory evolution},
+  url          = {https://arxiv.org/abs/2502.12110}
+}
+
+@inproceedings{shinn2023reflexion,
+  title     = {Reflexion: Language Agents with Verbal Reinforcement Learning},
+  author    = {Shinn, Noah and Cassano, Federico and Berman, Edward and Gopinath, Ashwin and Narasimhan, Karthik and Yao, Shunyu},
+  booktitle = {Advances in Neural Information Processing Systems 36 (NeurIPS '23)},
+  year      = {2023},
+  note      = {arXiv:2303.11366; converts an episode into a verbal self-reflection stored in a buffer; reports HumanEval 80\% to 91\%},
+  url       = {https://arxiv.org/abs/2303.11366}
+}
+
+@misc{wang2023voyager,
+  title        = {Voyager: An Open-Ended Embodied Agent with Large Language Models},
+  author       = {Wang, Guanzhi and Xie, Yuqi and Jiang, Yunfan and Mandlekar, Ajay and Xiao, Chaowei and Zhu, Yuke and Fan, Linxi and Anandkumar, Anima},
+  year         = {2023},
+  eprint       = {2305.16291},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.AI},
+  note         = {arXiv:2305.16291; maintains an ever-growing skill library of executable code},
+  url          = {https://arxiv.org/abs/2305.16291}
+}
+
+@inproceedings{park2023generative,
+  title     = {Generative Agents: Interactive Simulacra of Human Behavior},
+  author    = {Park, Joon Sung and O'Brien, Joseph C. and Cai, Carrie J. and Morris, Meredith Ringel and Liang, Percy and Bernstein, Michael S.},
+  booktitle = {Proceedings of the 36th Annual ACM Symposium on User Interface Software and Technology (UIST '23)},
+  year      = {2023},
+  publisher = {ACM},
+  note      = {arXiv:2304.03442; defines the recency $\times$ importance $\times$ relevance memory-stream retrieval score},
+  url       = {https://arxiv.org/abs/2304.03442}
+}
+
+@inproceedings{cormack2009rrf,
+  title     = {Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods},
+  author    = {Cormack, Gordon V. and Clarke, Charles L. A. and B{\"u}ttcher, Stefan},
+  booktitle = {Proceedings of the 32nd International ACM SIGIR Conference on Research and Development in Information Retrieval (SIGIR '09)},
+  year      = {2009},
+  publisher = {ACM},
+  pages     = {758--759},
+  note      = {Combines ranked lists by summing $1/(k + \mathrm{rank})$ with a single constant, conventionally $k = 60$},
+  url       = {https://dl.acm.org/doi/10.1145/1571941.1572114}
+}
+
+@misc{chen2024rcacopilot,
+  title        = {Automatic Root Cause Analysis via Large Language Models for Cloud Incidents ({RCACopilot})},
+  author       = {Chen, Yinfang and Xie, Huaibing and Ma, Minghua and Kang, Yu and Gao, Xin and Shi, Liu and Cao, Yunjie and Gao, Xuedong and Fan, Hao and Wen, Ming and Zeng, Jun and Ghosh, Supriyo and Zhang, Xuchao and Zhang, Chaoyun and Lin, Qingwei and Rajmohan, Saravan and Zhang, Dongmei and Xu, Tianyin},
+  year         = {2024},
+  eprint       = {2305.15778},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.SE},
+  note         = {EuroSys '24; arXiv:2305.15778; retrieval-augmented root-cause-category prediction; reported in production for over four years across more than thirty teams, with accuracy up to 0.766},
+  url          = {https://arxiv.org/abs/2305.15778}
+}
+
+@misc{yao2022react,
+  title        = {{ReAct}: Synergizing Reasoning and Acting in Language Models},
+  author       = {Yao, Shunyu and Zhao, Jeffrey and Yu, Dian and Du, Nan and Shafran, Izhak and Narasimhan, Karthik and Cao, Yuan},
+  year         = {2022},
+  eprint       = {2210.03629},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  note         = {arXiv:2210.03629},
+  url          = {https://arxiv.org/abs/2210.03629}
+}
+
+@misc{pham2024baro,
+  title        = {{BARO}: Robust Root Cause Analysis for Microservices via Multivariate Bayesian Online Change Point Detection},
+  author       = {Pham, Luan and Ha, Hongyu and Zhang, Huong},
+  year         = {2024},
+  eprint       = {2405.09330},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.SE},
+  note         = {FSE '24; arXiv:2405.09330},
+  url          = {https://arxiv.org/abs/2405.09330}
+}
+
+@misc{cemri2025mast,
+  title        = {Why Do Multi-Agent {LLM} Systems Fail? A Failure Taxonomy ({MAST})},
+  author       = {Cemri, Mert and Pan, Melissa Z. and Yang, Shuyi and Agrawal, Lakshya A. and Chopra, Bhavya and Tiwari, Rishabh and Keutzer, Kurt and Parameswaran, Aditya and Zaharia, Matei and Ramchandran, Kannan and Stoica, Ion and others},
+  year         = {2025},
+  howpublished = {IBM Research / UC Berkeley; 310 ITBench traces},
+  note         = {Finds incorrect self-verification, premature termination, memory loss, and reasoning-action mismatch account for roughly 94\% of agent failures},
+  url          = {https://huggingface.co/blog/ibm-research/itbenchandmast}
+}
+
+@inproceedings{xu2025openrca,
+  title     = {{OpenRCA}: Can Large Language Models Locate the Root Cause of Software Failures?},
+  author    = {Xu, Junjielong and Zhang, Qinan and Zhong, Zhiqing and He, Shilin and Zhang, Chaoyun and Lin, Qingwei and Pei, Dan and He, Pinjia and Zhang, Dongmei and Zhang, Qi},
+  booktitle = {Proceedings of the 13th International Conference on Learning Representations (ICLR '25)},
+  year      = {2025},
+  note      = {OpenReview M4qNIzQYpd; best agent reaches roughly 11.3\% exact-match over 335 cases},
+  url       = {https://openreview.net/pdf?id=M4qNIzQYpd}
+}
+
+@misc{aa2026itbenchaa,
+  title        = {{ITBench-AA}: An Agentic SRE Root-Cause-Analysis Leaderboard},
+  author       = {{Artificial Analysis} and {IBM Research}},
+  year         = {2026},
+  howpublished = {IBM Research blog},
+  note         = {Best frontier model reaches roughly 47\% precision@full-recall; all frontier models below 50\%},
+  url          = {https://huggingface.co/blog/ibm-research/itbench-aa}
+}
+
+@misc{survey2024rca,
+  title        = {A Comprehensive Survey on Root Cause Analysis in (Micro) Service Systems},
+  author       = {Zheng, Tingting and Chen, Junjie and others},
+  year         = {2024},
+  eprint       = {2408.00803},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.SE},
+  note         = {arXiv:2408.00803; survey consensus that LLM-only RCA lacks structural grounding and risks hallucinated suggestions, and that a graph supplies grounding},
+  url          = {https://arxiv.org/abs/2408.00803}
+}
+
+@misc{wu2024simple,
+  title        = {Simple Is Effective: The Roles of Graphs and Large Language Models in Knowledge-Graph-Based Retrieval-Augmented Generation},
+  author       = {Wu, Mufei and Zhu, Yufei and Zhao, Yuan and others},
+  year         = {2024},
+  eprint       = {2410.20724},
+  archivePrefix= {arXiv},
+  primaryClass = {cs.CL},
+  note         = {arXiv:2410.20724; template triple-to-natural-language linearization of a retrieved subgraph beats raw triples},
+  url          = {https://arxiv.org/abs/2410.20724}
+}

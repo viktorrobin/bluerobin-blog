@@ -1,89 +1,59 @@
 ---
 title: "About BlueRobin"
-description: "The story behind BlueRobin - a personal document management system built on a homelab"
+description: "Two homelab projects by Victor Robin — The Archives, a self-hosted document-intelligence platform, and The Debug Agent, an autonomous root-cause-analysis agent."
 ---
 
 # About BlueRobin
 
-BlueRobin started in 2022 as a simple question: *"Why does it take so long to find information in my family's medical records?"*
+BlueRobin is a homelab where I build production-grade AI on self-hosted infrastructure — and write about every decision along the way. It began with one question and grew into **two projects** that now run side by side on the same cluster.
 
-## The Problem
+## Two projects
 
-After years of accumulating medical documents—lab results, doctor's notes, prescriptions, imaging reports—I found myself spending hours searching through PDFs and scanned documents whenever I needed specific information. Traditional file organization wasn't scaling, and searching by filename was useless for medical content.
+### The Archives — document intelligence
 
-## The Journey
+It started in 2022 with a frustrating question: *"Why does it take so long to find anything in my family's medical records?"* Years of lab results, doctor's notes, prescriptions and imaging reports had piled up, and searching by filename was useless for medical content.
 
-### Phase 1: Cloud-First (2022)
+The Archives is the answer: upload any document, ask any question, and get an answer cited directly from your own archive. Under the hood it's a complete pipeline — OCR and structure extraction, named-entity recognition into a knowledge graph, multi-model vector search, and retrieval-augmented generation that answers in plain language with citations to the exact source paragraphs.
 
-Like many developers, my first instinct was to build on cloud services. I started with:
-- Azure Blob Storage for document storage
-- Azure Cognitive Search for full-text search
-- A simple ASP.NET Core API
-- React frontend
+### The Debug Agent — autonomous root-cause analysis
 
-It worked, but the monthly costs added up quickly, especially for AI-powered features. For a personal project, $50-100/month felt excessive.
+Running the Archives in production created a second problem: when something broke at 2 a.m., *I* was the on-call engineer. The Debug Agent is the answer to that — an LLM agent that investigates incidents on its own.
 
-### Phase 2: The Homelab Pivot (2023)
+It traverses a graph world-model of the whole platform, ranks likely causes with correlation-first scoring, runs a bounded tool-using investigation against real observability data, and only opens a pull request when hard evidence supports it. It's deliberately advisory: a human always merges. The interesting parts — a persistent graph, an externalized verification gate, and bi-temporal incident memory — are written up as papers in the [Debug Agent](/debug-agent/) section.
 
-I had an old server collecting dust. Why not run everything locally?
+## The journey
 
-This sparked a complete architecture redesign:
-- **k3s** for lightweight Kubernetes
-- **MinIO** replacing Azure Blob Storage
-- **PostgreSQL with pgvector** for embeddings and search
-- **Flux** for GitOps deployments
-- **Ollama** for local LLM inference
+**Phase 1 — Cloud-first (2022).** Like many developers, I started on managed cloud services. It worked, but the monthly bill for AI features climbed fast. For a personal project, that felt excessive.
 
-The homelab approach forced me to think carefully about resource constraints, which led to better architectural decisions.
+**Phase 2 — The homelab pivot (2023).** I had a server collecting dust. Moving everything local forced honest thinking about resource constraints — which, it turned out, led to better architecture: lightweight Kubernetes (k3s), GitOps with Flux, and a service mesh for mTLS.
 
-### Phase 3: AI Integration (2024-2025)
+**Phase 3 — AI integration (2024–2025).** Accessible LLMs changed what was possible: local OCR, local embeddings, a real RAG pipeline, and a hybrid model strategy that keeps cost under a strict monthly ceiling.
 
-The explosion of accessible LLMs changed everything:
-- **OCR with Docling** for document text extraction
-- **Local embeddings** with sentence-transformers
-- **RAG pipeline** for natural language queries
-- **Hybrid AI architecture** using both local Ollama and cloud APIs
+**Phase 4 — The agent (2025–2026).** With the platform stable, the focus shifted from *building* the system to *operating* it — and to teaching an agent to debug it. That's the Debug Agent.
 
-## What BlueRobin Does Today
-
-BlueRobin is a personal document management system that:
-
-1. **Ingests documents** - Upload PDFs, images, or scans
-2. **Extracts content** - OCR and text extraction with AI cleanup
-3. **Generates embeddings** - Vector representations for semantic search
-4. **Extracts entities** - Named entity recognition for people, dates, medications, etc.
-5. **Enables search** - Both keyword and semantic search with RAG-powered Q&A
-
-## The Tech Stack
+## The platform
 
 | Component | Technology | Why |
 |-----------|------------|-----|
 | Frontend | Blazor Server | Real-time UI, C# everywhere |
-| API | FastEndpoints | High-performance, clean |
-| Database | PostgreSQL + pgvector | Relational + vector in one |
-| Messaging | NATS JetStream | Lightweight, powerful |
-| Storage | MinIO | S3-compatible, self-hosted |
-| AI | Ollama + OpenAI | Local-first, cloud fallback |
-| Orchestration | k3s + Flux | GitOps on homelab |
+| API | FastEndpoints | High-performance, clean contracts |
+| Messaging | NATS JetStream | Lightweight, durable, KV store |
+| Database | PostgreSQL | Relational metadata + lifecycle |
+| Vectors | Qdrant | Multi-model semantic search |
+| Graph | FalkorDB | Entity & world-model graphs |
+| Inference | Ollama + Claude | Local-first, gateway for the rest |
+| Orchestration | k3s + Flux | GitOps on a homelab cluster |
 
-## Why This Blog?
+Everything runs under a strict cost ceiling — the constraint that shapes nearly every design decision on this blog.
 
-Four years of building BlueRobin taught me patterns I wish I'd known earlier:
+## Why this blog
 
-- How to implement DDD in a real .NET project
-- Event-driven architecture with NATS
-- GitOps with Flux for homelab deployments
-- Practical RAG pipeline implementation
-- Balancing local and cloud AI
+A few years of building and operating BlueRobin taught me patterns I wish I'd known earlier: Domain-Driven Design in a real .NET codebase, event-driven architecture with NATS, GitOps with Flux, practical RAG, and — most recently — how to make an LLM agent reason about failures without letting it hallucinate a fix. This blog documents those learnings with **real code** and **honest evaluation** from a **production system**.
 
-This blog documents those learnings—with **real code** from a **production system**.
+## About me
 
-## About Me
-
-I'm Victor, an Engineering Director who codes on weekends. BlueRobin is my playground for exploring patterns I don't always get to use at work: DDD, event sourcing experiments, LLM integration, and homelab DevOps.
-
-The best way to learn is to build, and the second best way is to teach. This blog is both.
+I'm **Victor Robin**. BlueRobin is my playground for the patterns I don't always get to use elsewhere: DDD, event-driven design, LLM integration, graph reasoning, and homelab DevOps. The best way to learn is to build; the second best is to teach. This blog is both.
 
 ---
 
-*Have questions about BlueRobin or want to discuss patterns? Reach out on [LinkedIn](https://www.linkedin.com/in/dr-victor-robin/).*
+*Questions, or want to compare notes on any of this? Reach out on [LinkedIn](https://www.linkedin.com/in/dr-victor-robin/).*

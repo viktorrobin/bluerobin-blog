@@ -3,8 +3,7 @@ import PostLayout from "@layouts/PostLayout.astro";
 import { getCollection, type CollectionEntry } from "astro:content";
 
 export async function getStaticPaths() {
-  // Archives articles only; the Debug Agent project has its own /debug-agent/[slug] route.
-  const posts = await getCollection("blog", ({ data }) => data.project !== "debug-agent");
+  const posts = await getCollection("blog", ({ data }) => data.project === "debug-agent");
   return posts.map((post) => ({
     params: { slug: post.slug },
     props: { post },
