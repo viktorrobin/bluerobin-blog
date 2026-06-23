@@ -10,11 +10,17 @@ export interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, pubDate, updatedDate, author, category, difficulty, tags, series, readTime, ogImage, toc } = post.data;
+const { title, description, pubDate, updatedDate, author, category, difficulty, tags, series, readTime, ogImage, toc, project } = post.data;
 
 const categoryMeta = CATEGORIES[category];
 const difficultyMeta = DIFFICULTIES[difficulty];
 const seriesMeta = series ? SERIES[series as keyof typeof SERIES] : null;
+
+// Project-aware navigation (Archives vs Debug Agent)
+const isDebugAgent = project === "debug-agent";
+const projectMeta = isDebugAgent
+  ? { label: "Debug Agent", hubHref: "/debug-agent/", backLabel: "← Back to Debug Agent" }
+  : { label: "The Archives", hubHref: "/archives/", backLabel: "← Back to Articles" };
 
 // Format dates
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -32,12 +38,12 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
       <!-- Article Header -->
       <header class="mb-8">
         <!-- Breadcrumb -->
-        <nav class="text-sm text-slate-400 mb-4" aria-label="Breadcrumb">
-          <a href="/" class="hover:text-neural-600 transition-colors">Home</a>
-          <span class="mx-2">/</span>
-          <a href="/articles/" class="hover:text-neural-600 transition-colors">Articles</a>
-          <span class="mx-2">/</span>
-          <a href={`/${category}/`} class="hover:text-neural-600 transition-colors capitalize">{category}</a>
+        <nav class="text-sm text-slate-600 mb-4" aria-label="Breadcrumb">
+          <a href="/" class="hover:text-neural-400 transition-colors">Home</a>
+          <span class="mx-2 text-slate-400">/</span>
+          <a href={projectMeta.hubHref} class="hover:text-neural-400 transition-colors">{projectMeta.label}</a>
+          <span class="mx-2 text-slate-400">/</span>
+          <a href={`/${category}/`} class="hover:text-neural-400 transition-colors capitalize">{category}</a>
         </nav>
 
         <!-- Category & Difficulty badges -->
@@ -49,24 +55,24 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
             {difficultyMeta.label}
           </span>
           {readTime && (
-            <span class="text-sm text-slate-400">
+            <span class="text-sm text-slate-500">
               {readTime}
             </span>
           )}
         </div>
 
         <!-- Title -->
-        <h1 class="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold text-slate-100 mb-4 leading-tight">
+        <h1 class={`text-2xl sm:text-3xl lg:text-4xl font-display font-semibold mb-4 leading-tight ${isDebugAgent ? "title-warm" : "title-blue"}`}>
           {title}
         </h1>
 
         <!-- Description -->
-        <p class="text-lg text-slate-400 mb-6">
+        <p class="text-lg text-slate-600 mb-6">
           {description}
         </p>
 
         <!-- Meta info -->
-        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-400 mb-6">
+        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-6">
           <span>By {author}</span>
           <span>•</span>
           <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
@@ -95,9 +101,9 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
           <div class="series-nav-title">
             Part of the "{seriesMeta.title}" series
           </div>
-          <p class="text-sm text-slate-400">
+          <p class="text-sm text-slate-600">
           </p>
-          <a href={`/tags/${series}/`} class="text-sm text-neural-600 hover:underline transition-colors mt-2 inline-block">
+          <a href={`/tags/${series}/`} class="text-sm text-neural-400 hover:underline transition-colors mt-2 inline-block">
             View all articles in this series →
           </a>
         </div>
@@ -109,7 +115,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
       </div>
 
       <!-- Article Footer -->
-        <footer class="mt-12 pt-8 border-t border-white/8">
+        <footer class="mt-12 pt-8 border-t border-slate-900/10">
         <div class="flex flex-wrap gap-2 mb-6">
           {tags.map((tag) => (
             <a href={`/tags/${tag}/`} class={`tag ${tag.endsWith("-series") ? "tag-series" : ""}`}>
@@ -119,8 +125,8 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
         </div>
 
         <div class="flex justify-between items-center">
-          <a href="/articles/" class="btn-secondary">
-            ← Back to Articles
+          <a href={projectMeta.hubHref} class="btn-secondary">
+            {projectMeta.backLabel}
           </a>
           {series && (
             <a href={`/tags/${series}/`} class="btn-primary">

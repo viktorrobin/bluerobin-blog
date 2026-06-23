@@ -1,474 +1,146 @@
 ---
 import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
 
-// Tech stack with official SimpleIcons SVG logos
-const techStack = [
-  { name: ".NET 10", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M24 8.77h-2.468v7.565h-1.425V8.77h-2.462V7.53H24zm-6.852 7.565h-4.821V7.53h4.63v1.24h-3.205v2.494h2.953v1.234h-2.953v2.604h3.396zm-6.708 0H8.882L4.78 9.863a2.896 2.896 0 0 1-.258-.51h-.036c.032.189.048.592.048 1.21v5.772H3.157V7.53h1.659l3.965 6.32c.167.261.275.442.323.54h.024c-.04-.233-.06-.629-.06-1.185V7.529h1.372zm-8.703-.693a.868.829 0 0 1-.869.829.868.829 0 0 1-.868-.83.868.829 0 0 1 .868-.828.868.829 0 0 1 .869.829Z"/></svg>` },
-  { name: "Blazor", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.8337 8.1013a13.9123 13.9123 0 0 1-13.6424 11.72 10.1053 10.1053 0 0 1-1.994-.121 6.111 6.111 0 0 1-5.0824-5.7607 5.9344 5.9344 0 0 1 11.867-.0838c.025.9835-.4011 1.8464-1.277 1.8713-.9356 0-1.3742-.6677-1.3742-1.5674v-2.5001a1.5313 1.5313 0 0 0-1.5196-1.5328H8.7152a3.6481 3.6481 0 1 0 2.6948 6.0794l.0733-.1093.0734.1213a2.5807 2.5807 0 0 0 2.2007 1.0479 2.9088 2.9088 0 0 0 2.6947-3.0406 7.912 7.912 0 0 0-.217-1.9324 7.4043 7.4043 0 0 0-14.6395 1.6033 7.4971 7.4971 0 0 0 7.307 7.4043s.549.05 1.1677.0357a15.8029 15.8029 0 0 0 8.4747-2.5283c.036-.025.0719.025.048.0614a12.4392 12.4392 0 0 1-9.6901 3.9625A8.7442 8.7442 0 0 1 .003 13.8603a9.049 9.049 0 0 1 3.6349-7.2471 8.8634 8.8634 0 0 1 5.229-1.7262h2.813a7.9145 7.9145 0 0 0 5.8386-2.5777.1093.1093 0 0 1 .0594-.034.1115.1115 0 0 1 .1195.0522.113.113 0 0 1 .0155.0672 7.9345 7.9345 0 0 1-1.2274 3.5493.1075.1075 0 0 0-.0132.0609.1098.1098 0 0 0 .0724.0945.109.109 0 0 0 .0619.0033 8.5054 8.5054 0 0 0 5.9134-4.876.1554.1554 0 0 1 .0546-.0527.1497.1497 0 0 1 .147 0 .1535.1535 0 0 1 .0546.0527 10.779 10.779 0 0 1 1.0575 6.8746zm-14.9383 3.527a2.188 2.188 0 1 0 2.1877 2.1878v-2.0425a.1577.1577 0 0 0-.1497-.1497Z"/></svg>` },
-  { name: "NATS", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M12.004 0H.404v18.807h9.938l1.714 1.602v-.026L15.966 24v-5.193h7.63V0H12.003zm7.578 14.45H15.38L6.898 6.519v7.93H4.116V4.376h4.349l8.344 7.784V4.375h2.773V14.45z"/></svg>` },
-  { name: "PostgreSQL", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698z"/></svg>` },
-  { name: "Qdrant", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M4.477 21.842L12 17.999l7.523 3.843-1.478-8.616L23.568 7.9l-8.646-1.257L12 .158 9.078 6.643.432 7.9l5.523 5.326z" fill-rule="evenodd"/></svg>` },
-  { name: "MinIO", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M13.2072.006c-.6216-.0478-1.2.1943-1.6211.582a2.15 2.15 0 0 0-.0938 3.0352l3.4082 3.5507a3.042 3.042 0 0 1-.664 4.6875l-.463.2383V7.2853a15.4198 15.4198 0 0 0-8.0174 10.4862v.0176l6.5487-3.3281v7.621L13.7794 24V13.6817l.8965-.4629a4.4432 4.4432 0 0 0 1.2207-7.0292l-3.371-3.5254a.7489.7489 0 0 1 .037-1.0547.7522.7522 0 0 1 1.0567.0371l.4668.4863-.006.0059 4.0704 4.2441a.0566.0566 0 0 0 .082 0 .06.06 0 0 0 0-.0703l-3.1406-5.1425-.1484.1425.1484-.1445C14.4945.3926 13.8287.0538 13.2072.006Zm-.9024 9.8652v2.9941l-4.1523 2.1484a13.9787 13.9787 0 0 1 2.7676-3.9277 14.1784 14.1784 0 0 1 1.3847-1.2148z"/></svg>` },
-  { name: "FalkorDB", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="6" cy="18" r="2.5"/><line x1="6" y1="8.5" x2="6" y2="15.5" stroke="currentColor" stroke-width="1.4"/><line x1="18" y1="8.5" x2="18" y2="15.5" stroke="currentColor" stroke-width="1.4"/><line x1="8.2" y1="7.3" x2="16" y2="16.8" stroke="currentColor" stroke-width="1.4"/><line x1="15.8" y1="7.3" x2="14" y2="16.8" stroke="currentColor" stroke-width="1.4"/></svg>` },
-  { name: "Ollama", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"/></svg>` },
-  { name: "Kubernetes", icon: `<svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L7.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l.01-.005.15-2.62a5.144 5.144 0 0 0-3.01 1.442l2.147 1.523.004-.002zm.76 2.75l.723.349.722-.347.18-.78-.5-.623h-.804l-.5.623.179.779zm1.5-3.095a.44.44 0 0 0 .7.336l.008.003 2.134-1.513a5.188 5.188 0 0 0-2.992-1.442l.148 2.615.002.001zm10.876 5.97l-5.773 7.181a1.6 1.6 0 0 1-1.248.594l-9.261.003a1.6 1.6 0 0 1-1.247-.596l-5.776-7.18a1.583 1.583 0 0 1-.307-1.34L2.1 5.573c.108-.47.425-.864.863-1.073L11.305.513a1.606 1.606 0 0 1 1.385 0l8.345 3.985c.438.209.755.604.863 1.073l2.062 8.955c.108.47-.005.963-.308 1.34z"/></svg>` },
+// Live counts per project to show on each tile
+const allPosts = await getCollection("blog", ({ data }) => !data.draft);
+const archivesCount = allPosts.filter((p) => p.data.project !== "debug-agent").length;
+const debugAgentCount = allPosts.filter((p) => p.data.project === "debug-agent").length;
+
+const projects = [
+  {
+    href: "/archives/",
+    kind: "Homelab project",
+    kindBg: "--color-neural-alpha-10",
+    kindBorder: "--color-neural-alpha-20",
+    kindIcon: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>`,
+    label: "The Archives",
+    tagline: "Self-hosted document intelligence",
+    description:
+      "Upload any document, ask any question, get answers cited from your own archive. A full stack: OCR, entity extraction, a knowledge graph, multi-model vector search and cited RAG — running end-to-end on a homelab K3s cluster.",
+    cta: "Explore the Archives",
+    count: archivesCount,
+    countLabel: "articles",
+    grad: "var(--gradient-neural)",
+    accentVar: "--color-neural-400",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/></svg>`,
+  },
+  {
+    href: "/debug-agent/",
+    kind: "Research project",
+    kindBg: "--color-complement-alpha-10",
+    kindBorder: "--color-complement-alpha-20",
+    kindIcon: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2v6l5.5 9.5a2 2 0 0 1-1.7 3H6.2a2 2 0 0 1-1.7-3L10 8V2"/><path d="M8.5 2h7"/><path d="M7 16h10"/></svg>`,
+    label: "The Debug Agent",
+    tagline: "Autonomous, graph-grounded root-cause analysis",
+    description:
+      "When production breaks, an LLM agent investigates — traversing a FalkorDB world-model, ranking suspects with correlation-first scoring, and opening a pull request only when hard evidence supports it. Research-grade RCA at homelab cost.",
+    cta: "Explore the Debug Agent",
+    count: debugAgentCount,
+    countLabel: "papers",
+    grad: "var(--gradient-complement)",
+    accentVar: "--color-complement-300",
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/><circle cx="11" cy="11" r="2.2" fill="currentColor" stroke="none"/></svg>`,
+  },
 ];
 ---
 
-<MainLayout title="The BlueRobin Project" description="A homelab journey from medical document search to production AI">
-  <!-- Hero Section -->
-  <section class="relative overflow-hidden" style="background: var(--gradient-mesh);">
-    <!-- Animated background elements -->
-    <div class="absolute inset-0 overflow-hidden">
-      <div class="absolute -top-40 -right-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse"></div>
-      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-aurora-500/8 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
-      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-complement-500/6 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+<MainLayout
+  title="BlueRobin — Two homelab projects"
+  description="The work of Victor Robin: The Archives, a self-hosted document-intelligence platform, and The Debug Agent, an autonomous graph-grounded root-cause-analysis agent. Choose an area to explore."
+>
+  <!-- Intro -->
+  <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
+    <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -top-40 -left-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-complement-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.2s;"></div>
     </div>
-    
-    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
-      <!-- Hero Text -->
-      <div class="text-center animate-entry">
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-complement-alpha-12); border: 1px solid var(--color-complement-alpha-25); color: var(--color-complement-400);">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          Personal Project &middot; Document AI &middot; Self-Hosted
-        </div>
 
-        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-100 mb-6 leading-tight tracking-tight">
-          <span class="text-transparent bg-clip-text" style="background-image: var(--gradient-signature);">Self-hosted document AI,<br>built end-to-end</span>
-        </h1>
-
-        <p class="text-lg sm:text-xl text-slate-300 max-w-3xl mx-auto mb-5">
-          Upload any document. Ask any question.<br>
-          Get answers cited directly from your own archive.
-        </p>
-
-        <p class="text-base text-slate-400 max-w-2xl mx-auto mb-10">
-          A homelab project &mdash; a complete document intelligence stack covering OCR, entity extraction, knowledge graphs, multi-model vector search, and LLM-powered RAG. All running on self-hosted Kubernetes.
-        </p>
-
-        <div class="flex flex-wrap justify-center gap-4 mb-14">
-          <a href="/architecture/" class="btn-primary">
-            Architecture
-          </a>
-          <a href="/articles/" class="btn-secondary">
-            All Articles
-          </a>
-        </div>
-
-        <!-- Stats strip -->
-        <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
-          <span class="flex items-center gap-2 text-slate-400">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
-            Multi-model Vector Search
-          </span>
-          <span class="flex items-center gap-2 text-slate-400">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
-            Knowledge Graph
-          </span>
-          <span class="flex items-center gap-2 text-slate-400">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
-            Per-User Encryption
-          </span>
-          <span class="flex items-center gap-2 text-slate-400">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
-            100% Self-Hosted
-          </span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- How It Works Section -->
-  <section class="py-20 relative">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">How It Works</h2>
-        <p class="text-slate-400 max-w-xl mx-auto">Three steps: parse with OCR, enrich with AI, then index across multiple vector models. Each step is a separate background worker communicating over NATS.</p>
+    <div class="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-10 sm:pt-28 text-center animate-entry">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-neural-400);">
+        <img src="/bluerobin-logo.png" alt="" class="w-4 h-4 object-contain" />
+        BlueRobin · a homelab by Victor Robin
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
-        <!-- Connector line on desktop -->
-        <div class="hidden sm:block absolute top-[3.25rem] left-[calc(33.33%+1rem)] right-[calc(33.33%+1rem)] h-px opacity-50" style="background: linear-gradient(to right, var(--color-neural-alpha-30), var(--color-complement-alpha-30));"></div>
+      <h1 class="text-4xl sm:text-5xl lg:text-6xl font-display font-bold mb-6 leading-tight tracking-tight">
+        <span class="title-blue">Two projects,</span><br />
+        <span class="title-warm">one homelab.</span>
+      </h1>
 
-        <!-- Step 1 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">1</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Upload &amp; Parse</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Docling converts uploaded documents to structured text, preserving tables, headings, and layout. The structure is used for accurate chunking during indexing.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-600); border: 1px solid var(--color-neural-alpha-20);">Docling OCR</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-600); border: 1px solid var(--color-neural-alpha-20);">Structure Extraction</span>
-          </div>
-        </div>
-
-        <!-- Step 2 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Extract &amp; Index</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Named entities are extracted and linked into a knowledge graph. Each chunk is embedded across 8 vector models and stored in Qdrant, alongside a generated summary and keyword set.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Entity Extraction</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Knowledge Graph</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Embeddings</span>
-          </div>
-        </div>
-
-        <!-- Step 3 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">3</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-100 mb-1.5">Search &amp; Ask</h3>
-            <p class="text-sm text-slate-400 leading-relaxed">Reciprocal Rank Fusion combines scores from all vector models to find the most relevant passages. A locally hosted LLM answers in plain English, with citations to the exact source paragraphs.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Qdrant</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">RRF Ensemble</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Ollama RAG</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Entity Insights Section -->
-  <section class="py-16 relative" style="background: var(--gradient-mesh);">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">Cross-document reasoning with a knowledge graph</h2>
-        <p class="text-slate-400 max-w-2xl mx-auto">Entities from each document are linked across your archive. When a question spans multiple files, the graph connects them &mdash; the LLM then reasons across the combined result.</p>
-      </div>
-
-      <!-- Scenario card -->
-      <div class="glass-card p-8 max-w-4xl mx-auto">
-        <div class="flex flex-col gap-8">
-
-          <!-- Row: Documents in -->
-          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400">3 Documents</div>
-            <div class="flex flex-wrap gap-3 flex-1">
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-200);">📄 Medical letter &mdash; Jan 2024</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-200);">📄 Lab results &mdash; Mar 2024</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-200);">📄 Prescription &mdash; Apr 2024</span>
-            </div>
-          </div>
-
-          <!-- Divider with arrow -->
-          <div class="flex items-center gap-3">
-            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-            <div class="text-xs text-slate-400 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-              Entity extraction &amp; graph linking
-            </div>
-            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-          </div>
-
-          <!-- Row: Graph connections -->
-          <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400 pt-1">Graph links</div>
-            <div class="flex flex-col gap-2 flex-1 text-sm">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Dr. Nguyen</span>
-                <span class="text-slate-400 text-xs">&rarr; mentioned in</span>
-                <span class="text-slate-400">all 3 documents</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Diagnosis</span>
-                <span class="text-slate-400 text-xs">&rarr; linked to</span>
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Treatment</span>
-                <span class="text-slate-400 text-xs">&rarr; linked to</span>
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Prescription</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Lab value: HbA1c 7.2</span>
-                <span class="text-slate-400 text-xs">&rarr; referenced in</span>
-                <span class="text-slate-400">follow-up letter + prescription context</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Divider with arrow -->
-          <div class="flex items-center gap-3">
-            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
-            <div class="text-xs text-slate-400 flex items-center gap-1.5">
-              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-              RAG query across graph + vectors
-            </div>
-            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
-          </div>
-
-          <!-- Row: The answer -->
-          <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-400 pt-2">You ask</div>
-            <div class="flex-1">
-              <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-200 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
-                &ldquo;What has Dr. Nguyen prescribed since my diagnosis, and why?&rdquo;
-              </div>
-              <div class="rounded-xl px-4 py-3 text-sm text-slate-300 leading-relaxed" style="background: rgba(16, 16, 18, 0.80); border: 1px solid var(--color-neural-alpha-25);">
-                <span class="font-medium" style="color: var(--color-neural-600);">BlueRobin:</span> Based on your medical letter (Jan 2024) and prescription (Apr 2024), Dr. Nguyen prescribed Lisinopril 10mg following a diagnosis of stage-1 hypertension. The decision was informed by the HbA1c reading of 7.2 from your March lab results, which indicated elevated cardiovascular risk.
-                <div class="flex gap-2 mt-2.5 flex-wrap">
-                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: medical-letter-jan-2024.pdf</span>
-                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: lab-results-mar-2024.pdf</span>
-                </div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <p class="text-center text-sm text-slate-400 mt-6">This is not keyword search. The graph connected three documents. The LLM reasoned across them.</p>
-    </div>
-  </section>
-
-  <!-- Core Capabilities Section -->
-  <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh);">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-100 mb-3">What's under the hood</h2>
-        <p class="text-slate-400 max-w-xl mx-auto">The full stack &mdash; API, workers, frontend, messaging, vector search, graph, and AI inference &mdash; running on a homelab K3s cluster.</p>
-      </div>
-
-      <div class="bento-grid">
-        <!-- Row 1: Two primary intelligence feature cards -->
-        <div class="bento-card bento-lg bento-complement">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          </div>
-          <h3>Knowledge Graph &amp; Entity Intelligence</h3>
-          <p>Each document is analysed to extract named entities &mdash; people, organisations, dates, financial figures, medical terms. Entities are deduplicated, resolved to canonical records, and linked into a queryable graph that grows with every upload. Connections surface across the full archive, not just within a single document.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Entity Extraction</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Canonical Resolution</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Graph Traversal</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Inferred Relationships</span>
-          </div>
-        </div>
-
-        <div class="bento-card bento-lg bento-complement">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg>
-          </div>
-          <h3>Semantic Search &amp; RAG</h3>
-          <p>Documents are embedded across 8 vector models and stored in Qdrant. At query time, Reciprocal Rank Fusion combines rankings from each model. A locally hosted LLM answers the question, citing the exact source paragraphs it used.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Ensemble Retrieval</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Reciprocal Rank Fusion</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Cited Answers</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Self-Hosted LLM</span>
-          </div>
-        </div>
-
-        <!-- Row 2: Three supporting features -->
-        <div class="bento-card bento-neural">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
-          </div>
-          <h3>Archive Management</h3>
-          <p>Per-document lifecycle: <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.25rem; border-radius: 0.25rem;">Pending &rarr; Stored &rarr; Processing &rarr; Enriched &rarr; Indexed</code>. Per-user isolated storage. Real-time Blazor UI updates via NATS JetStream.</p>
-        </div>
-
-        <div class="bento-card bento-aurora">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <h3>Per-User Encryption</h3>
-          <p>Dedicated MinIO bucket per user. Unique KES encryption key per user. SSE-KMS at rest. Physically and cryptographically isolated from every other account.</p>
-        </div>
-
-        <div class="bento-card bento-glow">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><path d="M18 9v12"/><path d="M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M15 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
-          </div>
-          <h3>Event-Driven Pipeline</h3>
-          <p>NATS JetStream for async processing, distributed worker deduplication via KV store, and real-time status propagation to the Blazor UI without polling.</p>
-        </div>
-
-        <!-- Full-width -->
-        <div class="bento-card bento-full bento-slate">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          </div>
-          <div>
-            <h3>100% Self-Hosted on a Homelab K3s Cluster</h3>
-            <p>Every component runs locally &mdash; Ollama for AI inference, Flux for GitOps, Linkerd for mTLS service mesh, KES for key management. Your data never leaves your hardware.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Architecture & Tech Stack Section -->
-  <section class="py-16" style="background: var(--gradient-mesh);">
-    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-8">
-        <h2 class="text-3xl font-display font-semibold text-slate-100 mb-4">
-          Architecture
-        </h2>
-        <p class="text-slate-400 max-w-2xl mx-auto mb-8">
-          .NET 10 with Clean Architecture and DDD aggregates. NATS JetStream for async event processing. Flux GitOps on K3s. Full documentation in the Architecture section.
-        </p>
-
-        <!-- Tech Stack Pills -->
-        <div class="flex flex-wrap justify-center gap-3 animate-entry-delay-2">
-          {techStack.map((tech) => (
-            <span class="tech-pill">
-              <Fragment set:html={tech.icon} />
-              {tech.name}
-            </span>
-          ))}
-        </div>
-      </div>
-      
-      <!-- Architecture Diagram with logos and gradient cards -->
-      <div class="glass-card p-8 max-w-4xl mx-auto animate-entry-delay-3">
-        <div class="flex flex-col gap-2 text-center text-sm">
-          
-          <!-- Layer: Frontend -->
-          <div class="arch-layer-label arch-label-neural">Frontend</div>
-          <div class="flex justify-center">
-            <div class="arch-node arch-node-neural">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M23.8337 8.1013a13.9123 13.9123 0 0 1-13.6424 11.72 10.1053 10.1053 0 0 1-1.994-.121 6.111 6.111 0 0 1-5.0824-5.7607 5.9344 5.9344 0 0 1 11.867-.0838c.025.9835-.4011 1.8464-1.277 1.8713-.9356 0-1.3742-.6677-1.3742-1.5674v-2.5001a1.5313 1.5313 0 0 0-1.5196-1.5328H8.7152a3.6481 3.6481 0 1 0 2.6948 6.0794l.0733-.1093.0734.1213a2.5807 2.5807 0 0 0 2.2007 1.0479 2.9088 2.9088 0 0 0 2.6947-3.0406 7.912 7.912 0 0 0-.217-1.9324 7.4043 7.4043 0 0 0-14.6395 1.6033 7.4971 7.4971 0 0 0 7.307 7.4043s.549.05 1.1677.0357a15.8029 15.8029 0 0 0 8.4747-2.5283c.036-.025.0719.025.048.0614a12.4392 12.4392 0 0 1-9.6901 3.9625A8.7442 8.7442 0 0 1 .003 13.8603a9.049 9.049 0 0 1 3.6349-7.2471 8.8634 8.8634 0 0 1 5.229-1.7262h2.813a7.9145 7.9145 0 0 0 5.8386-2.5777.1093.1093 0 0 1 .0594-.034.1115.1115 0 0 1 .1195.0522.113.113 0 0 1 .0155.0672 7.9345 7.9345 0 0 1-1.2274 3.5493.1075.1075 0 0 0-.0132.0609.1098.1098 0 0 0 .0724.0945.109.109 0 0 0 .0619.0033 8.5054 8.5054 0 0 0 5.9134-4.876.1554.1554 0 0 1 .0546-.0527.1497.1497 0 0 1 .147 0 .1535.1535 0 0 1 .0546.0527 10.779 10.779 0 0 1 1.0575 6.8746zm-14.9383 3.527a2.188 2.188 0 1 0 2.1877 2.1878v-2.0425a.1577.1577 0 0 0-.1497-.1497Z"/></svg>
-              <div>
-                <div class="font-semibold">Blazor Server</div>
-                <div class="text-xs opacity-70">Interactive UI · Real-time updates</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Arrow -->
-          <div class="arch-arrow arch-arrow-neural">▼</div>
-          
-          <!-- Layer: Application -->
-          <div class="arch-layer-label arch-label-neural">Application</div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div class="arch-node arch-node-neural-muted">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M24 8.77h-2.468v7.565h-1.425V8.77h-2.462V7.53H24zm-6.852 7.565h-4.821V7.53h4.63v1.24h-3.205v2.494h2.953v1.234h-2.953v2.604h3.396zm-6.708 0H8.882L4.78 9.863a2.896 2.896 0 0 1-.258-.51h-.036c.032.189.048.592.048 1.21v5.772H3.157V7.53h1.659l3.965 6.32c.167.261.275.442.323.54h.024c-.04-.233-.06-.629-.06-1.185V7.529h1.372zm-8.703-.693a.868.829 0 0 1-.869.829.868.829 0 0 1-.868-.83.868.829 0 0 1 .868-.828.868.829 0 0 1 .869.829Z"/></svg>
-              <div>
-                <div class="font-semibold">FastEndpoints API</div>
-                <div class="text-xs opacity-70">REST · OpenAPI</div>
-              </div>
-            </div>
-            <div class="arch-node arch-node-neural-muted">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M24 8.77h-2.468v7.565h-1.425V8.77h-2.462V7.53H24zm-6.852 7.565h-4.821V7.53h4.63v1.24h-3.205v2.494h2.953v1.234h-2.953v2.604h3.396zm-6.708 0H8.882L4.78 9.863a2.896 2.896 0 0 1-.258-.51h-.036c.032.189.048.592.048 1.21v5.772H3.157V7.53h1.659l3.965 6.32c.167.261.275.442.323.54h.024c-.04-.233-.06-.629-.06-1.185V7.529h1.372zm-8.703-.693a.868.829 0 0 1-.869.829.868.829 0 0 1-.868-.83.868.829 0 0 1 .868-.828.868.829 0 0 1 .869.829Z"/></svg>
-              <div>
-                <div class="font-semibold">Background Workers</div>
-                <div class="text-xs opacity-70">OCR · Embeddings · NER</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Arrow -->
-          <div class="arch-arrow arch-arrow-neural">▼</div>
-
-          <!-- Layer: Messaging -->
-          <div class="arch-layer-label arch-label-neural">Messaging</div>
-          <div class="flex justify-center">
-            <div class="arch-node arch-node-wide arch-node-neural">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M12.004 0H.404v18.807h9.938l1.714 1.602v-.026L15.966 24v-5.193h7.63V0H12.003zm7.578 14.45H15.38L6.898 6.519v7.93H4.116V4.376h4.349l8.344 7.784V4.375h2.773V14.45z"/></svg>
-              <div>
-                <div class="font-semibold">NATS JetStream</div>
-                <div class="text-xs opacity-70">Event-Driven Messaging · KV Store</div>
-              </div>
-            </div>
-          </div>
-          
-          <!-- Arrow -->
-          <div class="arch-arrow arch-arrow-neural">▼</div>
-
-          <!-- Layer: Data -->
-          <div class="arch-layer-label arch-label-neural">Data Layer</div>
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M23.5594 14.7228a.5269.5269 0 0 0-.0563-.1191c-.139-.2632-.4768-.3418-1.0074-.2321-1.6533.3411-2.2935.1312-2.5256-.0191 1.342-2.0482 2.445-4.522 3.0411-6.8297.2714-1.0507.7982-3.5237.1222-4.7316a1.5641 1.5641 0 0 0-.1509-.235C21.6931.9086 19.8007.0248 17.5099.0005c-1.4947-.0158-2.7705.3461-3.1161.4794a9.449 9.449 0 0 0-.5159-.0816 8.044 8.044 0 0 0-1.3114-.1278c-1.1822-.0184-2.2038.2642-3.0498.8406-.8573-.3211-4.7888-1.645-7.2219.0788C.9359 2.1526.3086 3.8733.4302 6.3043c.0409.818.5069 3.334 1.2423 5.7436.4598 1.5065.9387 2.7019 1.4334 3.582.553.9942 1.1259 1.5933 1.7143 1.7895.4474.1491 1.1327.1441 1.8581-.7279.8012-.9635 1.5903-1.8258 1.9446-2.2069.4351.2355.9064.3625 1.39.3772a.0569.0569 0 0 0 .0004.0041 11.0312 11.0312 0 0 0-.2472.3054c-.3389.4302-.4094.5197-1.5002.7443-.3102.064-1.1344.2339-1.1464.8115-.0025.1224.0329.2309.0919.3268.2269.4231.9216.6097 1.015.6331 1.3345.3335 2.5044.092 3.3714-.6787-.017 2.231.0775 4.4174.3454 5.0874.2212.5529.7618 1.9045 2.4692 1.9043.2505 0 .5263-.0291.8296-.0941 1.7819-.3821 2.5557-1.1696 2.855-2.9059.1503-.8707.4016-2.8753.5388-4.1012.0169-.0703.0357-.1207.057-.1362.0007-.0005.0697-.0471.4272.0307a.3673.3673 0 0 0 .0443.0068l.2539.0223.0149.001c.8468.0384 1.9114-.1426 2.5312-.4308.6438-.2988 1.8057-1.0323 1.5951-1.6698z"/></svg>
-              <div class="font-semibold">PostgreSQL</div>
-              <div class="text-xs opacity-70">Metadata</div>
-            </div>
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M4.477 21.842L12 17.999l7.523 3.843-1.478-8.616L23.568 7.9l-8.646-1.257L12 .158 9.078 6.643.432 7.9l5.523 5.326z" fill-rule="evenodd"/></svg>
-              <div class="font-semibold">Qdrant</div>
-              <div class="text-xs opacity-70">Vectors</div>
-            </div>
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M13.2072.006c-.6216-.0478-1.2.1943-1.6211.582a2.15 2.15 0 0 0-.0938 3.0352l3.4082 3.5507a3.042 3.042 0 0 1-.664 4.6875l-.463.2383V7.2853a15.4198 15.4198 0 0 0-8.0174 10.4862v.0176l6.5487-3.3281v7.621L13.7794 24V13.6817l.8965-.4629a4.4432 4.4432 0 0 0 1.2207-7.0292l-3.371-3.5254a.7489.7489 0 0 1 .037-1.0547.7522.7522 0 0 1 1.0567.0371l.4668.4863-.006.0059 4.0704 4.2441a.0566.0566 0 0 0 .082 0 .06.06 0 0 0 0-.0703l-3.1406-5.1425-.1484.1425.1484-.1445C14.4945.3926 13.8287.0538 13.2072.006Zm-.9024 9.8652v2.9941l-4.1523 2.1484a13.9787 13.9787 0 0 1 2.7676-3.9277 14.1784 14.1784 0 0 1 1.3847-1.2148z"/></svg>
-              <div class="font-semibold">MinIO</div>
-              <div class="text-xs opacity-70">Documents</div>
-            </div>
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><circle cx="18" cy="18" r="2.5"/><circle cx="6" cy="18" r="2.5"/><line x1="6" y1="8.5" x2="6" y2="15.5" stroke="currentColor" stroke-width="1.4"/><line x1="18" y1="8.5" x2="18" y2="15.5" stroke="currentColor" stroke-width="1.4"/><line x1="8.2" y1="7.3" x2="16" y2="16.8" stroke="currentColor" stroke-width="1.4"/><line x1="15.8" y1="7.3" x2="14" y2="16.8" stroke="currentColor" stroke-width="1.4"/></svg>
-              <div class="font-semibold">FalkorDB</div>
-              <div class="text-xs opacity-70">Graph</div>
-            </div>
-          </div>
-          
-          <!-- Arrow -->
-          <div class="arch-arrow arch-arrow-neural">▼</div>
-
-          <!-- Layer: AI Services -->
-          <div class="arch-layer-label arch-label-neural">AI Services</div>
-          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M16.361 10.26a.894.894 0 0 0-.558.47l-.072.148.001.207c0 .193.004.217.059.353.076.193.152.312.291.448.24.238.51.3.872.205a.86.86 0 0 0 .517-.436.752.752 0 0 0 .08-.498c-.064-.453-.33-.782-.724-.897a1.06 1.06 0 0 0-.466 0zm-9.203.005c-.305.096-.533.32-.65.639a1.187 1.187 0 0 0-.06.52c.057.309.31.59.598.667.362.095.632.033.872-.205.14-.136.215-.255.291-.448.055-.136.059-.16.059-.353l.001-.207-.072-.148a.894.894 0 0 0-.565-.472 1.02 1.02 0 0 0-.474.007Zm4.184 2c-.131.071-.223.25-.195.383.031.143.157.288.353.407.105.063.112.072.117.136.004.038-.01.146-.029.243-.02.094-.036.194-.036.222.002.074.07.195.143.253.064.052.076.054.255.059.164.005.198.001.264-.03.169-.082.212-.234.15-.525-.052-.243-.042-.28.087-.355.137-.08.281-.219.324-.314a.365.365 0 0 0-.175-.48.394.394 0 0 0-.181-.033c-.126 0-.207.03-.355.124l-.085.053-.053-.032c-.219-.13-.259-.145-.391-.143a.396.396 0 0 0-.193.032zm.39-2.195c-.373.036-.475.05-.654.086-.291.06-.68.195-.951.328-.94.46-1.589 1.226-1.787 2.114-.04.176-.045.234-.045.53 0 .294.005.357.043.524.264 1.16 1.332 2.017 2.714 2.173.3.033 1.596.033 1.896 0 1.11-.125 2.064-.727 2.493-1.571.114-.226.169-.372.22-.602.039-.167.044-.23.044-.523 0-.297-.005-.355-.045-.531-.288-1.29-1.539-2.304-3.072-2.497a6.873 6.873 0 0 0-.855-.031zm.645.937a3.283 3.283 0 0 1 1.44.514c.223.148.537.458.671.662.166.251.26.508.303.82.02.143.01.251-.043.482-.08.345-.332.705-.672.957a3.115 3.115 0 0 1-.689.348c-.382.122-.632.144-1.525.138-.582-.006-.686-.01-.853-.042-.57-.107-1.022-.334-1.35-.68-.264-.28-.385-.535-.45-.946-.03-.192.025-.509.137-.776.136-.326.488-.73.836-.963.403-.269.934-.46 1.422-.512.187-.02.586-.02.773-.002zm-5.503-11a1.653 1.653 0 0 0-.683.298C5.617.74 5.173 1.666 4.985 2.819c-.07.436-.119 1.04-.119 1.503 0 .544.064 1.24.155 1.721.02.107.031.202.023.208a8.12 8.12 0 0 1-.187.152 5.324 5.324 0 0 0-.949 1.02 5.49 5.49 0 0 0-.94 2.339 6.625 6.625 0 0 0-.023 1.357c.091.78.325 1.438.727 2.04l.13.195-.037.064c-.269.452-.498 1.105-.605 1.732-.084.496-.095.629-.095 1.294 0 .67.009.803.088 1.266.095.555.288 1.143.503 1.534.071.128.243.393.264.407.007.003-.014.067-.046.141a7.405 7.405 0 0 0-.548 1.873c-.062.417-.071.552-.071.991 0 .56.031.832.148 1.279L3.42 24h1.478l-.05-.091c-.297-.552-.325-1.575-.068-2.597.117-.472.25-.819.498-1.296l.148-.29v-.177c0-.165-.003-.184-.057-.293a.915.915 0 0 0-.194-.25 1.74 1.74 0 0 1-.385-.543c-.424-.92-.506-2.286-.208-3.451.124-.486.329-.918.544-1.154a.787.787 0 0 0 .223-.531c0-.195-.07-.355-.224-.522a3.136 3.136 0 0 1-.817-1.729c-.14-.96.114-2.005.69-2.834.563-.814 1.353-1.336 2.237-1.475.199-.033.57-.028.776.01.226.04.367.028.512-.041.179-.085.268-.19.374-.431.093-.215.165-.333.36-.576.234-.29.46-.489.822-.729.413-.27.884-.467 1.352-.561.17-.035.25-.04.569-.04.319 0 .398.005.569.04a4.07 4.07 0 0 1 1.914.997c.117.109.398.457.488.602.034.057.095.177.132.267.105.241.195.346.374.43.14.068.286.082.503.045.343-.058.607-.053.943.016 1.144.23 2.14 1.173 2.581 2.437.385 1.108.276 2.267-.296 3.153-.097.15-.193.27-.333.419-.301.322-.301.722-.001 1.053.493.539.801 1.866.708 3.036-.062.772-.26 1.463-.533 1.854a2.096 2.096 0 0 1-.224.258.916.916 0 0 0-.194.25c-.054.109-.057.128-.057.293v.178l.148.29c.248.476.38.823.498 1.295.253 1.008.231 2.01-.059 2.581a.845.845 0 0 0-.044.098c0 .006.329.009.732.009h.73l.02-.074.036-.134c.019-.076.057-.3.088-.516.029-.217.029-1.016 0-1.258-.11-.875-.295-1.57-.597-2.226-.032-.074-.053-.138-.046-.141.008-.005.057-.074.108-.152.376-.569.607-1.284.724-2.228.031-.26.031-1.378 0-1.628-.083-.645-.182-1.082-.348-1.525a6.083 6.083 0 0 0-.329-.7l-.038-.064.131-.194c.402-.604.636-1.262.727-2.04a6.625 6.625 0 0 0-.024-1.358 5.512 5.512 0 0 0-.939-2.339 5.325 5.325 0 0 0-.95-1.02 8.097 8.097 0 0 1-.186-.152.692.692 0 0 1 .023-.208c.208-1.087.201-2.443-.017-3.503-.19-.924-.535-1.658-.98-2.082-.354-.338-.716-.482-1.15-.455-.996.059-1.8 1.205-2.116 3.01a6.805 6.805 0 0 0-.097.726c0 .036-.007.066-.015.066a.96.96 0 0 1-.149-.078A4.857 4.857 0 0 0 12 3.03c-.832 0-1.687.243-2.456.698a.958.958 0 0 1-.148.078c-.008 0-.015-.03-.015-.066a6.71 6.71 0 0 0-.097-.725C8.997 1.392 8.337.319 7.46.048a2.096 2.096 0 0 0-.585-.041Zm.293 1.402c.248.197.523.759.682 1.388.03.113.06.244.069.292.007.047.026.152.041.233.067.365.098.76.102 1.24l.002.475-.12.175-.118.178h-.278c-.324 0-.646.041-.954.124l-.238.06c-.033.007-.038-.003-.057-.144a8.438 8.438 0 0 1 .016-2.323c.124-.788.413-1.501.696-1.711.067-.05.079-.049.157.013zm9.825-.012c.17.126.358.46.498.888.28.854.36 2.028.212 3.145-.019.14-.024.151-.057.144l-.238-.06a3.693 3.693 0 0 0-.954-.124h-.278l-.119-.178-.119-.175.002-.474c.004-.669.066-1.19.214-1.772.157-.623.434-1.185.68-1.382.078-.062.09-.063.159-.012z"/></svg>
-              <div class="font-semibold">Ollama</div>
-              <div class="text-xs opacity-70">LLM · Embeddings</div>
-            </div>
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.8"/><text x="12" y="16" text-anchor="middle" font-size="10" font-weight="bold" fill="currentColor">D</text></svg>
-              <div class="font-semibold">Docling OCR</div>
-              <div class="text-xs opacity-70">Text Extraction</div>
-            </div>
-            <div class="arch-node arch-node-compact arch-node-neural-muted">
-              <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="5" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="5" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="19" cy="19" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><line x1="6.5" y1="6.5" x2="10" y2="10" stroke="currentColor" stroke-width="1.4"/><line x1="17.5" y1="6.5" x2="14" y2="10" stroke="currentColor" stroke-width="1.4"/><line x1="6.5" y1="17.5" x2="10" y2="14" stroke="currentColor" stroke-width="1.4"/><line x1="17.5" y1="17.5" x2="14" y2="14" stroke="currentColor" stroke-width="1.4"/></svg>
-              <div class="font-semibold">Entity Extraction</div>
-              <div class="text-xs opacity-70">NER Pipeline</div>
-            </div>
-          </div>
-          
-          <!-- Arrow -->
-          <div class="arch-arrow arch-arrow-neural">▼</div>
-
-          <!-- Layer: Orchestration -->
-          <div class="arch-layer-label arch-label-neural">Orchestration</div>
-          <div class="flex justify-center">
-            <div class="arch-node arch-node-wide arch-node-neural">
-              <svg class="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="currentColor"><path d="M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L7.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l.01-.005.15-2.62a5.144 5.144 0 0 0-3.01 1.442l2.147 1.523.004-.002zm.76 2.75l.723.349.722-.347.18-.78-.5-.623h-.804l-.5.623.179.779zm1.5-3.095a.44.44 0 0 0 .7.336l.008.003 2.134-1.513a5.188 5.188 0 0 0-2.992-1.442l.148 2.615.002.001zm10.876 5.97l-5.773 7.181a1.6 1.6 0 0 1-1.248.594l-9.261.003a1.6 1.6 0 0 1-1.247-.596l-5.776-7.18a1.583 1.583 0 0 1-.307-1.34L2.1 5.573c.108-.47.425-.864.863-1.073L11.305.513a1.606 1.606 0 0 1 1.385 0l8.345 3.985c.438.209.755.604.863 1.073l2.062 8.955c.108.47-.005.963-.308 1.34z"/></svg>
-              <div>
-                <div class="font-semibold">Kubernetes (K3s)</div>
-                <div class="text-xs opacity-70">Container Orchestration · Flux GitOps · Linkerd mTLS</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- CTA Section -->
-  <section class="py-20 sm:py-28 text-center relative overflow-hidden">
-    <div class="absolute inset-0" style="background: linear-gradient(180deg, var(--glass-white-20) 0%, transparent 40%), var(--gradient-mesh);"></div>
-    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- Gradient divider -->
-      <div class="w-24 h-1 mx-auto mb-10 rounded-full" style="background: var(--gradient-signature);"></div>
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold text-slate-100 mb-6">
-        100+ Engineering Articles
-      </h2>
-      <p class="text-lg text-slate-400 mb-10 max-w-2xl mx-auto">
-        The decisions behind each component: why NATS, how multi-model RAG works in practice, what broke in production, and how it was fixed.
+      <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+        I build production-grade AI on self-hosted infrastructure — and write about it.
+        One is the <strong class="font-semibold text-slate-800">homelab product</strong> I run;
+        the other is the <strong class="font-semibold text-slate-800">research</strong> behind making it debug itself.
       </p>
-      <div class="flex flex-wrap justify-center gap-4">
-        <a href="/articles/" class="btn-primary text-lg px-8 py-3.5">
-          Start Reading
-        </a>
-        <a href="/architecture/" class="btn-secondary text-lg px-8 py-3.5">
-          View Architecture
-        </a>
-        <a href="/tags/" class="btn-secondary text-lg px-8 py-3.5">
-          Explore by Topic
-        </a>
+    </div>
+  </section>
+
+  <!-- Project chooser -->
+  <section class="relative py-12 sm:py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        {projects.map((p, i) => (
+          <a
+            href={p.href}
+            class={`project-tile glass-card group relative flex flex-col overflow-hidden p-8 animate-entry-delay-${i + 1}`}
+          >
+            <!-- top accent bar -->
+            <div class="absolute inset-x-0 top-0 h-1" style={`background: ${p.grad};`}></div>
+
+            <div class="flex items-center justify-between mb-6">
+              <span
+                class="inline-flex items-center justify-center w-12 h-12 rounded-xl text-white shrink-0"
+                style={`background: ${p.grad};`}
+                set:html={p.icon}
+              />
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={`background: var(${p.kindBg}); color: var(${p.accentVar}); border: 1px solid var(${p.kindBorder});`}>
+                <span class="inline-flex" set:html={p.kindIcon} />
+                {p.kind}
+              </span>
+            </div>
+
+            <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-1.5">
+              {p.label}
+            </h2>
+            <p class="text-sm font-medium mb-4" style={`color: var(${p.accentVar});`}>
+              {p.tagline}
+            </p>
+
+            <p class="text-slate-600 leading-relaxed mb-8">
+              {p.description}
+            </p>
+
+            <div class="mt-auto flex items-center justify-between">
+              <span class="inline-flex items-center gap-2 font-medium text-slate-900 group-hover:gap-3 transition-all">
+                {p.cta}
+                <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </span>
+              <span class="text-sm text-slate-500">
+                {p.count > 0 ? `${p.count} ${p.countLabel}` : "coming soon"}
+              </span>
+            </div>
+          </a>
+        ))}
+      </div>
+
+      <!-- secondary links -->
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+        <a href="/cookbook/" class="hover:text-neural-400 transition-colors">Cookbook</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/tags/" class="hover:text-neural-400 transition-colors">Browse by tag</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/about/" class="hover:text-neural-400 transition-colors">About</a>
       </div>
     </div>
   </section>
 </MainLayout>
+
+<style>
+  .project-tile {
+    transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
+  }
+  .project-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-card-premium);
+  }
+</style>

@@ -9,6 +9,7 @@ const searchData = posts.map((post) => ({
   title: post.data.title,
   description: post.data.description,
   category: post.data.category,
+  project: post.data.project ?? "archives",
   tags: post.data.tags,
   content: post.body.slice(0, 1000), // First 1000 chars for search
 }));
@@ -20,27 +21,27 @@ const searchDataJson = JSON.stringify(searchData);
   <button
     id="search-trigger"
     class="flex items-center gap-2 px-3 py-2 text-sm transition-all rounded-xl border backdrop-blur-sm"
-    style="color: var(--color-slate-400); background: rgba(28,28,31,0.70); border-color: rgba(255,255,255,0.08); "
-    onmouseover="this.style.borderColor='rgba(0,153,253,0.35)'"
-    onmouseout="this.style.borderColor='rgba(255,255,255,0.08)'"
+    style="color: var(--color-slate-500); background: rgba(255,255,255,0.70); border-color: rgba(15,23,42,0.10); "
+    onmouseover="this.style.borderColor='rgba(0,153,253,0.45)'"
+    onmouseout="this.style.borderColor='rgba(15,23,42,0.10)'"
     aria-label="Open search"
   >
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
     </svg>
-    <span class="hidden sm:inline" style="color: var(--color-slate-400);">Search</span>
-    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono rounded-md" style="background: rgba(255,255,255,0.06); color: var(--color-slate-400); border: 1px solid rgba(255,255,255,0.08);">&#8984;K</kbd>
+    <span class="hidden sm:inline" style="color: var(--color-slate-500);">Search</span>
+    <kbd class="hidden sm:inline-flex items-center px-1.5 py-0.5 text-xs font-mono rounded-md" style="background: rgba(15,23,42,0.05); color: var(--color-slate-500); border: 1px solid rgba(15,23,42,0.10);">&#8984;K</kbd>
   </button>
 </div>
 
 <!-- Search Modal -->
 <div id="search-modal" class="search-modal hidden fixed inset-0 z-50">
-  <div class="absolute inset-0 backdrop-blur-md" id="search-backdrop" style="background: rgba(0,0,0,0.65);"></div>
+  <div class="absolute inset-0 backdrop-blur-md" id="search-backdrop" style="background: rgba(15,23,42,0.38);"></div>
   <div class="relative flex items-start justify-center pt-[15vh] px-4">
-    <div class="w-full max-w-2xl rounded-2xl overflow-hidden" style="background: rgba(28,28,31,0.92); border: 1px solid rgba(255,255,255,0.10); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); box-shadow: 0 0 0 1px rgba(255,255,255,0.05), 0 24px 64px rgba(0,0,0,0.70), 0 0 80px rgba(0,153,253,0.08);">
+    <div class="w-full max-w-2xl rounded-2xl overflow-hidden" style="background: rgba(255,255,255,0.96); border: 1px solid rgba(15,23,42,0.10); backdrop-filter: blur(32px); -webkit-backdrop-filter: blur(32px); box-shadow: 0 0 0 1px rgba(15,23,42,0.04), 0 24px 64px rgba(15,23,42,0.22), 0 0 80px rgba(0,153,253,0.10);">
       <!-- Search Input -->
-      <div class="flex items-center gap-3 px-4 py-3" style="border-bottom: 1px solid rgba(255,255,255,0.08);">
-        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-complement-500);">
+      <div class="flex items-center gap-3 px-4 py-3" style="border-bottom: 1px solid rgba(15,23,42,0.08);">
+        <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--color-neural-500);">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
         </svg>
         <input
@@ -48,23 +49,23 @@ const searchDataJson = JSON.stringify(searchData);
           id="search-input"
           placeholder="Search articles..."
           class="flex-1 bg-transparent outline-none text-lg"
-          style="color: rgba(255,255,255,0.90); caret-color: var(--color-complement-500);"
+          style="color: rgba(15,23,42,0.92); caret-color: var(--color-neural-500);"
           autocomplete="off"
         />
         <button id="search-close" class="flex items-center justify-center p-1.5 rounded-lg search-close-btn">
           <kbd class="px-2 py-0.5 text-xs font-mono rounded-md search-kbd">ESC</kbd>
         </button>
       </div>
-      
+
       <!-- Search Results -->
       <div id="search-results" class="max-h-[60vh] overflow-y-auto search-results-scroll">
-        <div class="p-6 text-center" style="color: var(--color-slate-400);">
+        <div class="p-6 text-center" style="color: var(--color-slate-500);">
           <p>Start typing to search&hellip;</p>
         </div>
       </div>
-      
+
       <!-- Footer -->
-      <div class="px-4 py-2.5 flex items-center justify-between text-xs" style="border-top: 1px solid rgba(255,255,255,0.06); background: rgba(16,16,18,0.50); color: var(--color-slate-400);">
+      <div class="px-4 py-2.5 flex items-center justify-between text-xs" style="border-top: 1px solid rgba(15,23,42,0.07); background: rgba(15,23,42,0.03); color: var(--color-slate-500);">
         <div class="flex items-center gap-4">
           <span class="flex items-center gap-1.5">
             <kbd class="px-1.5 py-0.5 font-mono rounded search-kbd">↑</kbd>
@@ -80,7 +81,7 @@ const searchDataJson = JSON.stringify(searchData);
             <span>close</span>
           </span>
         </div>
-        <span style="color: var(--color-slate-400);">Powered by Fuse.js</span>
+        <span style="color: var(--color-slate-500);">Powered by Fuse.js</span>
       </div>
     </div>
   </div>
@@ -91,16 +92,17 @@ const searchDataJson = JSON.stringify(searchData);
 
 <script>
   import Fuse from 'fuse.js';
-  
+
   interface SearchItem {
     slug: string;
     title: string;
     description: string;
     category: string;
+    project: string;
     tags: string[];
     content: string;
   }
-  
+
   interface FuseResult {
     item: SearchItem;
     matches?: Array<{
@@ -108,11 +110,11 @@ const searchDataJson = JSON.stringify(searchData);
       indices: [number, number][];
     }>;
   }
-  
+
   // Parse search data from embedded JSON
   const searchDataElement = document.getElementById('search-data');
   const searchData: SearchItem[] = searchDataElement ? JSON.parse(searchDataElement.textContent || '[]') : [];
-  
+
   // Initialize Fuse with search options
   const fuse = new Fuse(searchData, {
     keys: [
@@ -126,7 +128,7 @@ const searchDataJson = JSON.stringify(searchData);
     includeMatches: true,
     minMatchCharLength: 2,
   });
-  
+
   // DOM elements
   const searchTrigger = document.getElementById('search-trigger');
   const searchModal = document.getElementById('search-modal');
@@ -134,16 +136,16 @@ const searchDataJson = JSON.stringify(searchData);
   const searchInput = document.getElementById('search-input') as HTMLInputElement | null;
   const searchResults = document.getElementById('search-results');
   const searchClose = document.getElementById('search-close');
-  
+
   let selectedIndex = -1;
   let currentResults: FuseResult[] = [];
-  
+
   function openSearch(): void {
     searchModal?.classList.remove('hidden');
     searchInput?.focus();
     document.body.style.overflow = 'hidden';
   }
-  
+
   function closeSearch(): void {
     searchModal?.classList.add('hidden');
     document.body.style.overflow = '';
@@ -151,77 +153,78 @@ const searchDataJson = JSON.stringify(searchData);
     selectedIndex = -1;
     renderEmptyState();
   }
-  
+
   function renderEmptyState(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-6 text-center" style="color: var(--color-slate-400);">
+        <div class="p-6 text-center" style="color: var(--color-slate-500);">
           <p>Start typing to search&hellip;</p>
         </div>
       `;
     }
   }
-  
+
   function renderNoResults(): void {
     if (searchResults) {
       searchResults.innerHTML = `
-        <div class="p-10 text-center" style="color: var(--color-slate-400);">
-          <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.35; color: var(--color-complement-600);">
+        <div class="p-10 text-center" style="color: var(--color-slate-500);">
+          <svg class="w-12 h-12 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="opacity:0.4; color: var(--color-neural-500);">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p class="font-medium" style="color: var(--color-slate-100);">No results found</p>
-          <p class="text-sm mt-1" style="color: var(--color-slate-400);">Try different keywords or check your spelling</p>
+          <p class="font-medium" style="color: var(--color-slate-900);">No results found</p>
+          <p class="text-sm mt-1" style="color: var(--color-slate-500);">Try different keywords or check your spelling</p>
         </div>
       `;
     }
   }
-  
+
   function renderResults(results: FuseResult[]): void {
     currentResults = results;
     if (!searchResults) return;
-    
+
     if (results.length === 0) {
       renderNoResults();
       return;
     }
-    
+
     searchResults.innerHTML = results.slice(0, 10).map((result, index) => {
       const { item, matches } = result;
       const isSelected = index === selectedIndex;
-      
+
       // Highlight matched text in title
       let highlightedTitle = item.title;
       const titleMatch = matches?.find((m) => m.key === 'title');
       if (titleMatch) {
         highlightedTitle = highlightText(item.title, titleMatch.indices);
       }
-      
+
       const selectedStyle = isSelected ? 'background: rgba(0,153,253,0.10); border-left: 2px solid rgba(0,153,253,0.60);' : 'border-left: 2px solid transparent;';
-      
+      const basePath = item.project === 'debug-agent' ? '/debug-agent' : '/articles';
+
       return `
         <a
-          href="/articles/${item.slug}/"
+          href="${basePath}/${item.slug}/"
           class="search-result block px-4 py-3 transition-all"
           style="${selectedStyle}"
           data-index="${index}"
         >
           <div class="flex items-start gap-3">
-            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style="background: rgba(0,153,253,0.12); color: var(--color-complement-500);">
+            <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg shrink-0" style="background: rgba(0,153,253,0.12); color: var(--color-neural-500);">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
             </span>
             <div class="flex-1 min-w-0">
-              <h4 class="font-medium truncate" style="color: var(--color-slate-100);">
+              <h4 class="font-medium truncate" style="color: var(--color-slate-900);">
                 ${highlightedTitle}
               </h4>
-              <p class="text-sm line-clamp-2 mt-0.5" style="color: var(--color-slate-400);">
+              <p class="text-sm line-clamp-2 mt-0.5" style="color: var(--color-slate-600);">
                 ${item.description}
               </p>
               <div class="flex items-center gap-2 mt-1.5">
-                <span class="text-xs px-2 py-0.5 rounded-full capitalize" style="background: rgba(0,153,253,0.12); color: var(--color-complement-400); border: 1px solid rgba(0,153,253,0.20);">
+                <span class="text-xs px-2 py-0.5 rounded-full capitalize" style="background: rgba(0,153,253,0.10); color: var(--color-neural-400); border: 1px solid rgba(0,153,253,0.20);">
                   ${item.category}
                 </span>
                 ${item.tags.slice(0, 3).map((tag) => `
-                  <span class="text-xs" style="color: var(--color-slate-400);">#${tag}</span>
+                  <span class="text-xs" style="color: var(--color-slate-500);">#${tag}</span>
                 `).join('')}
               </div>
             </div>
@@ -230,34 +233,34 @@ const searchDataJson = JSON.stringify(searchData);
       `;
     }).join('');
   }
-  
+
   function highlightText(text: string, indices: [number, number][]): string {
     if (!indices || indices.length === 0) return text;
-    
+
     let result = '';
     let lastIndex = 0;
-    
+
     for (const [start, end] of indices) {
       result += text.slice(lastIndex, start);
       result += `<mark class="search-highlight">${text.slice(start, end + 1)}</mark>`;
       lastIndex = end + 1;
     }
     result += text.slice(lastIndex);
-    
+
     return result;
   }
-  
+
   function handleSearch(query: string): void {
     if (!query || query.length < 2) {
       renderEmptyState();
       selectedIndex = -1;
       return;
     }
-    
+
     const results = fuse.search(query) as FuseResult[];
     renderResults(results);
   }
-  
+
   function updateSelection(): void {
     const resultElements = searchResults?.querySelectorAll('.search-result');
     resultElements?.forEach((el, i) => {
@@ -270,30 +273,31 @@ const searchDataJson = JSON.stringify(searchData);
         htmlEl.style.borderLeftColor = 'transparent';
       }
     });
-    
+
     // Scroll into view
     const selectedEl = resultElements?.[selectedIndex];
     selectedEl?.scrollIntoView({ block: 'nearest' });
   }
-  
+
   function navigateToSelected(): void {
     if (selectedIndex >= 0 && currentResults[selectedIndex]) {
-      const slug = currentResults[selectedIndex].item.slug;
-      window.location.href = `/articles/${slug}/`;
+      const result = currentResults[selectedIndex].item;
+      const basePath = result.project === 'debug-agent' ? '/debug-agent' : '/articles';
+      window.location.href = `${basePath}/${result.slug}/`;
     }
   }
-  
+
   // Event listeners
   searchTrigger?.addEventListener('click', openSearch);
   searchBackdrop?.addEventListener('click', closeSearch);
   searchClose?.addEventListener('click', closeSearch);
-  
+
   searchInput?.addEventListener('input', (e) => {
     const target = e.target as HTMLInputElement;
     handleSearch(target.value);
     selectedIndex = -1;
   });
-  
+
   // Keyboard navigation
   document.addEventListener('keydown', (e) => {
     // Open search with Cmd/Ctrl + K
@@ -301,12 +305,12 @@ const searchDataJson = JSON.stringify(searchData);
       e.preventDefault();
       openSearch();
     }
-    
+
     // Close with Escape
     if (e.key === 'Escape' && !searchModal?.classList.contains('hidden')) {
       closeSearch();
     }
-    
+
     // Navigate results
     if (!searchModal?.classList.contains('hidden')) {
       if (e.key === 'ArrowDown') {
@@ -331,12 +335,12 @@ const searchDataJson = JSON.stringify(searchData);
   .search-modal {
     animation: fadeIn 0.15s ease-out;
   }
-  
+
   @keyframes fadeIn {
     from { opacity: 0; transform: scale(0.98); }
     to   { opacity: 1; transform: scale(1); }
   }
-  
+
   .line-clamp-2 {
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -346,8 +350,8 @@ const searchDataJson = JSON.stringify(searchData);
 
   /* Highlight marks in results */
   .search-highlight {
-    background: oklch(66% 0.21 232 / 0.25);
-    color: oklch(74% 0.19 232);
+    background: oklch(69% 0.235 232 / 0.16);
+    color: oklch(48% 0.20 232);
     border-radius: 0.2rem;
     padding: 0 0.15rem;
     font-style: normal;
@@ -360,14 +364,14 @@ const searchDataJson = JSON.stringify(searchData);
   }
 
   .search-result:hover {
-    background: rgba(255, 255, 255, 0.04);
-    border-left-color: rgba(0, 153, 253, 0.35);
+    background: rgba(15, 23, 42, 0.03);
+    border-left-color: rgba(0, 153, 253, 0.40);
   }
 
   /* Custom scrollbar for results panel */
   .search-results-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255,255,255,0.12) transparent;
+    scrollbar-color: rgba(15,23,42,0.15) transparent;
   }
   .search-results-scroll::-webkit-scrollbar {
     width: 4px;
@@ -376,41 +380,41 @@ const searchDataJson = JSON.stringify(searchData);
     background: transparent;
   }
   .search-results-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255,255,255,0.12);
+    background: rgba(15,23,42,0.15);
     border-radius: 2px;
   }
   .search-results-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(0,153,253,0.35);
+    background: rgba(0,153,253,0.40);
   }
 
   /* Result row separator */
   .search-result + .search-result {
-    border-top: 1px solid rgba(255,255,255,0.04);
+    border-top: 1px solid rgba(15,23,42,0.05);
   }
 
   /* Input placeholder color */
   #search-input::placeholder {
-    color: var(--color-slate-400, #6a6a72);
+    color: var(--color-slate-400, #94a3b8);
   }
 
   /* Keyboard shortcut badges */
   .search-kbd {
-    background: rgba(255,255,255,0.07);
-    border: 1px solid rgba(255,255,255,0.10);
-    color: rgba(255,255,255,0.55);
+    background: rgba(15,23,42,0.05);
+    border: 1px solid rgba(15,23,42,0.10);
+    color: rgba(15,23,42,0.55);
     font-size: 0.7rem;
     line-height: 1;
   }
 
   /* Close button */
   .search-close-btn {
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.08);
-    color: rgba(255,255,255,0.40);
+    background: rgba(15,23,42,0.04);
+    border: 1px solid rgba(15,23,42,0.08);
+    color: rgba(15,23,42,0.45);
     transition: background 0.15s ease, color 0.15s ease;
   }
   .search-close-btn:hover {
-    background: rgba(255,255,255,0.10);
-    color: rgba(255,255,255,0.75);
+    background: rgba(15,23,42,0.08);
+    color: rgba(15,23,42,0.75);
   }
 </style>

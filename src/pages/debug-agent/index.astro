@@ -1,0 +1,234 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { CATEGORIES, DIFFICULTIES } from "@/config";
+
+// The Debug Agent project's articles (the ArXiv-style papers)
+const papers = (await getCollection("blog", ({ data }) => !data.draft && data.project === "debug-agent"))
+  .sort((a, b) => (a.data.seriesOrder ?? 99) - (b.data.seriesOrder ?? 99) || b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+// The five research themes (each maps to a paper). Used as teasers when a paper
+// is not yet published, and as section copy.
+const themes = [
+  {
+    n: "01",
+    title: "The StackGraph",
+    blurb:
+      "A persistent neuro-symbolic world-model in FalkorDB that fuses code, infra, runtime telemetry, change history and past RCA outcomes into one property graph the agent reasons over.",
+    tags: ["FalkorDB", "Property graph", "Neuro-symbolic"],
+    variant: "complement",
+  },
+  {
+    n: "02",
+    title: "Correlation-first blame propagation",
+    blurb:
+      "Personalized PageRank over an error-weighted dependency graph, blended with parameter-free BOCPD change-point scoring (BARO) — deterministic graph priors that seed the LLM's hypothesis space. No causal discovery.",
+    tags: ["PageRank", "BOCPD / BARO", "Change-point"],
+    variant: "neural",
+  },
+  {
+    n: "03",
+    title: "Don't grade your own homework",
+    blurb:
+      "An externalized verification-gate FSM governs loop termination; hypothesis state is derived only from hard tool evidence (never LLM-asserted); a grounding-based soft-cap keeps thin conclusions below the auto-PR tier.",
+    tags: ["MAST", "Verification gate", "Hypothesis tree"],
+    variant: "complement",
+  },
+  {
+    n: "04",
+    title: "Eval-first agentic RCA",
+    blurb:
+      "Every change passes a deterministic AC@1 / MTTR replay gate with distractor injection, behind a shadow → active rollout — so an LLM-in-the-loop system ships safely against a labelled ground-truth set.",
+    tags: ["AC@1 / MTTR", "Regression gate", "Shadow→active"],
+    variant: "glow",
+  },
+  {
+    n: "05",
+    title: "Bi-temporal incident memory",
+    blurb:
+      "A hand-rolled Graphiti-on-FalkorDB temporal knowledge graph with no-LLM-at-retrieval hybrid recall (semantic + BM25 + graph-BFS, fused by RRF) and Reflexion-style lessons — the agent learns from every incident.",
+    tags: ["Temporal KG", "RRF recall", "Reflexion"],
+    variant: "complement",
+  },
+];
+
+const stack = ["FalkorDB", "Qdrant", "Ollama", "Claude", "Cloudflare AI Gateway", ".NET 10", "Tempo", "Loki", "Prometheus"];
+---
+
+<MainLayout
+  title="The Debug Agent | BlueRobin"
+  description="An autonomous, graph-grounded LLM agent for root-cause analysis: a FalkorDB world-model, correlation-first blame propagation, an externalized verification gate, and bi-temporal incident memory — research-grade RCA at homelab cost."
+>
+  <!-- All-projects backlink -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <a href="/" class="text-sm text-slate-600 hover:text-neural-400 transition-colors">← All projects</a>
+  </div>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
+    <div class="absolute inset-0 overflow-hidden">
+      <div class="absolute -top-40 -right-40 w-96 h-96 bg-complement-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+    </div>
+
+    <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 sm:py-28">
+      <div class="text-center animate-entry">
+        <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-8" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-30); color: var(--color-complement-300);">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="w-3.5 h-3.5"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.35-4.35"/></svg>
+          Research project &middot; The Debug Agent &middot; Autonomous RCA
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+          <span class="title-warm">An agent that finds<br>the root cause</span>
+        </h1>
+
+        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-5">
+          When production breaks, an LLM agent investigates — grounded in a graph,<br>
+          disciplined by evidence, and honest about what it does not know.
+        </p>
+
+        <p class="text-base text-slate-600 max-w-2xl mx-auto mb-10">
+          A graph-grounded root-cause-analysis agent: it traverses a FalkorDB world-model of the platform, ranks suspects with correlation-first scoring, investigates with real observability tools, and only opens a pull request when hard evidence supports it. Research-grade RCA, running at a €50/month homelab budget.
+        </p>
+
+        <div class="flex flex-wrap justify-center gap-4 mb-14">
+          <a href="#papers" class="btn-primary">Read the papers</a>
+          <a href="#pipeline" class="btn-secondary">How it works</a>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
+          <span class="flex items-center gap-2 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
+            Graph-grounded
+          </span>
+          <span class="flex items-center gap-2 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
+            Correlation-first
+          </span>
+          <span class="flex items-center gap-2 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
+            MAST-aligned reasoning
+          </span>
+          <span class="flex items-center gap-2 text-slate-600">
+            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
+            €50 / month
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it investigates -->
+  <section id="pipeline" class="py-20 relative">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it investigates</h2>
+        <p class="text-slate-600 max-w-xl mx-auto">An alert fires; the agent recalls similar incidents, ranks suspects from the graph, runs a bounded tool-using investigation, and decides on an action by confidence — never auto-remediating.</p>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="glass-card p-6 flex flex-col gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">1</div>
+          <h3 class="font-display font-semibold text-slate-900">Detect</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">An Alertmanager webhook is de-duplicated, then deterministic passes gather traces, logs and code context before any model call.</p>
+        </div>
+        <div class="glass-card p-6 flex flex-col gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">2</div>
+          <h3 class="font-display font-semibold text-slate-900">Recall &amp; rank</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">Personalized PageRank + BARO change-point scoring rank candidate causes; hybrid memory recalls related past incidents — all without an LLM.</p>
+        </div>
+        <div class="glass-card p-6 flex flex-col gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">3</div>
+          <h3 class="font-display font-semibold text-slate-900">Investigate</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">A bounded ReAct loop queries real tools. A verification-gate FSM — not the model — decides when evidence is sufficient to stop.</p>
+        </div>
+        <div class="glass-card p-6 flex flex-col gap-3">
+          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">4</div>
+          <h3 class="font-display font-semibold text-slate-900">Decide</h3>
+          <p class="text-sm text-slate-600 leading-relaxed">A confidence ladder, soft-capped by graph grounding, chooses the action: notify, open an issue, attach patches, or open a PR for a human.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Research themes / innovations -->
+  <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh-light);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-12">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Five ideas, one agent</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">The Debug Agent combines a graph world-model, correlation-first reasoning, an evidence-disciplined LLM loop, a rigorous eval gate, and temporal memory. Each is written up as a paper below.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        {themes.map((t) => (
+          <div class="glass-card p-6 flex flex-col gap-3">
+            <div class="flex items-center gap-3">
+              <span class="font-mono text-sm font-semibold shrink-0" style="color: var(--color-complement-300);">{t.n}</span>
+              <h3 class="font-display font-semibold text-lg text-slate-900">{t.title}</h3>
+            </div>
+            <p class="text-sm text-slate-600 leading-relaxed">{t.blurb}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Papers -->
+  <section id="papers" class="py-16 relative">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header class="mb-10">
+        <p class="text-sm font-medium text-complement-300 mb-2">Research · ArXiv-style write-ups</p>
+        <h2 class="text-3xl font-display font-semibold text-slate-900 mb-3">Papers</h2>
+        <p class="text-lg text-slate-600 max-w-2xl">
+          Each paper follows a scientific structure — abstract, related work, method, evaluation, discussion — and is published here and on ArXiv.
+        </p>
+      </header>
+
+      {papers.length === 0 ? (
+        <div class="glass-card p-12 text-center">
+          <p class="text-slate-600 text-lg mb-2">The papers are being prepared.</p>
+          <p class="text-slate-500 text-sm">Five write-ups are in progress, mirroring the five themes above.</p>
+        </div>
+      ) : (
+        <div class="space-y-6">
+          {papers.map((post) => {
+            const categoryMeta = CATEGORIES[post.data.category];
+            const difficultyMeta = DIFFICULTIES[post.data.difficulty];
+            return (
+              <article class="glass-card p-6 hover:shadow-lg transition-all">
+                <div class="flex flex-col md:flex-row md:items-start gap-4">
+                  <div class="flex-1">
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                      <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>{categoryMeta?.title ?? post.data.category}</span>
+                      <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>{difficultyMeta?.label ?? post.data.difficulty}</span>
+                      {post.data.readTime && <span class="text-xs text-slate-500">{post.data.readTime}</span>}
+                    </div>
+                    <a href={`/debug-agent/${post.slug}/`}>
+                      <h3 class="text-xl font-medium text-slate-900 hover:text-neural-400 transition-colors mb-2">{post.data.title}</h3>
+                    </a>
+                    <p class="text-slate-600 line-clamp-2">{post.data.description}</p>
+                  </div>
+                  <div class="text-sm text-slate-500 md:text-right space-y-1">
+                    <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
+                  </div>
+                </div>
+              </article>
+            );
+          })}
+        </div>
+      )}
+
+      <!-- Tech stack -->
+      <div class="mt-14 text-center">
+        <p class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-5">Built with</p>
+        <div class="flex flex-wrap justify-center gap-3">
+          {stack.map((tech) => (
+            <span class="tech-pill text-sm">{tech}</span>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+</MainLayout>

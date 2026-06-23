@@ -1,4 +1,4 @@
-name: Deploy to Cloudflare Pages
+name: Build & Deploy
 
 on:
   push:
@@ -12,7 +12,13 @@ jobs:
     permissions:
       contents: read
       deployments: write
-    
+    # Map the deploy token to a job env so the optional Cloudflare Pages step can
+    # be skipped when it is not configured. Production is deployed by Cloudflare
+    # Workers Builds (Git integration); this Pages step only runs if the
+    # CLOUDFLARE_API_TOKEN secret is set, so CI stays green without it.
+    env:
+      CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
@@ -30,6 +36,7 @@ jobs:
         run: npm run build
 
       - name: Deploy to Cloudflare Pages
+        if: ${{ env.CF_API_TOKEN != '' }}
         uses: cloudflare/pages-action@f0a1cd58cd66095dee69bfa18fa5efd1dde93bca # v1.5.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

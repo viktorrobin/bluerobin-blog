@@ -1,0 +1,507 @@
+\documentclass[11pt]{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{xcolor}
+\usepackage{natbib}
+
+\hypersetup{
+  colorlinks = true,
+  linkcolor  = blue!50!black,
+  citecolor  = blue!50!black,
+  urlcolor   = blue!50!black
+}
+
+\newcommand{\acone}{\texttt{AC@1}}
+\newcommand{\code}[1]{\texttt{#1}}
+
+\title{Eval-First Agentic RCA: A Deterministic Accuracy/MTTR Regression Gate and
+Shadow-to-Active Rollout for Shipping LLM-in-the-Loop Reliability Tooling}
+
+\author{Victor Robin\\ BlueRobin (independent homelab research)}
+
+\date{June 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+We describe the evaluation methodology that underpins the BlueRobin Debug Agent, an
+LLM-in-the-loop root-cause-analysis (RCA) service that runs on a self-hosted homelab under
+a hard ${\sim}50$~EUR/month budget. The methodology is \emph{eval-first}: before any
+reasoning component (graph blame-propagation, change-point detection, hypothesis-state
+machine, episodic memory) is allowed to govern production behaviour, it must pass a
+deterministic offline replay harness that scores the \emph{real} RCA path against a labelled
+ground-truth incident set and emits an Accuracy@1 (\acone{}) plus
+mean-time-to-resolution (MTTR/TTM) scorecard. A per-commit \textbf{regression gate} with
+explicit tolerances (\acone{} drop $\le 0.02$, MTTR rise $\le 30$~s) blocks any merge that
+degrades localisation accuracy or inflates analysis latency. The harness has two arms: a
+\emph{scorer-only} arm where the labelled cause is planted as the unambiguous top-1 (a
+regression sentinel, $\acone{} = 1.0$ by construction) and an honest \emph{live-path} arm
+that injects \textbf{distractor candidates} with higher topology criticality but lower
+error-rate, so $\acone{} < 1.0$ is achievable on the production ranking path. New components
+ship behind a \textbf{shadow-to-active} rollout (\code{RcaLiveActivation.Mode}~$\in
+\{\text{Shadow}, \text{Active}\}$): they compute and log their would-be decisions for an
+observation period before they are permitted to govern. We are explicit that the
+ground-truth set is small (9 self-seeded incidents spanning $\ge 3$ fault classes), that
+MTTR figures are sub-second replay-clock proxies rather than production MTTR, and that the
+authors themselves flag the by-construction $\acone{} = 1.0$ as an ``oversimplified
+benchmark.'' The contribution is not a new accuracy record; it is a reproducible discipline
+--- change-correlation as the primary signal, a deterministic merge gate, and staged
+activation --- that makes the rest of the system measurable and safe to ship.
+\end{abstract}
+
+\section{Introduction}
+
+Automated RCA for microservice and Kubernetes systems has converged on LLM agents that
+interleave reasoning and tool calls (ReAct; \citealp{yao2022react}) over observability
+backends. The appeal is obvious: an agent can query traces, logs, metrics, deploy history
+and source code, then narrate a hypothesis. The problem is equally obvious once one tries
+to ship it: \textbf{an LLM-only RCA loop has no native notion of being right, and no native
+notion of regressing.} A prompt tweak, a model swap, or a new tool can silently degrade
+localisation accuracy, and an operator would never know, because the only feedback signal
+is a human reading a plausible-sounding paragraph during an incident.
+
+The independent literature is blunt about the ceiling. The best agent on OpenRCA reaches
+${\sim}11.3\%$ exact-match \citep{xu2025openrca}; the best frontier model on IBM's
+ITBench-AA reaches ${\sim}47\%$ precision@full-recall \citep{aa2026itbenchaa}. Benchmarks
+themselves are now suspected of overstating capability: simple rule-based methods match
+``SOTA'' on several of them \citep{rethinking2025faultprop}. In this environment, the
+responsible engineering posture is \textbf{advisory / human-in-the-loop} --- a human always
+merges the fix --- and the responsible \emph{development} posture is \textbf{eval-first}:
+the eval comes before the feature, and every commit is a regression test (HolmesGPT runs
+150+ evals per commit; \citealp{holmesgpt,evaldriven}).
+
+This paper documents how the BlueRobin Debug Agent operationalises that posture. The system
+is real, implemented in .NET~10 over FalkorDB and Qdrant, and governed by requirement
+\code{FEAT-027} (Stack-Graph RCA) extending \code{FEAT-008} (Observability \& Auto-Debug).
+Our contributions:
+
+\begin{itemize}
+  \item \textbf{A deterministic offline replay harness} (\code{RcaEvalHarness}) that
+  replays a labelled ground-truth incident set through the \emph{actual} production RCA path
+  and emits a per-incident and aggregate \acone{} + MTTR scorecard, byte-for-byte
+  reproducible (\code{NFR-SG-5}).
+  \item \textbf{A per-commit regression gate} (\code{RcaEvalRegressionGate}) with explicit,
+  committed tolerances (\acone{} drop $\le 0.02$, MTTR rise $\le 30$~s) wired into CI as a
+  merge blocker.
+  \item \textbf{An honest live-path arm} that injects distractor candidates --- siblings
+  with higher topology criticality but lower error-rate --- so that $\acone{} = 1.0$ is
+  \emph{not} guaranteed and the ranker's accuracy on the production path is actually
+  measured.
+  \item \textbf{A shadow-to-active rollout discipline} (\code{RcaLiveActivation}, ADR-039)
+  under which the verification gate, BARO scorer, evidence soft-cap and incident-memory
+  recall each run in \emph{shadow} (compute + log, do not govern) before promotion to
+  \emph{active}.
+  \item \textbf{Change-correlation as the primary ranking signal}, motivated by the Google
+  SRE finding that ${\sim}70\%$ of outages follow a change to a live system
+  \citep{beyer2016sre}.
+  \item \textbf{An honest threats-to-validity treatment}: we state the small-N, self-seeded,
+  replay-clock limitations plainly rather than burying them.
+\end{itemize}
+
+\section{Related Work}
+
+\paragraph{Eval-driven development for agents.}
+The discipline of treating evals as per-commit regression tests, not occasional report
+cards, is crystallised by the HolmesGPT project (Robusta + Microsoft; CNCF Sandbox), which
+runs 150+ evals on every commit, and by the broader ``the eval comes first'' movement
+\citep{holmesgpt,evaldriven}. Datadog's Bits AI SRE similarly scores against a labelled set
+with an LLM-judge and surfaces an agent trace \citep{datadog2026bits}. Our harness adopts
+this discipline but constrains the per-commit oracle to be \textbf{deterministic and
+LLM-free} so it can gate merges cheaply and reproducibly; the LLM-judge is relegated to an
+optional, scheduled, token-capped path.
+
+\paragraph{Benchmarks for RCA.}
+OpenRCA \citep{xu2025openrca} provides the most honest ``how bad are LLMs at RCA'' number
+(${\sim}11.3\%$ exact-match over 335 cases). AIOpsLab \citep{chen2025aiopslab} offers 48
+problems across four levels with TTD/TTM, step-count and token-cost metrics over live
+Kubernetes (DeathStarBench) with ChaosMesh faults. ITBench \citep{jha2025itbench}
+introduces a Normalised Topology-Aware Metric and reports MTTD 72~s / MTTR 282~s, and shows
+traces are load-bearing (removing them drops diagnosis $13.8\% \rightarrow 9.5\%$). RCAEval
+\citep{pham2024rcaeval} is the cleanest reproducible baseline set --- 735 cases, 11 fault
+types, 15 baselines --- and standardises the \acone{}, \code{Avg@k}, \code{MRR} metric
+family we adopt. Crucially, the Fault-Propagation-Aware critique
+\citep{rethinking2025faultprop} argues current RCA benchmarks are oversimplified and that
+published scores overstate real capability. We treat all of these as \textbf{external
+sanity yardsticks only}, never as dependencies, and we adopt their critique as our own
+Section~\ref{sec:limitations} caveat.
+
+\paragraph{Change / deploy correlation.}
+The single most predictive RCA signal is recent change. The Google SRE Book states that
+${\sim}70\%$ of outages are due to changes in a live system \citep{beyer2016sre}. The
+Microsoft Teams incident study \citep{ghosh2022teams} decomposes root-cause categories ---
+Code Bug 27\%, Dependency 16.4\%, Infra 15.8\%, Deployment 13.2\%, Config 12.5\% --- and
+reports that ${\sim}80\%$ of incidents are mitigated \emph{without} a code/config fix, with
+rollback the \#1 mitigation. The classic configuration-error study \citep{yin2011config}
+found 16.1--47.3\% of misconfigurations cause full unavailability or severe degradation.
+These motivate first-class \code{Deploy}/\code{Change} graph nodes and an onset-window
+change term in our ranker (\code{FR-SG-25}, \code{FR-SG-26}).
+
+\paragraph{Agent failure modes.}
+The MAST failure taxonomy \citep{cemri2025mast} (310 ITBench traces) finds that incorrect
+self-verification, premature termination, memory loss, and reasoning-action mismatch
+account for ${\sim}94\%$ of agent failures, with the prescriptive lessons: never let the LLM
+grade its own homework; require hard tool evidence before exit; enforce termination via an
+FSM outside the model. Our gate and shadow-to-active discipline are direct responses; the
+verification-gate FSM and hypothesis-state machine are detailed in companion papers in this
+series.
+
+\section{Method / Architecture}
+\label{sec:method}
+
+\subsection{The deterministic replay harness}
+\label{sec:harness}
+
+The canonical eval is \code{RcaEvalHarness}
+(\code{src/DebugAgent/StackGraph/Eval/RcaEvalHarness.cs}), an offline .NET test/CLI
+entrypoint --- \textbf{not} a new in-cluster service --- that replays the labelled
+ground-truth set through the real RCA path (\code{StackGraphRcaService} $\rightarrow$
+\code{RootCauseScorer}/\code{OnsetWindowChangeScorer} over a seeded FalkorDB) and emits a
+deterministic \acone{} + MTTR/TTM scorecard, per-incident and aggregate. It is the
+source-of-truth realisation of \code{FR-SG-23} (ADR-036~D1).
+
+The data flow is: \code{ground-truth-incidents.json} (9 labelled incidents) is read by the
+harness, which seeds a clean FalkorDB graph (\code{bluerobin\_stack\_eval}), runs the real
+\code{StackGraphRcaService} ranking path, and produces an \code{EvalScorecard}
+(\acone{} + MTTR per incident). That scorecard is fed, together with the committed
+\code{scorecard-baseline.json}, to the \code{RcaEvalRegressionGate}: within tolerance, the
+merge is allowed; on regression, the gate exits 1 and the merge is blocked.
+
+\paragraph{Two arms.}
+The harness deliberately exposes two scoring paths:
+
+\begin{itemize}
+  \item \code{ReplayAsync} --- the \textbf{scorer-only} arm. Each incident's labelled root
+  cause is seeded as the unambiguous top-1 candidate (\code{RootCauseCriticality = 0.9},
+  \code{RootCauseErrorRate = 0.9}), so $\acone{} = 1.0$ \emph{by construction}. This is a
+  \textbf{regression sentinel}, not an accuracy measurement: it proves that a code change
+  did not break the plumbing that maps a seeded subgraph to the correct top-1.
+  \item \code{ReplayLivePathAsync} --- the \textbf{live-path} arm. It runs onset-from-alert
+  and injects \textbf{distractor candidates}: sibling services the symptom also calls, with
+  \code{DistractorErrorRate = 0.55} (non-trivial but below the root cause's 0.9) and
+  \code{DistractorCriticality = 0.95} (deliberately \emph{higher} topology than the root
+  cause's 0.9 --- a topology trap). Because a distractor outranks the true cause on the
+  topology term, $\acone{} < 1.0$ is now achievable. This is the honest production-path
+  accuracy gate.
+\end{itemize}
+
+The distractor design is the methodological crux. Without it, the eval is gameable: any
+ranker that trusts topology blindly still scores 1.0. With it, a candidate that boosts
+topology weight at the expense of the error-rate / change-onset signal will mis-localise GT
+incidents and drop \acone{}, failing the gate. The trap is exactly the failure mode the
+literature warns about --- topology criticality is necessary but not sufficient; the
+discriminating signal is the per-service error-rate plus the in-window change.
+
+\subsection{The ground-truth incident set}
+\label{sec:groundtruth}
+
+The labelled set lives in \code{src/DebugAgent/eval/ground-truth-incidents.json}
+(\code{schemaVersion: 1}, \code{windowSeconds: 1800}). It is \textbf{seeded only from
+existing faults --- no ChaosMesh} (\code{RISK-1}): the \code{bluerobin-e2e} synthetic-test
+family, the \code{bluerobin-infra} synthetic-registry scenarios (the OBS-9 login break is
+canonical), and past \code{agent\_runs} incidents replayed offline. There are 9 labelled
+incidents spanning $\ge 3$ fault classes (auth/login, data/datastore, deploy/config) so the
+set is not trivially gameable by a single-class heuristic.
+
+\begin{table}[h]
+\centering
+\caption{The labelled ground-truth incident set (9 incidents, $\ge 3$ fault classes).}
+\label{tab:groundtruth}
+\begin{tabular}{llll}
+\toprule
+ID & faultClass & expectedRootCause & changeInduced \\
+\midrule
+GT-01-login-break          & auth/login    & authelia              & false \\
+GT-02-rca-gateway-down-floor & deploy/config & mcp-gateway         & false \\
+GT-03-bad-deploy-archives-api & deploy/config & archives-api       & \textbf{true} \\
+GT-04-falkordb-down        & data/datastore & falkordb             & false \\
+GT-05-postgres-meshed-reset & data/datastore & postgres            & false \\
+GT-06-upload-thumbnail-fail & data/datastore & archives-worker-infra & false \\
+GT-07-bad-commit-web       & deploy/config & bluerobin-web         & \textbf{true} \\
+GT-08-rag-chat-down        & auth/login    & authelia              & false \\
+GT-09-ollama-embeddings-down & data/datastore & ollama             & false \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Two incidents (GT-03, GT-07) are explicitly \textbf{change-induced} --- each carries a
+\code{Deploy}/\code{Change} node inside the 30-minute onset window. They are the regression
+test for change-correlation: every active-mode ablation must keep $\acone{} = 1.0$ on GT-03
+and GT-07 (no true-positive suppression of the change signal). The same JSON is the single
+source for both the eval set and the simulation/chaos catalog (\code{OQ-CATALOG-SHARE}), so
+the labelled truth and the on-demand simulation harness can never drift apart.
+
+\subsection{Metrics and the oracle}
+\label{sec:metrics}
+
+\acone{} is an exact-string oracle: the produced top-1 candidate's natural key must equal
+the labelled \code{ExpectedRootCauseNaturalKey}. There is \textbf{no LLM-judge and no human
+in the per-commit path}. MTTR/TTM is the replay wall-clock from onset-replay-start to the
+pipeline returning its conclusion (a \code{Stopwatch} around \code{InvestigateAsync}) --- a
+time-to-mitigate \emph{proxy}, not production MTTR. With a single labelled cause per incident
+scored at top-1, \code{Avg@k} and \code{MRR} reduce to \acone{} here; they are computed but
+carry no extra information until multi-candidate labels land (ADR-036~D1).
+
+\begin{table}[h]
+\centering
+\caption{Metrics computed by the harness and their gating role.}
+\label{tab:metrics}
+\begin{tabular}{lll}
+\toprule
+Metric & Definition (this harness) & Role \\
+\midrule
+\acone{}        & $1$ iff top-1 candidate key $=$ labelled root-cause key & Primary; gated first \\
+MTTR/TTM        & replay wall-clock onset $\rightarrow$ conclusion        & Secondary; gated, 30~s tolerance \\
+\code{Avg@k}, \code{MRR} & reduce to \acone{} (single-label)              & Reserved for multi-label future \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{The regression gate and tolerances}
+\label{sec:gate}
+
+The gate is \code{RcaEvalRegressionGate.Evaluate}, run by \code{RcaEvalGateRunner} with
+committed default tolerances:
+
+\begin{quote}
+\begin{verbatim}
+public static readonly GateTolerance DefaultTolerance =
+    new(AcAt1Drop: 0.02, MttrSecondsIncrease: 30.0);
+\end{verbatim}
+\end{quote}
+
+\acone{} (higher-is-better) is checked \textbf{first}: a candidate scorecard whose aggregate
+\acone{} drops more than 0.02 below the committed baseline fails with exit code~1 and the
+regressed metric named ``AC@1''. MTTR (lower-is-better) is checked second: a rise of more
+than 30~s fails as ``MTTR''. A drift \emph{within} tolerance passes --- the 30~s MTTR band
+deliberately absorbs machine-dependent replay-clock jitter (sub-second MTTR values are
+explicitly not asserted exactly). The committed baseline \code{\_comment} states the
+contract verbatim: it ``FAILS any candidate that regresses \acone{} below 0.98 or inflates
+MTTR by $>30$~s.''
+
+This gate is the load-bearing artefact of the whole programme: it is what makes every
+\emph{later} claim in this paper series --- graph blame-propagation, BARO onset detection,
+evidence-chain confidence, episodic memory --- \emph{measurable}. None of them can be merged
+if they regress localisation on the ground-truth set.
+
+\subsection{Change correlation as the primary signal}
+\label{sec:change}
+
+Because ${\sim}70\%$ of outages follow a change \citep{beyer2016sre}, the ranker treats
+in-window change as a first-class term. The pre-LLM scoring blend is a re-normalised
+additive blend over present terms. The base 4-term blend (\code{OnsetWindowChangeScorer})
+and the 5-term BARO blend (\code{BaroBlendScorer}) are shown in Table~\ref{tab:blend}.
+
+\begin{table}[h]
+\centering
+\caption{Pre-LLM scoring-blend weights. $w_{\text{topo}}$ topology criticality,
+$w_{\text{tele}}$ telemetry/error-rate, $w_{\text{hist}}$ historical prior,
+$w_{\text{chg}}$ in-window change, $w_{\text{baro}}$ BARO onset.}
+\label{tab:blend}
+\begin{tabular}{lcccccc}
+\toprule
+Blend & $w_{\text{topo}}$ & $w_{\text{tele}}$ & $w_{\text{hist}}$ & $w_{\text{chg}}$ & $w_{\text{baro}}$ & $\Sigma$ \\
+\midrule
+4-term onset (\code{OnsetWindowChangeScorer}) & 0.40 & 0.30 & 0.15 & 0.15 & --- & 1.00 \\
+5-term BARO (\code{BaroBlendScorer})          & 0.35 & 0.25 & 0.15 & 0.15 & 0.10 & 1.00 \\
+Fail-open floor (no chg/baro)                 & 0.50 & 0.35 & 0.15 & --- & --- & 1.00 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A candidate is boosted by $w_{\text{chg}}$ when its owning service had a
+\code{Deploy}/\code{Change} node in the 30-minute onset window ($[T-W, T]$, $W = 1800$~s).
+When the change or BARO term is absent, the blend re-normalises over the present terms (the
+fail-open floor), and that collapse is byte-for-byte identical to the prior baseline --- so a
+missing signal can never \emph{introduce} a regression. The distractor arm
+(Section~\ref{sec:harness}) is precisely what forces this term to earn its weight: a
+distractor with higher topology but no in-window change must not outrank a true
+change-induced cause, or GT-03/GT-07 fail.
+
+\subsection{Shadow-to-active rollout}
+\label{sec:shadow}
+
+New reasoning components do not light up on merge. They ship behind
+\code{RcaLiveActivation.Mode} (\code{src/DebugAgent/Rca/RcaLiveActivation.cs}, ADR-039~D1):
+
+\begin{quote}
+\begin{verbatim}
+public enum RcaLiveActivationMode
+{
+    Shadow = 0, // default(enum) — compute + log "would-do", never govern
+    Active,     // the gate / BARO / memory drive the real decision
+}
+\end{verbatim}
+\end{quote}
+
+In \code{Shadow} (the default), the verification gate and BARO scorer compute and log what
+they \emph{would} do, but the legacy path still governs; the eval collapses byte-for-byte to
+the prior baseline. Promotion to \code{Active} is an explicit operator config change
+(ConfigMap-backed), not a code default. This gives a clean ablation structure: for each
+increment we assert (a) \textbf{active}: no regression versus baseline; (b) \textbf{shadow}:
+collapses to baseline exactly (the ``feature off'' control); (c) \textbf{onset
+true-positives preserved}: GT-03/GT-07 stay at $\acone{} = 1.0$. The same shadow-first flag
+governs the evidence-chain soft-cap (\code{RcaEvidenceCap.Mode}) and incident-memory recall
+(\code{RcaMemory.Mode}).
+
+This is the methodology that makes the system \textbf{safe to ship}: a new component is
+observed against the gate in shadow before it is ever allowed to change an operator-facing
+conclusion.
+
+\section{Implementation}
+\label{sec:impl}
+
+The harness is pure .NET~10. Determinism (\code{NFR-SG-5}) is engineered, not hoped for:
+
+\begin{itemize}
+  \item A clean graph per run (\code{MATCH (n) DETACH DELETE n}), no live-graph reads, empty
+  history priors seeded.
+  \item Stable incident and distractor ordering (JSON order), so the per-commit gate is not
+  flaky.
+  \item An isolated FalkorDB key, \code{bluerobin\_stack\_eval} --- never the live
+  \code{bluerobin\_stack} graph.
+  \item Fixed onset epochs (\code{1700000000+}) so scoring has no wall-clock dependence; only
+  MTTR is wall-clock, and it is absorbed by the 30~s tolerance.
+  \item A reproducibility assertion: two consecutive runs must agree on aggregate \acone{} to
+  $10^{-9}$ and produce identical incident ordering.
+\end{itemize}
+
+\paragraph{CI wiring.}
+\code{debug-agent-pipeline.yml} runs the deterministic gate per-commit on every push to
+main: it spins up \code{falkordb/falkordb:v4.4.1} on an isolated port, runs
+\code{dotnet run \ldots{} -- --job=eval} against \code{ground-truth-incidents.json} and
+\code{scorecard-baseline.json}, and fails the build on regression. StackGraph and lifecycle
+integration suites run via Testcontainers against real FalkorDB and \code{postgres:16} ---
+there is no DB mock. The optional LLM-judge (\code{RcaEvalJudgeOptions}, default OFF in CI,
+hard \code{PerRunTokenCap: 50\_000}) runs only on the nightly \code{eval-nightly.yml} cron
+and \textbf{never gates merges} --- this is what keeps the judge inside the
+20~EUR/month LLM ceiling.
+
+This work is governed by \code{FEAT-027}, specifically \code{FR-SG-23} (the eval harness +
+\acone{}/MTTR scorecard), \code{FR-SG-24} (the regression gate + bounded LLM-judge),
+\code{FR-SG-25} (\code{Deploy}/\code{Change} nodes), and \code{FR-SG-27} (Grafana deploy
+annotations), under \code{NFR-SG-5} (deterministic reproducibility) and ADR-036 (eval
+harness + change correlation) / ADR-039 (Phase-B shadow$\rightarrow$active live activation).
+
+\paragraph{The ${\sim}50$~EUR/month angle.}
+The entire programme runs inside a hard platform ceiling of ${\sim}50$~EUR/month: a single
+Hetzner CX43 worker (${\sim}17.5$~EUR/mo), Cloudflare R2 and Tunnel on free tiers, local
+Ollama embeddings, and a hard 20~EUR/month LLM token ceiling (\code{COST-7}, with
+fail-closed at 100\% budget). Two design choices fall directly out of that ceiling. First,
+the per-commit oracle is deterministic and LLM-free, so the gate that runs on \emph{every}
+commit costs zero tokens. Second, the eval reuses the \emph{already-deployed} FalkorDB
+instance under an isolated key rather than standing up a benchmarking cluster --- a live
+ChaosMesh-style fault-injection benchmark over a separate Kubernetes environment is simply
+not affordable, which is why the ground-truth set is seeded from existing faults. The cost
+constraint is not a footnote; it is the reason the methodology looks the way it does.
+
+\section{Evaluation}
+\label{sec:eval}
+
+The committed scorecards are the baselines the gate protects. The \textbf{scorer-only}
+baseline (\code{eval/scorecard-baseline.json}) is $\acone{} = 1.0$ by construction across
+all 9 incidents --- a regression sentinel. The \textbf{live-path} baseline
+(\code{src/DebugAgent/eval/scorecard-live-path-baseline.json}) is the honest production-path
+number: even with distractors injected, all 9 incidents still localise at top-1, so the
+measured live-path \acone{} is also 1.0 on this set.
+
+\begin{table}[h]
+\centering
+\caption{Committed baseline scorecards (the baselines the per-commit gate protects).}
+\label{tab:scorecards}
+\begin{tabular}{lcccccl}
+\toprule
+Arm & \acone{} & MTTR (s) & Incidents & \code{Avg@k} & \code{MRR} & Interpretation \\
+\midrule
+Scorer-only (\code{ReplayAsync})        & 1.0 & 0.0017 & 9 & 1.0 & 1.0 & By construction; sentinel \\
+Live-path (\code{ReplayLivePathAsync})  & 1.0 & 0.0032 & 9 & 1.0 & 1.0 & Honest path; distractors \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The scorer-only arm is a regression sentinel, \textbf{not} an accuracy claim. The live-path
+arm is the honest production path: distractors are injected, and $\acone{} < 1.0$ is
+achievable. Per-incident MTTR ranges 0.0007--0.0073~s (scorer-only) and 0.0016--0.0126~s
+(live-path) --- sub-second, machine-dependent, and \textbf{not asserted exactly}.
+
+\paragraph{How to read these numbers honestly.}
+The live-path arm proves the ranker is not fooled by the topology trap on \emph{these} nine
+incidents --- a real result, because $\acone{} = 1.0$ there is \emph{not} guaranteed by the
+harness; the distractor with higher criticality could legitimately win. But nine
+self-seeded incidents is a tiny, low-diversity set, and a perfect score on it says far more
+about the absence of regressions than about absolute capability. For external context: the
+best agent on OpenRCA reaches ${\sim}11.3\%$ exact-match \citep{xu2025openrca} and the best
+frontier model on ITBench-AA reaches ${\sim}47\%$ precision@full-recall
+\citep{aa2026itbenchaa} on far harder, larger, adversarial sets. Our 1.0 is \textbf{not}
+comparable to those numbers and we do not claim it is. The harness's own source calls the
+by-construction arm ``the \S12 oversimplified-benchmark caveat'' --- an in-code
+acknowledgement that the planted 1.0 is plumbing, not accuracy.
+
+What the evaluation \emph{does} establish is the property we actually need: every increment
+(verification gate + BARO, evidence soft-cap, memory recall) passes the gate in both active
+and shadow modes, and the change-induced incidents GT-03/GT-07 retain $\acone{} = 1.0$ under
+every active-mode ablation. That is a no-regression guarantee, not a capability record ---
+which is exactly the claim an eval-first methodology should make.
+
+\section{Limitations \& Threats to Validity}
+\label{sec:limitations}
+
+We state these plainly; they are not hedges, they are the honest scope of the work.
+
+\begin{itemize}
+  \item \textbf{Small, self-seeded ground truth (construct + external validity).} Nine
+  incidents, seeded by the authors from existing faults, with no ChaosMesh or live fault
+  injection. The set spans $\ge 3$ fault classes specifically to avoid single-class gaming,
+  but it is small and low-diversity. $\acone{} = 1.0$ on it does not generalise to
+  production RCA difficulty.
+  \item \textbf{Author-labelled oracle (internal validity).} The expected root cause for each
+  incident is an author judgement. Exact-string matching is unambiguous \emph{given} the
+  label, but the labels themselves are not independently adjudicated.
+  \item \textbf{MTTR is a replay-clock proxy (construct validity).} Reported MTTR is
+  sub-second offline wall-clock around \code{InvestigateAsync}, not production
+  fire-to-resolved MTTR. Real lifecycle MTTD/MTTA/MTTR p50/p95 are computed separately from
+  live data (\code{GetKpisEndpoint}, \code{SLO-15}/\code{SLO-16}) but no measured production
+  values are committed here.
+  \item \textbf{By-construction $\acone{} = 1.0$ (presentation risk).} The scorer-only arm is
+  a sentinel; reported naively it overstates capability. We mitigate by always reporting the
+  live-path arm alongside it and by labelling the scorer arm as plumbing.
+  \item \textbf{No external-baseline comparison.} OpenRCA / ITBench-AA / AIOpsLab are
+  external yardsticks, never dependencies; we do not run them, so our numbers are not
+  cross-comparable. This is deliberate (cost and reproducibility) but it means we cannot
+  claim relative standing against published systems.
+  \item \textbf{Benchmark-oversimplification critique applies to us too.} The
+  Fault-Propagation-Aware critique \citep{rethinking2025faultprop} --- that simple methods
+  match SOTA on easy benchmarks --- applies with full force to a 9-incident self-seeded set.
+  We adopt the critique rather than resist it.
+  \item \textbf{Advisory-only by design.} A human always merges; nothing auto-remediates
+  (ADR-030). We position this as matching the state of the art given the ${\sim}11$--$47\%$
+  autonomous ceiling \citep{xu2025openrca,aa2026itbenchaa}, not as a temporary limitation.
+\end{itemize}
+
+\section{Conclusion}
+\label{sec:conclusion}
+
+LLM-only RCA loops have no native sense of correctness or regression, which makes them
+dangerous to evolve and hard to ship responsibly. The BlueRobin Debug Agent addresses this
+not with a bigger model but with a discipline: a deterministic offline replay harness over a
+labelled ground-truth set, a per-commit regression gate with explicit \acone{}/MTTR
+tolerances, an honest distractor-injected live-path arm that makes $\acone{} < 1.0$
+achievable, change-correlation as the primary signal, and a shadow-to-active rollout that
+observes every new reasoning component before it is allowed to govern. None of this produces
+a record accuracy number --- by design, and we say so. What it produces is the precondition
+for everything else in this series: a way to add graph reasoning, change-point detection,
+evidence-grounded confidence and episodic memory to an LLM-in-the-loop RCA agent and
+\emph{know}, on every commit, that one did not make it worse --- all inside a
+${\sim}50$~EUR/month homelab budget. The honest contribution is the gate, not the score.
+
+\bibliographystyle{plainnat}
+\bibliography{references}
+
+\end{document}

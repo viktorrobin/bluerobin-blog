@@ -14,11 +14,11 @@ const activeSocials = SOCIALS.filter((social) => social.active);
       <div class="md:col-span-2">
         <a href="/" class="flex items-center space-x-2 mb-4">
           <img src="/bluerobin-logo.png" alt="BlueRobin" class="w-8 h-8 object-contain" />
-          <span class="font-display font-semibold text-lg text-slate-100">
+          <span class="font-display font-semibold text-lg text-slate-900">
             {SITE.title}
           </span>
         </a>
-        <p class="text-slate-400 max-w-md">
+        <p class="text-slate-600 max-w-md">
           A homelab journey from medical document search to production AI. 
           Sharing lessons learned building BlueRobin—a personal document management system 
           with .NET, Kubernetes, and LLM integration.
@@ -27,29 +27,30 @@ const activeSocials = SOCIALS.filter((social) => social.active);
 
       <!-- Quick Links -->
       <div>
-        <h3 class="font-medium text-slate-200 mb-4">Quick Links</h3>
-        <ul class="space-y-2 text-slate-400">
-          <li><a href="/" class="hover:text-neural-600 transition-colors">All Articles</a></li>
-          <li><a href="/cookbook/" class="hover:text-neural-600 transition-colors">Cookbook</a></li>
-          <li><a href="/tags/" class="hover:text-neural-600 transition-colors">Browse by Tag</a></li>
-          <li><a href="/about/" class="hover:text-neural-600 transition-colors">About</a></li>
+        <h3 class="font-medium text-slate-800 mb-4">Quick Links</h3>
+        <ul class="space-y-2 text-slate-600">
+          <li><a href="/archives/" class="hover:text-neural-400 transition-colors">The Archives</a></li>
+          <li><a href="/debug-agent/" class="hover:text-neural-400 transition-colors">Debug Agent</a></li>
+          <li><a href="/cookbook/" class="hover:text-neural-400 transition-colors">Cookbook</a></li>
+          <li><a href="/tags/" class="hover:text-neural-400 transition-colors">Browse by Tag</a></li>
+          <li><a href="/about/" class="hover:text-neural-400 transition-colors">About</a></li>
         </ul>
       </div>
 
       <!-- Series -->
       <div>
-        <h3 class="font-medium text-slate-200 mb-4">Series</h3>
-        <ul class="space-y-2 text-slate-400">
-          <li><a href="/tags/ddd-series/" class="hover:text-neural-600 transition-colors">DDD in .NET</a></li>
-          <li><a href="/tags/nats-series/" class="hover:text-neural-600 transition-colors">NATS Messaging</a></li>
-          <li><a href="/tags/ai-series/" class="hover:text-neural-600 transition-colors">AI/LLM Integration</a></li>
-          <li><a href="/tags/gitops-series/" class="hover:text-neural-600 transition-colors">GitOps with Flux</a></li>
+        <h3 class="font-medium text-slate-800 mb-4">Series</h3>
+        <ul class="space-y-2 text-slate-600">
+          <li><a href="/tags/ddd-series/" class="hover:text-neural-400 transition-colors">DDD in .NET</a></li>
+          <li><a href="/tags/nats-series/" class="hover:text-neural-400 transition-colors">NATS Messaging</a></li>
+          <li><a href="/tags/ai-series/" class="hover:text-neural-400 transition-colors">AI/LLM Integration</a></li>
+          <li><a href="/tags/gitops-series/" class="hover:text-neural-400 transition-colors">GitOps with Flux</a></li>
         </ul>
       </div>
     </div>
 
-    <div class="mt-8 pt-8 border-t border-white/8 flex flex-col sm:flex-row justify-between items-center gap-4">
-      <p class="text-slate-400 text-sm">
+    <div class="mt-8 pt-8 border-t border-slate-900/10 flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p class="text-slate-600 text-sm">
         © {currentYear} {SITE.author}. All rights reserved.
       </p>
 
@@ -59,7 +60,7 @@ const activeSocials = SOCIALS.filter((social) => social.active);
           <a
             href={href}
             title={linkTitle}
-            class="text-slate-400 hover:text-neural-600 transition-colors"
+            class="text-slate-600 hover:text-neural-400 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >

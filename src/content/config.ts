@@ -10,7 +10,11 @@ const blog = defineCollection({
     author: z.string().default("Victor Robin"),
     draft: z.boolean().default(false),
     featured: z.boolean().default(false),
-    
+
+    // Project area — which BlueRobin project this article belongs to.
+    // Defaults to "archives" so the 100+ existing posts need no backfill.
+    project: z.enum(["archives", "debug-agent"]).default("archives"),
+
     // Article categorization
     category: z.enum(["architecture", "messaging", "infrastructure", "security", "ai", "frontend", "backend", "database", "ci-cd", "observability", "storage"]),
     difficulty: z.enum(["beginner", "intermediate", "advanced", "expert"]),

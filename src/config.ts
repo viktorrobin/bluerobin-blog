@@ -135,6 +135,30 @@ export const CATEGORIES = {
   },
 } as const;
 
+// Project metadata — the two BlueRobin project areas surfaced on the landing page
+export const PROJECTS = {
+  archives: {
+    slug: "archives",
+    label: "The Archives",
+    tagline: "Self-hosted document intelligence",
+    description:
+      "A production document-AI platform: OCR, entity extraction, a knowledge graph, multi-model vector search and cited RAG — running end-to-end on a homelab K3s cluster.",
+    href: "/archives/",
+    color: "neural", // blue
+    accent: "complement", // orange
+  },
+  "debug-agent": {
+    slug: "debug-agent",
+    label: "The Debug Agent",
+    tagline: "Autonomous, graph-grounded root-cause analysis",
+    description:
+      "An LLM agent that investigates production incidents: a FalkorDB world-model graph, correlation-first blame propagation, an externalized verification gate, and bi-temporal incident memory — research-grade RCA at homelab cost.",
+    href: "/debug-agent/",
+    color: "complement", // orange
+    accent: "neural", // blue
+  },
+} as const;
+
 // Difficulty metadata
 export const DIFFICULTIES = {
   beginner: {
