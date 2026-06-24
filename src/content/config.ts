@@ -43,6 +43,12 @@ const blog = defineCollection({
     
     // Table of contents
     toc: z.boolean().default(true),
+
+    // Deprecation — set when the article's subject was superseded by a newer
+    // decision (e.g. MinIO -> R2, SigNoz -> LGTM). Renders a banner; the
+    // article is kept for historical context, not deleted.
+    deprecated: z.boolean().default(false),
+    deprecatedReason: z.string().optional(),
   }),
 });
 
@@ -69,6 +75,12 @@ const cookbook = defineCollection({
     
     // Table of contents
     toc: z.boolean().default(true),
+
+    // Deprecation — set when the article's subject was superseded by a newer
+    // decision (e.g. MinIO -> R2, SigNoz -> LGTM). Renders a banner; the
+    // article is kept for historical context, not deleted.
+    deprecated: z.boolean().default(false),
+    deprecatedReason: z.string().optional(),
   }),
 });
 
@@ -95,6 +107,12 @@ const architecture = defineCollection({
     
     // Table of contents
     toc: z.boolean().default(true),
+
+    // Deprecation — set when the article's subject was superseded by a newer
+    // decision (e.g. MinIO -> R2, SigNoz -> LGTM). Renders a banner; the
+    // article is kept for historical context, not deleted.
+    deprecated: z.boolean().default(false),
+    deprecatedReason: z.string().optional(),
   }),
 });
 

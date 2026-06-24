@@ -133,6 +133,73 @@ const projects = [
       </div>
     </div>
   </section>
+  <!-- Platform architecture: how both projects share one homelab + cloud -->
+  <section class="relative py-12 sm:py-16" style="background: var(--gradient-mesh-light);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-8">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold title-blue mb-3">One platform, two projects</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">
+          The Archives and the Debug Agent run on the same homelab K3s cluster — one on-prem node plus a Hetzner cloud worker, joined over a Tailscale mesh and fronted by Cloudflare. Production is the only in-cluster environment (ADR-034).
+        </p>
+      </div>
+      <div class="glass-card p-4 sm:p-6 overflow-x-auto">
+        <pre class="mermaid">{`
+flowchart TB
+  users["Users / internet"]:::ext
+  llm["External LLM APIs<br/>5 cloud providers"]:::cloud
+  subgraph CF["Cloudflare edge — cloud"]
+   direction LR
+   cfedge["DNS · WAF · Tunnel"]:::cloud
+   r2["R2 object storage"]:::cloud
+   aigw["AI Gateway<br/>sole LLM egress"]:::cloud
+  end
+  subgraph MESH["Tailscale mesh · one K3s cluster · prod-only"]
+   subgraph HOME["On-prem homelab — control-plane + worker"]
+    ingress["Traefik + Authelia"]:::onprem
+    app["Archives app<br/>API · Web · pipeline workers"]:::onprem
+    ollama["Ollama · local embeddings"]:::onprem
+    subgraph DATA["Data layer"]
+     direction LR
+     pg["PostgreSQL"]:::data
+     nats["NATS"]:::data
+     qdrant["Qdrant"]:::data
+     falkor["FalkorDB"]:::data
+    end
+   end
+   subgraph HZ["Hetzner CX43 — cloud worker"]
+    cfd["cloudflared"]:::cloud
+    lgtm["LGTM observability"]:::cloud
+    debug["Debug agent · RCA"]:::cloud
+    auto["MCP fleet · ARC runners"]:::cloud
+   end
+  end
+  laptop["Dev laptop<br/>off-cluster · ADR-034"]:::ext
+  github["GitHub · auto-PRs"]:::ext
+  ops["ntfy · operator"]:::ext
+  users --> cfedge
+  cfedge --> cfd --> ingress --> app
+  app --> DATA
+  app --> r2
+  app -. telemetry .-> lgtm
+  app -. cloud LLM .-> aigw
+  aigw --> llm
+  lgtm -- alerts --> debug
+  debug -. reads code + graph .-> DATA
+  debug -- auto-PR --> github
+  debug --> ops
+  debug -. RCA LLM .-> aigw
+  github -. Flux .-> HOME
+  laptop -. Tailscale .-> DATA
+  classDef cloud fill:#FAEEDA,stroke:#BA7517,color:#412402;
+  classDef onprem fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
+  classDef data fill:#D7EFE6,stroke:#1D9E75,color:#04342C;
+  classDef ext fill:#F1EFE8,stroke:#888780,color:#2C2C2A;
+`}</pre>
+      </div>
+      <p class="text-center text-xs text-slate-500 mt-4">Amber = cloud · teal = on-prem · grey = external / I-O. All cluster egress exits through Cloudflare.</p>
+    </div>
+  </section>
+
 </MainLayout>
 
 <style>
