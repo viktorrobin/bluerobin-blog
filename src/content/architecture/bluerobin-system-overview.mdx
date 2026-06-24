@@ -27,7 +27,7 @@ flowchart TD
     UI["Blazor Server (.NET 10)"] --> API["Archives API\nFastEndpoints + Authelia OIDC"]
 
     API --> PG["PostgreSQL\n(Users · Documents · Metadata)"]
-    API --> MINIO["MinIO\n(Document Files · SSE-KMS)"]
+    API --> R2["Cloudflare R2\n(Document Files · Envelope Encryption)"]
     API --> NATS["NATS JetStream\n(Event Bus)"]
 
     NATS --> OCR["OCR Worker\n(Docling)"]
@@ -44,7 +44,7 @@ flowchart TD
     style UI fill:#1a2744,stroke:#6366f1,color:#e2e8f0
     style API fill:#1a2744,stroke:#6366f1,color:#e2e8f0
     style PG fill:#1a2744,stroke:#22c55e,color:#e2e8f0
-    style MINIO fill:#1a2744,stroke:#22c55e,color:#e2e8f0
+    style R2 fill:#1a2744,stroke:#22c55e,color:#e2e8f0
     style NATS fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
     style OCR fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
     style ANALYSIS fill:#1a2744,stroke:#f59e0b,color:#e2e8f0
@@ -67,11 +67,12 @@ flowchart TD
 | **Database** | PostgreSQL (CNPG) | Relational data storage |
 | **Vector DB** | Qdrant | Semantic search embeddings |
 | **Graph DB** | FalkorDB | Entity relationships |
-| **Object Storage** | MinIO | S3-compatible document storage |
-| **AI (Local)** | Ollama | Local LLM inference |
-| **AI (Cloud)** | Azure OpenAI | Complex reasoning tasks |
+| **Object Storage** | Cloudflare R2 | S3-compatible document storage (app-layer envelope encryption) |
+| **AI (Local)** | Ollama | Local embeddings, kept in-cluster |
+| **AI (Cloud)** | Cloudflare AI Gateway | Edge proxy fronting OpenAI / Anthropic / Gemini / Groq / Mistral |
 | **OCR** | Docling | Document text extraction |
 | **NER** | spaCy | Named entity recognition |
+| **Observability** | LGTM stack | Grafana · Loki · Tempo · Mimir · Prometheus |
 | **Orchestration** | K3s + Flux | Kubernetes + GitOps |
 
 ## Core Architectural Principles
@@ -129,7 +130,7 @@ The solution follows Clean Architecture with clear layer boundaries. I was heavi
 src/
 ├── Archives.Core/           # Domain entities, value objects, interfaces
 ├── Archives.Application/    # Use cases, DTOs, application services
-├── Archives.Infrastructure/ # EF Core, MinIO, NATS, external services
+├── Archives.Infrastructure/ # EF Core, Cloudflare R2, NATS, external services
 ├── Archives.Api/           # FastEndpoints, controllers
 ├── Archives.Web/           # Blazor Server UI
 └── Archives.Workers/       # Background processing services
@@ -156,7 +157,7 @@ Services communicate through NATS JetStream events:
 
 ```
 Document Upload Flow:
-1. API receives file → Stores in MinIO → Publishes "document.uploaded"
+1. API receives file → Encrypts + stores in Cloudflare R2 → Publishes "document.uploaded"
 2. OCR Worker consumes → Extracts text → Publishes "ocr.completed"
 3. Analysis Worker consumes → Generates summary → Publishes "analysis.completed"
 4. Embedding Worker consumes → Creates vectors → Publishes "embedding.completed"
@@ -176,10 +177,10 @@ BlueRobin uses a dual-identity model:
 
 | Identity | Format | Usage |
 |----------|--------|-------|
-| **BlueRobinId** | 8-char alphanumeric | Internal references, MinIO buckets, database keys |
+| **BlueRobinId** | 8-char alphanumeric | Internal references, R2 object-key prefixes, database keys |
 | **ExternalId** | UUID | OIDC `sub` claim from Authelia |
 
-The `UserSyncService` maps external identities to internal BlueRobinIds on first login. This dual-identity approach took me a while to land on—my first attempt used the OIDC `sub` claim directly as the primary key, which worked until I realized that 36-character UUIDs made terrible MinIO bucket names and NATS subject tokens.
+The `UserSyncService` maps external identities to internal BlueRobinIds on first login. This dual-identity approach took me a while to land on—my first attempt used the OIDC `sub` claim directly as the primary key, which worked until I realized that 36-character UUIDs made terrible object-key prefixes and NATS subject tokens.
 
 ```csharp
 // UserSyncService resolves external ID to internal BlueRobinId
@@ -203,35 +204,33 @@ public async Task<ApplicationUser> SyncUserAsync(ClaimsPrincipal principal)
 
 ### Storage Architecture
 
-Each user has a dedicated MinIO bucket with server-side encryption. I chose MinIO because it's S3-compatible—meaning if I ever move to AWS, the storage layer is a config change, not a rewrite.
+Documents live in **Cloudflare R2**, one bucket per environment (`bluerobin-prod`, `bluerobin-dev`), with the user and archive encoded in the object key. R2 was chosen for its S3-compatible API—so the existing `IFileStorage` abstraction was reusable—plus managed durability, no egress fees, and no single-node failure point (ADR-006, superseding the original self-hosted MinIO design).
 
 <ExternalCite
-  title="MinIO Object Storage for Kubernetes"
-  url="https://min.io/docs/minio/kubernetes/upstream/"
-  author="MinIO, Inc."
+  title="Cloudflare R2 Object Storage"
+  url="https://developers.cloudflare.com/r2/"
+  author="Cloudflare"
   date="2024"
 />
 
 ```
-Bucket: prod-abc12345  (environment-userId)
-├── original/
-│   └── {documentId}.pdf     # Original uploaded file
-├── processed/
-│   └── {documentId}/
-│       ├── content.md       # OCR extracted text
-│       └── thumbnail.png    # Preview image
-└── exports/
-    └── {exportId}.zip       # User-requested exports
+Bucket: bluerobin-prod
+└── {userId}/{archiveId}/
+    ├── {documentId}/{filename}        # Original uploaded file (ciphertext)
+    ├── processed/{documentId}/
+    │   ├── content.md                 # OCR extracted text
+    │   └── thumbnail.png              # Preview image
+    └── exports/{exportId}.zip         # User-requested exports
 ```
 
-**Encryption**: MinIO uses SSE-KMS with per-user keys managed by KES. Key names follow the pattern `key-{blueRobinId}`.
+**Encryption**: storage isolation is enforced at the **application layer**, not by the object store. Each document is encrypted **before upload** with a per-user data key derived via **HKDF-SHA256** and sealed with **AES-256-GCM** (per-user envelope encryption). R2 only ever stores ciphertext, so no cross-user contamination is possible at the storage layer even though all users share a bucket (ADR-006, SEC-11/SEC-12).
 
 <ImplementationNote>
-Getting MinIO KES encryption working was one of the most frustrating configurations in the entire project. The KES server requires a client certificate for authentication, and the certificate fingerprint must match exactly what's registered in the KES config. I went through at least five rounds of regenerating certificates before realizing the issue was the fingerprint format—KES expects SHA-256 without colons, while OpenSSL outputs with colons by default.
+The original design used MinIO SSE-KMS with per-user keys managed by a KES server, and getting the KES client certificates right was one of the most frustrating configurations in the project. Moving encryption into the application (HKDF-SHA256 + AES-256-GCM, keys never leaving the app) deleted that whole moving part: there is no KMS to operate, the storage backend became a dumb ciphertext sink, and the same envelope scheme now works unchanged whether the bytes land in R2 or anywhere else.
 </ImplementationNote>
 
 <Callout type="warning">
-Workers must use the bucket name from event payloads (`evt.Bucket`), never construct bucket names manually. This ensures correct environment and user targeting.
+Workers must use the object key from event payloads (`evt.ObjectKey`), never reconstruct keys manually. This ensures correct environment and user targeting.
 </Callout>
 
 ### Database Design
@@ -341,7 +340,7 @@ Documents flow through a multi-stage AI pipeline. I originally built this as a s
 ```
 ┌─────────────┐     ┌─────────────┐     ┌─────────────┐
 │   Upload    │────▶│     OCR     │────▶│  Analysis   │
-│  (MinIO)    │     │  (Docling)  │     │  (Ollama)   │
+│    (R2)     │     │  (Docling)  │     │  (LLM)      │
 └─────────────┘     └─────────────┘     └─────────────┘
                                               │
                     ┌─────────────────────────┼─────────────────────────┐
@@ -363,10 +362,10 @@ Documents flow through a multi-stage AI pipeline. I originally built this as a s
 | Stage | Service | Input | Output |
 |-------|---------|-------|--------|
 | OCR | Docling | PDF/Image | Markdown text |
-| Analysis | Ollama (llama3) | Markdown | Summary, keywords, category |
+| Analysis | Cloud LLM via Cloudflare AI Gateway | Markdown | Summary, keywords, category |
 | Chunking | Custom | Markdown | Semantic chunks (500 tokens) |
 | NER | spaCy | Markdown | Named entities |
-| Embedding | Ollama (nomic-embed-text) | Text | 768-dim vectors |
+| Embedding | Ollama (local, in-cluster) | Text | 768-dim vectors |
 
 <ImplementationNote>
 The embedding stage was a major source of latency early on. Running eight different embedding models (nomic, mxbai, arctic, minilm, bge, granite, bge-m3, paraphrase) sequentially per document took over 60 seconds. I restructured this into a fan-out pattern—NATS publishes one event per model, and each embedding request processes in parallel. The total time dropped from 60 seconds to under 3 seconds. This was one of those "obvious in hindsight" optimizations that took real production pain to discover.
@@ -418,47 +417,38 @@ BlueRobin uses NATS directly instead of SignalR for real-time updates. This elim
 
 ## Infrastructure Architecture
 
-### Kubernetes Namespace Strategy
+### Cluster Topology
 
-BlueRobin uses a shared infrastructure model:
+BlueRobin runs **one prod-only K3s cluster spanning two nodes** that join over a Tailscale tailnet—physically split, logically one (ADR-034). Stateful, GPU-bound, and data-layer services pin to the on-prem homelab node; the observability stack and operational tooling run on the Hetzner worker. Object storage (Cloudflare R2) and cloud LLM egress (Cloudflare AI Gateway) live at the edge, outside the cluster.
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                        K3s Cluster                               │
-├─────────────────────────────────────────────────────────────────┤
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                    data-layer namespace                   │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌──────────┐    │   │
-│  │  │PostgreSQL│ │   NATS   │ │  Qdrant  │ │  MinIO   │    │   │
-│  │  │ (CNPG)   │ │ JetStream│ │          │ │          │    │   │
-│  │  └──────────┘ └──────────┘ └──────────┘ └──────────┘    │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                  │
-│  ┌─────────────────────┐                                       │
-│  │ archives-prod       │   (prod-only in-cluster; dev runs     │
-│  │ ┌─────┐ ┌─────┐    │    on a laptop off-cluster — ADR-034)  │
-│  │ │ API │ │ Web │    │                                        │
-│  │ └─────┘ └─────┘    │                                        │
-│  │ ┌─────────────┐    │                                        │
-│  │ │   Workers   │    │                                        │
-│  │ └─────────────┘    │                                        │
-│  └─────────────────────┘                                       │
-│                                                                  │
-│  ┌──────────────────────────────────────────────────────────┐   │
-│  │                       ai namespace                        │   │
-│  │  ┌──────────┐ ┌──────────┐ ┌──────────┐                  │   │
-│  │  │  Ollama  │ │ Docling  │ │  spaCy   │                  │   │
-│  │  └──────────┘ └──────────┘ └──────────┘                  │   │
-│  └──────────────────────────────────────────────────────────┘   │
-│                                                                  │
-└─────────────────────────────────────────────────────────────────┘
+                         Tailscale tailnet (flannel over tailscale0)
+   ┌───────────────────────────────────┴───────────────────────────────────┐
+   │                                                                         │
+┌──┴──────────────────────────────────┐        ┌─────────────────────────────┴─┐
+│  node: bluerobin (LAN homelab)       │        │  node: hetzner-cx43 (Hetzner)   │
+│  control-plane + worker              │        │  worker · CX43 8 vCPU / 16 GiB  │
+│                                      │        │                                 │
+│  data-layer ns                       │        │  monitoring ns                  │
+│  ┌────────┐┌──────┐┌──────┐┌───────┐ │        │  ┌───────────────────────────┐  │
+│  │Postgres││ NATS ││Qdrant││Falkor │ │        │  │  LGTM stack               │  │
+│  │ (CNPG) ││ JS   ││      ││  DB   │ │        │  │  Grafana·Loki·Tempo·      │  │
+│  └────────┘└──────┘└──────┘└───────┘ │        │  │  Mimir·Prometheus         │  │
+│  ai ns                               │        │  └───────────────────────────┘  │
+│  ┌────────┐┌─────────┐┌──────┐       │        │  MCP fleet · debug-agent ·      │
+│  │ Ollama ││ Docling ││ spaCy│       │        │  ARC runners · cloudflared      │
+│  └────────┘└─────────┘└──────┘       │        └─────────────────────────────────┘
+│  archives-prod ns                    │
+│  ┌─────┐┌─────┐┌──────────┐          │        Edge (outside cluster):
+│  │ API ││ Web ││ Workers  │          │          • Cloudflare R2 — document storage
+│  └─────┘└─────┘└──────────┘          │          • Cloudflare AI Gateway — cloud LLM
+└──────────────────────────────────────┘        • Dev — laptop over Tailscale (off-cluster)
 ```
 
 **Rationale**: 
 - Single data infrastructure reduces operational complexity
 - BlueRobin runs prod-only in the cluster with development on a laptop (ADR-034); the `prod.`-prefixed subjects, databases, collections, and credentials still namespace traffic and would isolate additional environments if reintroduced
-- Shared AI services reduce GPU memory requirements
+- GPU-bound AI services (Ollama) stay on the homelab node; the Hetzner worker carries observability and tooling so a homelab outage still leaves the LGTM stack reachable
 
 ### GitOps with Flux
 
@@ -481,18 +471,17 @@ bluerobin-infra/
 │   └── data-layer/
 │       ├── postgres/
 │       ├── nats/
-│       ├── qdrant/
-│       └── minio/
+│       └── qdrant/
 └── platform/               # Platform services
-    ├── monitoring/         # SigNoz
+    ├── monitoring/         # LGTM (Grafana, Loki, Tempo, Mimir, Prometheus)
     └── ai/                 # Ollama, Docling
 ```
 
 **Deployment Flow**:
 1. Developer commits changes to `bluerobin-infra`
-2. Flux detects changes and reconciles
-3. Kubernetes applies updated manifests
-4. Image automation updates tags on new builds
+2. CI resolves each first-party build to its immutable `@sha256` digest and commits the pin to the prod overlay
+3. Flux detects the Git change and reconciles
+4. Kubernetes applies updated manifests; a bad pull fails loudly (`ImagePullBackOff`) instead of silently running a stale cached image (ADR-027/034 — Keel and `:latest` retired)
 
 ## Security Model
 
@@ -520,7 +509,7 @@ bluerobin-infra/
 
 | Layer | Isolation Method |
 |-------|------------------|
-| **Storage** | Per-user MinIO buckets with SSE-KMS |
+| **Storage** | Shared R2 bucket, per-user app-layer envelope encryption (HKDF-SHA256 + AES-256-GCM) |
 | **Database** | Row-level security via `user_id` columns |
 | **Search** | User filter on all Qdrant queries |
 | **Events** | User ID embedded in event payloads |
@@ -575,7 +564,7 @@ All heavy operations are processed asynchronously:
 
 ### Metrics and Tracing
 
-BlueRobin uses SigNoz for unified observability. Distributed tracing was essential for debugging the multi-stage document pipeline—without trace correlation, figuring out why a document got stuck at the embedding stage was like searching for a needle in a haystack.
+BlueRobin uses the **LGTM stack** (Grafana, Loki, Tempo, Mimir, Prometheus) for unified observability, deployed on the Hetzner worker. Distributed tracing was essential for debugging the multi-stage document pipeline—without trace correlation, figuring out why a document got stuck at the embedding stage was like searching for a needle in a haystack.
 
 <ExternalCite
   title="OpenTelemetry .NET Documentation"
@@ -584,9 +573,9 @@ BlueRobin uses SigNoz for unified observability. Distributed tracing was essenti
   date="2024"
 />
 
-- **Metrics**: Prometheus format, collected by OTEL collector
-- **Traces**: Distributed tracing with correlation IDs
-- **Logs**: Structured JSON logs with trace context
+- **Metrics**: Prometheus-format metrics scraped into Mimir
+- **Traces**: OTLP traces stored in Tempo, correlated by trace ID
+- **Logs**: Structured JSON logs shipped to Loki, joined to traces in Grafana
 
 ```csharp
 // Automatic tracing with OpenTelemetry
@@ -605,7 +594,7 @@ services.AddOpenTelemetry()
 builder.Services.AddHealthChecks()
     .AddNpgSql(connectionString, name: "postgresql")
     .AddCheck<NatsHealthCheck>("nats")
-    .AddCheck<MinioHealthCheck>("minio")
+    .AddCheck<R2HealthCheck>("r2")
     .AddCheck<QdrantHealthCheck>("qdrant");
 ```
 

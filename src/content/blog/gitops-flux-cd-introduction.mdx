@@ -188,7 +188,7 @@ spec:
 ```
 
 <ImplementationNote>
-    We use Keel for automated image updates in staging—it polls the container registry every 30 seconds and updates the deployment when a new `:latest` tag appears. For production, we use a manual GitHub Actions workflow that commits an immutable image tag (e.g., `20260215143022-abc1234`) to the infra repository. Flux then detects the git change and reconciles.
+    BlueRobin used to run two delivery models side by side: Keel polling `:latest` for staging, and Git-committed immutable tags for production. That split was the root cause of a multi-session debugging incident—`:latest` is a mutable pointer, so you can't tell from a manifest whether a pod is running new or old code, and a transient registry blip let pods silently keep a stale cached image instead of failing loudly. We retired Keel and `:latest` entirely (ADR-027) and then collapsed the cluster to **prod-only**, with development moved off-cluster to a laptop (ADR-034). There is now **one** deploy model: CI resolves every first-party build to its immutable `@sha256` digest and commits that pin to the prod overlay; Flux reconciles it; a bad pull `ImagePullBackOff`s and surfaces in minutes instead of running stale code for hours.
 </ImplementationNote>
 
 ### Automated Image Updates
@@ -254,6 +254,10 @@ spec:
 ```
 
 With this configured, when GitHub Actions pushes `v1.0.1`, Flux detects it, commits the change to `deployment.yaml`, and then reconciles the cluster to deploy the new version.
+
+<Callout type="warning" title="What BlueRobin actually runs">
+Flux's in-cluster image automation above floats a *tag* (`semver` range, `Setters` strategy). BlueRobin deliberately does **not** use it. Since ADR-027/ADR-034 there is a single prod-only environment and a single deploy model: CI resolves each green build to its immutable `@sha256` **digest** and commits *that* pin to the prod overlay—no in-cluster tag polling, no Keel, no `:latest`. The trade-off: tag automation is convenient, but "what runs" isn't readable from Git and a stale cached image can run silently. A committed digest makes the deployed artifact auditable from Git and turns a bad pull into a loud `ImagePullBackOff`.
+</Callout>
 
 ## Conclusion
 
