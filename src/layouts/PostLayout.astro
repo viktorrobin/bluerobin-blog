@@ -19,7 +19,7 @@ const difficultyMeta = DIFFICULTIES[difficulty];
 const isDebugAgent = project === "debug-agent";
 const projectMeta = isDebugAgent
   ? { label: "Debug Agent", hubHref: "/debug-agent/", backLabel: "← Back to Debug Agent" }
-  : { label: "The Archives", hubHref: "/archives/", backLabel: "← Back to Articles" };
+  : { label: "The Archives", hubHref: "/the-archives/", backLabel: "← Back to Articles" };
 
 // Format dates
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });

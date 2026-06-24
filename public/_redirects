@@ -2,5 +2,10 @@
 /app/* https://web.bluerobin.io/:splat 301
 /app https://web.bluerobin.io 301
 
+# Archives hub moved to /the-archives/ (the old /archives/* path had a stale
+# 301 cached in browsers/edge pointing at the Blazor app; the new path is clean).
+/archives/* /the-archives/:splat 302
+/archives /the-archives/ 302
+
 # Login shortcut
 /login https://web.bluerobin.io 302
