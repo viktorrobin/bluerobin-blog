@@ -143,60 +143,104 @@ const projects = [
         </p>
       </div>
       <div class="glass-card p-4 sm:p-6 overflow-x-auto">
-        <pre class="mermaid">{`
-flowchart TB
-  users["Users / internet"]:::ext
-  llm["External LLM APIs<br/>5 cloud providers"]:::cloud
-  subgraph CF["Cloudflare edge — cloud"]
-   direction LR
-   cfedge["DNS · WAF · Tunnel"]:::cloud
-   r2["R2 object storage"]:::cloud
-   aigw["AI Gateway<br/>sole LLM egress"]:::cloud
-  end
-  subgraph MESH["Tailscale mesh · one K3s cluster · prod-only"]
-   subgraph HOME["On-prem homelab — control-plane + worker"]
-    ingress["Traefik + Authelia"]:::onprem
-    app["Archives app<br/>API · Web · pipeline workers"]:::onprem
-    ollama["Ollama · local embeddings"]:::onprem
-    subgraph DATA["Data layer"]
-     direction LR
-     pg["PostgreSQL"]:::data
-     nats["NATS"]:::data
-     qdrant["Qdrant"]:::data
-     falkor["FalkorDB"]:::data
-    end
-   end
-   subgraph HZ["Hetzner CX43 — cloud worker"]
-    cfd["cloudflared"]:::cloud
-    lgtm["LGTM observability"]:::cloud
-    debug["Debug agent · RCA"]:::cloud
-    auto["MCP fleet · ARC runners"]:::cloud
-   end
-  end
-  laptop["Dev laptop<br/>off-cluster · ADR-034"]:::ext
-  github["GitHub · auto-PRs"]:::ext
-  ops["ntfy · operator"]:::ext
-  users --> cfedge
-  cfedge --> cfd --> ingress --> app
-  app --> DATA
-  app --> r2
-  app -. telemetry .-> lgtm
-  app -. cloud LLM .-> aigw
-  aigw --> llm
-  lgtm -- alerts --> debug
-  debug -. reads code + graph .-> DATA
-  debug -- auto-PR --> github
-  debug --> ops
-  debug -. RCA LLM .-> aigw
-  github -. Flux .-> HOME
-  laptop -. Tailscale .-> DATA
-  classDef cloud fill:#FAEEDA,stroke:#BA7517,color:#412402;
-  classDef onprem fill:#E1F5EE,stroke:#0F6E56,color:#04342C;
-  classDef data fill:#D7EFE6,stroke:#1D9E75,color:#04342C;
-  classDef ext fill:#F1EFE8,stroke:#888780,color:#2C2C2A;
-`}</pre>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 734" role="img" style="width:100%;height:auto;max-width:780px;margin:0 auto;display:block;" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif">
+<title>BlueRobin platform architecture — on-prem and cloud</title>
+<desc>Zoned topology: users and external LLM APIs at top; a Cloudflare edge zone (DNS/WAF/Tunnel, R2 storage, AI Gateway); a Tailscale-meshed prod-only K3s cluster with an on-prem homelab node (Traefik/Authelia, Archives app, Ollama, and a data layer of PostgreSQL, NATS, Qdrant, FalkorDB plus an NAS registry) and a Hetzner CX43 cloud worker (cloudflared, LGTM observability, debug agent and RCA, MCP fleet, ARC runners, API/Web spillover); outputs to GitHub auto-PRs and ntfy alerts; a developer laptop runs off-cluster.</desc>
+<defs><marker id="brArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="40" y="100" width="600" height="92" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="52" y="116" font-size="12" fill="#5F5E5A">Cloudflare edge</text>
+<text x="52" y="206" font-size="12" fill="#5F5E5A">Tailscale mesh · K3s cluster (2 nodes, prod-only)</text>
+<rect x="40" y="210" width="600" height="412" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<rect x="52" y="242" width="282" height="372" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="64" y="260" font-size="12" fill="#5F5E5A">On-prem homelab</text>
+<text x="64" y="275" font-size="12" fill="#5F5E5A">control-plane + worker · LAN</text>
+<rect x="350" y="242" width="282" height="298" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="362" y="260" font-size="12" fill="#5F5E5A">Hetzner CX43 · cloud worker</text>
+<text x="362" y="275" font-size="12" fill="#5F5E5A">observability + automation</text>
+<rect x="64" y="436" width="258" height="118" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="72" y="452" font-size="12" fill="#5F5E5A">Data layer</text>
+<path d="M115 84 L115 126" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M537 126 L537 84" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M110 180 L110 196 L48 196 L48 305 L62 305" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M324 357 L360 357" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M491 380 L491 384" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M400 428 L400 432 L340 432 L340 638" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M560 428 L560 432 L628 432 L628 636 L560 636 L560 638" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrow)"/>
+<path d="M70 640 L46 640 L46 500 L62 500" fill="none" stroke="#888780" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#brArrow)"/>
+<rect x="40" y="44" width="150" height="38" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="115" y="68" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">Users / internet</text>
+<rect x="474" y="44" width="166" height="38" rx="6" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="557" y="60" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">External LLM APIs</text>
+<text x="557" y="74" text-anchor="middle" font-size="12" fill="#854F0B">5 cloud providers</text>
+<rect x="56" y="128" width="178" height="52" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="145" y="152" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">DNS · WAF · Tunnel</text>
+<text x="145" y="168" text-anchor="middle" font-size="12" fill="#854F0B">public ingress</text>
+<rect x="252" y="128" width="178" height="52" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="341" y="152" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">R2 object storage</text>
+<text x="341" y="168" text-anchor="middle" font-size="12" fill="#854F0B">documents · backups</text>
+<rect x="448" y="128" width="178" height="52" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="537" y="152" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">AI Gateway</text>
+<text x="537" y="168" text-anchor="middle" font-size="12" fill="#854F0B">LLM egress proxy</text>
+<rect x="64" y="286" width="258" height="42" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="193" y="304" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Traefik + Authelia</text>
+<text x="193" y="320" text-anchor="middle" font-size="12" fill="#0F6E56">ingress · forward-auth</text>
+<rect x="64" y="336" width="258" height="42" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="193" y="354" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Archives app</text>
+<text x="193" y="370" text-anchor="middle" font-size="12" fill="#0F6E56">API · Web · pipeline workers</text>
+<rect x="64" y="386" width="258" height="42" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="193" y="404" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">AI · Ollama</text>
+<text x="193" y="420" text-anchor="middle" font-size="12" fill="#0F6E56">local embeddings · OCR · NER</text>
+<rect x="72" y="460" width="116" height="38" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<text x="130" y="476" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">PostgreSQL</text>
+<text x="130" y="490" text-anchor="middle" font-size="12" fill="#0F6E56">CNPG</text>
+<rect x="198" y="460" width="116" height="38" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<text x="256" y="476" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">NATS</text>
+<text x="256" y="490" text-anchor="middle" font-size="12" fill="#0F6E56">JetStream</text>
+<rect x="72" y="506" width="116" height="38" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<text x="130" y="522" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Qdrant</text>
+<text x="130" y="536" text-anchor="middle" font-size="12" fill="#0F6E56">vectors</text>
+<rect x="198" y="506" width="116" height="38" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<text x="256" y="522" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">FalkorDB</text>
+<text x="256" y="536" text-anchor="middle" font-size="12" fill="#0F6E56">graphs</text>
+<rect x="64" y="566" width="258" height="38" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="193" y="582" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">OCI registry · NAS</text>
+<text x="193" y="596" text-anchor="middle" font-size="12" fill="#5F5E5A">Flux image source</text>
+<rect x="362" y="286" width="258" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="491" y="304" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">cloudflared</text>
+<text x="491" y="320" text-anchor="middle" font-size="12" fill="#854F0B">tunnel termination</text>
+<rect x="362" y="336" width="258" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="491" y="354" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">LGTM observability</text>
+<text x="491" y="370" text-anchor="middle" font-size="12" fill="#854F0B">Prom · Loki · Tempo · Grafana</text>
+<rect x="362" y="386" width="258" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="491" y="404" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Debug agent · RCA</text>
+<text x="491" y="420" text-anchor="middle" font-size="12" fill="#854F0B">FEAT-008 auto-debug</text>
+<rect x="362" y="436" width="124" height="40" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="424" y="453" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">MCP fleet</text>
+<text x="424" y="467" text-anchor="middle" font-size="12" fill="#854F0B">tooling</text>
+<rect x="496" y="436" width="124" height="40" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="558" y="453" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">ARC runners</text>
+<text x="558" y="467" text-anchor="middle" font-size="12" fill="#5F5E5A">self-hosted</text>
+<rect x="362" y="486" width="258" height="40" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="491" y="503" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">API / Web spillover</text>
+<text x="491" y="517" text-anchor="middle" font-size="12" fill="#854F0B">stateless · public-facing</text>
+<rect x="40" y="640" width="180" height="44" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="130" y="660" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">Dev laptop</text>
+<text x="130" y="675" text-anchor="middle" font-size="12" fill="#5F5E5A">off-cluster · ADR-034</text>
+<rect x="250" y="640" width="180" height="44" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="340" y="660" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">GitHub</text>
+<text x="340" y="675" text-anchor="middle" font-size="12" fill="#5F5E5A">GitOps · auto-PRs</text>
+<rect x="460" y="640" width="180" height="44" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="550" y="660" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">ntfy · operator</text>
+<text x="550" y="675" text-anchor="middle" font-size="12" fill="#5F5E5A">RCA alerts</text>
+<rect x="40" y="704" width="12" height="12" rx="2" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="58" y="714" font-size="12" fill="#5F5E5A">cloud</text>
+<rect x="120" y="704" width="12" height="12" rx="2" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
+<text x="138" y="714" font-size="12" fill="#5F5E5A">on-prem</text>
+<rect x="210" y="704" width="12" height="12" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="228" y="714" font-size="12" fill="#5F5E5A">external / I-O</text>
+<text x="340" y="714" font-size="12" fill="#5F5E5A">dashed = zone boundary · all egress exits via Cloudflare</text>
+</svg>
       </div>
-      <p class="text-center text-xs text-slate-500 mt-4">Amber = cloud · teal = on-prem · grey = external / I-O. All cluster egress exits through Cloudflare.</p>
     </div>
   </section>
 
