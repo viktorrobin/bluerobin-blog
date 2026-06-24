@@ -2,8 +2,5 @@
 /app/* https://web.bluerobin.io/:splat 301
 /app https://web.bluerobin.io 301
 
-# Redirect old paths
-/archives/* https://web.bluerobin.io/archives/:splat 301
-
 # Login shortcut
 /login https://web.bluerobin.io 302
