@@ -15,9 +15,9 @@ const projects = [
     kindBorder: "--color-neural-alpha-20",
     kindIcon: `<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></svg>`,
     label: "The Archives",
-    tagline: "Self-hosted document intelligence",
+    tagline: "A self-hosted team of document AI agents",
     description:
-      "Upload any document, ask any question, get answers cited from your own archive. A full stack: OCR, entity extraction, a knowledge graph, multi-model vector search and cited RAG — running end-to-end on a homelab K3s cluster.",
+      "Upload any document and a team of AI agents takes over — triaging, then routing to specialists for retrieval, finance, health, and tax. Behind them: ensemble entity extraction, a knowledge graph, and multi-model vector search, running end-to-end on a homelab K3s cluster.",
     cta: "Explore the Archives",
     count: archivesCount,
     countLabel: "articles",
@@ -69,8 +69,8 @@ const projects = [
 
       <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
         I build production-grade AI on self-hosted infrastructure — and write about it.
-        One is the <strong class="font-semibold text-slate-800">homelab product</strong> I run;
-        the other is the <strong class="font-semibold text-slate-800">research</strong> behind making it debug itself.
+        One is the <strong class="font-semibold text-slate-800">team of agents</strong> that runs my documents;
+        the other is the <strong class="font-semibold text-slate-800">research</strong> behind making the platform debug itself.
       </p>
     </div>
   </section>
@@ -143,7 +143,7 @@ const projects = [
       <div class="glass-card p-4 sm:p-6 overflow-x-auto">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 734" role="img" style="width:100%;height:auto;max-width:780px;margin:0 auto;display:block;" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif">
 <title>BlueRobin platform architecture — on-prem and cloud</title>
-<desc>Zoned topology: users and external LLM APIs at top; a Cloudflare edge zone (DNS/WAF/Tunnel, R2 storage, AI Gateway); a Tailscale-meshed prod-only K3s cluster with an on-prem homelab node (Traefik/Authelia, Archives app, Ollama, and a data layer of PostgreSQL, NATS, Qdrant, FalkorDB plus an NAS registry) and a Hetzner CX43 cloud worker (cloudflared, LGTM observability, debug agent and RCA, MCP fleet, ARC runners, API/Web spillover); outputs to GitHub auto-PRs and ntfy alerts; a developer laptop runs off-cluster.</desc>
+<desc>Zoned topology: users and external LLM APIs at top; a Cloudflare edge zone (DNS/WAF/Tunnel, R2 storage, AI Gateway); a Tailscale-meshed prod-only K3s cluster with an on-prem homelab node (Traefik/Authelia, the Archives agent platform with triage, retrieval, finance, health and tax agents, Ollama, and a data layer of PostgreSQL, NATS, Qdrant, FalkorDB plus an NAS registry) and a Hetzner CX43 cloud worker (cloudflared, LGTM observability, debug agent and RCA, MCP fleet, ARC runners, API/Web spillover); outputs to GitHub auto-PRs and ntfy alerts; a developer laptop runs off-cluster.</desc>
 <defs><marker id="brArrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
 <rect x="40" y="100" width="600" height="92" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
 <text x="52" y="116" font-size="12" fill="#5F5E5A">Cloudflare edge</text>
@@ -183,8 +183,8 @@ const projects = [
 <text x="193" y="304" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Traefik + Authelia</text>
 <text x="193" y="320" text-anchor="middle" font-size="12" fill="#0F6E56">ingress · forward-auth</text>
 <rect x="64" y="336" width="258" height="42" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
-<text x="193" y="354" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Archives app</text>
-<text x="193" y="370" text-anchor="middle" font-size="12" fill="#0F6E56">API · Web · pipeline workers</text>
+<text x="193" y="354" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Archives · agent platform</text>
+<text x="193" y="370" text-anchor="middle" font-size="12" fill="#0F6E56">triage · retrieval · finance · health · tax</text>
 <rect x="64" y="386" width="258" height="42" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="1"/>
 <text x="193" y="404" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">AI · Ollama</text>
 <text x="193" y="420" text-anchor="middle" font-size="12" fill="#0F6E56">local embeddings · OCR · NER</text>

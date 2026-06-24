@@ -1,0 +1,167 @@
+---
+title: "The Archives Is a Team of Agents, Not a RAG App"
+description: "BlueRobin's Archives looks like a RAG app from the outside. Inside, it's a collection of specialist agents — triage, finance, health, tax, entity resolution, insight, and retrieval — each with its own job, coordinating over an event bus."
+pubDate: 2026-06-24
+author: "Victor Robin"
+category: "ai"
+difficulty: "advanced"
+tags: ["agents", "multi-agent", "ai", "rag", "knowledge-graph", "ner", "nats", "dotnet"]
+series:
+  name: "BlueRobin: Feature Deep Dives"
+  order: 4
+readTime: "14 min"
+toc: true
+---
+
+{/* Grounded in the platform feature specs: FEAT-002 (AI processing pipeline), FEAT-005 (domain intelligence packs), FEAT-010 (entity analysis). Cite these in the PR body for the requirements-citation CI gate. */}
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+import ExternalCite from '@components/ExternalCite.astro';
+
+For a long time I described the Archives as "a RAG app for my documents." It was the shortest sentence that got the idea across: upload files, ask questions, get cited answers. But the sentence was wrong in a way that kept costing me — every time I said "RAG," people pictured a vector database with an LLM bolted on top, and then they were confused about why it had a classification step, a knowledge graph, a biomarker timeline, and a human review queue.
+
+The honest description is different. The Archives is not one model answering questions. It's a **team of specialist agents**, each with a narrow job, coordinating over an event bus. Retrieval — the part everyone calls "the RAG" — is just one member of the team, and not even the busiest one.
+
+This article walks through the cast: who does what, what tools each agent reaches for, and how they hand work to each other.
+
+## Why "RAG" undersells it
+
+Retrieval-augmented generation describes a *query-time* pattern: fetch relevant context, stuff it into a prompt, generate an answer. It says nothing about everything that has to happen *before* a document is ready to be retrieved well.
+
+In the Archives, the work that makes retrieval good is mostly done up front, by agents that never touch your query:
+
+- A document arrives as a photo of a receipt, a 40-page PDF lab report, or a scanned letter. Something has to read it.
+- The same physician shows up as "Dr. Nguyen," "A. Nguyen, MD," and "Dr. A Nguyen" across three files. Something has to decide those are one person.
+- A blood panel and a finance statement need completely different extraction. Something has to route them.
+- An answer that spans three documents needs those documents *connected* before the question is ever asked.
+
+None of that is "retrieval." Calling the whole system RAG is like calling a newsroom "a printing press." The press is real, and it's the last step — but it isn't the thing that does the work.
+
+## The team
+
+I think about the agents in two groups. **Specialists** are the ones you interact with — they own a domain and produce something you came for. **Core intelligence** agents are the shared engine: they read, connect, and enrich every document regardless of domain, so the specialists and the retriever have something good to work with.
+
+| Agent | Group | Job | Main tools |
+|---|---|---|---|
+| Triage | Core | Read each upload, classify it, route it | Docling OCR, content analysis, domain classifier |
+| Finance | Specialist | Transactions, merchants, amounts, line items | Structured transaction schema, spend view |
+| Health | Specialist | Biomarkers, providers, prescriptions, appointments | Medical schema, biomarker timeline |
+| Tax | Specialist | Tax-relevant documents, figures, deductions | Year grouping, deduction hints |
+| Entity & graph | Core | Extract, deduplicate, and link entities | Multi-provider NER ensemble, FalkorDB graph |
+| Insight | Core | Profiles, generated insights, staleness checks | Entity profiles, LLM insights, web enrichment |
+| Retrieval | Specialist | Answer questions across the whole archive, cited | 8-model vector ensemble, RRF, graph traversal, local LLM |
+
+The rest of this article takes them in the order a document actually meets them.
+
+## The triage agent: the dispatcher
+
+Every document hits the triage agent first. Its job is unglamorous and load-bearing: turn an arbitrary file into clean text, figure out what kind of document it is, and route it to the right specialist.
+
+Text extraction runs through Docling, which preserves tables, headings, and layout rather than flattening everything into a wall of characters — structure that later pays off when chunks are assembled for retrieval. Then a fast analysis pass produces a summary, keywords, and a **domain classification**: medical, financial, generic, and so on.
+
+That classification is the routing decision. A lab report goes to the health agent; a bank statement goes to the finance agent; an invoice that mentions deductible expenses can fan out to both finance and tax. The triage agent doesn't extract domain data itself — it decides *who should*.
+
+<ImplementationNote title="Routing cheaply beats routing perfectly">
+My first instinct was to make classification airtight before anything downstream ran. That was the wrong place to spend effort. A specialist that occasionally runs on a document outside its domain just produces nothing and exits — cheap. A document that never reaches the right specialist is invisible forever — expensive. So the triage agent is biased toward routing generously and letting specialists no-op, rather than gatekeeping hard.
+</ImplementationNote>
+
+## Specialist agents: finance, health, tax
+
+The specialists are where "document intelligence" stops being abstract. Each one knows the *shape* of its domain and extracts structured records, not prose.
+
+**The finance agent** reads receipts, invoices, and statements into transaction records — merchant, date, total, currency, and individual line items — which roll up into a spend view. Because money is unforgiving, its bar is high: amounts, currencies, and dates have to be parsed with near-total accuracy, not "usually right."
+
+**The health agent** reads medical documents into a structured schema — providers, dates, prescriptions, appointments, and crucially **biomarkers**, the numeric values like HbA1c or LDL that only mean something as a series. Extracted values land on a timeline, so a number buried in section 3.2 of a PDF becomes a point on a chart you can actually read. The accuracy bar here is just as high; a misread biomarker is worse than no biomarker.
+
+**The tax agent** works across the year rather than per-document. It gathers tax-relevant paperwork, pulls the figures that matter at filing time, and flags potential deductions — turning the annual shoebox into something you can query.
+
+What makes these *agents* rather than parsers is that they're pluggable and domain-aware: each defines its own extraction schema and post-processing, gets invoked conditionally based on the triage agent's classification, and can be added without touching the core pipeline. New domain, new specialist — insurance and legal are the obvious next two.
+
+<Callout type="info" title="Specialists route their own LLM calls by sensitivity">
+Medical and financial documents are exactly the data you don't want leaking to a public API. Specialists handling sensitive domains keep inference on-prem (Ollama) or on a compliance-appropriate provider, while generic documents can take the cheaper public path. The routing decision is the agent's, not a global switch.
+</Callout>
+
+## The entity & knowledge-graph agent
+
+This is the agent that does the most and gets the least credit. Its job is to find the named things in every document — people, organisations, dates, financial figures, medical terms — and turn thousands of scattered mentions into a connected graph of canonical entities.
+
+It does **not** trust a single model to do this. Extraction runs as a **multi-provider NER ensemble** — several LLM providers plus an on-prem model, in parallel, with per-provider timeouts and a circuit breaker so one slow vendor can't stall the pipeline. Their outputs are reconciled by confidence voting, with an agreement bonus when providers concur. The result is far more robust than any single extractor, and it degrades gracefully when a provider is down.
+
+Raw mentions are then **resolved** to canonical entities through a cascade — exact name, substring, fuzzy match, location alias, identifier match — so that "Dr. Nguyen," "A. Nguyen, MD," and "Dr. A Nguyen" collapse into one real person with one record. Resolution is idempotent under message redelivery and tracked per run, so the same document arriving twice never forks an entity into duplicates.
+
+Canonical entities and their relationships are upserted into a FalkorDB graph, with confidence and supporting evidence on every edge. Separate workers infer cross-document relationships, so connections surface across your *whole* archive rather than within a single file.
+
+<ExternalCite
+  title="Reciprocal Rank Fusion Outperforms Condorcet and Individual Rank Learning Methods"
+  url="https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf"
+  author="Cormack, Clarke & Buettcher"
+  date="2009"
+/>
+
+You also get a say. You can define your own known entities and the relationships between them, and those are injected into the extraction prompts as entities to check first — which both improves accuracy and prevents the machine from "merging away" distinctions you care about. A review queue lets you confirm, reject, or merge what the ensemble proposed, and every action is an event on the audit trail.
+
+## The insight agent
+
+Once entities exist and are linked, the insight agent makes them *useful on their own*, not just as retrieval fodder. It builds a profile for each entity — metadata, the documents it appears in, the entities it connects to via graph traversal — and generates an LLM summary of what that profile means.
+
+The interesting part is the lifecycle, not the generation. Insights go stale: you upload three more documents about the same person and last week's summary is now wrong. The insight agent tracks staleness, regenerates on demand, and batch-refreshes on a schedule. Optional web enrichment can pull in outside context for entities where that's appropriate. It's the difference between a one-shot summary and something that stays current as your archive grows.
+
+## The retrieval agent (the one you thought was the whole app)
+
+Now — finally — the part everyone means when they say "RAG." And it's genuinely good. But notice how much had to happen before it could be.
+
+When you ask a question, the retrieval agent embeds your query across **eight** vector models, each chosen for a different retrieval strength, and retrieves candidates from eight Qdrant collections. It fuses those rankings with **Reciprocal Rank Fusion** — a chunk that ranks highly across many models wins; a chunk one model loves in isolation doesn't. For entity-anchored questions it also traverses the FalkorDB graph the entity agent built, pulling in structural facts that no embedding captures: who ordered what, what connects to what.
+
+```
+score(chunk) = Σ ( weight_model × 1 / (60 + rank_model) )
+```
+
+It assembles the highest-scoring material — including full source documents fetched from R2, not just isolated chunks — into a context window, and a locally hosted LLM answers in plain English, citing the exact paragraphs it used. The retrieval pipeline has its own depth (query rewriting, hybrid keyword precision, multi-turn entity anchoring) that earns its own article — but the point here is architectural: **retrieval is one specialist among several, and it's only as good as the agents upstream of it.**
+
+## Orchestration: agents as event-driven workers
+
+What makes this a *team* and not a monolith is how they coordinate. There's no central function calling each step in sequence. Each agent is an independent worker subscribed to NATS JetStream subjects; finishing your job means emitting an event, which is some other agent's cue to start.
+
+```
+document arrives
+   → triage agent      (OCR + classify + route)
+   → domain specialist (finance / health / tax extraction)
+   → entity agent      (ensemble NER + resolve + graph)
+   → insight agent     (profiles + insights)
+   → retrieval agent   (ready to answer, cited)
+```
+
+Because hand-offs are events, the whole thing is **idempotent and fault-isolated**. Each stage can be retried on its own. A redelivered message doesn't create duplicates, thanks to a deduplication key store. A failed stage routes to a dead-letter queue you can inspect and replay — scoped to the stage that failed, not the whole document. And the UI streams stage transitions live over the same bus, so you watch a document move through the team in real time, including "3 of 8 embedding models complete" rather than a single opaque spinner.
+
+<Callout type="tip" title="The architecture is the product">
+The agent boundaries aren't cosmetic. They're why a slow NER vendor can't stall ingestion, why I can add a tax specialist without redeploying retrieval, and why a document is searchable the moment it's stored even while the rest of the team is still working on it. "A team of agents over an event bus" is a description of the runtime, not a metaphor.
+</Callout>
+
+## Why the reframe matters
+
+Calling this "a RAG app" doesn't just undersell it — it points your attention at the wrong component. It makes you tune the retriever when the leverage is in the entity agent. It makes you think the answer quality problem is a prompt problem when it's a *resolution* problem. It hides the fact that adding a capability means adding a specialist, not rewriting a pipeline.
+
+The Archives is a collection of agents that read your documents, agree on what's in them, connect them to each other, keep their understanding current, and answer questions across the whole corpus — running end-to-end on a homelab K3s cluster, with every user's data encrypted under their own key. Retrieval is the part you see. The team is the part that works.
+
+### In this series
+
+- Part 1 — [Document Archives: From Raw Upload to Searchable Intelligence](/articles/bluerobin-features-document-archives-ocr)
+- Part 2 — [Knowledge Graph & Entity Modelling: How BlueRobin Connects the Dots](/articles/bluerobin-features-knowledge-graph-entity-modelling)
+- Part 3 — [Advanced Retrieval in BlueRobin: Embeddings, Graphs, and Context](/articles/bluerobin-features-advanced-search-retrieval)
+
+### Further reading
+
+<ExternalCite
+  title="Cognitive Architectures for Language Agents"
+  url="https://arxiv.org/abs/2309.02427"
+  author="Sumers, Yao, Narasimhan & Griffiths"
+  date="2023"
+/>
+
+<ExternalCite
+  title="Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"
+  url="https://arxiv.org/abs/2005.11401"
+  author="Lewis et al."
+  date="2020"
+/>

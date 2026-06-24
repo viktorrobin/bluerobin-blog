@@ -60,7 +60,7 @@ export const SERIES = {
   },
   "ai-series": {
     title: "AI/LLM Integration",
-    description: "Building production RAG pipelines and LLM applications",
+    description: "Building production AI agents, retrieval, and LLM pipelines",
     color: "neural",
   },
 } as const;
@@ -140,9 +140,9 @@ export const PROJECTS = {
   archives: {
     slug: "archives",
     label: "The Archives",
-    tagline: "Self-hosted document intelligence",
+    tagline: "A self-hosted team of document AI agents",
     description:
-      "A production document-AI platform: OCR, entity extraction, a knowledge graph, multi-model vector search and cited RAG — running end-to-end on a homelab K3s cluster.",
+      "A self-hosted team of AI agents that read, organize, and reason over your documents — specialists for retrieval, finance, health, and tax, backed by ensemble entity extraction, a knowledge graph, and multi-model vector search, running end-to-end on a homelab K3s cluster.",
     href: "/archives/",
     color: "neural", // blue
     accent: "complement", // orange
