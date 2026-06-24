@@ -2,7 +2,7 @@
 import BaseLayout from "./BaseLayout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import { CATEGORIES, DIFFICULTIES, SERIES } from "@/config";
+import { CATEGORIES, DIFFICULTIES } from "@/config";
 import type { CollectionEntry } from "astro:content";
 
 export interface Props {
@@ -10,11 +10,10 @@ export interface Props {
 }
 
 const { post } = Astro.props;
-const { title, description, pubDate, updatedDate, author, category, difficulty, tags, series, readTime, ogImage, toc, project, deprecated, deprecatedReason } = post.data;
+const { title, description, pubDate, updatedDate, author, category, difficulty, readTime, ogImage, toc, project, deprecated, deprecatedReason } = post.data;
 
 const categoryMeta = CATEGORIES[category];
 const difficultyMeta = DIFFICULTIES[difficulty];
-const seriesMeta = series ? SERIES[series as keyof typeof SERIES] : null;
 
 // Project-aware navigation (Archives vs Debug Agent)
 const isDebugAgent = project === "debug-agent";
@@ -24,10 +23,6 @@ const projectMeta = isDebugAgent
 
 // Format dates
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-
-// Get series tags for highlighting
-const seriesTags = tags.filter(tag => tag.endsWith("-series"));
-const regularTags = tags.filter(tag => !tag.endsWith("-series"));
 ---
 
 <BaseLayout title={`${title} | BlueRobin Tech Blog`} description={description} ogImage={ogImage}>
@@ -83,31 +78,7 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
             </>
           )}
         </div>
-
-        <!-- Tags -->
-        <div class="flex flex-wrap gap-2">
-          {seriesTags.map((tag) => (
-            <a href={`/tags/${tag}/`} class="tag tag-series">{tag.replace("-series", "")}</a>
-          ))}
-          {regularTags.map((tag) => (
-            <a href={`/tags/${tag}/`} class="tag">{tag}</a>
-          ))}
-        </div>
       </header>
-
-      <!-- Series Navigation (if part of a series) -->
-      {seriesMeta && (
-        <div class="series-nav">
-          <div class="series-nav-title">
-            Part of the "{seriesMeta.title}" series
-          </div>
-          <p class="text-sm text-slate-600">
-          </p>
-          <a href={`/tags/${series}/`} class="text-sm text-neural-400 hover:underline transition-colors mt-2 inline-block">
-            View all articles in this series →
-          </a>
-        </div>
-      )}
 
       <!-- Deprecation notice (frontmatter: deprecated) -->
       {deprecated && (
@@ -124,23 +95,10 @@ const regularTags = tags.filter(tag => !tag.endsWith("-series"));
 
       <!-- Article Footer -->
         <footer class="mt-12 pt-8 border-t border-slate-900/10">
-        <div class="flex flex-wrap gap-2 mb-6">
-          {tags.map((tag) => (
-            <a href={`/tags/${tag}/`} class={`tag ${tag.endsWith("-series") ? "tag-series" : ""}`}>
-              {tag.replace("-series", "")}
-            </a>
-          ))}
-        </div>
-
         <div class="flex justify-between items-center">
           <a href={projectMeta.hubHref} class="btn-secondary">
             {projectMeta.backLabel}
           </a>
-          {series && (
-            <a href={`/tags/${series}/`} class="btn-primary">
-              More in this series →
-            </a>
-          )}
         </div>
       </footer>
     </article>
