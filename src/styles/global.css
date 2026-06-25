@@ -1176,58 +1176,65 @@ pre {
 
 /* ==================== BUTTONS ==================== */
 
+/* Primary — molten lava. A single warm, flowing gradient (no muddy
+   orange-over-blue blend), a screen-blended hot-spot blob that only
+   brightens, and a glassy top sheen. */
 .btn-primary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-white font-medium text-sm tracking-wide transition-all gap-2;
     position: relative;
     overflow: hidden;
     z-index: 0;
-    background: linear-gradient(135deg, oklch(60% 0.21 232) 0%, oklch(53% 0.20 232) 100%);
-    box-shadow: var(--shadow-sm);
+    background: linear-gradient(110deg,
+        oklch(58% 0.21 25) 0%,
+        oklch(66% 0.225 38) 28%,
+        oklch(74% 0.21 58) 52%,
+        oklch(66% 0.225 38) 76%,
+        oklch(60% 0.215 28) 100%);
+    background-size: 220% 220%;
+    background-position: 0% 50%;
+    box-shadow:
+        0 2px 10px oklch(62% 0.215 32 / 0.40),
+        0 6px 22px oklch(58% 0.21 25 / 0.28),
+        inset 0 1px 0 oklch(96% 0.06 80 / 0.40);
+    animation: btn-lava-flow 9s ease-in-out infinite;
 }
 
 .btn-primary::before {
     content: '';
     position: absolute;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
-    z-index: -2;
-    background: radial-gradient(circle at 30% 50%,
-        oklch(69% 0.235 43 / 0.85) 0%,
-        oklch(76% 0.20 43 / 0.4) 40%,
-        transparent 70%);
-    animation: btn-lava-1 8s ease-in-out infinite;
-    filter: blur(20px);
+    inset: -60%;
+    z-index: -1;
+    background: radial-gradient(circle at 50% 50%,
+        oklch(86% 0.19 80 / 0.65) 0%,
+        oklch(78% 0.21 60 / 0.30) 40%,
+        transparent 65%);
+    filter: blur(18px);
+    mix-blend-mode: screen;
+    animation: btn-lava-1 11s ease-in-out infinite;
 }
 
 .btn-primary::after {
     content: '';
     position: absolute;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
+    inset: 0;
     z-index: -1;
-    background: radial-gradient(circle at 70% 50%,
-        oklch(66% 0.21 232 / 0.5) 0%,
-        oklch(57% 0.19 232 / 0.2) 40%,
-        transparent 70%);
-    animation: btn-lava-2 10s ease-in-out infinite;
-    filter: blur(25px);
+    background: radial-gradient(120% 80% at 50% -25%,
+        oklch(99% 0.03 85 / 0.50) 0%,
+        transparent 60%);
+    pointer-events: none;
 }
 
 .btn-primary:hover {
-    box-shadow: var(--shadow-neural-sm);
+    box-shadow:
+        0 4px 16px oklch(62% 0.215 32 / 0.50),
+        0 0 26px oklch(72% 0.21 55 / 0.35),
+        inset 0 1px 0 oklch(96% 0.06 80 / 0.55);
     transform: translateY(-2px);
 }
 
 .btn-primary:hover::before {
-    animation-duration: 5s;
-    filter: blur(15px);
-}
-
-.btn-primary:hover::after {
     animation-duration: 6s;
-    filter: blur(18px);
+    filter: blur(14px);
 }
 
 .btn-primary:active {
@@ -1248,59 +1255,52 @@ pre {
     animation: none;
 }
 
+/* Secondary — warm lava-glass. Crisp frosted surface with a visible
+   amber-tinted edge and a low-banked ember that warms on hover, so it
+   reads as part of the lava family instead of washed-out grey. */
 .btn-secondary {
     @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-medium text-sm tracking-wide transition-all gap-2;
     position: relative;
     overflow: hidden;
     z-index: 0;
-    background: var(--glass-white-20);
-    color: var(--color-slate-700);
-    border: 1px solid rgba(15, 23, 42, 0.10);
+    color: var(--color-slate-800);
+    background: linear-gradient(135deg,
+        oklch(98% 0.02 75 / 0.70) 0%,
+        oklch(96% 0.035 50 / 0.50) 100%);
+    border: 1px solid oklch(70% 0.16 50 / 0.38);
+    box-shadow:
+        0 1px 3px oklch(60% 0.10 50 / 0.10),
+        inset 0 1px 0 oklch(100% 0 0 / 0.65);
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
 }
 
 .btn-secondary::before {
     content: '';
     position: absolute;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
-    z-index: -2;
-    background: radial-gradient(circle at 30% 50%,
-        oklch(69% 0.235 43 / 0.3) 0%,
-        oklch(76% 0.20 43 / 0.1) 40%,
-        transparent 70%);
-    animation: btn-lava-1 12s ease-in-out infinite;
-    filter: blur(25px);
-}
-
-.btn-secondary::after {
-    content: '';
-    position: absolute;
-    inset: -50%;
-    width: 200%;
-    height: 200%;
+    inset: -60%;
     z-index: -1;
-    background: radial-gradient(circle at 70% 50%,
-        oklch(66% 0.21 232 / 0.2) 0%,
-        oklch(57% 0.19 232 / 0.08) 40%,
-        transparent 70%);
-    animation: btn-lava-2 14s ease-in-out infinite;
-    filter: blur(30px);
+    background: radial-gradient(circle at 30% 120%,
+        oklch(76% 0.19 55 / 0.32) 0%,
+        oklch(82% 0.16 75 / 0.14) 42%,
+        transparent 62%);
+    filter: blur(16px);
+    animation: btn-lava-1 13s ease-in-out infinite;
 }
 
 .btn-secondary:hover {
     color: var(--color-slate-900);
-    transform: translateY(-1px);
+    border-color: oklch(70% 0.18 52 / 0.58);
+    box-shadow:
+        0 4px 14px oklch(66% 0.18 50 / 0.22),
+        0 0 20px oklch(74% 0.17 60 / 0.22),
+        inset 0 1px 0 oklch(100% 0 0 / 0.75);
+    transform: translateY(-2px);
 }
 
 .btn-secondary:hover::before {
     animation-duration: 8s;
-    filter: blur(20px);
-}
-
-.btn-secondary:hover::after {
-    animation-duration: 10s;
-    filter: blur(22px);
+    filter: blur(13px);
 }
 
 .btn-secondary:active {
@@ -1315,6 +1315,11 @@ pre {
 .btn-secondary:disabled::before,
 .btn-secondary:disabled::after {
     animation: none;
+}
+
+@keyframes btn-lava-flow {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
 }
 
 @keyframes btn-lava-1 {
@@ -1683,10 +1688,9 @@ pre {
         animation: none !important;
     }
 
+    .btn-primary,
     .btn-primary::before,
-    .btn-primary::after,
-    .btn-secondary::before,
-    .btn-secondary::after {
+    .btn-secondary::before {
         animation: none !important;
     }
 }
