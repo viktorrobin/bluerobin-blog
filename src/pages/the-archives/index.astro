@@ -245,12 +245,21 @@ const coreAgents = [
   <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Two agents, one cross-document answer</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">The entity agent links entities from each document across your archive. When a question spans multiple files, the graph connects them &mdash; and the retrieval agent reasons across the combined result.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Agents in action</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">Each specialist has its own lens — cross-document retrieval, spend intelligence, health timelines, tax exposure. Two agents, two domains, the same knowledge graph engine.</p>
       </div>
 
-      <!-- Scenario card -->
-      <div class="glass-card p-8 max-w-4xl mx-auto">
+      <!-- The Librarian -->
+      <div class="mb-14">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-neural-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Librarian</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-neural-400);">Retrieval agent &middot; cross-document Q&amp;A</span>
+          </div>
+        </div>
+        <!-- Scenario card -->
+        <div class="glass-card p-8 max-w-4xl mx-auto">
         <div class="flex flex-col gap-8">
 
           <!-- Row: Documents in -->
@@ -456,7 +465,217 @@ const coreAgents = [
         </div>
       </div>
 
-      <p class="text-center text-sm text-slate-600 mt-6">This is not keyword search. The entity agent connected three documents. The retrieval agent reasoned across them.</p>
+      </div><!-- /The Librarian wrapper -->
+
+      <!-- The Accountant -->
+      <div class="mb-6">
+        <div class="flex items-center gap-3 mb-5">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Accountant</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-400);">Finance agent &middot; spend intelligence</span>
+          </div>
+        </div>
+
+        <div class="glass-card p-8 max-w-4xl mx-auto">
+          <div class="flex flex-col gap-8">
+
+            <!-- Row: Documents in -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Documents</div>
+              <div class="flex flex-wrap gap-3 flex-1">
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128179; Credit Statement &mdash; Jan 2025</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Grocery Receipts &mdash; Jan 2025</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Amazon Orders &mdash; Jan 2025</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
+                Entity agent &mdash; extraction &amp; graph linking
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+            </div>
+
+            <!-- Row: Finance knowledge graph -->
+            <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 25% -10%, #102137 0%, #0a1119 70%); border: 1px solid var(--color-neural-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), var(--shadow-neural-sm);">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: var(--color-complement-400);">Spend graph</span>
+                <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">5 nodes &middot; 7 edges &middot; live link</span>
+              </div>
+
+              <svg viewBox="0 0 760 360" role="img" aria-label="Knowledge graph linking three financial documents through a Chase Sapphire account hub to spend categories and a total amount node" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+                <defs>
+                  <linearGradient id="af-doc" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                    <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                  </linearGradient>
+                  <linearGradient id="af-cat" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(74% 0.19 60 / 0.38)"/>
+                    <stop offset="1" stop-color="oklch(74% 0.19 60 / 0.12)"/>
+                  </linearGradient>
+                  <radialGradient id="af-hub" cx="50%" cy="42%" r="65%">
+                    <stop offset="0" stop-color="oklch(69% 0.20 184 / 0.55)"/>
+                    <stop offset="1" stop-color="oklch(69% 0.20 184 / 0.10)"/>
+                  </radialGradient>
+                  <radialGradient id="af-total" cx="50%" cy="42%" r="70%">
+                    <stop offset="0" stop-color="oklch(72% 0.19 150 / 0.40)"/>
+                    <stop offset="1" stop-color="oklch(72% 0.19 150 / 0.10)"/>
+                  </radialGradient>
+                  <filter id="af-glow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <pattern id="af-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                    <path d="M34 0H0V34" fill="none" stroke="oklch(69% 0.235 232 / 0.07)" stroke-width="1"/>
+                  </pattern>
+                </defs>
+
+                <rect x="0" y="0" width="760" height="360" fill="url(#af-grid)"/>
+                <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.65)">STATEMENTS</text>
+                <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(74% 0.19 60 / 0.7)">SPEND GRAPH</text>
+                <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(69% 0.235 232 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+                <g fill="none" stroke-linecap="round">
+                  <path id="af-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="af-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="af-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="af-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="2"/>
+                  <path id="af-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="2"/>
+                  <path id="af-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="2"/>
+                  <path id="af-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(72% 0.19 150 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                  <path id="af-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(72% 0.19 150 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+                </g>
+
+                <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                  <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 232)">LINKED_TO &times;3</text>
+                  <text x="402" y="118" text-anchor="middle" fill="oklch(82% 0.13 60)">CATEGORY</text>
+                  <text x="610" y="104" text-anchor="middle" fill="oklch(82% 0.13 60)">SUB_CATEGORY</text>
+                  <text x="614" y="240" text-anchor="middle" fill="oklch(82% 0.13 60)">LARGEST_ITEM</text>
+                  <text x="538" y="178" text-anchor="middle" fill="oklch(85% 0.13 150)">MONTH_TOTAL</text>
+                  <text x="276" y="246" text-anchor="middle" fill="oklch(85% 0.12 150)">SOURCE</text>
+                </g>
+
+                <g>
+                  <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#af-e1"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#af-e2"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#af-e3"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 60)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#af-e4"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 60)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#af-e5"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 60)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#af-e6"/></animateMotion></circle>
+                  <circle r="2.5" fill="oklch(88% 0.16 150)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#af-e7"/></animateMotion></circle>
+                </g>
+
+                <g font-family="ui-sans-serif, system-ui, sans-serif">
+                  <g>
+                    <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#af-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                    <text x="34" y="64" font-size="13">&#128179;</text>
+                    <text x="54" y="58" font-size="11" font-weight="600" fill="#dbe9ff">Credit Statement</text>
+                    <text x="54" y="70" font-size="8.5" fill="rgba(203,225,255,0.55)">Jan 2025</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#af-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                    <text x="34" y="185" font-size="13">&#128203;</text>
+                    <text x="54" y="179" font-size="11" font-weight="600" fill="#dbe9ff">Grocery Receipts</text>
+                    <text x="54" y="191" font-size="8.5" fill="rgba(203,225,255,0.55)">Jan 2025</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#af-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                    <text x="34" y="306" font-size="13">&#128196;</text>
+                    <text x="54" y="300" font-size="11" font-weight="600" fill="#dbe9ff">Amazon Orders</text>
+                    <text x="54" y="312" font-size="8.5" fill="rgba(203,225,255,0.55)">Jan 2025</text>
+                  </g>
+
+                  <circle cx="300" cy="180" r="58" fill="url(#af-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                  <rect x="228" y="153" width="144" height="54" rx="14" fill="oklch(15% 0.05 184 / 0.85)" stroke="oklch(69% 0.20 184 / 0.7)" stroke-width="1.5" filter="url(#af-glow)"/>
+                  <text x="300" y="177" text-anchor="middle" font-size="12" font-weight="700" fill="#c8f4f4">Chase Sapphire</text>
+                  <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(72% 0.18 184 / 0.85)">ACCOUNT &middot; hub</text>
+
+                  <g>
+                    <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#af-cat)" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="1"/>
+                    <text x="515" y="78" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffe4b0">Groceries</text>
+                    <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(255,228,176,0.6)">$847 &middot; 12 transactions</text>
+                  </g>
+                  <g>
+                    <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#af-cat)" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="1"/>
+                    <text x="660" y="163" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffe4b0">Dining Out</text>
+                    <text x="660" y="174" text-anchor="middle" font-size="8" fill="rgba(255,228,176,0.6)">$312 &middot; 8 visits</text>
+                  </g>
+                  <g>
+                    <rect x="590" y="290" width="130" height="38" rx="9" fill="url(#af-cat)" stroke="oklch(74% 0.19 60 / 0.6)" stroke-width="1"/>
+                    <text x="655" y="313" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffe4b0">Amazon</text>
+                    <text x="655" y="324" text-anchor="middle" font-size="8" fill="rgba(255,228,176,0.6)">$289 &middot; 3 orders</text>
+                  </g>
+
+                  <g>
+                    <circle cx="490" cy="269" r="38" fill="url(#af-total)"/>
+                    <circle cx="490" cy="269" r="30" fill="oklch(18% 0.06 150 / 0.85)" stroke="oklch(72% 0.18 150 / 0.7)" stroke-width="1.25"/>
+                    <text x="490" y="265" text-anchor="middle" font-size="8.5" font-weight="600" fill="#c8ffd4">Jan total</text>
+                    <text x="490" y="280" text-anchor="middle" font-size="13" font-weight="700" fill="oklch(80% 0.18 150)">$1,634</text>
+                  </g>
+                </g>
+              </svg>
+
+              <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Statement</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(74% 0.19 60);"></span>Spend category</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(69% 0.20 184);"></span>Account / monthly total</span>
+                <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                Retrieval agent &mdash; graph + vector search
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+            </div>
+
+            <!-- Row: Generated query -->
+            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+              <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(74% 0.19 60);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.20 184);"></span>
+                <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">finance-agent &middot; generated graph traversal + vector recall</span>
+              </div>
+              <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (acc:<span style="color: oklch(78% 0.16 60);">Account</span> &#123;id:<span style="color: oklch(82% 0.14 232);">"chase-sapphire-4521"</span>&#125;)-[:<span style="color: oklch(80% 0.13 60);">HAS_CHARGE</span>]-&gt;(tx:<span style="color: oklch(78% 0.16 60);">Transaction</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (tx)-[:<span style="color: oklch(80% 0.13 60);">CATEGORY</span>]-&gt;(cat:<span style="color: oklch(78% 0.16 60);">Category</span> &#123;name:<span style="color: oklch(82% 0.14 232);">"Groceries"</span>&#125;)
+<span style="color: oklch(75% 0.17 70);">OPTIONAL MATCH</span> (tx)-[:<span style="color: oklch(80% 0.13 60);">MERCHANT</span>]-&gt;(m:<span style="color: oklch(78% 0.16 60);">Merchant</span>)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> tx.date &gt;= $month_start <span style="color: rgba(203,225,255,0.4);">// "last month"</span>
+<span style="color: oklch(75% 0.17 70);">RETURN</span> m.name, sum(tx.amount) as total, count(tx) as purchases
+<span style="color: oklch(75% 0.17 70);">ORDER BY</span> total DESC
+<span style="color: oklch(85% 0.14 80);">&#8869; hybrid</span>  RRF( vector_topk(q_embed, k=8), graph_paths )   <span style="color: rgba(203,225,255,0.4);">// Qdrant + graph fusion</span></pre>
+            </div>
+
+            <!-- Row: The answer -->
+            <div class="flex flex-col sm:flex-row items-start gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">You ask</div>
+              <div class="flex-1">
+                <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-800 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+                  &ldquo;What did I spend on groceries last month, and at which stores?&rdquo;
+                </div>
+                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                  <span class="font-medium" style="color: var(--color-neural-400);">BlueRobin:</span> Based on your credit card statement and grocery receipts (January 2025), you spent $847 at grocery stores across 12 transactions: Whole Foods ($312), Trader Joe&rsquo;s ($287), and Costco ($248). Your total January spend across all categories was $1,634.
+                  <div class="flex gap-2 mt-2.5 flex-wrap">
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: credit-statement-jan-2025.pdf</span>
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: grocery-receipts-jan-2025.pdf</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /The Accountant -->
+
+      <p class="text-center text-sm text-slate-600 mt-6">Not keyword search. Cross-document reasoning, grounded in a knowledge graph.</p>
     </div>
   </section>
 

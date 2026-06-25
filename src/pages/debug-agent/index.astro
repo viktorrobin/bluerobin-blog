@@ -235,6 +235,219 @@ const stack = [
     </div>
   </section>
 
+  <!-- The Detective -->
+  <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="mb-10">
+        <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
+          <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+          <span class="font-display font-semibold text-slate-900">The Detective</span>
+          <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; root-cause analysis</span>
+        </div>
+        <p class="text-slate-600 max-w-2xl mt-4">An alert fires. The agent reads signals from three observability sources, traverses the FalkorDB StackGraph to find what changed, and proposes a fix &mdash; all before an on-call engineer opens their laptop.</p>
+      </div>
+
+      <div class="glass-card p-8 max-w-4xl mx-auto">
+        <div class="flex flex-col gap-8">
+
+          <!-- Row: Alert signals in -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+            <div class="flex flex-wrap gap-3 flex-1">
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; P1 CRITICAL</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; error spike 23%</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#9201; Tempo &mdash; P99 latency 4.2s</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
+              StackGraph traversal &mdash; FalkorDB world-model
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+          </div>
+
+          <!-- Row: RCA graph canvas -->
+          <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 75% -10%, #1a1028 0%, #0a1119 70%); border: 1px solid var(--color-complement-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: var(--color-complement-300);">StackGraph traversal</span>
+              <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">7 nodes &middot; 9 edges &middot; live query</span>
+            </div>
+
+            <svg viewBox="0 0 760 360" role="img" aria-label="RCA knowledge graph: three observability signals feed into the StackGraph hub which traverses the service topology to a causal chain ending at the root cause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+              <defs>
+                <linearGradient id="da-sig" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(66% 0.21 43 / 0.32)"/>
+                  <stop offset="1" stop-color="oklch(66% 0.21 43 / 0.10)"/>
+                </linearGradient>
+                <linearGradient id="da-svc" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                  <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                </linearGradient>
+                <radialGradient id="da-hub" cx="50%" cy="42%" r="65%">
+                  <stop offset="0" stop-color="oklch(80% 0.18 80 / 0.55)"/>
+                  <stop offset="1" stop-color="oklch(74% 0.17 70 / 0.10)"/>
+                </radialGradient>
+                <radialGradient id="da-conf" cx="50%" cy="42%" r="70%">
+                  <stop offset="0" stop-color="oklch(72% 0.19 150 / 0.40)"/>
+                  <stop offset="1" stop-color="oklch(72% 0.19 150 / 0.10)"/>
+                </radialGradient>
+                <filter id="da-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <pattern id="da-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                  <path d="M34 0H0V34" fill="none" stroke="oklch(66% 0.21 43 / 0.07)" stroke-width="1"/>
+                </pattern>
+              </defs>
+
+              <rect x="0" y="0" width="760" height="360" fill="url(#da-grid)"/>
+              <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(66% 0.21 43 / 0.65)">SIGNALS</text>
+              <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.7)">RCA CHAIN</text>
+              <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(66% 0.21 43 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+              <g fill="none" stroke-linecap="round">
+                <path id="da-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="da-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="da-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="da-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="2"/>
+                <path id="da-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(74% 0.17 70 / 0.6)" stroke-width="2"/>
+                <path id="da-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                <path id="da-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(72% 0.19 150 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                <path id="da-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(72% 0.19 150 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+              </g>
+
+              <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 43)">TRIGGERED &times;3</text>
+                <text x="402" y="118" text-anchor="middle" fill="oklch(80% 0.13 232)">IMPLICATED</text>
+                <text x="606" y="104" text-anchor="middle" fill="oklch(80% 0.13 80)">CHANGED_BY</text>
+                <text x="606" y="240" text-anchor="middle" fill="oklch(80% 0.13 43)">CAUSED</text>
+                <text x="538" y="178" text-anchor="middle" fill="oklch(85% 0.13 150)">CONFIDENCE</text>
+                <text x="276" y="246" text-anchor="middle" fill="oklch(85% 0.12 150)">EVIDENCE</text>
+              </g>
+
+              <g>
+                <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#da-e1"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#da-e2"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#da-e3"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 232)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#da-e4"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 80)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#da-e5"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#da-e6"/></animateMotion></circle>
+                <circle r="2.5" fill="oklch(88% 0.16 150)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#da-e7"/></animateMotion></circle>
+              </g>
+
+              <g font-family="ui-sans-serif, system-ui, sans-serif">
+                <g>
+                  <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#da-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="34" y="64" font-size="13">&#9888;</text>
+                  <text x="52" y="58" font-size="10.5" font-weight="600" fill="#ffdbbf">Alertmanager</text>
+                  <text x="52" y="70" font-size="8.5" fill="rgba(255,219,191,0.55)">P1 CRITICAL</text>
+                </g>
+                <g>
+                  <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#da-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="34" y="185" font-size="13">&#128203;</text>
+                  <text x="52" y="179" font-size="10.5" font-weight="600" fill="#ffdbbf">Loki</text>
+                  <text x="52" y="191" font-size="8.5" fill="rgba(255,219,191,0.55)">error rate 23%</text>
+                </g>
+                <g>
+                  <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#da-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="34" y="306" font-size="13">&#9201;</text>
+                  <text x="52" y="300" font-size="10.5" font-weight="600" fill="#ffdbbf">Tempo</text>
+                  <text x="52" y="312" font-size="8.5" fill="rgba(255,219,191,0.55)">P99 latency 4.2s</text>
+                </g>
+
+                <circle cx="300" cy="180" r="58" fill="url(#da-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                <rect x="230" y="153" width="140" height="54" rx="14" fill="oklch(20% 0.04 80 / 0.85)" stroke="oklch(80% 0.18 80 / 0.7)" stroke-width="1.5" filter="url(#da-glow)"/>
+                <text x="300" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#fff2d6">StackGraph</text>
+                <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(85% 0.13 80 / 0.85)">WORLD-MODEL &middot; hub</text>
+
+                <g>
+                  <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#da-svc)" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="1"/>
+                  <text x="515" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#dbe9ff">api-gateway</text>
+                  <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(219,233,255,0.6)">SERVICE &middot; implicated</text>
+                </g>
+                <g>
+                  <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#da-svc)" stroke="oklch(74% 0.17 70 / 0.6)" stroke-width="1"/>
+                  <text x="660" y="160" text-anchor="middle" font-size="10.5" font-weight="600" fill="#fff2d6">timeout=10s</text>
+                  <text x="660" y="172" text-anchor="middle" font-size="8" fill="rgba(255,242,214,0.6)">COMMIT a8f3d91</text>
+                </g>
+                <g>
+                  <rect x="585" y="290" width="140" height="38" rx="9" fill="url(#da-sig)" stroke="oklch(66% 0.21 43 / 0.7)" stroke-width="1.25"/>
+                  <text x="655" y="310" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffdbbf">pool exhausted</text>
+                  <text x="655" y="322" text-anchor="middle" font-size="8" fill="rgba(255,219,191,0.6)">ROOT CAUSE</text>
+                </g>
+
+                <g>
+                  <circle cx="490" cy="269" r="38" fill="url(#da-conf)"/>
+                  <circle cx="490" cy="269" r="30" fill="oklch(18% 0.06 150 / 0.85)" stroke="oklch(72% 0.18 150 / 0.7)" stroke-width="1.25"/>
+                  <text x="490" y="265" text-anchor="middle" font-size="8.5" font-weight="600" fill="#c8ffd4">confidence</text>
+                  <text x="490" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="oklch(80% 0.18 150)">0.87</text>
+                </g>
+              </g>
+            </svg>
+
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(66% 0.21 43);"></span>Signal / alert</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Service / change</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(80% 0.18 80);"></span>StackGraph hub</span>
+              <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
+            </div>
+          </div>
+
+          <!-- Divider -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+              Debug agent &mdash; bounded ReAct loop + verification gate
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+          </div>
+
+          <!-- Row: Generated StackGraph query -->
+          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+            <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.235 232);"></span>
+              <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">debug-agent &middot; generated StackGraph traversal query</span>
+            </div>
+            <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (svc:<span style="color: oklch(78% 0.16 232);">Service</span> &#123;name:<span style="color: oklch(82% 0.14 232);">"api-gateway"</span>&#125;)-[:<span style="color: oklch(80% 0.13 232);">DEPENDS_ON</span>]-&gt;(dep:<span style="color: oklch(78% 0.16 232);">Service</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (dep)-[:<span style="color: oklch(80% 0.13 80);">LAST_CHANGE</span>]-&gt;(c:<span style="color: oklch(78% 0.16 80);">Commit</span>)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> c.deployed_at &gt;= $alert_time - duration(<span style="color: oklch(82% 0.14 232);">"PT2H"</span>)
+  <span style="color: oklch(75% 0.17 70);">AND</span> dep.error_rate &gt; <span style="color: oklch(82% 0.14 232);">0.05</span>
+<span style="color: oklch(75% 0.17 70);">RETURN</span> dep.name, c.sha[0..7], c.message, dep.error_rate
+<span style="color: oklch(75% 0.17 70);">ORDER BY</span> dep.error_rate <span style="color: oklch(75% 0.17 70);">DESC</span>
+<span style="color: oklch(85% 0.14 80);">&#8869; StackGraph</span>  FalkorDB traversal + Tempo trace correlation</pre>
+          </div>
+
+          <!-- Row: Alert + verdict -->
+          <div class="flex flex-col sm:flex-row items-start gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+            <div class="flex-1">
+              <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
+                api-gateway: 502 error rate 23% &middot; P99 latency 4.2s &middot; fired 09:14 UTC
+              </div>
+              <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: postgres-primary connection pool exhausted (94% utilization). Cause: commit <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">a8f3d91</code> (Victor Robin, 2h before alert) increased <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">query_timeout</code> from 5s to 10s, doubling average connection hold time under load. Draft PR #127 opened to revert. Confidence: 0.87.
+                <div class="flex gap-2 mt-2.5 flex-wrap">
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Tempo trace waterfall</span>
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: CNPG pool metrics</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <p class="text-center text-sm text-slate-600 mt-6">Not an LLM guessing. Evidence-grounded traversal of a live world-model, with a verification gate that decides when to stop.</p>
+    </div>
+  </section>
+
   <!-- Research themes / innovations -->
   <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
