@@ -272,27 +272,140 @@ const coreAgents = [
             <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
           </div>
 
-          <!-- Row: Graph connections -->
-          <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-1">Graph links</div>
-            <div class="flex flex-col gap-2 flex-1 text-sm">
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Dr. Nguyen</span>
-                <span class="text-slate-600 text-xs">&rarr; mentioned in</span>
-                <span class="text-slate-600">all 3 documents</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Diagnosis</span>
-                <span class="text-slate-600 text-xs">&rarr; linked to</span>
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Treatment</span>
-                <span class="text-slate-600 text-xs">&rarr; linked to</span>
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Prescription</span>
-              </div>
-              <div class="flex flex-wrap items-center gap-2">
-                <span class="px-2.5 py-1 rounded-full font-medium" style="background: var(--color-complement-alpha-12); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-25);">Lab value: HbA1c 7.2</span>
-                <span class="text-slate-600 text-xs">&rarr; referenced in</span>
-                <span class="text-slate-600">follow-up letter + prescription context</span>
-              </div>
+          <!-- Row: Knowledge graph canvas -->
+          <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 25% -10%, #102137 0%, #0a1119 70%); border: 1px solid var(--color-neural-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), var(--shadow-neural-sm);">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: var(--color-neural-500);">Knowledge graph</span>
+              <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">6 nodes &middot; 8 edges &middot; live link</span>
+            </div>
+
+            <svg viewBox="0 0 760 360" role="img" aria-label="Knowledge graph linking three documents through the entity Dr. Nguyen to a diagnosis, treatment, prescription chain and the HbA1c lab value" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+              <defs>
+                <linearGradient id="ag-doc" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                  <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                </linearGradient>
+                <linearGradient id="ag-ent" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(66% 0.21 43 / 0.38)"/>
+                  <stop offset="1" stop-color="oklch(66% 0.21 43 / 0.12)"/>
+                </linearGradient>
+                <radialGradient id="ag-hub" cx="50%" cy="42%" r="65%">
+                  <stop offset="0" stop-color="oklch(80% 0.18 80 / 0.55)"/>
+                  <stop offset="1" stop-color="oklch(74% 0.17 70 / 0.10)"/>
+                </radialGradient>
+                <radialGradient id="ag-lab" cx="50%" cy="42%" r="70%">
+                  <stop offset="0" stop-color="oklch(74% 0.17 70 / 0.40)"/>
+                  <stop offset="1" stop-color="oklch(74% 0.17 70 / 0.10)"/>
+                </radialGradient>
+                <filter id="ag-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <pattern id="ag-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                  <path d="M34 0H0V34" fill="none" stroke="oklch(69% 0.235 232 / 0.07)" stroke-width="1"/>
+                </pattern>
+              </defs>
+
+              <rect x="0" y="0" width="760" height="360" fill="url(#ag-grid)"/>
+
+              <!-- zone labels -->
+              <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.65)">DOCUMENTS</text>
+              <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(66% 0.21 43 / 0.7)">ENTITY GRAPH</text>
+              <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(69% 0.235 232 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+              <!-- ===== EDGES ===== -->
+              <g fill="none" stroke-linecap="round">
+                <path id="ag-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="ag-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="ag-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="ag-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                <path id="ag-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                <path id="ag-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                <path id="ag-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(74% 0.17 70 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                <path id="ag-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(74% 0.17 70 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+              </g>
+
+              <!-- relationship type labels -->
+              <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 232)">MENTIONS &times;3</text>
+                <text x="402" y="118" text-anchor="middle" fill="oklch(80% 0.13 43)">DIAGNOSED</text>
+                <text x="606" y="104" text-anchor="middle" fill="oklch(80% 0.13 43)">TREATED_BY</text>
+                <text x="606" y="240" text-anchor="middle" fill="oklch(80% 0.13 43)">PRESCRIBES</text>
+                <text x="538" y="178" text-anchor="middle" fill="oklch(85% 0.13 80)">INFORMS</text>
+                <text x="276" y="232" text-anchor="middle" fill="oklch(85% 0.12 80)">SOURCE</text>
+              </g>
+
+              <!-- ===== PULSES (data flowing along edges) ===== -->
+              <g>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#ag-e1"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#ag-e2"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#ag-e3"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#ag-e4"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#ag-e5"/></animateMotion></circle>
+                <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#ag-e6"/></animateMotion></circle>
+                <circle r="2.5" fill="oklch(88% 0.16 80)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#ag-e7"/></animateMotion></circle>
+              </g>
+
+              <!-- ===== DOCUMENT NODES ===== -->
+              <g font-family="ui-sans-serif, system-ui, sans-serif">
+                <g>
+                  <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#ag-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="64" font-size="13">&#128196;</text>
+                  <text x="54" y="58" font-size="11" font-weight="600" fill="#dbe9ff">Medical letter</text>
+                  <text x="54" y="70" font-size="8.5" fill="rgba(203,225,255,0.55)">Jan 2024</text>
+                </g>
+                <g>
+                  <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#ag-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="185" font-size="13">&#128196;</text>
+                  <text x="54" y="179" font-size="11" font-weight="600" fill="#dbe9ff">Lab results</text>
+                  <text x="54" y="191" font-size="8.5" fill="rgba(203,225,255,0.55)">Mar 2024</text>
+                </g>
+                <g>
+                  <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#ag-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="306" font-size="13">&#128196;</text>
+                  <text x="54" y="300" font-size="11" font-weight="600" fill="#dbe9ff">Prescription</text>
+                  <text x="54" y="312" font-size="8.5" fill="rgba(203,225,255,0.55)">Apr 2024</text>
+                </g>
+
+                <!-- ===== HUB: Dr. Nguyen ===== -->
+                <circle cx="300" cy="180" r="58" fill="url(#ag-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                <rect x="230" y="153" width="140" height="54" rx="14" fill="oklch(20% 0.04 80 / 0.85)" stroke="oklch(80% 0.18 80 / 0.7)" stroke-width="1.5" filter="url(#ag-glow)"/>
+                <text x="300" y="177" text-anchor="middle" font-size="14" font-weight="700" fill="#fff2d6">Dr. Nguyen</text>
+                <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(85% 0.13 80 / 0.85)">PERSON &middot; hub</text>
+
+                <!-- ===== ENTITY NODES ===== -->
+                <g>
+                  <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#ag-ent)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="515" y="78" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffd9c2">Diagnosis</text>
+                  <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(255,217,194,0.6)">stage-1 hypertension</text>
+                </g>
+                <g>
+                  <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#ag-ent)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="660" y="163" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffd9c2">Treatment</text>
+                  <text x="660" y="174" text-anchor="middle" font-size="8" fill="rgba(255,217,194,0.6)">antihypertensive</text>
+                </g>
+                <g>
+                  <rect x="590" y="290" width="130" height="38" rx="9" fill="url(#ag-ent)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                  <text x="655" y="313" text-anchor="middle" font-size="11.5" font-weight="600" fill="#ffd9c2">Prescription</text>
+                  <text x="655" y="324" text-anchor="middle" font-size="8" fill="rgba(255,217,194,0.6)">Lisinopril 10mg</text>
+                </g>
+
+                <!-- ===== LAB VALUE NODE ===== -->
+                <g>
+                  <circle cx="490" cy="269" r="38" fill="url(#ag-lab)"/>
+                  <circle cx="490" cy="269" r="30" fill="oklch(22% 0.05 80 / 0.85)" stroke="oklch(80% 0.16 80 / 0.7)" stroke-width="1.25"/>
+                  <text x="490" y="265" text-anchor="middle" font-size="10" font-weight="600" fill="#fff2d6">HbA1c</text>
+                  <text x="490" y="280" text-anchor="middle" font-size="13" font-weight="700" fill="oklch(88% 0.16 80)">7.2</text>
+                </g>
+              </g>
+            </svg>
+
+            <!-- legend -->
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Document</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(66% 0.21 43);"></span>Entity</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(80% 0.18 80);"></span>Person / lab value</span>
+              <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
             </div>
           </div>
 
@@ -304,6 +417,22 @@ const coreAgents = [
               Retrieval agent &mdash; graph + vector search
             </div>
             <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+          </div>
+
+          <!-- Row: Generated query -->
+          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+            <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.235 232);"></span>
+              <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">retrieval-agent &middot; generated graph traversal + vector recall</span>
+            </div>
+            <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (dr:<span style="color: oklch(78% 0.16 43);">Doctor</span> {name:<span style="color: oklch(82% 0.14 232);">"Dr. Nguyen"</span>})-[:<span style="color: oklch(80% 0.13 43);">DIAGNOSED</span>]-&gt;(dx:<span style="color: oklch(78% 0.16 43);">Diagnosis</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (dx)-[:<span style="color: oklch(80% 0.13 43);">TREATED_BY</span>]-&gt;(rx:<span style="color: oklch(78% 0.16 43);">Prescription</span>)
+<span style="color: oklch(75% 0.17 70);">OPTIONAL MATCH</span> (lab:<span style="color: oklch(78% 0.16 43);">LabValue</span> {code:<span style="color: oklch(82% 0.14 232);">"HbA1c"</span>})-[:<span style="color: oklch(80% 0.13 43);">INFORMS</span>]-&gt;(dx)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> dx.date &gt;= $since        <span style="color: rgba(203,225,255,0.4);">// "since my diagnosis"</span>
+<span style="color: oklch(75% 0.17 70);">RETURN</span> rx.drug, rx.dose, dx.name, lab.value, dr.name
+<span style="color: oklch(85% 0.14 80);">&#8869; hybrid</span>  RRF( vector_topk(q_embed, k=8), graph_paths )   <span style="color: rgba(203,225,255,0.4);">// Qdrant + graph fusion</span></pre>
           </div>
 
           <!-- Row: The answer -->
