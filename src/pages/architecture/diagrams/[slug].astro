@@ -59,8 +59,12 @@ renderer.code = function({ text, lang }: { text: string; lang?: string }) {
 
 marked.setOptions({ renderer });
 
-// Convert markdown to HTML
-const htmlContent = marked.parse(markdownContent);
+// Convert markdown to HTML. This page bypasses Astro's markdown pipeline (and
+// the rehypeWrapTables plugin in astro.config.mjs), so wrap tables here too so
+// wide tables scroll inside their own box instead of overflowing on mobile.
+const htmlContent = (marked.parse(markdownContent) as string)
+  .replaceAll("<table>", '<div class="table-wrapper"><table>')
+  .replaceAll("</table>", "</table></div>");
 
 const topicColors: Record<string, string> = {
   "ai": "bg-neural-500/15 text-neural-400",
