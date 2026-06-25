@@ -66,7 +66,7 @@ const coreAgents = [
 ];
 ---
 
-<MainLayout title="The Archives | BlueRobin" description="The Archives — a self-hosted team of AI agents for your documents: specialists for retrieval, finance, health, and tax, backed by a triage agent, ensemble entity extraction, and a knowledge graph, all running on homelab Kubernetes.">
+<MainLayout title="The Archives | BlueRobin" description="The Archives — ask anything across your documents and get answers cited from your own files. A self-hosted team of specialist AI agents (finance, health, tax, retrieval) that read every document, connect them in a knowledge graph, and answer in plain English. Your data never leaves your infrastructure.">
   <!-- Breadcrumb back to chooser -->
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"><a href="/" class="text-sm text-slate-600 hover:text-neural-400 transition-colors">← All projects</a></div>
 
@@ -88,16 +88,11 @@ const coreAgents = [
         </div>
 
         <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
-          <span class="title-blue">A self-hosted team of AI agents<br>for your documents</span>
+          <span class="title-blue">Ask anything across your documents.<br>Answers cited from your own files.</span>
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-5">
-          Upload any document. Ask any question.<br>
-          Get answers cited directly from your own archive.
-        </p>
-
-        <p class="text-base text-slate-600 max-w-2xl mx-auto mb-10">
-          A homelab project &mdash; not one model, but a collection of agents. A triage agent reads and routes every upload; specialists for retrieval, finance, health, and tax do the work; an entity &amp; knowledge-graph agent connects it all. The deep stack &mdash; OCR, ensemble entity extraction, multi-model vector search, a graph database &mdash; is the toolbox they reach for. All on self-hosted Kubernetes.
+        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
+          A self-hosted team of specialist AI agents &mdash; finance, health, tax, and retrieval &mdash; that read every document, connect them in a knowledge graph, and answer in plain English. Your data never leaves your infrastructure.
         </p>
 
         <div class="flex flex-wrap justify-center gap-4 mb-14">
@@ -109,134 +104,94 @@ const coreAgents = [
           </a>
         </div>
 
-        <!-- Stats strip -->
+        <!-- USP pillars -->
         <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-slate-700 font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
-            Specialist Agents
+            Cross-document reasoning
           </span>
-          <span class="flex items-center gap-2 text-slate-600">
-            <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
-            Knowledge Graph
-          </span>
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-slate-700 font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
-            Per-User Encryption
+            A team of specialist agents
           </span>
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-slate-700 font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
-            100% Self-Hosted
+            100% self-hosted &amp; encrypted
           </span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Meet the Agents Section -->
+  <!-- The Team & How It Works Section -->
   <section class="py-20 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Meet the agents</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">The Archives isn't one model answering questions — it's a team. Specialists handle what you came for; a core of shared-intelligence agents reads, connects, and enriches everything behind them.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Not one chatbot &mdash; a team</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">One generic model can't file your taxes <em>and</em> read your lab results. The Archives runs a team: specialists do the work you came for, while a core of shared-intelligence agents reads, connects, and enriches everything behind them.</p>
       </div>
 
-      <!-- Specialist agents -->
-      <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Specialist agents &mdash; what you came for</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-12">
-        {specialistAgents.map((a) => (
-          <div class="glass-card p-6 flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-              <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0" style="background: var(--gradient-complement);" set:html={a.icon} />
-              <h4 class="font-display font-semibold text-slate-900">{a.name}</h4>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">{a.role}</p>
-            <div class="flex flex-wrap gap-2 mt-auto pt-1">
-              {a.tools.map((t) => (
-                <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">{t}</span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <!-- Core intelligence agents -->
-      <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-4">Core intelligence &mdash; the engine behind them</h3>
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
-        {coreAgents.map((a) => (
-          <div class="glass-card p-6 flex flex-col gap-4">
-            <div class="flex items-center gap-3">
-              <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0" style="background: var(--gradient-neural);" set:html={a.icon} />
-              <h4 class="font-display font-semibold text-slate-900">{a.name}</h4>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">{a.role}</p>
-            <div class="flex flex-wrap gap-2 mt-auto pt-1">
-              {a.tools.map((t) => (
-                <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">{t}</span>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <!-- Orchestration flow -->
-      <p class="text-center text-sm text-slate-600 mt-10 max-w-3xl mx-auto">
-        A document arrives &rarr; the <strong class="text-slate-800">triage agent</strong> routes it &rarr; <strong class="text-slate-800">specialists</strong> extract what matters &rarr; the <strong class="text-slate-800">entity &amp; graph agent</strong> links it into the knowledge graph &rarr; the <strong class="text-slate-800">insight agent</strong> enriches it &rarr; the <strong class="text-slate-800">retrieval agent</strong> answers across all of it. Every hand-off is an event on NATS JetStream.
-      </p>
-    </div>
-  </section>
-
-  <!-- How It Works Section -->
-  <section class="py-20 relative">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How the agents work together</h2>
-        <p class="text-slate-600 max-w-xl mx-auto">Three stages: the triage agent parses and routes, specialists enrich and index, and the retrieval agent answers. Each stage is a separate worker communicating over NATS.</p>
-      </div>
-
-      <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 relative">
-        <!-- Connector line on desktop -->
-        <div class="hidden sm:block absolute top-[3.25rem] left-[calc(33.33%+1rem)] right-[calc(33.33%+1rem)] h-px opacity-50" style="background: linear-gradient(to right, var(--color-neural-alpha-30), var(--color-complement-alpha-30));"></div>
-
-        <!-- Step 1 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">1</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Triage agent &mdash; parse &amp; route</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">Docling converts uploaded documents to structured text, preserving tables, headings, and layout. The triage agent classifies the domain and hands the document to the right specialist — the structure also drives accurate chunking during indexing.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Docling OCR</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Structure Extraction</span>
-          </div>
+      <!-- Agent roster -->
+      <div class="glass-card overflow-hidden">
+        <!-- Specialists -->
+        <div class="p-6 sm:p-7">
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Specialist agents &mdash; what you came for</h3>
+          <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
+            {specialistAgents.map((a) => (
+              <li class="flex items-start gap-3.5">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white shrink-0 mt-0.5" style="background: var(--gradient-complement);" set:html={a.icon} />
+                <div>
+                  <h4 class="font-display font-semibold text-slate-900 text-sm">{a.name}</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed mt-0.5">{a.role}</p>
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    {a.tools.map((t) => (
+                      <span class="text-[11px] px-1.5 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
-
-        <!-- Step 2 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">2</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Specialists &amp; entity agent &mdash; extract &amp; index</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">Domain specialists pull structured data (transactions, biomarkers, tax figures); the entity agent extracts and links named entities into a knowledge graph. Each chunk is embedded across 8 vector models and stored in Qdrant, alongside a generated summary and keyword set.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Entity Extraction</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Knowledge Graph</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-glow-alpha-10); color: var(--color-glow-500); border: 1px solid var(--color-glow-alpha-20);">Embeddings</span>
-          </div>
+        <!-- Core intelligence -->
+        <div class="p-6 sm:p-7" style="border-top: 1px solid var(--color-neural-alpha-20); background: var(--color-neural-alpha-12);">
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Core intelligence &mdash; the engine behind them</h3>
+          <ul class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-5">
+            {coreAgents.map((a) => (
+              <li class="flex items-start gap-3.5">
+                <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white shrink-0 mt-0.5" style="background: var(--gradient-neural);" set:html={a.icon} />
+                <div>
+                  <h4 class="font-display font-semibold text-slate-900 text-sm">{a.name}</h4>
+                  <p class="text-sm text-slate-600 leading-relaxed mt-0.5">{a.role}</p>
+                  <div class="flex flex-wrap gap-1.5 mt-2">
+                    {a.tools.map((t) => (
+                      <span class="text-[11px] px-1.5 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">{t}</span>
+                    ))}
+                  </div>
+                </div>
+              </li>
+            ))}
+          </ul>
         </div>
+      </div>
 
-        <!-- Step 3 -->
-        <div class="glass-card p-6 flex flex-col gap-4 relative z-10">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">3</div>
-          <div>
-            <h3 class="font-display font-semibold text-slate-900 mb-1.5">Retrieval agent &mdash; search &amp; ask</h3>
-            <p class="text-sm text-slate-600 leading-relaxed">The retrieval agent fuses scores from all vector models with Reciprocal Rank Fusion and traverses the graph to find the most relevant passages. A locally hosted LLM answers in plain English, with citations to the exact source paragraphs.</p>
-          </div>
-          <div class="flex flex-wrap gap-2 mt-auto pt-1">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Qdrant</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">RRF Ensemble</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Ollama LLM</span>
-          </div>
-        </div>
+      <!-- Pipeline flow strip -->
+      <div class="mt-10">
+        <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">How a document flows through the team</h3>
+        <ol class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-3 text-sm">
+          <li class="archive-flow-step">Upload</li>
+          <li class="archive-flow-arrow">&rarr;</li>
+          <li class="archive-flow-step"><strong>Triage</strong> reads &amp; routes</li>
+          <li class="archive-flow-arrow">&rarr;</li>
+          <li class="archive-flow-step"><strong>Specialists</strong> extract</li>
+          <li class="archive-flow-arrow">&rarr;</li>
+          <li class="archive-flow-step"><strong>Entity &amp; graph</strong> links</li>
+          <li class="archive-flow-arrow">&rarr;</li>
+          <li class="archive-flow-step"><strong>Insight</strong> enriches</li>
+          <li class="archive-flow-arrow">&rarr;</li>
+          <li class="archive-flow-step"><strong>Retrieval</strong> answers</li>
+        </ol>
+        <p class="text-center text-xs text-slate-500 mt-4">Every hand-off is an event on NATS JetStream &mdash; each agent is a separate worker.</p>
       </div>
     </div>
   </section>
@@ -245,17 +200,250 @@ const coreAgents = [
   <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Agents in action</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">Each specialist has its own lens — cross-document retrieval, spend intelligence, health timelines, tax exposure. Two agents, two domains, the same knowledge graph engine.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">See it in action</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">Pick a specialist. Same knowledge-graph engine, three lenses &mdash; general retrieval, spend intelligence, and health timelines. Not keyword search: cross-document reasoning, grounded in a graph and cited to the source.</p>
       </div>
 
-      <!-- The Librarian -->
-      <div class="mb-14">
+      <!-- Tablist -->
+      <div class="archive-tabs" role="tablist" aria-label="Agent scenarios">
+        <button class="archive-tab" id="tab-library" type="button" role="tab" aria-controls="panel-library" aria-selected="true">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <span>Library<span class="archive-tab-sub">Retrieval agent</span></span>
+        </button>
+        <button class="archive-tab" id="tab-accountant" type="button" role="tab" aria-controls="panel-accountant" aria-selected="false" tabindex="-1">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
+          <span>Accountant<span class="archive-tab-sub">Finance agent</span></span>
+        </button>
+        <button class="archive-tab" id="tab-physician" type="button" role="tab" aria-controls="panel-physician" aria-selected="false" tabindex="-1">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          <span>Physician<span class="archive-tab-sub">Health agent</span></span>
+        </button>
+      </div>
+
+      <!-- Panel: Library (general cross-document retrieval) -->
+      <div class="archive-panel" id="panel-library" role="tabpanel" aria-labelledby="tab-library">
         <div class="flex items-center gap-3 mb-5">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-neural-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
             <span class="font-display font-semibold text-slate-900">The Librarian</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-neural-400);">Retrieval agent &middot; cross-document Q&amp;A</span>
+          </div>
+        </div>
+        <!-- Scenario card -->
+        <div class="glass-card p-8 max-w-4xl mx-auto">
+        <div class="flex flex-col gap-8">
+
+          <!-- Row: Documents in -->
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Documents</div>
+            <div class="flex flex-wrap gap-3 flex-1">
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Apartment lease &mdash; Jun 2023</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#9993;&#65039; Landlord email &mdash; Feb 2025</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Renewal notice &mdash; Mar 2025</span>
+            </div>
+          </div>
+
+          <!-- Divider with arrow -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
+              Entity agent &mdash; extraction &amp; graph linking
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+          </div>
+
+          <!-- Row: Knowledge graph canvas -->
+          <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 25% -10%, #102137 0%, #0a1119 70%); border: 1px solid var(--color-neural-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05), var(--shadow-neural-sm);">
+            <div class="flex items-center justify-between mb-2 px-1">
+              <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: oklch(70% 0.16 295);">Lease graph</span>
+              <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">8 nodes &middot; 8 edges &middot; live link</span>
+            </div>
+
+            <svg viewBox="0 0 760 360" role="img" aria-label="Knowledge graph linking three housing documents through the 12 Maple Street lease to its new rent, term end date, and required notice period" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+              <defs>
+                <linearGradient id="al-doc" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                  <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                </linearGradient>
+                <linearGradient id="al-ent" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="oklch(62% 0.20 285 / 0.40)"/>
+                  <stop offset="1" stop-color="oklch(62% 0.20 285 / 0.12)"/>
+                </linearGradient>
+                <radialGradient id="al-hub" cx="50%" cy="42%" r="65%">
+                  <stop offset="0" stop-color="oklch(70% 0.18 300 / 0.55)"/>
+                  <stop offset="1" stop-color="oklch(70% 0.18 300 / 0.10)"/>
+                </radialGradient>
+                <radialGradient id="al-val" cx="50%" cy="42%" r="70%">
+                  <stop offset="0" stop-color="oklch(70% 0.18 262 / 0.40)"/>
+                  <stop offset="1" stop-color="oklch(70% 0.18 262 / 0.10)"/>
+                </radialGradient>
+                <filter id="al-glow" x="-60%" y="-60%" width="220%" height="220%">
+                  <feGaussianBlur stdDeviation="5" result="b"/>
+                  <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+                <pattern id="al-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                  <path d="M34 0H0V34" fill="none" stroke="oklch(69% 0.235 232 / 0.07)" stroke-width="1"/>
+                </pattern>
+              </defs>
+
+              <rect x="0" y="0" width="760" height="360" fill="url(#al-grid)"/>
+
+              <!-- zone labels -->
+              <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.65)">DOCUMENTS</text>
+              <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(68% 0.19 285 / 0.7)">LEASE GRAPH</text>
+              <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(69% 0.235 232 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+              <!-- ===== EDGES ===== -->
+              <g fill="none" stroke-linecap="round">
+                <path id="al-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="al-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="al-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(69% 0.235 232 / 0.45)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                <path id="al-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="2"/>
+                <path id="al-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="2"/>
+                <path id="al-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="2"/>
+                <path id="al-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(70% 0.18 262 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                <path id="al-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(70% 0.18 262 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+              </g>
+
+              <!-- relationship type labels -->
+              <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 232)">MENTIONS &times;3</text>
+                <text x="402" y="118" text-anchor="middle" fill="oklch(80% 0.13 285)">RENEWS_AT</text>
+                <text x="606" y="104" text-anchor="middle" fill="oklch(80% 0.13 285)">HAS_TERM</text>
+                <text x="606" y="240" text-anchor="middle" fill="oklch(80% 0.13 285)">REQUIRES</text>
+                <text x="538" y="178" text-anchor="middle" fill="oklch(82% 0.13 262)">INFORMS</text>
+                <text x="276" y="232" text-anchor="middle" fill="oklch(82% 0.12 262)">SOURCE</text>
+              </g>
+
+              <!-- ===== PULSES (data flowing along edges) ===== -->
+              <g>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#al-e1"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#al-e2"/></animateMotion></circle>
+                <circle r="3" fill="oklch(85% 0.16 232)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#al-e3"/></animateMotion></circle>
+                <circle r="3" fill="oklch(78% 0.18 285)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#al-e4"/></animateMotion></circle>
+                <circle r="3" fill="oklch(78% 0.18 285)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#al-e5"/></animateMotion></circle>
+                <circle r="3" fill="oklch(78% 0.18 285)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#al-e6"/></animateMotion></circle>
+                <circle r="2.5" fill="oklch(85% 0.16 262)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#al-e7"/></animateMotion></circle>
+              </g>
+
+              <!-- ===== DOCUMENT NODES ===== -->
+              <g font-family="ui-sans-serif, system-ui, sans-serif">
+                <g>
+                  <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#al-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="64" font-size="13">&#128196;</text>
+                  <text x="54" y="58" font-size="11" font-weight="600" fill="#dbe9ff">Apartment lease</text>
+                  <text x="54" y="70" font-size="8.5" fill="rgba(203,225,255,0.55)">Jun 2023</text>
+                </g>
+                <g>
+                  <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#al-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="185" font-size="13">&#9993;</text>
+                  <text x="54" y="179" font-size="11" font-weight="600" fill="#dbe9ff">Landlord email</text>
+                  <text x="54" y="191" font-size="8.5" fill="rgba(203,225,255,0.55)">Feb 2025</text>
+                </g>
+                <g>
+                  <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#al-doc)" stroke="oklch(69% 0.235 232 / 0.55)" stroke-width="1"/>
+                  <text x="34" y="306" font-size="13">&#128196;</text>
+                  <text x="54" y="300" font-size="11" font-weight="600" fill="#dbe9ff">Renewal notice</text>
+                  <text x="54" y="312" font-size="8.5" fill="rgba(203,225,255,0.55)">Mar 2025</text>
+                </g>
+
+                <!-- ===== HUB: 12 Maple St lease ===== -->
+                <circle cx="300" cy="180" r="58" fill="url(#al-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                <rect x="230" y="153" width="140" height="54" rx="14" fill="oklch(18% 0.05 300 / 0.85)" stroke="oklch(70% 0.18 300 / 0.7)" stroke-width="1.5" filter="url(#al-glow)"/>
+                <text x="300" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#efe3ff">12 Maple St.</text>
+                <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(82% 0.13 300 / 0.85)">LEASE &middot; hub</text>
+
+                <!-- ===== ENTITY NODES ===== -->
+                <g>
+                  <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#al-ent)" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="1"/>
+                  <text x="515" y="78" text-anchor="middle" font-size="11.5" font-weight="600" fill="#e9ddff">New rent</text>
+                  <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(233,221,255,0.6)">$1,924 / mo</text>
+                </g>
+                <g>
+                  <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#al-ent)" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="1"/>
+                  <text x="660" y="163" text-anchor="middle" font-size="11.5" font-weight="600" fill="#e9ddff">Lease term</text>
+                  <text x="660" y="174" text-anchor="middle" font-size="8" fill="rgba(233,221,255,0.6)">ends 31 Aug 2025</text>
+                </g>
+                <g>
+                  <rect x="590" y="290" width="130" height="38" rx="9" fill="url(#al-ent)" stroke="oklch(62% 0.20 285 / 0.6)" stroke-width="1"/>
+                  <text x="655" y="313" text-anchor="middle" font-size="11.5" font-weight="600" fill="#e9ddff">Notice</text>
+                  <text x="655" y="324" text-anchor="middle" font-size="8" fill="rgba(233,221,255,0.6)">60 days written</text>
+                </g>
+
+                <!-- ===== CURRENT-RENT VALUE NODE ===== -->
+                <g>
+                  <circle cx="490" cy="269" r="38" fill="url(#al-val)"/>
+                  <circle cx="490" cy="269" r="30" fill="oklch(20% 0.05 262 / 0.85)" stroke="oklch(78% 0.16 262 / 0.7)" stroke-width="1.25"/>
+                  <text x="490" y="265" text-anchor="middle" font-size="8.5" font-weight="600" fill="#efe6ff">Rent now</text>
+                  <text x="490" y="281" text-anchor="middle" font-size="12" font-weight="700" fill="oklch(84% 0.14 262)">$1,850</text>
+                </g>
+              </g>
+            </svg>
+
+            <!-- legend -->
+            <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Document</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(62% 0.20 285);"></span>Entity</span>
+              <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(70% 0.18 300);"></span>Lease / current value</span>
+              <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
+            </div>
+          </div>
+
+          <!-- Divider with arrow -->
+          <div class="flex items-center gap-3">
+            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              Retrieval agent &mdash; graph + vector search
+            </div>
+            <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
+          </div>
+
+          <!-- Row: Generated query -->
+          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+            <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(62% 0.20 285);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(70% 0.18 300);"></span>
+              <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.235 232);"></span>
+              <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">retrieval-agent &middot; generated graph traversal + vector recall</span>
+            </div>
+            <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (l:<span style="color: oklch(78% 0.16 285);">Lease</span> &#123;address:<span style="color: oklch(82% 0.14 232);">"12 Maple St"</span>&#125;)-[:<span style="color: oklch(80% 0.13 285);">HAS_TERM</span>]-&gt;(t:<span style="color: oklch(78% 0.16 285);">Term</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (l)-[:<span style="color: oklch(80% 0.13 285);">RENEWS_AT</span>]-&gt;(r:<span style="color: oklch(78% 0.16 285);">Rent</span>)
+<span style="color: oklch(75% 0.17 70);">OPTIONAL MATCH</span> (l)-[:<span style="color: oklch(80% 0.13 285);">REQUIRES</span>]-&gt;(n:<span style="color: oklch(78% 0.16 285);">Notice</span>)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> t.end_date &gt;= $today        <span style="color: rgba(203,225,255,0.4);">// "before I have to move"</span>
+<span style="color: oklch(75% 0.17 70);">RETURN</span> t.end_date, r.amount, n.days
+<span style="color: oklch(85% 0.14 80);">&#8869; hybrid</span>  RRF( vector_topk(q_embed, k=8), graph_paths )   <span style="color: rgba(203,225,255,0.4);">// Qdrant + graph fusion</span></pre>
+          </div>
+
+          <!-- Row: The answer -->
+          <div class="flex flex-col sm:flex-row items-start gap-4">
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">You ask</div>
+            <div class="flex-1">
+              <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-800 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+                &ldquo;When does my lease end, and how much notice must I give to move out?&rdquo;
+              </div>
+              <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-25);">
+                <span class="font-medium" style="color: var(--color-neural-400);">BlueRobin:</span> Based on your lease (Jun 2023) and the renewal notice (Mar 2025), your current term ends 31 Aug 2025. To move out you must give 60 days&rsquo; written notice &mdash; so notify the landlord by 1 Jul 2025. If you stay, rent rises 4% to $1,924/mo.
+                <div class="flex gap-2 mt-2.5 flex-wrap">
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: apartment-lease-jun-2023.pdf</span>
+                  <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: renewal-notice-mar-2025.pdf</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        </div>
+      </div><!-- /Panel: Library -->
+
+      <!-- Panel: Physician (health agent — medical scenario) -->
+      <div class="archive-panel" id="panel-physician" role="tabpanel" aria-labelledby="tab-physician" hidden>
+        <div class="flex items-center gap-3 mb-5">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-neural-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Physician</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-neural-400);">Health agent &middot; cross-document Q&amp;A</span>
           </div>
         </div>
         <!-- Scenario card -->
@@ -465,10 +653,10 @@ const coreAgents = [
         </div>
       </div>
 
-      </div><!-- /The Librarian wrapper -->
+      </div><!-- /Panel: Physician -->
 
-      <!-- The Accountant -->
-      <div class="mb-6">
+      <!-- Panel: Accountant (finance agent) -->
+      <div class="archive-panel" id="panel-accountant" role="tabpanel" aria-labelledby="tab-accountant" hidden>
         <div class="flex items-center gap-3 mb-5">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
@@ -673,84 +861,38 @@ const coreAgents = [
 
           </div>
         </div>
-      </div><!-- /The Accountant -->
-
-      <p class="text-center text-sm text-slate-600 mt-6">Not keyword search. Cross-document reasoning, grounded in a knowledge graph.</p>
+      </div><!-- /Panel: Accountant -->
     </div>
   </section>
 
-  <!-- Core Capabilities Section -->
-  <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh-light);">
+  <!-- How It's Built Section -->
+  <section class="py-4 pb-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">What powers the agents</h2>
-        <p class="text-slate-600 max-w-xl mx-auto">The toolbox the agents reach for &mdash; vector search, a knowledge graph, AI inference, messaging, and per-user encryption &mdash; all running on a homelab K3s cluster.</p>
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it's built</h2>
+        <p class="text-slate-600 max-w-xl mx-auto">The platform underneath the agents &mdash; private storage, async messaging, and an event-driven pipeline, all self-hosted with no third-party AI APIs.</p>
       </div>
 
-      <div class="bento-grid">
-        <!-- Row 1: Two primary intelligence feature cards -->
-        <div class="bento-card bento-lg bento-complement">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
-          </div>
-          <h3>Entity &amp; Knowledge-Graph Agent</h3>
-          <p>The entity agent analyses each document to extract named entities &mdash; people, organisations, dates, financial figures, medical terms &mdash; using a multi-provider NER ensemble. Entities are deduplicated, resolved to canonical records, and linked into a queryable graph that grows with every upload. Connections surface across the full archive, not just within a single document.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Entity Extraction</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Canonical Resolution</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Graph Traversal</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Inferred Relationships</span>
-          </div>
-        </div>
-
-        <div class="bento-card bento-lg bento-complement">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6M11 8v6"/></svg>
-          </div>
-          <h3>Retrieval Agent</h3>
-          <p>The retrieval agent embeds documents across 8 vector models stored in Qdrant. At query time it fuses rankings from each model with Reciprocal Rank Fusion and traverses the knowledge graph. A locally hosted LLM answers the question, citing the exact source paragraphs it used.</p>
-          <div class="flex flex-wrap gap-2 mt-5">
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Ensemble Retrieval</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Reciprocal Rank Fusion</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Cited Answers</span>
-            <span class="text-xs px-2 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">Self-Hosted LLM</span>
-          </div>
-        </div>
-
-        <!-- Row 2: Three supporting features -->
-        <div class="bento-card bento-neural">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
-          </div>
-          <h3>Archive Management</h3>
-          <p>Per-document lifecycle: <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.25rem; border-radius: 0.25rem;">Pending &rarr; Stored &rarr; Processing &rarr; Enriched &rarr; Indexed</code>. Per-user isolated storage. Real-time Blazor UI updates via NATS JetStream.</p>
-        </div>
-
-        <div class="bento-card bento-aurora">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="archive-fact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
           <h3>Per-User Encryption</h3>
-          <p>Per-user Cloudflare R2 storage with app-layer envelope encryption &mdash; a unique key per user (HKDF-SHA256 + AES-256-GCM), so every account is cryptographically isolated.</p>
+          <p>A unique key per user (HKDF-SHA256 + AES-256-GCM) over Cloudflare R2 storage &mdash; every account is cryptographically isolated.</p>
         </div>
-
-        <div class="bento-card bento-glow">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><path d="M18 9v12"/><path d="M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M15 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
-          </div>
+        <div class="archive-fact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><path d="M14 2v6h6"/><path d="M16 13H8M16 17H8M10 9H8"/></svg>
+          <h3>Archive Management</h3>
+          <p>Per-document lifecycle from <code>Pending</code> to <code>Indexed</code>, with real-time Blazor updates &mdash; no polling.</p>
+        </div>
+        <div class="archive-fact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3v12"/><path d="M18 9v12"/><path d="M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M18 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"/><path d="M15 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z"/></svg>
           <h3>Event-Driven Pipeline</h3>
-          <p>NATS JetStream for async processing, distributed worker deduplication via KV store, and real-time status propagation to the Blazor UI without polling.</p>
+          <p>NATS JetStream for async processing, with distributed worker deduplication via a KV store.</p>
         </div>
-
-        <!-- Full-width -->
-        <div class="bento-card bento-full bento-slate">
-          <div class="bento-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
-          </div>
-          <div>
-            <h3>100% Self-Hosted on a Homelab K3s Cluster</h3>
-            <p>Compute runs on a self-hosted K3s cluster &mdash; Ollama for AI inference, Flux for GitOps, Linkerd for mTLS service mesh, with app-layer envelope encryption for every user's data at rest.</p>
-          </div>
+        <div class="archive-fact">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="3" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+          <h3>100% Self-Hosted</h3>
+          <p>Ollama inference, Flux GitOps, and Linkerd mTLS on a homelab K3s cluster.</p>
         </div>
       </div>
     </div>
@@ -923,4 +1065,114 @@ const coreAgents = [
       </div>
     </div>
   </section>
+
+  <style>
+    /* Pipeline flow strip */
+    .archive-flow-step {
+      padding: 0.4rem 0.85rem;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-neural-alpha-20);
+      color: #334155;
+      white-space: nowrap;
+    }
+    .archive-flow-step strong { color: var(--color-neural-400); font-weight: 600; }
+    .archive-flow-arrow { color: var(--color-complement-400); font-weight: 700; }
+
+    /* Scenario tabs */
+    .archive-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .archive-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 0.85rem;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--color-neural-alpha-20);
+      color: #475569;
+      font-weight: 600;
+      line-height: 1.15;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .archive-tab svg { color: #94a3b8; transition: color 0.18s ease; }
+    .archive-tab:hover { border-color: var(--color-neural-alpha-30); color: #1e293b; }
+    .archive-tab .archive-tab-sub {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+      margin-top: 0.1rem;
+    }
+    .archive-tab[aria-selected="true"] {
+      background: var(--gradient-neural);
+      border-color: transparent;
+      color: #fff;
+      box-shadow: var(--shadow-neural-sm);
+    }
+    .archive-tab[aria-selected="true"] svg,
+    .archive-tab[aria-selected="true"] .archive-tab-sub { color: rgba(255, 255, 255, 0.82); }
+    .archive-tab:focus-visible { outline: 2px solid var(--color-neural-400); outline-offset: 2px; }
+
+    /* Scenario panels */
+    .archive-panel[hidden] { display: none; }
+    .archive-panel { animation: archive-fade 0.3s ease; }
+    @keyframes archive-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    /* "How it's built" facts */
+    .archive-fact {
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid var(--color-neural-alpha-20);
+      border-radius: 1rem;
+      padding: 1.25rem;
+      backdrop-filter: blur(8px);
+    }
+    .archive-fact svg { width: 1.5rem; height: 1.5rem; color: var(--color-neural-400); margin-bottom: 0.6rem; }
+    .archive-fact h3 { font-weight: 600; color: #1e293b; margin-bottom: 0.35rem; font-size: 0.95rem; }
+    .archive-fact p { font-size: 0.8rem; color: #64748b; line-height: 1.5; }
+    .archive-fact code { font-size: 0.72rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.25rem; border-radius: 0.25rem; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .archive-panel { animation: none; }
+    }
+  </style>
+
+  <script>
+    const tablist = document.querySelector(".archive-tabs");
+    if (tablist) {
+      const tabs = Array.from(tablist.querySelectorAll('[role="tab"]'));
+      const selectTab = (tab: Element) => {
+        tabs.forEach((t) => {
+          const selected = t === tab;
+          t.setAttribute("aria-selected", String(selected));
+          (t as HTMLElement).tabIndex = selected ? 0 : -1;
+          const panel = document.getElementById(t.getAttribute("aria-controls") || "");
+          if (panel) (panel as HTMLElement).hidden = !selected;
+        });
+      };
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => selectTab(tab));
+        tab.addEventListener("keydown", (e) => {
+          const key = (e as KeyboardEvent).key;
+          if (key === "ArrowRight" || key === "ArrowLeft") {
+            e.preventDefault();
+            const dir = key === "ArrowRight" ? 1 : -1;
+            const next = tabs[(i + dir + tabs.length) % tabs.length] as HTMLElement;
+            next.focus();
+            selectTab(next);
+          }
+        });
+      });
+    }
+  </script>
 </MainLayout>
