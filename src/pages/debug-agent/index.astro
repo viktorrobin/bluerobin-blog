@@ -2,6 +2,7 @@
 import MainLayout from "@layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
 import { CATEGORIES, DIFFICULTIES } from "@/config";
+import DebugAgentRcaDiagram from "@components/DebugAgentRcaDiagram.astro";
 
 // The Debug Agent project's articles (the ArXiv-style papers)
 const papers = (await getCollection("blog", ({ data }) => !data.draft && data.project === "debug-agent"))
@@ -191,6 +192,19 @@ const stack = [
           <p class="text-sm text-slate-600 leading-relaxed">A confidence ladder, soft-capped by graph grounding, chooses the action: notify, open an issue, attach patches, or open a PR for a human.</p>
         </div>
       </div>
+    </div>
+  </section>
+
+  <!-- Architecture: the alert-triggered RCA data-flow -->
+  <section id="architecture" class="py-12 relative">
+    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Anatomy of an investigation</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">
+          What happens when Alertmanager fires: a deterministic pre-LLM stage seeds suspects from the FalkorDB world-model, a bounded ReAct loop reasons against real tools through an MCP fleet — Loki, Tempo, Prometheus, Grafana, Kubernetes and more — with the LLM reached over a Cloudflare AI Gateway, and a verification gate decides when the evidence is enough to act.
+        </p>
+      </div>
+      <DebugAgentRcaDiagram />
     </div>
   </section>
 
