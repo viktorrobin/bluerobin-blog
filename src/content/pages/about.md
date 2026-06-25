@@ -5,6 +5,20 @@ description: "Two homelab projects by Victor Robin — The Archives, a self-host
 
 # About BlueRobin
 
+## About me
+
+I'm **Victor Robin, Ph.D.** — a French engineer who has spent a career crossing borders, both geographical and disciplinary.
+
+My academic path took me from *Classe Préparatoire aux Grandes Écoles* at Lycée Janson-de-Sailly in Paris, through a **B.Sc.** in Mathematics and Earth Sciences, to a **M.Sc.** at the Grande École ENSG in Nancy (with an Erasmus semester at Luleå Tekniska Universitet in northern Sweden), and finally a joint **Ph.D.** in Computational Solid Mechanics between the University of Exeter (UK) and the University of Lorraine (France) — in partnership with Bouygues Group.
+
+After defending my thesis I moved to **London** to work as a Data Scientist, then relocated to **New Delhi, India** in 2017 — where I've lived and worked for nearly a decade. I'm currently Director of Engineering at dunnhumby, leading ~100 engineers across India and Berlin.
+
+That journey — France → Sweden → UK → India — shapes how I think about engineering: I've collaborated in four languages, navigated four very different working cultures, and learned that clarity of thought and rigour of method travel better than any tool or framework. The multicultural dimension isn't background colour; it's a genuine design input. Teams that span continents and time zones need explicit contracts, observable systems, and a shared vocabulary — which is exactly what DDD, event-driven architecture, and GitOps provide.
+
+BlueRobin is where I apply those lessons at home-lab scale: the same discipline I bring to enterprise platforms, applied to a personal cluster running in my apartment in New Delhi.
+
+---
+
 BlueRobin is a homelab where I build production-grade AI on self-hosted infrastructure — and write about every decision along the way. It began with one question and grew into **two projects** that now run side by side on the same cluster.
 
 ## Two projects
@@ -30,21 +44,6 @@ It traverses a graph world-model of the whole platform, ranks likely causes with
 **Phase 3 — AI integration (2024–2025).** Accessible LLMs changed what was possible: local OCR, local embeddings, a real RAG pipeline, and a hybrid model strategy that keeps cost under a strict monthly ceiling.
 
 **Phase 4 — The agent (2025–2026).** With the platform stable, the focus shifted from *building* the system to *operating* it — and to teaching an agent to debug it. That's the Debug Agent.
-
-## The platform
-
-| Component | Technology | Why |
-|-----------|------------|-----|
-| Frontend | Blazor Server | Real-time UI, C# everywhere |
-| API | FastEndpoints | High-performance, clean contracts |
-| Messaging | NATS JetStream | Lightweight, durable, KV store |
-| Database | PostgreSQL | Relational metadata + lifecycle |
-| Vectors | Qdrant | Multi-model semantic search |
-| Graph | FalkorDB | Entity & world-model graphs |
-| Inference | Ollama + Claude | Local-first, gateway for the rest |
-| Orchestration | k3s + Flux | GitOps on a homelab cluster |
-
-Everything runs under a strict cost ceiling — the constraint that shapes nearly every design decision on this blog.
 
 ## Why this blog
 
@@ -110,18 +109,6 @@ flowchart TD
 ```
 
 The agent doesn't auto-merge — every proposed change goes through a pull request I review. The interesting failures happen when a single commit touches three article clusters simultaneously (a refactor that changes the DDD model, the NATS schema, and the Kubernetes deployment in one go). The agent usually gets the create/delete decisions right but sometimes misses a cross-cutting update. That's what the review step is for.
-
-## About me
-
-I'm **Victor Robin, Ph.D.** — a French engineer who has spent a career crossing borders, both geographical and disciplinary.
-
-My academic path took me from *Classe Préparatoire aux Grandes Écoles* at Lycée Janson-de-Sailly in Paris, through a **B.Sc.** in Mathematics and Earth Sciences, to a **M.Sc.** at the Grande École ENSG in Nancy (with an Erasmus semester at Luleå Tekniska Universitet in northern Sweden), and finally a joint **Ph.D.** in Computational Solid Mechanics between the University of Exeter (UK) and the University of Lorraine (France) — in partnership with Bouygues Group.
-
-After defending my thesis I moved to **London** to work as a Data Scientist, then relocated to **New Delhi, India** in 2017 — where I've lived and worked for nearly a decade. I'm currently Director of Engineering at dunnhumby, leading ~100 engineers across India and Berlin.
-
-That journey — France → Sweden → UK → India — shapes how I think about engineering: I've collaborated in four languages, navigated four very different working cultures, and learned that clarity of thought and rigour of method travel better than any tool or framework. The multicultural dimension isn't background colour; it's a genuine design input. Teams that span continents and time zones need explicit contracts, observable systems, and a shared vocabulary — which is exactly what DDD, event-driven architecture, and GitOps provide.
-
-BlueRobin is where I apply those lessons at home-lab scale: the same discipline I bring to enterprise platforms, applied to a personal cluster running in my apartment in New Delhi.
 
 ---
 
