@@ -55,6 +55,43 @@ const themes = [
   },
 ];
 
+// The four-step investigation pipeline. Each step carries its own accent tokens
+// (tint / hover-ring / number color) so the cards stay on-brand per stage.
+const steps = [
+  {
+    n: 1,
+    title: "Detect",
+    blurb: "An Alertmanager webhook is de-duplicated, then deterministic passes gather traces, logs and code context before any model call.",
+    tint: "--color-complement-alpha-10",
+    ring: "--color-complement-alpha-20",
+    num: "--color-complement-300",
+  },
+  {
+    n: 2,
+    title: "Recall & rank",
+    blurb: "Personalized PageRank + BARO change-point scoring rank candidate causes; hybrid memory recalls related past incidents — all without an LLM.",
+    tint: "--color-neural-alpha-10",
+    ring: "--color-neural-alpha-20",
+    num: "--color-neural-400",
+  },
+  {
+    n: 3,
+    title: "Investigate",
+    blurb: "A bounded ReAct loop queries real tools. A verification-gate FSM — not the model — decides when evidence is sufficient to stop.",
+    tint: "--color-glow-alpha-10",
+    ring: "--color-glow-alpha-20",
+    num: "--color-glow-700",
+  },
+  {
+    n: 4,
+    title: "Decide",
+    blurb: "A confidence ladder, soft-capped by graph grounding, chooses the action: notify, open an issue, attach patches, or open a PR for a human.",
+    tint: "--color-complement-alpha-10",
+    ring: "--color-complement-alpha-20",
+    num: "--color-complement-300",
+  },
+];
+
 // Tech stack with inline brand marks (monochrome, currentColor so they read
 // white on the gradient pills). Brand logos via Simple Icons; FalkorDB / Tempo /
 // Loki have no monochrome brand glyph, so they use functional marks
@@ -171,26 +208,16 @@ const stack = [
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div class="glass-card p-6 flex flex-col gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">1</div>
-          <h3 class="font-display font-semibold text-slate-900">Detect</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">An Alertmanager webhook is de-duplicated, then deterministic passes gather traces, logs and code context before any model call.</p>
-        </div>
-        <div class="glass-card p-6 flex flex-col gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-neural);">2</div>
-          <h3 class="font-display font-semibold text-slate-900">Recall &amp; rank</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">Personalized PageRank + BARO change-point scoring rank candidate causes; hybrid memory recalls related past incidents — all without an LLM.</p>
-        </div>
-        <div class="glass-card p-6 flex flex-col gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-glow);">3</div>
-          <h3 class="font-display font-semibold text-slate-900">Investigate</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">A bounded ReAct loop queries real tools. A verification-gate FSM — not the model — decides when evidence is sufficient to stop.</p>
-        </div>
-        <div class="glass-card p-6 flex flex-col gap-3">
-          <div class="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white shrink-0" style="background: var(--gradient-complement);">4</div>
-          <h3 class="font-display font-semibold text-slate-900">Decide</h3>
-          <p class="text-sm text-slate-600 leading-relaxed">A confidence ladder, soft-capped by graph grounding, chooses the action: notify, open an issue, attach patches, or open a PR for a human.</p>
-        </div>
+        {steps.map((s) => (
+          <div class="step-tile glass-card group relative flex flex-col gap-3 p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:[border-color:var(--tile-ring)] hover:[box-shadow:var(--shadow-card-premium)]" style={`--tile-ring: var(${s.ring});`}>
+            <!-- soft corner glow, accent-tinted -->
+            <div class="pointer-events-none absolute -top-12 -right-12 w-28 h-28 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={`background: var(${s.tint});`}></div>
+
+            <div class="relative inline-flex items-center justify-center w-9 h-9 rounded-xl text-sm font-bold shrink-0" style={`background: var(${s.tint}); color: var(${s.num}); border: 1px solid var(${s.ring});`}>{s.n}</div>
+            <h3 class="relative font-display font-semibold text-slate-900">{s.title}</h3>
+            <p class="relative text-sm text-slate-600 leading-relaxed">{s.blurb}</p>
+          </div>
+        ))}
       </div>
     </div>
   </section>
