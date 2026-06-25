@@ -113,7 +113,15 @@ The agent doesn't auto-merge — every proposed change goes through a pull reque
 
 ## About me
 
-I'm **Victor Robin**. BlueRobin is my playground for the patterns I don't always get to use elsewhere: DDD, event-driven design, LLM integration, graph reasoning, and homelab DevOps. The best way to learn is to build; the second best is to teach. This blog is both.
+I'm **Victor Robin, Ph.D.** — a French engineer who has spent a career crossing borders, both geographical and disciplinary.
+
+My academic path took me from *Classe Préparatoire aux Grandes Écoles* at Lycée Janson-de-Sailly in Paris, through a **B.Sc.** in Mathematics and Earth Sciences, to a **M.Sc.** at the Grande École ENSG in Nancy (with an Erasmus semester at Luleå Tekniska Universitet in northern Sweden), and finally a joint **Ph.D.** in Computational Solid Mechanics between the University of Exeter (UK) and the University of Lorraine (France) — in partnership with Bouygues Group.
+
+After defending my thesis I moved to **London** to work as a Data Scientist, then relocated to **New Delhi, India** in 2017 — where I've lived and worked for nearly a decade. I'm currently Director of Engineering at dunnhumby, leading ~100 engineers across India and Berlin.
+
+That journey — France → Sweden → UK → India — shapes how I think about engineering: I've collaborated in four languages, navigated four very different working cultures, and learned that clarity of thought and rigour of method travel better than any tool or framework. The multicultural dimension isn't background colour; it's a genuine design input. Teams that span continents and time zones need explicit contracts, observable systems, and a shared vocabulary — which is exactly what DDD, event-driven architecture, and GitOps provide.
+
+BlueRobin is where I apply those lessons at home-lab scale: the same discipline I bring to enterprise platforms, applied to a personal cluster running in my apartment in New Delhi.
 
 ---
 
