@@ -83,39 +83,40 @@ const projects = [
           <a
             href={p.href}
             class={`project-tile glass-card group relative flex flex-col overflow-hidden p-8 animate-entry-delay-${i + 1}`}
+            style={`--tile-ring: var(${p.kindBorder});`}
           >
-            <!-- top accent bar -->
-            <div class="absolute inset-x-0 top-0 h-1" style={`background: ${p.grad};`}></div>
+            <!-- soft corner glow, accent-tinted -->
+            <div class="pointer-events-none absolute -top-16 -right-16 w-40 h-40 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={`background: var(${p.kindBg});`}></div>
 
-            <div class="flex items-center justify-between mb-6">
+            <div class="relative flex items-center justify-between mb-6">
               <span
-                class="inline-flex items-center justify-center w-12 h-12 rounded-xl text-white shrink-0"
-                style={`background: ${p.grad};`}
+                class="inline-flex items-center justify-center w-12 h-12 rounded-2xl shrink-0"
+                style={`background: var(${p.kindBg}); color: var(${p.accentVar}); border: 1px solid var(${p.kindBorder});`}
                 set:html={p.icon}
               />
-              <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold" style={`background: var(${p.kindBg}); color: var(${p.accentVar}); border: 1px solid var(${p.kindBorder});`}>
-                <span class="inline-flex" set:html={p.kindIcon} />
+              <span class="inline-flex items-center gap-2 text-xs font-medium text-slate-500">
+                <span class="w-1.5 h-1.5 rounded-full" style={`background: var(${p.accentVar});`}></span>
                 {p.kind}
               </span>
             </div>
 
-            <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-1.5">
+            <h2 class="relative text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-1.5">
               {p.label}
             </h2>
-            <p class="text-sm font-medium mb-4" style={`color: var(${p.accentVar});`}>
+            <p class="relative text-sm font-medium mb-4" style={`color: var(${p.accentVar});`}>
               {p.tagline}
             </p>
 
-            <p class="text-slate-600 leading-relaxed mb-8">
+            <p class="relative text-slate-600 leading-relaxed mb-6">
               {p.description}
             </p>
 
-            <div class="mt-auto flex items-center justify-between">
+            <div class="relative mt-auto flex items-center justify-between border-t border-slate-900/5 pt-5">
               <span class="inline-flex items-center gap-2 font-medium text-slate-900 group-hover:gap-3 transition-all">
                 {p.cta}
                 <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </span>
-              <span class="text-sm text-slate-500">
+              <span class="text-xs text-slate-500 px-2.5 py-1 rounded-full bg-slate-900/5">
                 {p.count > 0 ? `${p.count} ${p.countLabel}` : "coming soon"}
               </span>
             </div>
@@ -246,10 +247,12 @@ const projects = [
 
 <style>
   .project-tile {
+    --tile-ring: var(--color-neural-alpha-20);
     transition: transform 0.3s var(--ease-smooth), box-shadow 0.3s var(--ease-smooth), border-color 0.3s var(--ease-smooth);
   }
   .project-tile:hover {
     transform: translateY(-4px);
+    border-color: var(--tile-ring);
     box-shadow: var(--shadow-card-premium);
   }
 </style>
