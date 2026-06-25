@@ -15,6 +15,8 @@ readTime: "20 min"
 toc: true
 ---
 
+import DebugAgentRcaDiagram from '@components/DebugAgentRcaDiagram.astro';
+
 ## Abstract
 
 Large-language-model (LLM) agents that perform root-cause analysis (RCA) on production incidents fail in characteristic, well-documented ways: they self-validate conclusions that no tool ever supported, they terminate prematurely on an "I'm done" assertion, and they report high confidence in ungrounded hypotheses. This paper describes the reasoning-safety core of the BlueRobin Debug Agent — a .NET, human-in-the-loop RCA agent operating against a self-hosted homelab at a ~50 EUR/month budget — and how its design is driven directly by the MAST agentic-failure taxonomy ([Cemri et al., 2025](https://huggingface.co/blog/ibm-research/itbenchandmast)). We contribute three interlocking mechanisms. First, an *externalized deterministic verification-gate finite-state machine* (`VerificationGate`) that lives outside the model and governs loop termination, replacing `MaxTurns` as the sole stop; a "confident" exit *requires* hard tool evidence, and "no confident root cause" is a first-class outcome. Second, *evidence-derived hypothesis state with provenance* (`HypothesisModel`), in which each candidate's state in `{Validated, Invalidated, Inconclusive}` is computed from real-tool evidence whose source is never `llm-inferred`, captured through an `EvidenceCapturingTool` decorator and a negation-aware, structured-signal-first verdict classifier. Third, an *evidence-chain assembler* with a *grounding-based confidence soft-cap* (`CapPartial = 0.84`, `CapUngrounded = 0.64`) that bounds the LLM's self-rated confidence below the action tiers (issue 0.40 / patch 0.65 / PR 0.85), so an ungrounded conclusion can never reach the pull-request tier. Nothing auto-remediates. We position this work honestly: it is a systems and engineering-discipline contribution, not an empirical breakthrough, and we discuss its threats to validity at length.
@@ -67,6 +69,10 @@ flowchart TD
   J --> K[Soft-cap confidence<br/>0.84 partial / 0.64 ungrounded]
   K --> L[Action ladder: Notify / Issue / Patch / PR<br/>human merges]
 ```
+
+The Mermaid chart above is the reasoning-safety *control flow*. The diagram below is the same investigation as a *system topology* — how the loop reaches the live platform: the LLM egresses through a single Cloudflare AI Gateway, and every tool call is brokered by an MCP server fleet that fans out to the LGTM observability stack (Loki, Tempo, Prometheus, Grafana) and to Kubernetes/Flux, NATS, and GitHub.
+
+<DebugAgentRcaDiagram />
 
 ### 1. The externalized verification-gate FSM
 

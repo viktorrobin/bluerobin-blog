@@ -1,0 +1,174 @@
+---
+// Hand-tuned inline SVG: the Debug Agent's runtime data-flow when Alertmanager
+// fires — the deterministic pre-LLM stage, the ReAct loop + verification gate,
+// the LLM egress (Anthropic via Cloudflare AI Gateway), the MCP server fleet and
+// the observability/platform backends it reaches (Loki, Tempo, Prometheus,
+// Grafana, K8s/Flux, NATS, GitHub), and the resolution/action ladder.
+// Single source of truth — rendered on the /debug-agent hub and in Paper #3.
+// Style matches the homepage platform SVG (src/pages/index.astro): static,
+// light-theme palette with hardcoded hex (cloud=amber, data=teal, external=beige).
+// Brand glyphs are verified marks from simple-icons (CC0); a few niche backends
+// (FalkorDB, Loki, Tempo, code search) use hand-drawn category glyphs.
+---
+<div class="glass-card p-4 sm:p-6 overflow-x-auto">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 770 800" role="img" style="width:100%;height:auto;max-width:860px;margin:0 auto;display:block;" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif">
+<title>BlueRobin Debug Agent — alert-triggered root-cause-analysis flow</title>
+<desc>When Alertmanager fires a webhook, the Debug Agent (a .NET service on the Hetzner cloud worker) de-duplicates it, runs a deterministic no-LLM stage (Personalized PageRank plus BARO change-point scoring) seeded by a FalkorDB StackGraph query and Qdrant hybrid recall, then enters a bounded ReAct loop: an LLM turn (Anthropic Claude, egressing through the Cloudflare AI Gateway to frontier providers) alternates with an externalized Verification-Gate FSM that governs termination. The loop calls tools through an MCP server fleet that fans out to the LGTM observability and platform backends — Loki logs, Tempo traces, Prometheus metrics, Grafana, Kubernetes and Flux state, NATS events, GitHub commits and code search. Tool evidence builds a hypothesis tree under a grounding-based confidence soft-cap, and a confidence-tiered action ladder resolves to a notification (ntfy), a GitHub issue, attached patches, or an auto-PR a human merges.</desc>
+<defs>
+<marker id="brArrowRca" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="#888780" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker>
+<symbol id="ic-dotnet" viewBox="0 0 24 24"><path fill="#512BD4" d="M24 8.77h-2.468v7.565h-1.425V8.77h-2.462V7.53H24zm-6.852 7.565h-4.821V7.53h4.63v1.24h-3.205v2.494h2.953v1.234h-2.953v2.604h3.396zm-6.708 0H8.882L4.78 9.863a2.896 2.896 0 0 1-.258-.51h-.036c.032.189.048.592.048 1.21v5.772H3.157V7.53h1.659l3.965 6.32c.167.261.275.442.323.54h.024c-.04-.233-.06-.629-.06-1.185V7.529h1.372zm-8.703-.693a.868.829 0 0 1-.869.829.868.829 0 0 1-.868-.83.868.829 0 0 1 .868-.828.868.829 0 0 1 .869.829Z"/></symbol>
+<symbol id="ic-claude" viewBox="0 0 24 24"><path fill="#D97757" d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></symbol>
+<symbol id="ic-cloudflare" viewBox="0 0 24 24"><path fill="#F38020" d="M16.5088 16.8447c.1475-.5068.0908-.9707-.1553-1.3154-.2246-.3164-.6045-.499-1.0615-.5205l-8.6592-.1123a.1559.1559 0 0 1-.1333-.0713c-.0283-.042-.0351-.0986-.021-.1553.0278-.084.1123-.1484.2036-.1562l8.7359-.1123c1.0351-.0489 2.1601-.8868 2.5537-1.9136l.499-1.3013c.0215-.0561.0293-.1128.0147-.168-.5625-2.5463-2.835-4.4453-5.5499-4.4453-2.5039 0-4.6284 1.6177-5.3876 3.8614-.4927-.3658-1.1187-.5625-1.794-.499-1.2026.119-2.1665 1.083-2.2861 2.2856-.0283.31-.0069.6128.0635.894C1.5683 13.171 0 14.7754 0 16.752c0 .1748.0142.3515.0352.5273.0141.083.0844.1475.1689.1475h15.9814c.0909 0 .1758-.0645.2032-.1553l.12-.4268zm2.7568-5.5634c-.0771 0-.1611 0-.2383.0112-.0566 0-.1054.0415-.127.0976l-.3378 1.1744c-.1475.5068-.0918.9707.1543 1.3164.2256.3164.6055.498 1.0625.5195l1.8437.1133c.0557 0 .1055.0263.1329.0703.0283.043.0351.1074.0214.1562-.0283.084-.1132.1485-.204.1553l-1.921.1123c-1.041.0488-2.1582.8867-2.5527 1.914l-.1406.3585c-.0283.0713.0215.1416.0986.1416h6.5977c.0771 0 .1474-.0489.169-.126.1122-.4082.1757-.837.1757-1.2803 0-2.6025-2.125-4.727-4.7344-4.727"/></symbol>
+<symbol id="ic-prometheus" viewBox="0 0 24 24"><path fill="#E6522C" d="M12 0C5.373 0 0 5.372 0 12c0 6.627 5.373 12 12 12s12-5.373 12-12c0-6.628-5.373-12-12-12zm0 22.46c-1.885 0-3.414-1.26-3.414-2.814h6.828c0 1.553-1.528 2.813-3.414 2.813zm5.64-3.745H6.36v-2.046h11.28v2.046zm-.04-3.098H6.391c-.037-.043-.075-.086-.111-.13-1.155-1.401-1.427-2.133-1.69-2.879-.005-.025 1.4.287 2.395.511 0 0 .513.119 1.262.255-.72-.843-1.147-1.915-1.147-3.01 0-2.406 1.845-4.508 1.18-6.207.648.053 1.34 1.367 1.387 3.422.689-.951.977-2.69.977-3.755 0-1.103.727-2.385 1.454-2.429-.648 1.069.168 1.984.894 4.256.272.854.237 2.29.447 3.201.07-1.892.395-4.652 1.595-5.605-.529 1.2.079 2.702.494 3.424.671 1.164 1.078 2.047 1.078 3.716a4.642 4.642 0 01-1.11 2.996c.792-.149 1.34-.283 1.34-.283l2.573-.502s-.374 1.538-1.81 3.019z"/></symbol>
+<symbol id="ic-grafana" viewBox="0 0 24 24"><path fill="#F46800" d="M23.02 10.59a8.578 8.578 0 0 0-.862-3.034 8.911 8.911 0 0 0-1.789-2.445c.337-1.342-.413-2.505-.413-2.505-1.292-.08-2.113.4-2.416.62-.052-.02-.102-.044-.154-.064-.22-.089-.446-.172-.677-.247-.231-.073-.47-.14-.711-.197a9.867 9.867 0 0 0-.875-.161C14.557.753 12.94 0 12.94 0c-1.804 1.145-2.147 2.744-2.147 2.744l-.018.093c-.098.029-.2.057-.298.088-.138.042-.275.094-.413.143-.138.055-.275.107-.41.166a8.869 8.869 0 0 0-1.557.87l-.063-.029c-2.497-.955-4.716.195-4.716.195-.203 2.658.996 4.33 1.235 4.636a11.608 11.608 0 0 0-.607 2.635C1.636 12.677.953 15.014.953 15.014c1.926 2.214 4.171 2.351 4.171 2.351.003-.002.006-.002.006-.005.285.509.615.994.986 1.446.156.19.32.371.488.548-.704 2.009.099 3.68.099 3.68 2.144.08 3.553-.937 3.849-1.173a9.784 9.784 0 0 0 3.164.501h.08l.055-.003.107-.002.103-.005.003.002c1.01 1.44 2.788 1.646 2.788 1.646 1.264-1.332 1.337-2.653 1.337-2.94v-.058c0-.02-.003-.039-.003-.06.265-.187.52-.387.758-.6a7.875 7.875 0 0 0 1.415-1.7c1.43.083 2.437-.885 2.437-.885-.236-1.49-1.085-2.216-1.264-2.354l-.018-.013-.016-.013a.217.217 0 0 1-.031-.02c.008-.092.016-.18.02-.27.011-.162.016-.323.016-.48v-.253l-.005-.098-.008-.135a1.891 1.891 0 0 0-.01-.13c-.003-.042-.008-.083-.013-.125l-.016-.124-.018-.122a6.215 6.215 0 0 0-2.032-3.73 6.015 6.015 0 0 0-3.222-1.46 6.292 6.292 0 0 0-.85-.048l-.107.002h-.063l-.044.003-.104.008a4.777 4.777 0 0 0-3.335 1.695c-.332.4-.592.84-.768 1.297a4.594 4.594 0 0 0-.312 1.817l.003.091c.005.055.007.11.013.164a3.615 3.615 0 0 0 .698 1.82 3.53 3.53 0 0 0 1.827 1.282c.33.098.66.14.971.137.039 0 .078 0 .114-.002l.063-.003c.02 0 .041-.003.062-.003.034-.002.065-.007.099-.01.007 0 .018-.003.028-.003l.031-.005.06-.008a1.18 1.18 0 0 0 .112-.02c.036-.008.072-.013.109-.024a2.634 2.634 0 0 0 .914-.415c.028-.02.056-.041.085-.065a.248.248 0 0 0 .039-.35.244.244 0 0 0-.309-.06l-.078.042c-.09.044-.184.083-.283.116a2.476 2.476 0 0 1-.475.096c-.028.003-.054.006-.083.006l-.083.002c-.026 0-.054 0-.08-.002l-.102-.006h-.012l-.024.006c-.016-.003-.031-.003-.044-.006-.031-.002-.06-.007-.091-.01a2.59 2.59 0 0 1-.724-.213 2.557 2.557 0 0 1-.667-.438 2.52 2.52 0 0 1-.805-1.475 2.306 2.306 0 0 1-.029-.444l.006-.122v-.023l.002-.031c.003-.021.003-.04.005-.06a3.163 3.163 0 0 1 1.352-2.29 3.12 3.12 0 0 1 .937-.43 2.946 2.946 0 0 1 .776-.101h.06l.07.002.045.003h.026l.07.005a4.041 4.041 0 0 1 1.635.49 3.94 3.94 0 0 1 1.602 1.662 3.77 3.77 0 0 1 .397 1.414l.005.076.003.075c.002.026.002.05.002.075 0 .024.003.052 0 .07v.065l-.002.073-.008.174a6.195 6.195 0 0 1-.08.639 5.1 5.1 0 0 1-.267.927 5.31 5.31 0 0 1-.624 1.13 5.052 5.052 0 0 1-3.237 2.014 4.82 4.82 0 0 1-.649.066l-.039.003h-.287a6.607 6.607 0 0 1-1.716-.265 6.776 6.776 0 0 1-3.4-2.274 6.75 6.75 0 0 1-.746-1.15 6.616 6.616 0 0 1-.714-2.596l-.005-.083-.002-.02v-.056l-.003-.073v-.096l-.003-.104v-.07l.003-.163c.008-.22.026-.45.054-.678a8.707 8.707 0 0 1 .28-1.355c.128-.444.286-.872.473-1.277a7.04 7.04 0 0 1 1.456-2.1 5.925 5.925 0 0 1 .953-.763c.169-.111.343-.213.524-.306.089-.05.182-.091.273-.135.047-.02.093-.042.138-.062a7.177 7.177 0 0 1 .714-.267l.145-.045c.049-.015.098-.026.148-.041.098-.029.197-.052.296-.076.049-.013.1-.02.15-.033l.15-.032.151-.028.076-.013.075-.01.153-.024c.057-.01.114-.013.171-.023l.169-.021c.036-.003.073-.008.106-.01l.073-.008.036-.003.042-.002c.057-.003.114-.008.171-.01l.086-.006h.023l.037-.003.145-.007a7.999 7.999 0 0 1 1.708.125 7.917 7.917 0 0 1 2.048.68 8.253 8.253 0 0 1 1.672 1.09l.09.077.089.078c.06.052.114.107.171.159.057.052.112.106.166.16.052.055.107.107.159.164a8.671 8.671 0 0 1 1.41 1.978c.012.026.028.052.04.078l.04.078.075.156c.023.051.05.1.07.153l.065.15a8.848 8.848 0 0 1 .45 1.34.19.19 0 0 0 .201.142.186.186 0 0 0 .172-.184c.01-.246.002-.532-.024-.856z"/></symbol>
+<symbol id="ic-kubernetes" viewBox="0 0 24 24"><path fill="#326CE5" d="M10.204 14.35l.007.01-.999 2.413a5.171 5.171 0 0 1-2.075-2.597l2.578-.437.004.005a.44.44 0 0 1 .484.606zm-.833-2.129a.44.44 0 0 0 .173-.756l.002-.011L7.585 9.7a5.143 5.143 0 0 0-.73 3.255l2.514-.725.002-.009zm1.145-1.98a.44.44 0 0 0 .699-.337l.01-.005.15-2.62a5.144 5.144 0 0 0-3.01 1.442l2.147 1.523.004-.002zm.76 2.75l.723.349.722-.347.18-.78-.5-.623h-.804l-.5.623.179.779zm1.5-3.095a.44.44 0 0 0 .7.336l.008.003 2.134-1.513a5.188 5.188 0 0 0-2.992-1.442l.148 2.615.002.001zm10.876 5.97l-5.773 7.181a1.6 1.6 0 0 1-1.248.594l-9.261.003a1.6 1.6 0 0 1-1.247-.596l-5.776-7.18a1.583 1.583 0 0 1-.307-1.34L2.1 5.573c.108-.47.425-.864.863-1.073L11.305.513a1.606 1.606 0 0 1 1.385 0l8.345 3.985c.438.209.755.604.863 1.073l2.062 8.955c.108.47-.005.963-.308 1.34zm-3.289-2.057c-.042-.01-.103-.026-.145-.034-.174-.033-.315-.025-.479-.038-.35-.037-.638-.067-.895-.148-.105-.04-.18-.165-.216-.216l-.201-.059a6.45 6.45 0 0 0-.105-2.332 6.465 6.465 0 0 0-.936-2.163c.052-.047.15-.133.177-.159.008-.09.001-.183.094-.282.197-.185.444-.338.743-.522.142-.084.273-.137.415-.242.032-.024.076-.062.11-.089.24-.191.295-.52.123-.736-.172-.216-.506-.236-.745-.045-.034.027-.08.062-.111.088-.134.116-.217.23-.33.35-.246.25-.45.458-.673.609-.097.056-.239.037-.303.033l-.19.135a6.545 6.545 0 0 0-4.146-2.003l-.012-.223c-.065-.062-.143-.115-.163-.25-.022-.268.015-.557.057-.905.023-.163.061-.298.068-.475.001-.04-.001-.099-.001-.142 0-.306-.224-.555-.5-.555-.275 0-.499.249-.499.555l.001.014c0 .041-.002.092 0 .128.006.177.044.312.067.475.042.348.078.637.056.906a.545.545 0 0 1-.162.258l-.012.211a6.424 6.424 0 0 0-4.166 2.003 8.373 8.373 0 0 1-.18-.128c-.09.012-.18.04-.297-.029-.223-.15-.427-.358-.673-.608-.113-.12-.195-.234-.329-.349-.03-.026-.077-.062-.111-.088a.594.594 0 0 0-.348-.132.481.481 0 0 0-.398.176c-.172.216-.117.546.123.737l.007.005.104.083c.142.105.272.159.414.242.299.185.546.338.743.522.076.082.09.226.1.288l.16.143a6.462 6.462 0 0 0-1.02 4.506l-.208.06c-.055.072-.133.184-.215.217-.257.081-.546.11-.895.147-.164.014-.305.006-.48.039-.037.007-.09.02-.133.03l-.004.002-.007.002c-.295.071-.484.342-.423.608.061.267.349.429.645.365l.007-.001.01-.003.129-.029c.17-.046.294-.113.448-.172.33-.118.604-.217.87-.256.112-.009.23.069.288.101l.217-.037a6.5 6.5 0 0 0 2.88 3.596l-.09.218c.033.084.069.199.044.282-.097.252-.263.517-.452.813-.091.136-.185.242-.268.399-.02.037-.045.095-.064.134-.128.275-.034.591.213.71.248.12.556-.007.69-.282v-.002c.02-.039.046-.09.062-.127.07-.162.094-.301.144-.458.132-.332.205-.68.387-.897.05-.06.13-.082.215-.105l.113-.205a6.453 6.453 0 0 0 4.609.012l.106.192c.086.028.18.042.256.155.136.232.229.507.342.84.05.156.074.295.145.457.016.037.043.09.062.129.133.276.442.402.69.282.247-.118.341-.435.213-.71-.02-.039-.045-.096-.065-.134-.083-.156-.177-.261-.268-.398-.19-.296-.346-.541-.443-.793-.04-.13.007-.21.038-.294-.018-.022-.059-.144-.083-.202a6.499 6.499 0 0 0 2.88-3.622c.064.01.176.03.213.038.075-.05.144-.114.28-.104.266.039.54.138.87.256.154.06.277.128.448.173.036.01.088.019.13.028l.009.003.007.001c.297.064.584-.098.645-.365.06-.266-.128-.537-.423-.608zM16.4 9.701l-1.95 1.746v.005a.44.44 0 0 0 .173.757l.003.01 2.526.728a5.199 5.199 0 0 0-.108-1.674A5.208 5.208 0 0 0 16.4 9.7zm-4.013 5.325a.437.437 0 0 0-.404-.232.44.44 0 0 0-.372.233h-.002l-1.268 2.292a5.164 5.164 0 0 0 3.326.003l-1.27-2.296h-.01zm1.888-1.293a.44.44 0 0 0-.27.036.44.44 0 0 0-.214.572l-.003.004 1.01 2.438a5.15 5.15 0 0 0 2.081-2.615l-2.6-.44-.004.005z"/></symbol>
+<symbol id="ic-github" viewBox="0 0 24 24"><path fill="#181717" d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></symbol>
+<symbol id="ic-natsdotio" viewBox="0 0 24 24"><path fill="#27AAE1" d="M12.004 0H.404v18.807h9.938l1.714 1.602v-.026L15.966 24v-5.193h7.63V0H12.003zm7.578 14.45H15.38L6.898 6.519v7.93H4.116V4.376h4.349l8.344 7.784V4.375h2.773V14.45z"/></symbol>
+<symbol id="ic-qdrant" viewBox="0 0 24 24"><path fill="#DC244C" d="m12 16.5 3.897-2.25v-4.5L12 7.5 8.103 9.75v4.5zM1.607 18 12 24l3.897-2.25v-4.5L12 19.5l-6.495-3.75v-7.5L12 4.5l6.495 3.75v15L22.393 21V6L12 0 1.607 6Z"/></symbol>
+<symbol id="ic-ntfy" viewBox="0 0 24 24"><path fill="#317F6F" d="M12.597 13.693v2.156h6.205v-2.156ZM5.183 6.549v2.363l3.591 1.901.023.01-.023.009-3.591 1.901v2.35l.386-.211 5.456-2.969V9.729ZM3.659 2.037C1.915 2.037.42 3.41.42 5.154v.002L.438 18.73 0 21.963l5.956-1.583h14.806c1.744 0 3.238-1.374 3.238-3.118V5.154c0-1.744-1.493-3.116-3.237-3.117h-.001zm0 2.2h17.104c.613.001 1.037.447 1.037.917v12.108c0 .47-.424.916-1.038.916H5.633l-3.026.915.031-.179-.017-13.76c0-.47.424-.917 1.038-.917z"/></symbol>
+<symbol id="ic-mcp" viewBox="0 0 24 24"><path fill="#7A4F1D" d="M13.85 0a4.16 4.16 0 0 0-2.95 1.217L1.456 10.66a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l9.442-9.442a2.49 2.49 0 0 1 3.541 0 2.49 2.49 0 0 1 0 3.541L8.59 12.97l-.1.1a.835.835 0 0 0 0 1.18.835.835 0 0 0 1.18 0l.1-.098 7.03-7.034a2.49 2.49 0 0 1 3.542 0l.049.05a2.49 2.49 0 0 1 0 3.54l-8.54 8.54a1.96 1.96 0 0 0 0 2.755l1.753 1.753a.835.835 0 0 0 1.18 0 .835.835 0 0 0 0-1.18l-1.753-1.753a.266.266 0 0 1 0-.394l8.54-8.54a4.185 4.185 0 0 0 0-5.9l-.05-.05a4.16 4.16 0 0 0-2.95-1.218c-.2 0-.401.02-.6.048a4.17 4.17 0 0 0-1.17-3.552A4.16 4.16 0 0 0 13.85 0m0 3.333a.84.84 0 0 0-.59.245L6.275 10.56a4.186 4.186 0 0 0 0 5.902 4.186 4.186 0 0 0 5.902 0L19.16 9.48a.835.835 0 0 0 0-1.18.835.835 0 0 0-1.18 0l-6.985 6.984a2.49 2.49 0 0 1-3.54 0 2.49 2.49 0 0 1 0-3.54l6.983-6.985a.835.835 0 0 0 0-1.18.84.84 0 0 0-.59-.245"/></symbol>
+<symbol id="ic-graph" viewBox="0 0 24 24"><g stroke="#0F6E56" stroke-width="1.6"><path d="M6 7L17 6M6 7l6 11M17 6l-5 12" fill="none"/><circle cx="6" cy="7" r="2.4" fill="#0F6E56" stroke="none"/><circle cx="17" cy="6" r="2.4" fill="#0F6E56" stroke="none"/><circle cx="12" cy="18" r="2.4" fill="#0F6E56" stroke="none"/></g></symbol>
+<symbol id="ic-logs" viewBox="0 0 24 24"><g stroke="#BA7517" stroke-width="1.9" stroke-linecap="round"><path d="M5 6h14M5 10.5h11M5 15h13M5 19.5h8"/></g></symbol>
+<symbol id="ic-trace" viewBox="0 0 24 24"><g fill="#BA7517"><rect x="4" y="5" width="15" height="2.8" rx="1.4"/><rect x="7" y="10.6" width="13" height="2.8" rx="1.4"/><rect x="5" y="16.2" width="9" height="2.8" rx="1.4"/></g></symbol>
+<symbol id="ic-search" viewBox="0 0 24 24"><g fill="none" stroke="#5F5E5A" stroke-width="2" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/></g></symbol>
+</defs>
+
+<!-- Zone boundaries -->
+<rect x="24" y="92" width="722" height="600" rx="8" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="36" y="108" font-size="12" fill="#5F5E5A">Debug Agent · Hetzner cloud worker · FEAT-008</text>
+<rect x="262" y="252" width="256" height="168" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="270" y="247" font-size="12" fill="#5F5E5A">ReAct loop · AgenticChatLoop</text>
+<rect x="512" y="430" width="234" height="222" rx="6" fill="none" stroke="#B4B2A9" stroke-width="0.5" stroke-dasharray="5 4"/>
+<text x="518" y="445" font-size="12" fill="#5F5E5A">Observability · LGTM</text>
+
+<!-- Arrows -->
+<path d="M390 70 L390 110" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 156 L390 178" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M194 202 L278 205" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M194 264 L238 264 L238 214 L278 214" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 232 L390 274" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 322 L390 352" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M284 376 L270 376 L270 298 L284 298" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M496 298 L556 298" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M651 274 L651 244" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M518 376 L556 376" fill="none" stroke="#888780" stroke-width="1" marker-start="url(#brArrowRca)" marker-end="url(#brArrowRca)"/>
+<path d="M651 400 L651 430" fill="none" stroke="#888780" stroke-width="1" marker-start="url(#brArrowRca)" marker-end="url(#brArrowRca)"/>
+<path d="M390 420 L390 440" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 494 L390 512" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 566 L390 700" fill="none" stroke="#888780" stroke-width="1"/>
+<path d="M390 700 L250 700 L250 716" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<path d="M390 700 L535 700 L535 716" fill="none" stroke="#888780" stroke-width="1" marker-end="url(#brArrowRca)"/>
+<circle cx="390" cy="700" r="2.5" fill="#888780"/>
+
+<!-- Trigger -->
+<rect x="290" y="24" width="200" height="46" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<use href="#ic-prometheus" x="302" y="39" width="16" height="16"/>
+<text x="404" y="44" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">Alertmanager</text>
+<text x="404" y="59" text-anchor="middle" font-size="12" fill="#5F5E5A">alert webhook fires</text>
+
+<!-- Spine -->
+<rect x="280" y="110" width="220" height="46" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-dotnet" x="292" y="125" width="16" height="16"/>
+<text x="404" y="130" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Debug Agent · receiver</text>
+<text x="404" y="145" text-anchor="middle" font-size="12" fill="#854F0B">de-dup · FastEndpoints</text>
+
+<rect x="280" y="178" width="220" height="54" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="390" y="201" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Pre-LLM seeds — no model</text>
+<text x="390" y="217" text-anchor="middle" font-size="12" fill="#854F0B">PageRank + BARO change-point</text>
+
+<!-- Data layer -->
+<rect x="44" y="178" width="150" height="48" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<use href="#ic-graph" x="56" y="194" width="16" height="16"/>
+<text x="133" y="199" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">FalkorDB</text>
+<text x="133" y="214" text-anchor="middle" font-size="12" fill="#0F6E56">StackGraph · query</text>
+<rect x="44" y="240" width="150" height="48" rx="4" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<use href="#ic-qdrant" x="56" y="256" width="16" height="16"/>
+<text x="133" y="261" text-anchor="middle" font-size="14" font-weight="500" fill="#04342C">Qdrant</text>
+<text x="133" y="276" text-anchor="middle" font-size="12" fill="#0F6E56">hybrid recall · RRF</text>
+
+<!-- ReAct loop internals -->
+<rect x="284" y="274" width="212" height="48" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-claude" x="296" y="290" width="16" height="16"/>
+<text x="404" y="295" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">LLM turn — reason + act</text>
+<text x="404" y="310" text-anchor="middle" font-size="12" fill="#854F0B">Anthropic · Claude</text>
+<rect x="284" y="352" width="212" height="48" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="390" y="373" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Verification-Gate FSM</text>
+<text x="390" y="388" text-anchor="middle" font-size="12" fill="#854F0B">deterministic stop · MAST</text>
+
+<!-- LLM egress -->
+<rect x="556" y="196" width="190" height="48" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="651" y="217" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">External LLM APIs</text>
+<text x="651" y="232" text-anchor="middle" font-size="12" fill="#854F0B">frontier providers</text>
+<rect x="556" y="274" width="190" height="48" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-cloudflare" x="568" y="290" width="16" height="16"/>
+<text x="665" y="295" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Cloudflare AI Gateway</text>
+<text x="665" y="310" text-anchor="middle" font-size="12" fill="#854F0B">LLM egress proxy</text>
+
+<!-- MCP fleet -->
+<rect x="556" y="352" width="190" height="48" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-mcp" x="568" y="368" width="16" height="16"/>
+<text x="665" y="373" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">MCP server fleet</text>
+<text x="665" y="388" text-anchor="middle" font-size="12" fill="#854F0B">tool transport</text>
+
+<!-- Observability + platform backends -->
+<rect x="520" y="452" width="108" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-logs" x="528" y="467" width="13" height="13"/>
+<text x="584" y="470" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">Loki</text>
+<text x="584" y="484" text-anchor="middle" font-size="11" fill="#854F0B">logs</text>
+<rect x="638" y="452" width="100" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-trace" x="646" y="467" width="13" height="13"/>
+<text x="698" y="470" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">Tempo</text>
+<text x="698" y="484" text-anchor="middle" font-size="11" fill="#854F0B">traces</text>
+<rect x="520" y="502" width="108" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-prometheus" x="528" y="517" width="13" height="13"/>
+<text x="584" y="520" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">Prometheus</text>
+<text x="584" y="534" text-anchor="middle" font-size="11" fill="#854F0B">metrics</text>
+<rect x="638" y="502" width="100" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-grafana" x="646" y="517" width="13" height="13"/>
+<text x="698" y="520" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">Grafana</text>
+<text x="698" y="534" text-anchor="middle" font-size="11" fill="#854F0B">dashboards</text>
+<rect x="520" y="552" width="108" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-kubernetes" x="528" y="567" width="13" height="13"/>
+<text x="584" y="570" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">K8s · Flux</text>
+<text x="584" y="584" text-anchor="middle" font-size="11" fill="#854F0B">cluster state</text>
+<rect x="638" y="552" width="100" height="42" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<use href="#ic-natsdotio" x="646" y="567" width="13" height="13"/>
+<text x="698" y="570" text-anchor="middle" font-size="13" font-weight="500" fill="#412402">NATS</text>
+<text x="698" y="584" text-anchor="middle" font-size="11" fill="#854F0B">events</text>
+<rect x="520" y="602" width="108" height="42" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<use href="#ic-github" x="528" y="617" width="13" height="13"/>
+<text x="584" y="620" text-anchor="middle" font-size="13" font-weight="500" fill="#2C2C2A">GitHub</text>
+<text x="584" y="634" text-anchor="middle" font-size="11" fill="#5F5E5A">commits · code</text>
+<rect x="638" y="602" width="100" height="42" rx="4" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<use href="#ic-search" x="646" y="617" width="13" height="13"/>
+<text x="698" y="620" text-anchor="middle" font-size="13" font-weight="500" fill="#2C2C2A">Code</text>
+<text x="698" y="634" text-anchor="middle" font-size="11" fill="#5F5E5A">repo search</text>
+
+<!-- Evidence + decision -->
+<rect x="280" y="440" width="220" height="54" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="390" y="463" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Evidence → HypothesisTree</text>
+<text x="390" y="479" text-anchor="middle" font-size="12" fill="#854F0B">grounding-based soft-cap</text>
+<rect x="280" y="512" width="220" height="54" rx="4" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="390" y="535" text-anchor="middle" font-size="14" font-weight="500" fill="#412402">Action ladder · by confidence</text>
+<text x="390" y="551" text-anchor="middle" font-size="12" fill="#854F0B">notify · issue · patch · PR</text>
+
+<!-- Resolution / outputs -->
+<rect x="150" y="716" width="200" height="46" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<use href="#ic-ntfy" x="162" y="731" width="16" height="16"/>
+<text x="264" y="736" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">ntfy · operator</text>
+<text x="264" y="751" text-anchor="middle" font-size="12" fill="#5F5E5A">notify</text>
+<rect x="430" y="716" width="210" height="46" rx="6" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<use href="#ic-github" x="442" y="731" width="16" height="16"/>
+<text x="549" y="736" text-anchor="middle" font-size="14" font-weight="500" fill="#2C2C2A">GitHub auto-PR / issue</text>
+<text x="549" y="751" text-anchor="middle" font-size="12" fill="#5F5E5A">human merges</text>
+
+<!-- Legend -->
+<rect x="24" y="778" width="12" height="12" rx="2" fill="#FAEEDA" stroke="#BA7517" stroke-width="1"/>
+<text x="42" y="788" font-size="12" fill="#5F5E5A">cloud</text>
+<rect x="110" y="778" width="12" height="12" rx="2" fill="#D7EFE6" stroke="#1D9E75" stroke-width="1"/>
+<text x="128" y="788" font-size="12" fill="#5F5E5A">data</text>
+<rect x="186" y="778" width="12" height="12" rx="2" fill="#F1EFE8" stroke="#888780" stroke-width="1"/>
+<text x="204" y="788" font-size="12" fill="#5F5E5A">external / I-O</text>
+<text x="320" y="788" font-size="12" fill="#5F5E5A">dashed = zone boundary · ⇄ tool calls via the MCP fleet</text>
+</svg>
+</div>
