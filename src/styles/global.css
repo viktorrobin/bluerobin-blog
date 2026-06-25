@@ -567,6 +567,24 @@ pre {
     color: var(--color-slate-700);
     font-size: 1rem;
     line-height: 1.7;
+    /* Long tokens (identifiers, URLs) must wrap rather than push the page wider
+       than the phone viewport and trigger horizontal scroll. */
+    overflow-wrap: break-word;
+}
+
+/* Inline code, links and headings often hold long unbreakable strings —
+   allow them to break so they never overflow narrow screens. */
+.prose code:not(pre code) {
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.prose a,
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+    overflow-wrap: break-word;
 }
 
 /* Paragraphs */
@@ -654,6 +672,17 @@ pre {
 }
 
 /* Tables */
+.prose .table-wrapper {
+    overflow-x: auto;
+    margin: 2rem 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+.prose .table-wrapper > table {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
 .prose table {
     @apply w-full my-8 text-sm border-collapse;
 }
@@ -706,6 +735,15 @@ pre {
 .astro-code,
 .astro-code span {
     background-color: transparent !important;
+}
+
+/* Touch devices have no hover: keep the hover-reveal controls visible so the
+   code Copy button and Mermaid fullscreen button are usable on mobile. */
+@media (hover: none) {
+    .copy-button,
+    .fullscreen-btn {
+        opacity: 1 !important;
+    }
 }
 
 /* Line styling - compact and clean */
