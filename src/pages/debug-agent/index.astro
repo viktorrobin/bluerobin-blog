@@ -163,13 +163,8 @@ const stack = [
           <span class="title-warm">An agent that finds<br>the root cause</span>
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-5">
-          When production breaks, an LLM agent investigates — grounded in a graph,<br>
-          disciplined by evidence, and honest about what it does not know.
-        </p>
-
-        <p class="text-base text-slate-600 max-w-2xl mx-auto mb-10">
-          A graph-grounded root-cause-analysis agent: it traverses a FalkorDB world-model of the platform, ranks suspects with correlation-first scoring, investigates with real observability tools, and only opens a pull request when hard evidence supports it. Research-grade RCA, running at a €50/month homelab budget.
+        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
+          When production breaks, an LLM agent investigates — grounded in a FalkorDB world-model, disciplined by hard evidence, and honest about what it does not know. It only opens a pull request when the evidence supports it. Research-grade RCA at a €50/month homelab budget.
         </p>
 
         <div class="flex flex-wrap justify-center gap-4 mb-14">
@@ -199,26 +194,47 @@ const stack = [
     </div>
   </section>
 
-  <!-- How it investigates -->
+  <!-- How it works (merged: runtime pipeline + research ideas) -->
   <section id="pipeline" class="py-20 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it investigates</h2>
-        <p class="text-slate-600 max-w-xl mx-auto">An alert fires; the agent recalls similar incidents, ranks suspects from the graph, runs a bounded tool-using investigation, and decides on an action by confidence — never auto-remediating.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it works</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">An alert fires; the agent recalls similar incidents, ranks suspects from the graph, runs a bounded tool-using investigation, and decides by confidence — never auto-remediating. Five research ideas make that possible, each written up as a paper below.</p>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+      <!-- Runtime pipeline -->
+      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">The investigation pipeline</h3>
+      <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-14">
         {steps.map((s) => (
-          <div class="step-tile glass-card group relative flex flex-col gap-3 p-6 overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:[border-color:var(--tile-ring)] hover:[box-shadow:var(--shadow-card-premium)]" style={`--tile-ring: var(${s.ring});`}>
-            <!-- soft corner glow, accent-tinted -->
-            <div class="pointer-events-none absolute -top-12 -right-12 w-28 h-28 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity duration-500" style={`background: var(${s.tint});`}></div>
+          <li class="da-step">
+            <span class="da-step-n">{s.n}</span>
+            <div>
+              <h4 class="da-step-title">{s.title}</h4>
+              <p class="da-step-blurb">{s.blurb}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
 
-            <div class="relative inline-flex items-center justify-center w-9 h-9 rounded-xl text-sm font-bold shrink-0" style={`background: var(${s.tint}); color: var(${s.num}); border: 1px solid var(${s.ring});`}>{s.n}</div>
-            <h3 class="relative font-display font-semibold text-slate-900">{s.title}</h3>
-            <p class="relative text-sm text-slate-600 leading-relaxed">{s.blurb}</p>
+      <!-- Research ideas roster -->
+      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Five ideas behind it</h3>
+      <div class="glass-card overflow-hidden">
+        {themes.map((t, i) => (
+          <div class="da-idea" style={i > 0 ? "border-top: 1px solid var(--color-complement-alpha-20);" : ""}>
+            <span class="da-idea-n">{t.n}</span>
+            <div class="flex-1">
+              <h4 class="da-idea-title">{t.title}</h4>
+              <p class="da-idea-blurb">{t.blurb}</p>
+              <div class="flex flex-wrap gap-1.5 mt-2">
+                {t.tags.map((tag) => (
+                  <span class="da-idea-tag">{tag}</span>
+                ))}
+              </div>
+            </div>
           </div>
         ))}
       </div>
+      <p class="text-center text-sm text-slate-600 mt-5">Each idea is written up as a <a href="#papers" class="text-complement-300 hover:underline">paper below</a>.</p>
     </div>
   </section>
 
@@ -235,20 +251,43 @@ const stack = [
     </div>
   </section>
 
-  <!-- The Detective -->
+  <!-- See it in action (tabbed incident scenarios) -->
   <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="mb-10">
-        <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
-          <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
-          <span class="font-display font-semibold text-slate-900">The Detective</span>
-          <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; root-cause analysis</span>
-        </div>
-        <p class="text-slate-600 max-w-2xl mt-4">An alert fires. The agent reads signals from three observability sources, traverses the FalkorDB StackGraph to find what changed, and proposes a fix &mdash; all before an on-call engineer opens their laptop.</p>
+      <div class="text-center mb-10">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">See it in action</h2>
+        <p class="text-slate-600 max-w-2xl mx-auto">One agent, three incidents &mdash; the same StackGraph traversal and verification gate each time. Not an LLM guessing: evidence-grounded reasoning over a live world-model, honest enough to only notify when confidence is below the auto-PR bar.</p>
       </div>
 
-      <div class="glass-card p-8 max-w-4xl mx-auto">
-        <div class="flex flex-col gap-8">
+      <!-- Tablist -->
+      <div class="da-tabs" role="tablist" aria-label="Incident scenarios">
+        <button class="da-tab" id="tab-pool" type="button" role="tab" aria-controls="panel-pool" aria-selected="true">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v14c0 1.7 3.6 3 8 3s8-1.3 8-3V5"/><path d="M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/></svg>
+          <span>Pool exhaustion<span class="da-tab-sub">Bad deploy</span></span>
+        </button>
+        <button class="da-tab" id="tab-oom" type="button" role="tab" aria-controls="panel-oom" aria-selected="false" tabindex="-1">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2"/></svg>
+          <span>Memory leak<span class="da-tab-sub">OOMKill</span></span>
+        </button>
+        <button class="da-tab" id="tab-timeout" type="button" role="tab" aria-controls="panel-timeout" aria-selected="false" tabindex="-1">
+          <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+          <span>Cascading timeout<span class="da-tab-sub">Upstream dep</span></span>
+        </button>
+      </div>
+
+      <!-- Panel: Pool exhaustion (bad deploy) -->
+      <div class="da-panel" id="panel-pool" role="tabpanel" aria-labelledby="tab-pool">
+        <div class="mb-6">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; bad deploy &rarr; DB pool exhaustion</span>
+          </div>
+          <p class="text-slate-600 max-w-2xl mt-4">An alert fires. The agent reads signals from three observability sources, traverses the FalkorDB StackGraph to find what changed, and proposes a fix &mdash; all before an on-call engineer opens their laptop.</p>
+        </div>
+
+        <div class="glass-card p-8 max-w-4xl mx-auto">
+          <div class="flex flex-col gap-8">
 
           <!-- Row: Alert signals in -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
@@ -443,30 +482,425 @@ const stack = [
 
         </div>
       </div>
+      </div><!-- /Panel: Pool exhaustion -->
 
-      <p class="text-center text-sm text-slate-600 mt-6">Not an LLM guessing. Evidence-grounded traversal of a live world-model, with a verification gate that decides when to stop.</p>
-    </div>
-  </section>
-
-  <!-- Research themes / innovations -->
-  <section class="py-4 pb-20 relative" style="background: var(--gradient-mesh-light);">
-    <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Five ideas, one agent</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">The Debug Agent combines a graph world-model, correlation-first reasoning, an evidence-disciplined LLM loop, a rigorous eval gate, and temporal memory. Each is written up as a paper below.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {themes.map((t) => (
-          <div class="glass-card p-6 flex flex-col gap-3">
-            <div class="flex items-center gap-3">
-              <span class="font-mono text-sm font-semibold shrink-0" style="color: var(--color-complement-300);">{t.n}</span>
-              <h3 class="font-display font-semibold text-lg text-slate-900">{t.title}</h3>
-            </div>
-            <p class="text-sm text-slate-600 leading-relaxed">{t.blurb}</p>
+      <!-- Panel: Memory leak (OOMKill) -->
+      <div class="da-panel" id="panel-oom" role="tabpanel" aria-labelledby="tab-oom" hidden>
+        <div class="mb-6">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; memory leak &rarr; OOMKill</span>
           </div>
-        ))}
-      </div>
+          <p class="text-slate-600 max-w-2xl mt-4">A pod keeps dying. The agent correlates restart events with a recent change, walks the StackGraph to the offending commit, and bounds the leak &mdash; no human paging required.</p>
+        </div>
+
+        <div class="glass-card p-8 max-w-4xl mx-auto">
+          <div class="flex flex-col gap-8">
+
+            <!-- Row: Alert signals in -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+              <div class="flex flex-wrap gap-3 flex-1">
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; Pod OOMKilled</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; 17 restarts / 1h</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128200; Prometheus &mdash; RSS 98%</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
+                StackGraph traversal &mdash; FalkorDB world-model
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+            </div>
+
+            <!-- Row: RCA graph canvas -->
+            <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 75% -10%, #1a1028 0%, #0a1119 70%); border: 1px solid var(--color-complement-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: var(--color-complement-300);">StackGraph traversal</span>
+                <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">7 nodes &middot; 9 edges &middot; live query</span>
+              </div>
+
+              <svg viewBox="0 0 760 360" role="img" aria-label="RCA knowledge graph: three signals feed the StackGraph hub which traverses to the worker-service, an unbounded-cache commit, and the heap-exhaustion root cause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+                <defs>
+                  <linearGradient id="db-sig" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(66% 0.21 43 / 0.32)"/>
+                    <stop offset="1" stop-color="oklch(66% 0.21 43 / 0.10)"/>
+                  </linearGradient>
+                  <linearGradient id="db-svc" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                    <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                  </linearGradient>
+                  <radialGradient id="db-hub" cx="50%" cy="42%" r="65%">
+                    <stop offset="0" stop-color="oklch(80% 0.18 80 / 0.55)"/>
+                    <stop offset="1" stop-color="oklch(74% 0.17 70 / 0.10)"/>
+                  </radialGradient>
+                  <radialGradient id="db-conf" cx="50%" cy="42%" r="70%">
+                    <stop offset="0" stop-color="oklch(72% 0.19 150 / 0.40)"/>
+                    <stop offset="1" stop-color="oklch(72% 0.19 150 / 0.10)"/>
+                  </radialGradient>
+                  <filter id="db-glow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <pattern id="db-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                    <path d="M34 0H0V34" fill="none" stroke="oklch(66% 0.21 43 / 0.07)" stroke-width="1"/>
+                  </pattern>
+                </defs>
+
+                <rect x="0" y="0" width="760" height="360" fill="url(#db-grid)"/>
+                <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(66% 0.21 43 / 0.65)">SIGNALS</text>
+                <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.7)">RCA CHAIN</text>
+                <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(66% 0.21 43 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+                <g fill="none" stroke-linecap="round">
+                  <path id="db-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="db-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="db-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="db-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="2"/>
+                  <path id="db-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(74% 0.17 70 / 0.6)" stroke-width="2"/>
+                  <path id="db-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                  <path id="db-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(72% 0.19 150 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                  <path id="db-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(72% 0.19 150 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+                </g>
+
+                <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                  <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 43)">TRIGGERED &times;3</text>
+                  <text x="402" y="118" text-anchor="middle" fill="oklch(80% 0.13 232)">IMPLICATED</text>
+                  <text x="606" y="104" text-anchor="middle" fill="oklch(80% 0.13 80)">INTRODUCED_BY</text>
+                  <text x="606" y="240" text-anchor="middle" fill="oklch(80% 0.13 43)">CAUSED</text>
+                  <text x="538" y="178" text-anchor="middle" fill="oklch(85% 0.13 150)">CONFIDENCE</text>
+                  <text x="276" y="246" text-anchor="middle" fill="oklch(85% 0.12 150)">EVIDENCE</text>
+                </g>
+
+                <g>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#db-e1"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#db-e2"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#db-e3"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 232)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#db-e4"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 80)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#db-e5"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#db-e6"/></animateMotion></circle>
+                  <circle r="2.5" fill="oklch(88% 0.16 150)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#db-e7"/></animateMotion></circle>
+                </g>
+
+                <g font-family="ui-sans-serif, system-ui, sans-serif">
+                  <g>
+                    <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#db-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="64" font-size="13">&#9888;</text>
+                    <text x="52" y="58" font-size="10.5" font-weight="600" fill="#ffdbbf">Alertmanager</text>
+                    <text x="52" y="70" font-size="8.5" fill="rgba(255,219,191,0.55)">Pod OOMKilled</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#db-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="185" font-size="13">&#128203;</text>
+                    <text x="52" y="179" font-size="10.5" font-weight="600" fill="#ffdbbf">Loki</text>
+                    <text x="52" y="191" font-size="8.5" fill="rgba(255,219,191,0.55)">17 restarts / 1h</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#db-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="306" font-size="13">&#128200;</text>
+                    <text x="52" y="300" font-size="10.5" font-weight="600" fill="#ffdbbf">Prometheus</text>
+                    <text x="52" y="312" font-size="8.5" fill="rgba(255,219,191,0.55)">RSS 98% of 512Mi</text>
+                  </g>
+
+                  <circle cx="300" cy="180" r="58" fill="url(#db-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                  <rect x="230" y="153" width="140" height="54" rx="14" fill="oklch(20% 0.04 80 / 0.85)" stroke="oklch(80% 0.18 80 / 0.7)" stroke-width="1.5" filter="url(#db-glow)"/>
+                  <text x="300" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#fff2d6">StackGraph</text>
+                  <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(85% 0.13 80 / 0.85)">WORLD-MODEL &middot; hub</text>
+
+                  <g>
+                    <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#db-svc)" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="1"/>
+                    <text x="515" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#dbe9ff">worker-svc</text>
+                    <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(219,233,255,0.6)">SERVICE &middot; implicated</text>
+                  </g>
+                  <g>
+                    <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#db-svc)" stroke="oklch(74% 0.17 70 / 0.6)" stroke-width="1"/>
+                    <text x="660" y="160" text-anchor="middle" font-size="10" font-weight="600" fill="#fff2d6">cache: unbounded</text>
+                    <text x="660" y="172" text-anchor="middle" font-size="8" fill="rgba(255,242,214,0.6)">COMMIT 4c1e7a2</text>
+                  </g>
+                  <g>
+                    <rect x="585" y="290" width="140" height="38" rx="9" fill="url(#db-sig)" stroke="oklch(66% 0.21 43 / 0.7)" stroke-width="1.25"/>
+                    <text x="655" y="310" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffdbbf">heap exhausted</text>
+                    <text x="655" y="322" text-anchor="middle" font-size="8" fill="rgba(255,219,191,0.6)">ROOT CAUSE</text>
+                  </g>
+
+                  <g>
+                    <circle cx="490" cy="269" r="38" fill="url(#db-conf)"/>
+                    <circle cx="490" cy="269" r="30" fill="oklch(18% 0.06 150 / 0.85)" stroke="oklch(72% 0.18 150 / 0.7)" stroke-width="1.25"/>
+                    <text x="490" y="265" text-anchor="middle" font-size="8.5" font-weight="600" fill="#c8ffd4">confidence</text>
+                    <text x="490" y="280" text-anchor="middle" font-size="14" font-weight="700" fill="oklch(80% 0.18 150)">0.91</text>
+                  </g>
+                </g>
+              </svg>
+
+              <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(66% 0.21 43);"></span>Signal / alert</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Service / change</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(80% 0.18 80);"></span>StackGraph hub</span>
+                <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+                Debug agent &mdash; bounded ReAct loop + verification gate
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+            </div>
+
+            <!-- Row: Generated StackGraph query -->
+            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+              <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.235 232);"></span>
+                <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">debug-agent &middot; generated StackGraph traversal query</span>
+              </div>
+              <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (svc:<span style="color: oklch(78% 0.16 232);">Service</span> &#123;name:<span style="color: oklch(82% 0.14 232);">"worker-svc"</span>&#125;)-[:<span style="color: oklch(80% 0.13 80);">LAST_CHANGE</span>]-&gt;(c:<span style="color: oklch(78% 0.16 80);">Commit</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (p:<span style="color: oklch(78% 0.16 232);">Pod</span> &#123;workload:<span style="color: oklch(82% 0.14 232);">"worker-svc"</span>&#125;)-[:<span style="color: oklch(80% 0.13 43);">OOM_KILLED</span>]-&gt;(e:<span style="color: oklch(78% 0.16 43);">Event</span>)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> c.deployed_at &gt;= $alert_time - duration(<span style="color: oklch(82% 0.14 232);">"PT6H"</span>)
+  <span style="color: oklch(75% 0.17 70);">AND</span> p.rss_ratio &gt; <span style="color: oklch(82% 0.14 232);">0.9</span>
+<span style="color: oklch(75% 0.17 70);">RETURN</span> c.sha[0..7], c.message, p.rss_ratio, count(e) <span style="color: oklch(75% 0.17 70);">AS</span> kills
+<span style="color: oklch(75% 0.17 70);">ORDER BY</span> p.rss_ratio <span style="color: oklch(75% 0.17 70);">DESC</span>
+<span style="color: oklch(85% 0.14 80);">&#8869; StackGraph</span>  FalkorDB traversal + Prometheus memory series</pre>
+            </div>
+
+            <!-- Row: Alert + verdict -->
+            <div class="flex flex-col sm:flex-row items-start gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+              <div class="flex-1">
+                <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
+                  worker-svc: OOMKilled &times;17 in 1h &middot; RSS 98% of 512Mi limit &middot; fired 02:31 UTC
+                </div>
+                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                  <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: worker-svc heap exhaustion driving repeated OOMKills. Cause: commit <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">4c1e7a2</code> (Victor Robin, 5h before alert) added an unbounded in-process response cache; RSS climbs ~6%/h under load until it hits the 512Mi limit. Draft PR #142 opened to bound the cache with an LRU + TTL. Confidence: 0.91.
+                  <div class="flex gap-2 mt-2.5 flex-wrap">
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Prometheus RSS series</span>
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: kube OOMKill events</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /Panel: Memory leak -->
+
+      <!-- Panel: Cascading timeout (upstream dependency) -->
+      <div class="da-panel" id="panel-timeout" role="tabpanel" aria-labelledby="tab-timeout" hidden>
+        <div class="mb-6">
+          <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
+            <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; cascading timeout &rarr; upstream dependency</span>
+          </div>
+          <p class="text-slate-600 max-w-2xl mt-4">Latency cascades and there's no recent deploy. The agent follows the dependency graph to a saturated upstream, finds the cause is load &mdash; not a regression &mdash; and notifies rather than patching.</p>
+        </div>
+
+        <div class="glass-card p-8 max-w-4xl mx-auto">
+          <div class="flex flex-col gap-8">
+
+            <!-- Row: Alert signals in -->
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+              <div class="flex flex-wrap gap-3 flex-1">
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; checkout 503s</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; upstream timeout 41%</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#9201; Tempo &mdash; P99 8.7s</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
+                StackGraph traversal &mdash; FalkorDB world-model
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
+            </div>
+
+            <!-- Row: RCA graph canvas -->
+            <div class="archive-graph rounded-2xl relative overflow-hidden p-3 sm:p-4" style="background: radial-gradient(130% 130% at 75% -10%, #1a1028 0%, #0a1119 70%); border: 1px solid var(--color-complement-alpha-20); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+              <div class="flex items-center justify-between mb-2 px-1">
+                <span class="text-[11px] font-semibold uppercase tracking-[0.18em]" style="color: var(--color-complement-300);">StackGraph traversal</span>
+                <span class="text-[10px] font-mono" style="color: rgba(203,225,255,0.45);">7 nodes &middot; 9 edges &middot; live query</span>
+              </div>
+
+              <svg viewBox="0 0 760 360" role="img" aria-label="RCA knowledge graph: three signals feed the StackGraph hub which traverses from checkout to a saturated payments dependency and the thread-pool root cause" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" class="w-full h-auto block">
+                <defs>
+                  <linearGradient id="dc-sig" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(66% 0.21 43 / 0.32)"/>
+                    <stop offset="1" stop-color="oklch(66% 0.21 43 / 0.10)"/>
+                  </linearGradient>
+                  <linearGradient id="dc-svc" x1="0" y1="0" x2="1" y2="1">
+                    <stop offset="0" stop-color="oklch(69% 0.235 232 / 0.32)"/>
+                    <stop offset="1" stop-color="oklch(69% 0.235 232 / 0.10)"/>
+                  </linearGradient>
+                  <radialGradient id="dc-hub" cx="50%" cy="42%" r="65%">
+                    <stop offset="0" stop-color="oklch(80% 0.18 80 / 0.55)"/>
+                    <stop offset="1" stop-color="oklch(74% 0.17 70 / 0.10)"/>
+                  </radialGradient>
+                  <radialGradient id="dc-conf" cx="50%" cy="42%" r="70%">
+                    <stop offset="0" stop-color="oklch(75% 0.16 70 / 0.42)"/>
+                    <stop offset="1" stop-color="oklch(75% 0.16 70 / 0.10)"/>
+                  </radialGradient>
+                  <filter id="dc-glow" x="-60%" y="-60%" width="220%" height="220%">
+                    <feGaussianBlur stdDeviation="5" result="b"/>
+                    <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+                  </filter>
+                  <pattern id="dc-grid" width="34" height="34" patternUnits="userSpaceOnUse">
+                    <path d="M34 0H0V34" fill="none" stroke="oklch(66% 0.21 43 / 0.07)" stroke-width="1"/>
+                  </pattern>
+                </defs>
+
+                <rect x="0" y="0" width="760" height="360" fill="url(#dc-grid)"/>
+                <text x="80" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(66% 0.21 43 / 0.65)">SIGNALS</text>
+                <text x="560" y="22" text-anchor="middle" font-family="ui-monospace, monospace" font-size="10" letter-spacing="1.5" fill="oklch(69% 0.235 232 / 0.7)">RCA CHAIN</text>
+                <line x1="170" y1="34" x2="170" y2="340" stroke="oklch(66% 0.21 43 / 0.10)" stroke-width="1" stroke-dasharray="2 6"/>
+
+                <g fill="none" stroke-linecap="round">
+                  <path id="dc-e1" d="M140 59 C188 59 196 168 230 168" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="dc-e2" d="M140 180 C188 180 196 180 230 180" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="dc-e3" d="M140 301 C188 301 196 192 230 192" stroke="oklch(66% 0.21 43 / 0.5)" stroke-width="1.5" stroke-dasharray="4 5"/>
+                  <path id="dc-e4" d="M370 176 C410 150 420 77 455 77" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="2"/>
+                  <path id="dc-e5" d="M575 77 C597 100 592 159 600 159" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="2"/>
+                  <path id="dc-e6" d="M660 178 C660 232 650 250 650 290" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="2"/>
+                  <path id="dc-e7" d="M490 250 C496 192 510 132 515 96" stroke="oklch(75% 0.16 70 / 0.55)" stroke-width="1.75" stroke-dasharray="5 5"/>
+                  <path id="dc-e8" d="M140 180 C270 180 320 269 430 269" stroke="oklch(75% 0.16 70 / 0.4)" stroke-width="1.5" stroke-dasharray="3 6"/>
+                </g>
+
+                <g font-family="ui-monospace, monospace" font-size="9" letter-spacing="0.5" paint-order="stroke" stroke="#0a1119" stroke-width="3.5">
+                  <text x="178" y="132" text-anchor="middle" fill="oklch(80% 0.12 43)">TRIGGERED &times;3</text>
+                  <text x="402" y="118" text-anchor="middle" fill="oklch(80% 0.13 232)">IMPLICATED</text>
+                  <text x="606" y="104" text-anchor="middle" fill="oklch(80% 0.13 232)">DEPENDS_ON</text>
+                  <text x="606" y="240" text-anchor="middle" fill="oklch(80% 0.13 43)">SATURATES</text>
+                  <text x="538" y="178" text-anchor="middle" fill="oklch(85% 0.14 70)">CONFIDENCE</text>
+                  <text x="276" y="246" text-anchor="middle" fill="oklch(85% 0.13 70)">EVIDENCE</text>
+                </g>
+
+                <g>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0s"><mpath xlink:href="#dc-e1"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="0.5s"><mpath xlink:href="#dc-e2"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(85% 0.16 43)"><animateMotion dur="2.6s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#dc-e3"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 232)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="0.3s"><mpath xlink:href="#dc-e4"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 232)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1s"><mpath xlink:href="#dc-e5"/></animateMotion></circle>
+                  <circle r="3" fill="oklch(82% 0.18 43)"><animateMotion dur="2.4s" repeatCount="indefinite" begin="1.7s"><mpath xlink:href="#dc-e6"/></animateMotion></circle>
+                  <circle r="2.5" fill="oklch(88% 0.15 70)"><animateMotion dur="3s" repeatCount="indefinite" begin="0.8s"><mpath xlink:href="#dc-e7"/></animateMotion></circle>
+                </g>
+
+                <g font-family="ui-sans-serif, system-ui, sans-serif">
+                  <g>
+                    <rect x="20" y="40" width="120" height="38" rx="9" fill="url(#dc-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="64" font-size="13">&#9888;</text>
+                    <text x="52" y="58" font-size="10.5" font-weight="600" fill="#ffdbbf">Alertmanager</text>
+                    <text x="52" y="70" font-size="8.5" fill="rgba(255,219,191,0.55)">checkout 503s</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="161" width="120" height="38" rx="9" fill="url(#dc-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="185" font-size="13">&#128203;</text>
+                    <text x="52" y="179" font-size="10.5" font-weight="600" fill="#ffdbbf">Loki</text>
+                    <text x="52" y="191" font-size="8.5" fill="rgba(255,219,191,0.55)">upstream timeout 41%</text>
+                  </g>
+                  <g>
+                    <rect x="20" y="282" width="120" height="38" rx="9" fill="url(#dc-sig)" stroke="oklch(66% 0.21 43 / 0.6)" stroke-width="1"/>
+                    <text x="34" y="306" font-size="13">&#9201;</text>
+                    <text x="52" y="300" font-size="10.5" font-weight="600" fill="#ffdbbf">Tempo</text>
+                    <text x="52" y="312" font-size="8.5" fill="rgba(255,219,191,0.55)">P99 latency 8.7s</text>
+                  </g>
+
+                  <circle cx="300" cy="180" r="58" fill="url(#dc-hub)"><animate attributeName="r" values="54;62;54" dur="3.5s" repeatCount="indefinite"/></circle>
+                  <rect x="230" y="153" width="140" height="54" rx="14" fill="oklch(20% 0.04 80 / 0.85)" stroke="oklch(80% 0.18 80 / 0.7)" stroke-width="1.5" filter="url(#dc-glow)"/>
+                  <text x="300" y="177" text-anchor="middle" font-size="13" font-weight="700" fill="#fff2d6">StackGraph</text>
+                  <text x="300" y="193" text-anchor="middle" font-size="9" font-family="ui-monospace, monospace" letter-spacing="1" fill="oklch(85% 0.13 80 / 0.85)">WORLD-MODEL &middot; hub</text>
+
+                  <g>
+                    <rect x="455" y="58" width="120" height="38" rx="9" fill="url(#dc-svc)" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="1"/>
+                    <text x="515" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="#dbe9ff">checkout-svc</text>
+                    <text x="515" y="89" text-anchor="middle" font-size="8" fill="rgba(219,233,255,0.6)">SERVICE &middot; implicated</text>
+                  </g>
+                  <g>
+                    <rect x="600" y="140" width="120" height="38" rx="9" fill="url(#dc-svc)" stroke="oklch(69% 0.235 232 / 0.6)" stroke-width="1"/>
+                    <text x="660" y="160" text-anchor="middle" font-size="10.5" font-weight="600" fill="#dbe9ff">payments-svc</text>
+                    <text x="660" y="172" text-anchor="middle" font-size="8" fill="rgba(219,233,255,0.6)">DEPENDENCY</text>
+                  </g>
+                  <g>
+                    <rect x="585" y="290" width="140" height="38" rx="9" fill="url(#dc-sig)" stroke="oklch(66% 0.21 43 / 0.7)" stroke-width="1.25"/>
+                    <text x="655" y="310" text-anchor="middle" font-size="10.5" font-weight="600" fill="#ffdbbf">pool saturated</text>
+                    <text x="655" y="322" text-anchor="middle" font-size="8" fill="rgba(255,219,191,0.6)">ROOT CAUSE</text>
+                  </g>
+
+                  <g>
+                    <circle cx="490" cy="269" r="38" fill="url(#dc-conf)"/>
+                    <circle cx="490" cy="269" r="30" fill="oklch(20% 0.05 70 / 0.85)" stroke="oklch(78% 0.15 70 / 0.7)" stroke-width="1.25"/>
+                    <text x="490" y="263" text-anchor="middle" font-size="8.5" font-weight="600" fill="#ffe8c8">confidence</text>
+                    <text x="490" y="278" text-anchor="middle" font-size="14" font-weight="700" fill="oklch(82% 0.16 70)">0.84</text>
+                    <text x="490" y="291" text-anchor="middle" font-size="6.5" font-family="ui-monospace, monospace" fill="rgba(255,232,200,0.7)">notify-only</text>
+                  </g>
+                </g>
+              </svg>
+
+              <div class="flex flex-wrap items-center gap-x-5 gap-y-1.5 mt-2 px-1 text-[10px]" style="color: rgba(203,225,255,0.6);">
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(66% 0.21 43);"></span>Signal / alert</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-sm" style="background: oklch(69% 0.235 232);"></span>Service / dependency</span>
+                <span class="flex items-center gap-1.5"><span class="w-2 h-2 rounded-full" style="background: oklch(80% 0.18 80);"></span>StackGraph hub</span>
+                <span class="flex items-center gap-1.5 font-mono">&rarr; typed relationship</span>
+              </div>
+            </div>
+
+            <!-- Divider -->
+            <div class="flex items-center gap-3">
+              <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
+                Debug agent &mdash; bounded ReAct loop + verification gate
+              </div>
+              <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
+            </div>
+
+            <!-- Row: Generated StackGraph query -->
+            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+              <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
+                <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(69% 0.235 232);"></span>
+                <span class="ml-2 text-[11px] font-mono" style="color: rgba(203,225,255,0.55);">debug-agent &middot; generated StackGraph traversal query</span>
+              </div>
+              <pre class="px-4 py-3 text-[11.5px] leading-relaxed overflow-x-auto" style="font-family: ui-monospace, monospace; color: #cdddf2;"><span style="color: oklch(75% 0.17 70);">MATCH</span> (svc:<span style="color: oklch(78% 0.16 232);">Service</span> &#123;name:<span style="color: oklch(82% 0.14 232);">"checkout"</span>&#125;)-[:<span style="color: oklch(80% 0.13 232);">DEPENDS_ON</span>*1..3]-&gt;(dep:<span style="color: oklch(78% 0.16 232);">Service</span>)
+<span style="color: oklch(75% 0.17 70);">MATCH</span> (dep)-[:<span style="color: oklch(80% 0.13 80);">EMITS</span>]-&gt;(s:<span style="color: oklch(78% 0.16 80);">Span</span>)
+<span style="color: oklch(75% 0.17 70);">WHERE</span> s.p99_ms &gt; $slo_ms <span style="color: oklch(75% 0.17 70);">AND</span> s.window = $alert_window
+<span style="color: oklch(75% 0.17 70);">RETURN</span> dep.name, s.p99_ms, dep.pool_saturation
+<span style="color: oklch(75% 0.17 70);">ORDER BY</span> s.p99_ms <span style="color: oklch(75% 0.17 70);">DESC</span>
+<span style="color: oklch(85% 0.14 80);">&#8869; StackGraph</span>  FalkorDB traversal + Tempo span correlation</pre>
+            </div>
+
+            <!-- Row: Alert + verdict -->
+            <div class="flex flex-col sm:flex-row items-start gap-4">
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+              <div class="flex-1">
+                <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
+                  checkout: 503 rate 18% &middot; P99 8.7s &middot; upstream timeouts 41% &middot; fired 17:48 UTC
+                </div>
+                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                  <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: payments-svc thread pool saturated (queue depth 512, workers 100% busy). checkout-svc blocks on synchronous calls, so latency cascades into 503s. No recent deploy &mdash; the trigger is a 3.1&times; traffic spike, not a regression. Confidence 0.84 sits below the auto-PR bar, so the agent notified on-call with a scale-up recommendation instead of opening a patch. Confidence: 0.84.
+                  <div class="flex gap-2 mt-2.5 flex-wrap">
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Tempo span waterfall</span>
+                    <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: payments-svc pool saturation</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div><!-- /Panel: Cascading timeout -->
     </div>
   </section>
 
@@ -529,4 +963,128 @@ const stack = [
       </div>
     </div>
   </section>
+
+  <style>
+    /* Investigation pipeline steps */
+    .da-step {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      background: rgba(255, 255, 255, 0.6);
+      border: 1px solid var(--color-complement-alpha-20);
+      border-radius: 0.9rem;
+      padding: 1rem 1.1rem;
+    }
+    .da-step-n {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.6rem;
+      height: 1.6rem;
+      flex-shrink: 0;
+      border-radius: 0.5rem;
+      font-size: 0.8rem;
+      font-weight: 700;
+      background: var(--color-complement-alpha-10);
+      color: var(--color-complement-300);
+      border: 1px solid var(--color-complement-alpha-20);
+    }
+    .da-step-title { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
+    .da-step-blurb { font-size: 0.78rem; color: #64748b; line-height: 1.45; margin-top: 0.15rem; }
+
+    /* Research ideas roster */
+    .da-idea { display: flex; gap: 0.85rem; align-items: flex-start; padding: 1.1rem 1.4rem; }
+    .da-idea-n { font-family: ui-monospace, monospace; font-size: 0.85rem; font-weight: 600; color: var(--color-complement-300); flex-shrink: 0; padding-top: 0.1rem; }
+    .da-idea-title { font-family: var(--font-display, inherit); font-weight: 600; color: #1e293b; font-size: 0.98rem; }
+    .da-idea-blurb { font-size: 0.8rem; color: #64748b; line-height: 1.5; margin-top: 0.2rem; }
+    .da-idea-tag {
+      font-size: 0.68rem;
+      padding: 0.05rem 0.45rem;
+      border-radius: 999px;
+      background: var(--color-complement-alpha-10);
+      color: var(--color-complement-300);
+      border: 1px solid var(--color-complement-alpha-20);
+    }
+
+    /* Scenario tabs */
+    .da-tabs {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 2rem;
+    }
+    .da-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.55rem 1.1rem;
+      border-radius: 0.85rem;
+      background: rgba(255, 255, 255, 0.55);
+      border: 1px solid var(--color-complement-alpha-20);
+      color: #475569;
+      font-weight: 600;
+      line-height: 1.15;
+      cursor: pointer;
+      transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+    }
+    .da-tab svg { color: #b08968; transition: color 0.18s ease; }
+    .da-tab:hover { border-color: var(--color-complement-alpha-30); color: #1e293b; }
+    .da-tab .da-tab-sub {
+      display: block;
+      font-size: 0.68rem;
+      font-weight: 500;
+      color: #94a3b8;
+      font-family: ui-monospace, monospace;
+      margin-top: 0.1rem;
+    }
+    .da-tab[aria-selected="true"] {
+      background: var(--gradient-complement);
+      border-color: transparent;
+      color: #fff;
+    }
+    .da-tab[aria-selected="true"] svg,
+    .da-tab[aria-selected="true"] .da-tab-sub { color: rgba(255, 255, 255, 0.82); }
+    .da-tab:focus-visible { outline: 2px solid var(--color-complement-300); outline-offset: 2px; }
+
+    /* Scenario panels */
+    .da-panel[hidden] { display: none; }
+    .da-panel { animation: da-fade 0.3s ease; }
+    @keyframes da-fade {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .da-panel { animation: none; }
+    }
+  </style>
+
+  <script>
+    const daTablist = document.querySelector(".da-tabs");
+    if (daTablist) {
+      const tabs = Array.from(daTablist.querySelectorAll('[role="tab"]'));
+      const selectTab = (tab: Element) => {
+        tabs.forEach((t) => {
+          const selected = t === tab;
+          t.setAttribute("aria-selected", String(selected));
+          (t as HTMLElement).tabIndex = selected ? 0 : -1;
+          const panel = document.getElementById(t.getAttribute("aria-controls") || "");
+          if (panel) (panel as HTMLElement).hidden = !selected;
+        });
+      };
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => selectTab(tab));
+        tab.addEventListener("keydown", (e) => {
+          const key = (e as KeyboardEvent).key;
+          if (key === "ArrowRight" || key === "ArrowLeft") {
+            e.preventDefault();
+            const dir = key === "ArrowRight" ? 1 : -1;
+            const next = tabs[(i + dir + tabs.length) % tabs.length] as HTMLElement;
+            next.focus();
+            selectTab(next);
+          }
+        });
+      });
+    }
+  </script>
 </MainLayout>
