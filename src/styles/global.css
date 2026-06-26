@@ -1206,10 +1206,9 @@ pre {
     inset: 0;
     z-index: 1;
     background: radial-gradient(circle at 50% 50%,
-        oklch(86% 0.19 80 / 0.65) 0%,
-        oklch(78% 0.21 60 / 0.30) 40%,
-        transparent 65%);
-    filter: blur(18px);
+        oklch(86% 0.19 80 / 0.55) 0%,
+        oklch(78% 0.21 60 / 0.25) 40%,
+        transparent 70%);
     mix-blend-mode: screen;
     animation: btn-lava-1 11s ease-in-out infinite;
 }
@@ -1235,7 +1234,6 @@ pre {
 
 .btn-primary:hover::before {
     animation-duration: 6s;
-    filter: blur(14px);
 }
 
 .btn-primary:active {
@@ -1283,10 +1281,9 @@ pre {
     inset: 0;
     z-index: -1;
     background: radial-gradient(circle at 30% 120%,
-        oklch(76% 0.19 55 / 0.32) 0%,
-        oklch(82% 0.16 75 / 0.14) 42%,
-        transparent 62%);
-    filter: blur(16px);
+        oklch(76% 0.19 55 / 0.28) 0%,
+        oklch(82% 0.16 75 / 0.12) 42%,
+        transparent 68%);
     animation: btn-lava-1 13s ease-in-out infinite;
 }
 
@@ -1302,7 +1299,6 @@ pre {
 
 .btn-secondary:hover::before {
     animation-duration: 8s;
-    filter: blur(13px);
 }
 
 .btn-secondary:active {
