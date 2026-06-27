@@ -19,10 +19,15 @@ directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "404-page"
 
-# Secrets are NOT stored here. Set them once per environment:
-#   wrangler secret put TURNSTILE_SECRET_KEY
+# Secrets are NOT stored here. Set per environment (dashboard or wrangler):
+#   wrangler secret put TURNSTILE_SECRET_KEY          # required
+#   # ntfy channel (self-hosted): https://ntfy.bluerobin.io/<topic>
 #   wrangler secret put NTFY_WEBHOOK_URL
-#   wrangler secret put NTFY_TOKEN        # optional, only if your ntfy needs auth
-# Local dev reads these from .dev.vars (git-ignored).
-# The PUBLIC Turnstile site key is build-time: set PUBLIC_TURNSTILE_SITE_KEY in
-# the Workers Builds / Astro build env (falls back to the Cloudflare test key).
+#   wrangler secret put NTFY_TOKEN                     # publish token for the topic
+#   # email channel (Brevo): reply-to is set to the requester
+#   wrangler secret put BREVO_API_KEY
+#   wrangler secret put CONTACT_TO_EMAIL              # optional, default victor@bluerobin.io
+#   wrangler secret put CONTACT_FROM_EMAIL            # optional, default noreply@bluerobin.io
+# At least one of {NTFY_WEBHOOK_URL, BREVO_API_KEY} must be set. Local dev reads
+# .dev.vars (git-ignored). The PUBLIC Turnstile site key is hardcoded in the form
+# component (it's not secret); override with build var PUBLIC_TURNSTILE_SITE_KEY.
