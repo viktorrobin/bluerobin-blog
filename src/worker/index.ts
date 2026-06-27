@@ -17,14 +17,14 @@
  * Secrets / vars (prod: `wrangler secret put` or dashboard; local: `.dev.vars`):
  *   TURNSTILE_SECRET_KEY  - Turnstile secret (required)
  *   --- ntfy channel (self-hosted) ---
- *   NTFY_WEBHOOK_URL      - full topic URL, e.g. https://ntfy.bluerobin.io/blog-access-requests
- *   NTFY_TOKEN            - bearer token with publish rights on that topic
+ *   NTFY_BLOG_URL      - full topic URL, e.g. https://ntfy.bluerobin.io/blog-access-requests
+ *   NTFY_BLOG_TOKEN            - bearer token with publish rights on that topic
  *   --- email channel (Brevo) ---
  *   BREVO_API_KEY         - Brevo transactional API key
  *   CONTACT_TO_EMAIL      - where to send (default victor@bluerobin.io)
  *   CONTACT_FROM_EMAIL    - verified Brevo sender (default noreply@bluerobin.io)
  *
- * At least one of {NTFY_WEBHOOK_URL, BREVO_API_KEY} must be set.
+ * At least one of {NTFY_BLOG_URL, BREVO_API_KEY} must be set.
  */
 
 // Minimal local types so this file type-checks under the Astro tsconfig without
@@ -36,8 +36,8 @@ interface AssetsBinding {
 interface Env {
   ASSETS: AssetsBinding;
   TURNSTILE_SECRET_KEY?: string;
-  NTFY_WEBHOOK_URL?: string;
-  NTFY_TOKEN?: string;
+  NTFY_BLOG_URL?: string;
+  NTFY_BLOG_TOKEN?: string;
   BREVO_API_KEY?: string;
   CONTACT_TO_EMAIL?: string;
   CONTACT_FROM_EMAIL?: string;
@@ -79,17 +79,17 @@ async function verifyTurnstile(token: string, secret: string, ip: string | null)
 
 // --- Channel: ntfy push -----------------------------------------------------
 async function sendNtfy(env: Env, p: RequestPayload): Promise<boolean> {
-  if (!env.NTFY_WEBHOOK_URL) return false;
+  if (!env.NTFY_BLOG_URL) return false;
   const headers: Record<string, string> = {
     Title: `Access request — ${p.name}`,
     Priority: "high",
     Tags: "bell,bluerobin",
     "Content-Type": "text/plain; charset=utf-8",
   };
-  if (env.NTFY_TOKEN) headers.Authorization = `Bearer ${env.NTFY_TOKEN}`;
+  if (env.NTFY_BLOG_TOKEN) headers.Authorization = `Bearer ${env.NTFY_BLOG_TOKEN}`;
   const text = `From: ${p.name} <${p.email}>\n\n${p.message || "(no message)"}`;
   try {
-    const res = await fetch(env.NTFY_WEBHOOK_URL, { method: "POST", body: text, headers });
+    const res = await fetch(env.NTFY_BLOG_URL, { method: "POST", body: text, headers });
     return res.ok;
   } catch {
     return false;
@@ -125,7 +125,7 @@ async function sendEmail(env: Env, p: RequestPayload): Promise<boolean> {
 async function handleRequestAccess(request: Request, env: Env): Promise<Response> {
   if (request.method !== "POST") return json({ ok: false, error: "method_not_allowed" }, 405);
   // Turnstile is required; at least one notification channel must be configured.
-  const hasChannel = Boolean(env.NTFY_WEBHOOK_URL || env.BREVO_API_KEY);
+  const hasChannel = Boolean(env.NTFY_BLOG_URL || env.BREVO_API_KEY);
   if (!env.TURNSTILE_SECRET_KEY || !hasChannel) {
     return json({ ok: false, error: "server_misconfigured" }, 500);
   }
@@ -161,7 +161,7 @@ async function handleRequestAccess(request: Request, env: Env): Promise<Response
   const payload: RequestPayload = { name, email, message };
   const [ntfyOk, emailOk] = await Promise.all([sendNtfy(env, payload), sendEmail(env, payload)]);
   const channels = {
-    ntfy: env.NTFY_WEBHOOK_URL ? (ntfyOk ? "ok" : "fail") : "skip",
+    ntfy: env.NTFY_BLOG_URL ? (ntfyOk ? "ok" : "fail") : "skip",
     email: env.BREVO_API_KEY ? (emailOk ? "ok" : "fail") : "skip",
   };
 
