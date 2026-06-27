@@ -1,0 +1,61 @@
+---
+title: "Reducing WIP: Why Finishing Beats Starting"
+description: "My team looked busy and shipped little — too many things in flight at once. Limiting work in progress, not adding people, was what fixed throughput."
+pubDate: 2026-06-28
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "flow", "wip", "delivery", "an-elegant-puzzle"]
+difficulty: "intermediate"
+readTime: "10 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with real specifics/numbers, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific period.] The team was visibly busy — [PLACEHOLDER: N] initiatives in
+flight, everyone allocated — and yet little was actually *finishing*. I read the busyness as health
+and even considered adding people. The real problem was too much work in progress.
+
+## What it taught me
+
+Throughput is governed by work-in-progress, not by how much you start (Little's Law makes this
+concrete). Every parallel thread adds context-switching and coordination cost; **finishing beats
+starting**. This is systems thinking applied to delivery — manage the constraint, not the activity.
+
+<ImplementationNote>
+  The same lesson is in BlueRobin's [latency work](/articles/latency-revolution-optimizing-60s-to-3s):
+  the win came from reducing in-flight work and serialising the bottleneck, not from more compute.
+  Flow beats raw capacity. [PLACEHOLDER: the team example.]
+</ImplementationNote>
+
+## What I changed
+
+- Set explicit WIP limits per person/team and enforced *finish-before-start*.
+- Cut the number of concurrent initiatives; swarmed to push items over the line.
+- Tracked cycle time and aging work-items instead of how much was started.
+
+## The results
+
+[PLACEHOLDER — real figures, and what's still imperfect.]
+
+- Cycle time: [PLACEHOLDER: before → after]
+- Throughput / predictability: [PLACEHOLDER]
+- Aging items / context-switches: [PLACEHOLDER]
+
+The honest caveat: [PLACEHOLDER — where strict WIP limits created idle time or friction, and how I tuned them].
+
+## Further reading
+
+- **[Managing to Cycle Time, Not Velocity](/leadership/)** — the metric that makes WIP visible.
+- **[Latency Revolution](/articles/latency-revolution-optimizing-60s-to-3s)** — flow over capacity, in code.
+- **[Impact](/impact/)** — delivery outcomes.

@@ -1,0 +1,63 @@
+---
+title: "Sizing Teams in the Copilot Era"
+description: "I assumed AI coding assistants meant smaller teams and linearly more output. Wrong bottleneck. What actually changed about team size when the typing gets cheap."
+pubDate: 2026-06-28
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "team-topology", "ai", "copilot", "an-elegant-puzzle"]
+difficulty: "advanced"
+readTime: "12 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with real specifics/numbers, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific decision.] With Copilot/LLM assistants landing, I assumed the obvious:
+fewer engineers, more output, code is cheap now. I [PLACEHOLDER: under-staffed / over-loaded] a
+team on that logic — and the bottleneck just moved. Review, integration, and shared context became
+the constraint, not typing speed.
+
+## What it taught me
+
+Larson's rule of thumb — teams of **roughly six to eight** — still holds, because team size is bound
+by *coordination and cognitive load*, not lines of code. AI shifts where the work is (less drafting,
+more reviewing, specifying, and verifying), so you size for the new bottleneck: review throughput,
+context-sharing, and the cost of being wrong faster.
+
+<ImplementationNote>
+  I live this in BlueRobin: the leverage isn't raw generation, it's the guardrails around it —
+  eval-first gates and verification ([the Debug Agent](/debug-agent/)). More AI output only helps
+  if review and evaluation scale with it. [PLACEHOLDER: the team example.]
+</ImplementationNote>
+
+## What I changed
+
+- Kept teams in the 6–8 band; resisted "AI means we can cut to N/2".
+- Invested the freed-up capacity in review, testing, and eval/guardrails — the new constraint.
+- Measured cognitive load and review latency, not raw output or lines.
+
+## The results
+
+[PLACEHOLDER — real figures, and what's still imperfect.]
+
+- Cycle time / review latency: [PLACEHOLDER: before → after]
+- Defect-escape or rework rate as AI output rose: [PLACEHOLDER]
+- A team-load signal: [PLACEHOLDER]
+
+The honest caveat: [PLACEHOLDER — where AI genuinely did change the headcount math, and where it didn't].
+
+## Further reading
+
+- **[Running a Reorg Around Domain Boundaries](/leadership/)** — how these teams map to the system.
+- **[The Debug Agent](/debug-agent/)** — eval-first guardrails for AI output.
+- **[Impact](/impact/)** — outcomes.
