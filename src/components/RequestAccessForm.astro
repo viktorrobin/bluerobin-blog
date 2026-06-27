@@ -2,10 +2,11 @@
 // Request-access form. Posts to the Worker route /api/request-access, which
 // verifies Turnstile and pushes an ntfy notification to Victor.
 //
-// The PUBLIC Turnstile site key is build-time. Set PUBLIC_TURNSTILE_SITE_KEY in
-// the build env; falls back to Cloudflare's "always passes" TEST site key so the
-// form works out of the box in dev/preview.
-const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
+// The PUBLIC Turnstile site key (safe to commit — it's not a secret). The
+// production widget for blog.bluerobin.io is hardcoded as the default so no build
+// variable is required. An env override is still honoured if PUBLIC_TURNSTILE_SITE_KEY
+// is set (e.g. to swap in Cloudflare's "always passes" test key locally).
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADr9ZubD1OB3i49o";
 ---
 
 <section id="request-access" class="scroll-mt-24">
