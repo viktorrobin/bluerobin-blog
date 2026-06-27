@@ -1,0 +1,14 @@
+# Local dev secrets for `wrangler dev`. Copy to `.dev.vars` (git-ignored) and fill in.
+# In production, set these with `wrangler secret put <NAME>` instead.
+
+# Cloudflare Turnstile SECRET key (server-side).
+# Local testing: the always-passes test secret below is fine.
+# Production: use the real secret for your Turnstile widget.
+TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
+
+# Full ntfy topic URL — where access-request push notifications are sent.
+# Use a long, unguessable topic name (anyone who knows the topic can publish/subscribe).
+NTFY_WEBHOOK_URL="https://ntfy.sh/bluerobin-access-CHANGE-ME"
+
+# Optional: bearer token if your ntfy instance requires auth (self-hosted with ACLs).
+# NTFY_TOKEN="tk_xxx"

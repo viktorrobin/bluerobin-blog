@@ -1,5 +1,7 @@
 ---
 import MainLayout from "@layouts/MainLayout.astro";
+import RequestAccessForm from "@components/RequestAccessForm.astro";
+import { SITE } from "@/config";
 import { getEntry } from "astro:content";
 
 const aboutPage = await getEntry("pages", "about");
@@ -9,10 +11,38 @@ if (!aboutPage) {
 const { Content } = await aboutPage.render();
 ---
 
-<MainLayout title="About | BlueRobin Tech Blog" description="The story behind BlueRobin - a personal document management system built on a homelab">
+<MainLayout
+  title="About | BlueRobin"
+  description="Victor Robin, Ph.D. — Director of Engineering leading ~100 engineers across India and Berlin. BlueRobin is his homelab: two production-grade AI projects (document-intelligence agents and an autonomous root-cause-analysis agent) on a self-hosted K3s cluster."
+>
   <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <div class="prose prose-slate prose-headings:font-display max-w-none">
       <Content />
     </div>
   </article>
+
+  <!-- Get in touch -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-6">
+    <div class="glass-card p-6 sm:p-8">
+      <h2 class="text-2xl font-display font-semibold text-slate-900 mb-2">Get in touch</h2>
+      <p class="text-slate-600 mb-5">
+        Hiring for engineering leadership, comparing notes, or curious about the platform? The
+        fastest paths:
+      </p>
+      <div class="flex flex-wrap gap-3">
+        <a href={`mailto:${SITE.email}`} class="btn-secondary">Email me</a>
+        <a href={SITE.linkedin} target="_blank" rel="noopener noreferrer" class="btn-secondary">LinkedIn</a>
+        <a href={SITE.github} target="_blank" rel="noopener noreferrer" class="btn-secondary">GitHub</a>
+        {SITE.cvUrl && (
+          <a href={SITE.cvUrl} class="btn-secondary">Download CV (PDF)</a>
+        )}
+        <a href="#request-access" class="btn-primary">Request access</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Request access -->
+  <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pb-16 pt-6">
+    <RequestAccessForm />
+  </section>
 </MainLayout>

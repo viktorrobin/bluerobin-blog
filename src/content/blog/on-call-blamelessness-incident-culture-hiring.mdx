@@ -1,0 +1,66 @@
+---
+title: "On-Call Blamelessness: The Postmortem I Let Drift"
+description: "I let an incident review slide toward 'who deployed it', and watched a good engineer go quiet. What that cost taught me about incident culture as a hiring signal, and how I rebuilt on-call."
+pubDate: 2026-06-27
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+difficulty: "advanced"
+tags: ["leadership", "engineering-management", "on-call", "incident-response", "blameless", "an-elegant-puzzle"]
+readTime: "11 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with your real figures and stories, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific incident.] In a postmortem I was running, the conversation drifted
+toward *who* had deployed the change, and I let it — I didn't redirect it back to *what* failed.
+The fix got found, but [PLACEHOLDER: the engineer involved] went quiet, and I could feel trust
+leave the room. The bug was cheap; the cultural cost wasn't.
+
+## What it taught me
+
+Larson is direct about on-call and operational excellence resting on trust and autonomy. The
+first question after an incident — "who broke it?" versus "what broke?" — tells everyone in the
+room what kind of org they're in, and people calibrate their candour accordingly. Blame doesn't
+just feel bad; it suppresses the information you need to actually get more reliable.
+
+<ImplementationNote>
+  The BlueRobin Debug Agent is this principle made literal: an agent does the
+  investigation (correlation-first scoring, evidence gathering) and a human makes the call.
+  When a system opens the investigation, diagnosis stops being about a person by construction.
+  [PLACEHOLDER: how this idea changed a real review.]
+</ImplementationNote>
+
+## What I changed
+
+- Reset postmortems to be explicitly blameless, written async [PLACEHOLDER: ~48h later] rather
+  than in the heat of the moment.
+- Moved to SLOs and error budgets, so reliability became a *system* target, not a stick.
+- Leaned on tooling-first diagnosis (the Debug-Agent approach) so the first artifact in an
+  incident is evidence, not a name.
+
+## The results
+
+[PLACEHOLDER — your real figures, and what's still imperfect.]
+
+- On-call retention or willingness to be on the rota: [PLACEHOLDER: before → after]
+- MTTR / time-to-diagnosis: [PLACEHOLDER]
+- A hiring signal: [PLACEHOLDER: e.g. candidates citing the culture]
+
+The honest caveat: [PLACEHOLDER — where blamelessness can tip into no-accountability, and how I hold the line].
+
+## Further reading
+
+- **[The Debug Agent](/debug-agent/)** — autonomous RCA with a human gate.
+- **[Don't grade your own homework: externalized verification gates](/debug-agent/verification-gate-hypothesis-tree-confidence-cap)** — keeping the agent, and the review, honest.
+- **[Impact](/impact/)** — operational outcomes.

@@ -6,9 +6,23 @@ compatibility_date = "2026-02-26"
 # Deployed via Workers Builds (GitHub push → auto build & deploy)
 # Custom domain: blog.bluerobin.io
 
+# Worker entry — handles API routes (POST /api/request-access). With static
+# assets configured below, Cloudflare serves matching files FIRST and only
+# invokes this Worker for non-asset paths, so asset hits stay free/fast.
+main = "src/worker/index.ts"
+
+# Preview URLs for non-production branches (top-level key, not under [assets])
+preview_urls = true
+
 [assets]
 directory = "./dist"
+binding = "ASSETS"
 not_found_handling = "404-page"
 
-# Preview URLs for non-production branches
-preview_urls = true
+# Secrets are NOT stored here. Set them once per environment:
+#   wrangler secret put TURNSTILE_SECRET_KEY
+#   wrangler secret put NTFY_WEBHOOK_URL
+#   wrangler secret put NTFY_TOKEN        # optional, only if your ntfy needs auth
+# Local dev reads these from .dev.vars (git-ignored).
+# The PUBLIC Turnstile site key is build-time: set PUBLIC_TURNSTILE_SITE_KEY in
+# the Workers Builds / Astro build env (falls back to the Cloudflare test key).
