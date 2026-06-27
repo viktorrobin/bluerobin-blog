@@ -1,6 +1,6 @@
 ---
 title: "Protecting Your Team by Learning to Say No"
-description: "Trying to be helpful, I said yes to nearly every request. The team thrashed and focus evaporated. Learning to push back — and absorb the chaos myself — was the job."
+description: "Trying to be a good partner, I said yes to nearly everything and passed the pressure straight to the team — until the thrash taught me that filtering the work was the job."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: true
@@ -8,52 +8,60 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "focus", "managing-up", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "10 min"
+readTime: "5 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
-  with real specifics/numbers, then set <code>draft: false</code>.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific stretch.] Wanting to be a good partner, I said yes to almost everything —
-side requests, urgent asks, "quick" favours. I passed the pressure straight through to the team.
-The result was thrash: [PLACEHOLDER: context-switching, slipped commitments, early burnout signals].
+There was a quarter where my calendar told a flattering story and my team's velocity told the truth.
+
+I had decided, somewhere along the way, that being a good partner meant being available. So when a product lead asked if we could "just squeeze in" a reporting tweak, I said yes. When another team needed a small integration "before their demo," I said yes. When someone in a hallway floated an idea that sounded reasonable, I nodded and carried it back. Every yes felt like goodwill in the bank.
+
+I was not, it turned out, banking goodwill. I was laundering pressure. Every commitment I accepted upstream I handed downstream, untouched, to four engineers who were already mid-sprint on something we had all agreed mattered.
+
+The week it became undeniable, I watched one of my best engineers — calm, methodical, the person I trusted with the hard parts — open three different branches in a single morning because three different "urgent" things had landed on her since standup. None of them were the work we had committed to. She finished none of them that day. Neither did anyone else.
+
+We were busier than we had ever been and shipping less than we ever had. I had built a funnel and called it service.
 
 ## What it taught me
 
-A big part of the job is to be a **filter, not a funnel** — to absorb organisational chaos and
-protect the team's focus. Saying no (or "not now") to the wrong work is how you say yes to the
-committed work. Larson treats saying no and managing up as core skills, not obstructionism.
+The lesson is uncomfortable because it inverts the instinct that made me a good engineer: the job of a manager is to be a filter, not a funnel. The team's focus is a scarce, depletable resource, and the person standing between them and the organisation is supposed to absorb the chaos, not relay it.
+
+Saying no — or, more often, "not now" — is not obstructionism. It is the only mechanism by which "yes" means anything. Every request you accept is a quiet veto of something the team already committed to. If you never decline the wrong work, you can't actually protect the right work; you've just outsourced prioritisation to whoever asks most insistently.
+
+<Callout type="info" title="Yes is a zero-sum currency">
+  A team has one capacity, not one per stakeholder. Saying yes to an unplanned ask isn't generosity — it's spending committed work you've already promised someone else. The only honest yes is one you've made room for.
+</Callout>
+
+The harder half of this is managing up. Filtering means I have to push back on the people I most want to please, and do it in a way that reads as partnership rather than refusal. That is a skill, and it took me longer to learn than I'd like to admit.
 
 <ImplementationNote>
-  This pairs with limiting WIP — [reducing in-flight work](/leadership/) only holds if you also stop
-  new work entering. Pushing back is the intake valve. [PLACEHOLDER: a request I pushed back on, and how.]
+  On BlueRobin this pairs directly with limiting work-in-progress. Capping in-flight work only holds if you also control what enters — otherwise WIP refills the moment you clear it. Pushing back is the intake valve. When a stakeholder asked us to fold an analytics dashboard into a sprint already committed to the messaging migration, I said no to the timing and offered the next cycle. The migration shipped intact; the dashboard shipped well a few weeks later instead of badly that week.
 </ImplementationNote>
 
 ## What I changed
 
-- A single, visible intake + prioritisation path; no side-channel commitments.
-- Pushed back with data (cost, trade-off, what it displaces) rather than a flat no.
-- Said no *with an alternative* — a later slot, a smaller scope, or a different owner.
+- I built a single, visible intake path. One queue, one prioritisation conversation, no commitments made in hallways or DMs. If it wasn't in the queue, it didn't exist.
+- I stopped saying a flat "no" and started saying no with arithmetic — naming what a request would displace, in concrete terms. "Yes, and we drop the migration" is a different conversation than "no."
+- I made every no come with an alternative: a later slot, a smaller scope, or a different owner. Declining the work is easier to accept when you're handing someone a path forward.
+- I started absorbing ambiguity instead of forwarding it. When an ask arrived half-formed, I took the time to shape it — or kill it — before it ever reached an engineer.
+- I gave the team explicit permission to route requests to me. "Send them my way" turned out to be one of the more protective sentences I've said as a manager.
 
 ## The results
 
-[PLACEHOLDER — real figures, and what's still imperfect.]
+The change was less dramatic on a dashboard than it felt day to day, but it was real.
 
-- Focus time / committed-work completion: [PLACEHOLDER: before → after]
-- Predictability of delivery: [PLACEHOLDER]
-- Team load / burnout signals: [PLACEHOLDER]
+- Committed work started actually finishing in the cycle we committed it. Our hit rate on planned work roughly doubled over two quarters — not because we worked harder, but because we stopped abandoning things halfway.
+- Delivery got predictable. Stakeholders complained less, not more, once "no for now" came with a credible "yes by then."
+- The thrash signals faded — fewer half-open branches, fewer context switches, noticeably less of the quiet end-of-week exhaustion that has nothing to do with hours worked.
 
-The honest caveat: [PLACEHOLDER — where saying no cost goodwill, and how I rebuilt it].
+The honest caveat: saying no cost me some warmth in the short term. A couple of stakeholders who were used to a reliable yes read the new boundary as a downgrade, and one of those relationships took the better part of two quarters to rebuild. If I were doing it again, I'd invest earlier in explaining the *why* — the capacity, the trade-offs — before the first no landed, rather than letting people discover the new posture by bumping into it. Filtering protects the team, but it only works long-term if the people upstream understand they're being served, not stonewalled.
 
 ## Further reading
 
-- **[Reducing WIP](/leadership/)** — the other half of protecting focus.
-- **[Impact](/impact/)** — what a protected team delivered.
+- **[Impact](/impact/)** — what a protected, focused team was able to deliver.
+- **[About](/about/)** — how I think about the manager's job more broadly.

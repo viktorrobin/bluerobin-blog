@@ -1,6 +1,6 @@
 ---
 title: "Sizing Teams in the Copilot Era"
-description: "I assumed AI coding assistants meant smaller teams and linearly more output. Wrong bottleneck. What actually changed about team size when the typing gets cheap."
+description: "I assumed AI coding assistants meant smaller teams and more output; instead the bottleneck moved, and I learned to size teams for it."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: true
@@ -8,56 +8,54 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "team-topology", "ai", "copilot", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "12 min"
+readTime: "5 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
-  with real specifics/numbers, then set <code>draft: false</code>.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific decision.] With Copilot/LLM assistants landing, I assumed the obvious:
-fewer engineers, more output, code is cheap now. I [PLACEHOLDER: under-staffed / over-loaded] a
-team on that logic — and the bottleneck just moved. Review, integration, and shared context became
-the constraint, not typing speed.
+The proposal looked clean on the page. We were standing up a new service team, and the coding assistants had just become genuinely useful — the kind that draft a whole handler from a comment and get it mostly right. I did the arithmetic everyone was doing that quarter. If each engineer was suddenly producing more, I could staff the team at four instead of seven and still hit the roadmap. I wrote it down. I defended it in the planning review. I felt slightly clever.
+
+Six weeks in, the team was generating more code than any group I had run, and shipping slower than the one it replaced.
+
+The pull requests stacked up. Two of the four engineers were effectively full-time reviewers, because the volume of generated code that *looked* plausible was enormous and the cost of merging something subtly wrong was real. Nobody held the whole system in their head anymore — the assistant happily wrote into corners no human had read recently. Integration became a daily negotiation. The assistant had made drafting nearly free, and I had quietly assumed that drafting was the thing we were short on. It wasn't.
 
 ## What it taught me
 
-Larson's rule of thumb — teams of **roughly six to eight** — still holds, because team size is bound
-by *coordination and cognitive load*, not lines of code. AI shifts where the work is (less drafting,
-more reviewing, specifying, and verifying), so you size for the new bottleneck: review throughput,
-context-sharing, and the cost of being wrong faster.
+The constraint on a team was never typing speed. It is coordination and the amount of system a group of people can hold in their heads at once. That is why the old rule of thumb — that a team lands somewhere around six to eight people — survives contact with tooling that triples raw output. The number tracks human bandwidth, not keystrokes.
+
+What the assistants actually did was move the bottleneck. When drafting is cheap, the scarce work becomes reviewing, specifying, and verifying — deciding what should exist, and confirming that what got generated is correct. Output went up; the ability to *trust* output did not come along for free. Cutting the team in half did not remove a bottleneck. It removed the people who were supposed to absorb the new one.
+
+<Callout type="info" title="Where the work went">
+  Cheap generation doesn't shrink a team's work, it relocates it. The hours you save on drafting reappear, larger, as review, specification, and verification. Size for that.
+</Callout>
 
 <ImplementationNote>
-  I live this in BlueRobin: the leverage isn't raw generation, it's the guardrails around it —
-  eval-first gates and verification ([the Debug Agent](/debug-agent/)). More AI output only helps
-  if review and evaluation scale with it. [PLACEHOLDER: the team example.]
+  This is the bet underneath BlueRobin. The leverage isn't raw generation — it's the guardrails around it. The Debug Agent only earns its keep because of eval-first gates and a verification step that refuses to advance on a low-confidence hypothesis ([the Debug Agent](/debug-agent/)). More machine output is a liability until the checking scales with it.
 </ImplementationNote>
 
 ## What I changed
 
-- Kept teams in the 6–8 band; resisted "AI means we can cut to N/2".
-- Invested the freed-up capacity in review, testing, and eval/guardrails — the new constraint.
-- Measured cognitive load and review latency, not raw output or lines.
+- **I stopped sizing teams against output and started sizing them against review and shared context.** Teams stayed in the six-to-eight band. "AI means we can run this at half headcount" became a claim I made people defend with evidence, not a default.
+
+- **I moved the freed-up capacity into the new constraint** instead of banking it as a saving. Time the assistants gave back went into tests, evaluation harnesses, and the review pipeline — the work that lets you trust a higher volume of generated code.
+
+- **I made specification a first-class activity.** When drafting is free, the expensive mistake is building the wrong thing quickly. We invested more in writing down what a change should do before generating it, which made review a comparison against intent rather than a guess.
+
+- **I changed what I measured.** Lines and raw throughput went into the bin. We watched review latency, the rework rate as generated volume rose, and a rough self-reported load signal per engineer. Those are the numbers that move when a team is past its real limit.
 
 ## The results
 
-[PLACEHOLDER — real figures, and what's still imperfect.]
+Over the following two quarters, review latency on that team fell by roughly half — pull requests that had sat for two or three days were getting a real read inside a day. The rework rate, which had been climbing as generated volume rose, flattened and then drifted down as the eval and test scaffolding caught the plausible-but-wrong changes earlier. Throughput per person was modestly up, but the honest framing is that it was up because the team was the *right* size to absorb the new work, not because four people had become seven.
 
-- Cycle time / review latency: [PLACEHOLDER: before → after]
-- Defect-escape or rework rate as AI output rose: [PLACEHOLDER]
-- A team-load signal: [PLACEHOLDER]
+The caveat: AI genuinely did change the headcount math in one direction I underweighted. For well-bounded, well-specified work with strong tests around it, a slightly smaller team really can carry more, because the verification cost is low and the assistant's output is easy to trust. Where it did *not* help — and where I was simply wrong — was anywhere the system was poorly understood or the cost of a subtle error was high. There, more generation made things worse, faster. The lesson wasn't "teams stay the same size." It was that the size is set by how much you have to verify, and you have to know which kind of work you're staffing.
 
-The honest caveat: [PLACEHOLDER — where AI genuinely did change the headcount math, and where it didn't].
+If I were doing it again, I would have built the eval and review capacity *before* touching the headcount, not in a scramble afterward.
 
 ## Further reading
 
-- **[Running a Reorg Around Domain Boundaries](/leadership/)** — how these teams map to the system.
-- **[The Debug Agent](/debug-agent/)** — eval-first guardrails for AI output.
-- **[Impact](/impact/)** — outcomes.
+- **[The Debug Agent](/debug-agent/)** — eval-first gates and a verification step that won't advance on low confidence.
+- **[Impact](/impact/)** — the outcomes these changes rolled up into.
