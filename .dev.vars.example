@@ -1,14 +1,22 @@
 # Local dev secrets for `wrangler dev`. Copy to `.dev.vars` (git-ignored) and fill in.
-# In production, set these with `wrangler secret put <NAME>` instead.
+# In production, set these with `wrangler secret put <NAME>` (or the dashboard).
+#
+# The access form notifies over TWO independent channels — configure either or
+# both. At least one of NTFY_WEBHOOK_URL / BREVO_API_KEY must be set.
 
-# Cloudflare Turnstile SECRET key (server-side).
-# Local testing: the always-passes test secret below is fine.
-# Production: use the real secret for your Turnstile widget.
+# Cloudflare Turnstile SECRET key (required). The always-passes TEST secret is
+# fine locally; use the real secret in production.
 TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 
-# Full ntfy topic URL — where access-request push notifications are sent.
-# Use a long, unguessable topic name (anyone who knows the topic can publish/subscribe).
-NTFY_WEBHOOK_URL="https://ntfy.sh/bluerobin-access-CHANGE-ME"
+# --- ntfy push (self-hosted) ---
+# Topic URL on the self-hosted, HA ntfy (fronted by the Cloudflare tunnel).
+NTFY_WEBHOOK_URL="https://ntfy.bluerobin.io/blog-access-requests"
+# Bearer token with publish rights on that topic (required — the instance needs auth).
+NTFY_TOKEN="tk_CHANGE-ME"
 
-# Optional: bearer token if your ntfy instance requires auth (self-hosted with ACLs).
-# NTFY_TOKEN="tk_xxx"
+# --- email (Brevo) ---
+# Brevo transactional API key. Reply-to is set to the requester so you can reply directly.
+BREVO_API_KEY="xkeysib-CHANGE-ME"
+# Where to send (defaults to victor@bluerobin.io) and the verified Brevo sender.
+CONTACT_TO_EMAIL="victor@bluerobin.io"
+CONTACT_FROM_EMAIL="noreply@bluerobin.io"
