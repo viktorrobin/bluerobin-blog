@@ -1,0 +1,154 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+
+// Any leadership essays already published (auto-links the cards below).
+const published = await getCollection("blog", ({ data }) => data.project === "leadership" && !data.draft);
+const publishedSlugs = new Set(published.map((p) => p.slug));
+
+// Curated catalog — the director-track essays. Each opens with a mistake I made,
+// then works through what it taught me, what I changed, and what happened, in the
+// spirit of Will Larson's "An Elegant Puzzle." The top 5 are scaffolded as draft
+// stubs in the repo, ready to write.
+const essays = [
+  {
+    slug: "four-states-explicit-contracts-org-turnaround",
+    title: "Four States & Explicit Contracts",
+    blurb: "The quarter I read flat velocity as a headcount problem — and learned it was a clarity problem. How explicit domain and event contracts moved a treading-water team forward.",
+    puzzle: "The four states",
+    featured: true,
+  },
+  {
+    slug: "migrations-only-scalable-change-strangler-fig-org",
+    title: "Migrations Are the Only Scalable Change",
+    blurb: "The rewrite I nearly committed to, and why strangler-fig migrations became my default for changing a codebase — and an organisation — without a freeze.",
+    puzzle: "Migrations",
+    featured: true,
+  },
+  {
+    slug: "org-design-across-continents-distributed-teams",
+    title: "Org Design Across Continents",
+    blurb: "Organising teams for convenience, then watching cross-zone decisions take days. The reorg around domain boundaries — and Conway's Law — that fixed it.",
+    puzzle: "Organizational design",
+    featured: true,
+  },
+  {
+    slug: "distributed-observability-substitute-for-synchrony",
+    title: "Observability Instead of Synchrony",
+    blurb: "The standing meeting that ate hours and decided nothing — and replacing it with team-health dashboards (Grafana/LGTM) and an async context protocol.",
+    puzzle: "Systems thinking & shared context",
+    featured: true,
+  },
+  {
+    slug: "on-call-blamelessness-incident-culture-hiring",
+    title: "On-Call Blamelessness & Hiring",
+    blurb: "The postmortem that drifted toward 'who broke it', what it cost me, and rebuilding on-call into something engineers actually want to join.",
+    puzzle: "On-call & operational excellence",
+    featured: true,
+  },
+  {
+    slug: "career-ladders-across-cultures",
+    title: "Career Ladders Across Cultures",
+    blurb: "Losing strong engineers because the only ladder ran through management — and building an IC track, with explicit regional expectations, that held.",
+    puzzle: "Career ladders & growth",
+    featured: false,
+  },
+  {
+    slug: "shipping-velocity-technical-debt-four-states",
+    title: "Velocity, Debt & the Four States",
+    blurb: "Chasing a story-point target until quality slipped. Learning to measure cycle time and stability instead, and letting velocity follow.",
+    puzzle: "Leading vs. lagging indicators",
+    featured: false,
+  },
+  {
+    slug: "knowledge-codification-ask-the-system",
+    title: "From 'Ask Victor' to 'Ask the System'",
+    blurb: "Being the onboarding bottleneck everyone routed around me — and turning runbooks, ADRs and retros into something the team could query instead.",
+    puzzle: "Scaling knowledge & onboarding",
+    featured: false,
+  },
+];
+---
+
+<MainLayout
+  title="Leadership | BlueRobin"
+  description="Essays on engineering leadership — team turnaround, org design across continents, migrations, on-call culture and scaling technical discipline. Each starts with a mistake I made, grounded in Will Larson's An Elegant Puzzle."
+>
+  <!-- Breadcrumb -->
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+    <a href="/" class="text-sm text-slate-600 hover:text-neural-400 transition-colors">← All projects</a>
+  </div>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
+    <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -top-40 -right-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-complement-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.2s;"></div>
+    </div>
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 sm:pt-24 text-center animate-entry">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-7" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-neural-400);">
+        <span class="w-1.5 h-1.5 rounded-full" style="background: var(--color-complement-400);"></span>
+        Director's notes
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-display font-bold mb-5 leading-tight tracking-tight">
+        <span class="title-blue">Notes on</span> <span class="title-warm">engineering leadership.</span>
+      </h1>
+      <p class="text-lg text-slate-600">
+        The rest of this site is about the engineering; these essays are about leading it.
+        Each one starts where the learning actually did — with a mistake I made — then works
+        through what it taught me, what I changed, and what happened. They lean on concepts from
+        Will Larson's <em>An Elegant Puzzle</em> and on leading engineering teams across India
+        and Berlin, with BlueRobin as the small-scale lab where the same disciplines show up first.
+      </p>
+    </div>
+  </section>
+
+  <!-- Essays -->
+  <section class="relative py-12 sm:py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {essays.map((e) => {
+          const isPublished = publishedSlugs.has(e.slug);
+          const Tag = isPublished ? "a" : "div";
+          const status = isPublished ? "Read" : e.featured ? "Up next" : "Planned";
+          return (
+            <Tag
+              href={isPublished ? `/leadership/${e.slug}/` : undefined}
+              class={`glass-card p-7 flex flex-col ${isPublished ? "group transition-transform hover:-translate-y-1" : ""}`}
+            >
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-[11px] font-medium px-2 py-0.5 rounded-full" style={`background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);`}>{e.puzzle}</span>
+                <span class={`text-[11px] font-medium px-2 py-0.5 rounded-full ${isPublished ? "text-complement-500" : "text-slate-500"}`} style={isPublished ? "background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);" : "background: rgba(15,23,42,0.04);"}>{status}</span>
+              </div>
+              <h2 class="text-lg font-display font-semibold text-slate-900 mb-2">{e.title}</h2>
+              <p class="text-sm text-slate-600 leading-relaxed">{e.blurb}</p>
+              {isPublished && (
+                <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-neural-400">
+                  Read the essay
+                  <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                </span>
+              )}
+            </Tag>
+          );
+        })}
+      </div>
+      <p class="text-center text-sm text-slate-500 mt-8">
+        Reference: <em>An Elegant Puzzle — Systems of Engineering Management</em>, Will Larson.
+      </p>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="relative py-14" style="background: var(--gradient-mesh-light);">
+    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-4">Leadership, grounded in practice</h2>
+      <p class="text-slate-600 mb-8">
+        These notes sit alongside the measurable delivery on the rest of the site. If it's a fit, I'd be glad to talk.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="/impact/" class="btn-primary">See the results</a>
+        <a href="/about/#request-access" class="btn-secondary">Work with me</a>
+      </div>
+    </div>
+  </section>
+</MainLayout>

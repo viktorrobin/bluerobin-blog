@@ -1,0 +1,66 @@
+---
+title: "Four States & Explicit Contracts: A Turnaround That Started With My Mistake"
+description: "I read a team's flat velocity as a headcount problem and asked for more people. It was a clarity problem. What Larson's four states taught me, and how explicit contracts moved us forward."
+pubDate: 2026-06-27
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+difficulty: "advanced"
+tags: ["leadership", "engineering-management", "ddd", "team-turnaround", "an-elegant-puzzle"]
+readTime: "12 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake below — a specific moment, not a generalisation.
+  Replace every <strong>[PLACEHOLDER]</strong> with a real number or detail, then set
+  <code>draft: false</code>. Keep the structure; the honesty is the point.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific moment.] A team's throughput had been flat for [PLACEHOLDER]
+sprints. I diagnosed it the easy way — not enough people — and started arguing for more
+headcount. I was wrong, and the wrongness cost us [PLACEHOLDER: weeks / a hire / momentum]
+before I saw it. The team wasn't short of hands; nobody could clearly say which service owned
+what, or what a given event actually meant, and that ambiguity was the real tax.
+
+## What it taught me
+
+Larson's four states — *falling behind, treading water, repaying debt, innovating* — look
+like a capacity question and are usually a **clarity** question. You can't add your way out of
+treading water; you have to name the boundaries first. Adding people to an unclear system
+mostly adds coordination cost.
+
+<ImplementationNote>
+  BlueRobin is where this is cheap to see: at homelab scale, DDD aggregates and NATS event
+  contracts are the only reason a one-person system stays legible. The same artifacts —
+  written-down contracts — are what a [PLACEHOLDER: team-size] team was missing.
+</ImplementationNote>
+
+## What I changed
+
+- Paused new feature work for [PLACEHOLDER: N] sprints — the hardest and most important call.
+- Made boundaries explicit: DDD naming, owned services, and NATS JetStream event contracts.
+- Put a short "explicit contracts" check into standups and PR review, so clarity became routine
+  rather than a one-off cleanup.
+
+## The results
+
+[PLACEHOLDER — replace with your real figures; include the ones that didn't move, too.]
+
+- Throughput / cycle time: [PLACEHOLDER: before → after]
+- Deployment failures or rework: [PLACEHOLDER: before → after]
+- A softer but real outcome: [PLACEHOLDER: e.g. fewer cross-team "what does this mean?" threads]
+
+The honest caveat: [PLACEHOLDER — what this didn't fix, or what I'd do differently next time].
+
+## Further reading
+
+- **[DDD aggregates & consistency boundaries](/articles/ddd-aggregates-consistency-boundaries)** — the contract primitive at the code level.
+- **[NATS event-contract migration strategy](/articles/nats-event-contract-migration-strategy)** — evolving contracts without breaking consumers.
+- **[Impact](/impact/)** — the measurable side of this kind of work.

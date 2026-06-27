@@ -3,9 +3,11 @@ import PostLayout from "@layouts/PostLayout.astro";
 import { getCollection, type CollectionEntry } from "astro:content";
 
 export async function getStaticPaths() {
-  // Archives articles only; Debug Agent and Leadership have their own routes
-  // (/debug-agent/[slug], /leadership/[slug]).
-  const posts = await getCollection("blog", ({ data }) => data.project === "archives");
+  // Published leadership essays only. Draft scaffolds do not build pages.
+  const posts = await getCollection(
+    "blog",
+    ({ data }) => data.project === "leadership" && !data.draft,
+  );
   return posts.map((post) => ({
     params: { slug: post.slug },
     props: { post },

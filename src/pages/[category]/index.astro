@@ -4,7 +4,9 @@ import { getCollection } from "astro:content";
 import { CATEGORIES, DIFFICULTIES } from "@/config";
 
 export async function getStaticPaths() {
-  const categories = Object.keys(CATEGORIES);
+  // "architecture" has its own dedicated /architecture page, so exclude it here
+  // to avoid a route conflict with /[category].
+  const categories = Object.keys(CATEGORIES).filter((c) => c !== "architecture");
   return categories.map((category) => ({ params: { category } }));
 }
 
@@ -16,7 +18,7 @@ if (!categoryMeta) {
 }
 
 // Get all Archives posts in this category (debug-agent has its own hub)
-const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.category === category && data.project !== "debug-agent");
+const allPosts = await getCollection("blog", ({ data }) => !data.draft && data.category === category && data.project === "archives");
 const sortedPosts = allPosts.sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
 
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });

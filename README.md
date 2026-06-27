@@ -23,7 +23,7 @@ npm run preview
 - **Framework**: [Astro](https://astro.build/) - Static site generator
 - **Styling**: [Tailwind CSS 4](https://tailwindcss.com/) with OKLCH colors
 - **Content**: MDX with custom components
-- **Deployment**: Static files served via nginx on k3s
+- **Deployment**: Cloudflare Workers (static assets) via Workers Builds — see below
 
 ## Project Structure
 
@@ -46,8 +46,9 @@ Create a new `.mdx` file in `src/content/blog/`:
 title: "Your Article Title"
 description: "A brief description"
 pubDate: 2026-01-21
-category: "cookbook"  # cookbook | guide | architecture | troubleshooting
-difficulty: "intermediate"  # beginner | intermediate | advanced
+category: "ai"  # architecture | messaging | infrastructure | security | ai | frontend | backend | database | ci-cd | observability | storage | leadership
+difficulty: "intermediate"  # beginner | intermediate | advanced | expert
+project: "archives"  # archives | debug-agent | leadership
 tags: ["dotnet", "kubernetes"]
 series: "ddd-series"  # optional
 seriesOrder: 1  # optional
@@ -96,12 +97,18 @@ import Callout from '@components/Callout.astro';
 
 ## Deployment
 
-The blog is automatically built and deployed when pushing to `main`:
+Production is **Cloudflare Workers static assets**, deployed by **Cloudflare Workers
+Builds** (Git integration) on every push to `main`:
 
-1. GitHub Actions builds the static site
-2. Docker image pushed to private registry
-3. Flux reconciles and deploys to k3s
-4. Available at `https://blog.bluerobin.local`
+1. Push to `main` → Cloudflare Workers Builds runs `npm run build` (`astro check && astro build`)
+2. The static output in `./dist` is uploaded as Workers static assets (`wrangler.toml`)
+3. A small Worker (`src/worker/index.ts`) handles the `POST /api/request-access` route
+   (Turnstile verify → ntfy push); all other paths are served directly from assets
+4. Live at `https://blog.bluerobin.io`
+
+The `Dockerfile` + `nginx.conf` are a legacy container path and are **not** used in
+production. Secrets (`TURNSTILE_SECRET_KEY`, `NTFY_WEBHOOK_URL`) are set with
+`wrangler secret put`; local dev reads `.dev.vars`.
 
 ## Related Requirements
 

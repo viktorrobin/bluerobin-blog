@@ -6,3 +6,11 @@ dist/
 .env
 .env.*
 !.env.example
+
+# Cloudflare Worker local secrets
+.dev.vars
+!.dev.vars.example
+
+# Local debug artifacts (do not commit)
+debug-screenshot.png
+debug-snapshot.txt

@@ -1,0 +1,68 @@
+---
+title: "Migrations Are the Only Scalable Change: The Rewrite I Nearly Approved"
+description: "I almost backed a clean-rewrite of a legacy system. It would have frozen the business for months. What changed my mind, and why strangler-fig migrations became my default — for code and for orgs."
+pubDate: 2026-06-27
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+difficulty: "expert"
+tags: ["leadership", "engineering-management", "migrations", "strangler-fig", "an-elegant-puzzle"]
+readTime: "14 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with your real figures, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific decision point.] Facing a [PLACEHOLDER: legacy system / monolith],
+I was drawn to the clean answer: rewrite it properly, then cut over. On paper it was faster.
+In practice it would have meant [PLACEHOLDER: a multi-month feature freeze / a high-risk
+weekend cutover], and I was close to committing the team to it before [PLACEHOLDER: what made
+me reconsider].
+
+## What it taught me
+
+Larson's line stuck with me: migrations are the only scalable way to manage change as code and
+organisations grow. Rewrites and big-bang cutovers concentrate all the risk into one moment;
+migrations spread it out and keep the business running. The same is true of *organisational*
+change — process, structure, culture — which I'd been treating as something you announce rather
+than migrate.
+
+<ImplementationNote>
+  The [strangler-fig pattern](/articles/architecture-pattern-strangler-fig-migration) is
+  documented here at homelab scale. This essay scales it to a [PLACEHOLDER: size] estate, and
+  then to changing how a team works.
+</ImplementationNote>
+
+## What I changed
+
+- Replaced the rewrite plan with a strangler-fig migration: a reverse proxy in front, one
+  boundary moved at a time, old and new running side by side.
+- Started with the lowest-risk surface ([PLACEHOLDER]) to build confidence and a repeatable
+  pattern before touching anything load-bearing.
+- Applied the same incremental method to an org change ([PLACEHOLDER: e.g. deploy process,
+  team shape]) instead of a big-bang reorg.
+
+## The results
+
+[PLACEHOLDER — your real figures, including anything that went slower than hoped.]
+
+- Boundaries / services migrated: [PLACEHOLDER]
+- Deploy frequency and failure rate during the migration: [PLACEHOLDER]
+- Business impact of *not* freezing: [PLACEHOLDER]
+
+The honest caveat: [PLACEHOLDER — where the incremental path was genuinely harder than a rewrite would have been].
+
+## Further reading
+
+- **[The strangler-fig migration pattern](/articles/architecture-pattern-strangler-fig-migration)** — the technical pattern, with code.
+- **[GitOps with Flux CD](/articles/gitops-flux-cd-introduction)** — migrating the deploy process the same way.
+- **[Impact](/impact/)** — outcomes delivered under constraint.

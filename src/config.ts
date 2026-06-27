@@ -4,7 +4,18 @@ export const SITE = {
   desc: "BlueRobin Technical Blog - A homelab journey from medical document search to production AI. Deep dives into .NET, Kubernetes, LLM integration, and Domain-Driven Design.",
   title: "BlueRobin",
   ogImage: "og-default.png",
-  lightAndDarkMode: true,
+  // The blog ships a single, deliberate light theme — no dark mode. Keep false so
+  // the value reflects reality (BaseLayout also pins color-scheme: light).
+  lightAndDarkMode: false,
+  // Public contact address. NOTE: confirm victor@bluerobin.io is a live mailbox
+  // (Cloudflare Email Routing is free on bluerobin.io) — the old @bluerobin.local
+  // was an unroutable internal domain.
+  email: "victor@bluerobin.io",
+  // Public profile + CV. Leave cvUrl "" to hide the download button; set it to
+  // e.g. "/victor-robin-cv.pdf" once the file is added to /public.
+  github: "https://github.com/viktorrobin",
+  linkedin: "https://www.linkedin.com/in/dr-victor-robin/",
+  cvUrl: "",
   postPerPage: 10,
   scheduledPostMargin: 15 * 60 * 1000, // 15 minutes
 };
@@ -25,7 +36,7 @@ export const SOCIALS = [
   },
   {
     name: "Mail",
-    href: "mailto:victor@bluerobin.local",
+    href: "mailto:victor@bluerobin.io",
     linkTitle: `Send an email`,
     active: true,
   },

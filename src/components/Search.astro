@@ -2,8 +2,9 @@
 // Search component with fuzzy search powered by Fuse.js
 import { getCollection } from "astro:content";
 
-// Get all posts for the search index
-const posts = await getCollection("blog");
+// Get all published posts for the search index (drafts are excluded so
+// scaffolded/unfinished posts never surface in search results).
+const posts = await getCollection("blog", ({ data }) => !data.draft);
 const searchData = posts.map((post) => ({
   slug: post.slug,
   title: post.data.title,
@@ -199,7 +200,7 @@ const searchDataJson = JSON.stringify(searchData);
       }
 
       const selectedStyle = isSelected ? 'background: rgba(0,153,253,0.10); border-left: 2px solid rgba(0,153,253,0.60);' : 'border-left: 2px solid transparent;';
-      const basePath = item.project === 'debug-agent' ? '/debug-agent' : '/articles';
+      const basePath = item.project === 'debug-agent' ? '/debug-agent' : item.project === 'leadership' ? '/leadership' : '/articles';
 
       return `
         <a
@@ -282,7 +283,7 @@ const searchDataJson = JSON.stringify(searchData);
   function navigateToSelected(): void {
     if (selectedIndex >= 0 && currentResults[selectedIndex]) {
       const result = currentResults[selectedIndex].item;
-      const basePath = result.project === 'debug-agent' ? '/debug-agent' : '/articles';
+      const basePath = result.project === 'debug-agent' ? '/debug-agent' : result.project === 'leadership' ? '/leadership' : '/articles';
       window.location.href = `${basePath}/${result.slug}/`;
     }
   }

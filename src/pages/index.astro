@@ -8,7 +8,7 @@ const archIconIds = ["cloudflare", "dotnet", "ollama", "postgresql", "natsdotio"
 
 // Live counts per project to show on each tile
 const allPosts = await getCollection("blog", ({ data }) => !data.draft);
-const archivesCount = allPosts.filter((p) => p.data.project !== "debug-agent").length;
+const archivesCount = allPosts.filter((p) => p.data.project === "archives").length;
 const debugAgentCount = allPosts.filter((p) => p.data.project === "debug-agent").length;
 
 const projects = [
@@ -72,6 +72,17 @@ const projects = [
         One is the <strong class="font-semibold text-slate-800">team of agents</strong> that runs my documents;
         the other is the <strong class="font-semibold text-slate-800">research</strong> behind making the platform debug itself.
       </p>
+
+      <p class="mt-5 text-base text-slate-500 max-w-2xl mx-auto">
+        Built and run by <strong class="font-medium text-slate-700">Victor Robin</strong>, an engineering
+        director working across India &amp; Berlin. BlueRobin is my homelab — where I stay close to the
+        same disciplines I lead with at work, at a scale I can hold in my head.
+      </p>
+
+      <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
+        <a href="/impact/" class="btn-primary">See the impact</a>
+        <a href="/about/#request-access" class="btn-secondary">Work with me</a>
+      </div>
     </div>
   </section>
 
@@ -126,10 +137,22 @@ const projects = [
 
       <!-- secondary links -->
       <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-        <a href="/cookbook/" class="hover:text-neural-400 transition-colors">Cookbook</a>
+        <a href="/impact/" class="hover:text-neural-400 transition-colors">Impact</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/leadership/" class="hover:text-neural-400 transition-colors">Leadership</a>
         <span class="text-slate-300" aria-hidden="true">·</span>
         <a href="/about/" class="hover:text-neural-400 transition-colors">About</a>
       </div>
+
+      <!-- About teaser -->
+      <a href="/about/" class="group mt-8 flex items-center gap-4 max-w-2xl mx-auto glass-card p-5 text-left transition-transform hover:-translate-y-0.5">
+        <img src="/bluerobin-logo.png" alt="" class="w-10 h-10 object-contain shrink-0" />
+        <div class="min-w-0">
+          <p class="text-sm font-semibold text-slate-900">Victor Robin, Ph.D. — Director of Engineering</p>
+          <p class="text-sm text-slate-600 truncate">France → Sweden → UK → India · engineering leadership · production AI on a €50/mo homelab</p>
+        </div>
+        <span class="ml-auto text-neural-400 shrink-0 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
+      </a>
     </div>
   </section>
   <!-- Platform architecture: how both projects share one homelab + cloud -->

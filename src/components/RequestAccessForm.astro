@@ -1,0 +1,138 @@
+---
+// Request-access form. Posts to the Worker route /api/request-access, which
+// verifies Turnstile and pushes an ntfy notification to Victor.
+//
+// The PUBLIC Turnstile site key is build-time. Set PUBLIC_TURNSTILE_SITE_KEY in
+// the build env; falls back to Cloudflare's "always passes" TEST site key so the
+// form works out of the box in dev/preview.
+const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "1x00000000000000000000AA";
+---
+
+<section id="request-access" class="scroll-mt-24">
+  <div class="glass-card p-6 sm:p-8 max-w-xl mx-auto">
+    <h2 class="text-2xl font-display font-semibold text-slate-900 mb-1.5">Request access to BlueRobin</h2>
+    <p class="text-slate-600 mb-6">
+      The platform runs in a controlled, invite-only beta. Tell me a little about yourself and
+      I'll be in touch — recruiters and hiring teams especially welcome.
+    </p>
+
+    <form id="request-access-form" novalidate>
+      <div class="grid gap-4">
+        <div>
+          <label for="ra-name" class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+          <input id="ra-name" name="name" type="text" required maxlength="100" autocomplete="name"
+            class="ra-input" placeholder="Your name" />
+        </div>
+        <div>
+          <label for="ra-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <input id="ra-email" name="email" type="email" required maxlength="200" autocomplete="email"
+            class="ra-input" placeholder="you@company.com" />
+        </div>
+        <div>
+          <label for="ra-message" class="block text-sm font-medium text-slate-700 mb-1">
+            Message <span class="text-slate-400 font-normal">(optional)</span>
+          </label>
+          <textarea id="ra-message" name="message" rows="3" maxlength="500"
+            class="ra-input resize-y" placeholder="What would you like to explore, or why are you reaching out?"></textarea>
+        </div>
+
+        <!-- Honeypot: hidden from humans, catches naive bots. -->
+        <div class="hidden" aria-hidden="true">
+          <label>Leave this empty<input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+        </div>
+
+        <!-- Cloudflare Turnstile widget (renders a hidden cf-turnstile-response input) -->
+        <div class="cf-turnstile" data-sitekey={siteKey} data-theme="light"></div>
+
+        <button type="submit" class="btn-primary justify-center">
+          <span class="ra-btn-label">Request access</span>
+        </button>
+
+        <p id="ra-status" class="text-sm min-h-[1.25rem]" role="status" aria-live="polite"></p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Turnstile loader -->
+<script is:inline src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
+<script>
+  const form = document.getElementById("request-access-form") as HTMLFormElement | null;
+  const status = document.getElementById("ra-status");
+
+  function setStatus(msg: string, ok: boolean | null = null) {
+    if (!status) return;
+    status.textContent = msg;
+    status.style.color = ok === true ? "#0f6e56" : ok === false ? "#b4451f" : "var(--color-slate-500, #64748b)";
+  }
+
+  form?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const btn = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    const label = form.querySelector(".ra-btn-label");
+    const tokenEl = form.querySelector('[name="cf-turnstile-response"]') as HTMLInputElement | null;
+    const token = tokenEl?.value ?? "";
+
+    const val = (n: string) => (form.querySelector(`[name="${n}"]`) as HTMLInputElement | null)?.value ?? "";
+
+    if (!val("name").trim() || !val("email").trim()) {
+      setStatus("Please add your name and email.", false);
+      return;
+    }
+    if (!token) {
+      setStatus("Please complete the verification challenge.", false);
+      return;
+    }
+
+    if (btn) btn.disabled = true;
+    if (label) label.textContent = "Sending…";
+    setStatus("");
+
+    try {
+      const res = await fetch("/api/request-access", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: val("name"),
+          email: val("email"),
+          message: val("message"),
+          website: val("website"),
+          turnstileToken: token,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean };
+      if (res.ok && data.ok) {
+        form.reset();
+        setStatus("Thanks! Your request is in — I'll review it and get back to you.", true);
+      } else {
+        setStatus("Something went wrong. Please try again, or email me directly.", false);
+      }
+    } catch {
+      setStatus("Network error. Please try again, or email me directly.", false);
+    } finally {
+      if (btn) btn.disabled = false;
+      if (label) label.textContent = "Request access";
+      if ((window as any).turnstile) (window as any).turnstile.reset();
+    }
+  });
+</script>
+
+<style>
+  .ra-input {
+    width: 100%;
+    border-radius: var(--radius-md, 0.75rem);
+    border: 1px solid rgba(15, 23, 42, 0.12);
+    background: rgba(255, 255, 255, 0.85);
+    padding: 0.625rem 0.875rem;
+    font-size: 0.95rem;
+    color: var(--color-slate-800, #1e293b);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .ra-input::placeholder { color: #94a3b8; }
+  .ra-input:focus {
+    outline: none;
+    border-color: var(--color-neural-500);
+    box-shadow: 0 0 0 3px var(--color-neural-alpha-20);
+  }
+</style>

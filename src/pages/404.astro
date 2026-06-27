@@ -1,0 +1,37 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+---
+
+<MainLayout
+  title="Page not found | BlueRobin"
+  description="That page doesn't exist. Head back to the BlueRobin homelab — two production-grade AI projects on a self-hosted cluster."
+>
+  <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
+    <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -top-40 -left-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute -bottom-40 -right-40 w-96 h-96 bg-complement-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.2s;"></div>
+    </div>
+    <div class="relative max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-24 sm:py-32 text-center animate-entry">
+      <p class="text-7xl sm:text-8xl font-display font-bold tracking-tight mb-4">
+        <span class="title-blue">4</span><span class="title-warm">0</span><span class="title-blue">4</span>
+      </p>
+      <h1 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">This page flew the nest.</h1>
+      <p class="text-slate-600 mb-8">
+        The page you're after doesn't exist — it may have been moved or renamed. Here's the way back.
+      </p>
+      <div class="flex flex-wrap items-center justify-center gap-3">
+        <a href="/" class="btn-primary">Back home</a>
+        <a href="/impact/" class="btn-secondary">See the impact</a>
+      </div>
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+        <a href="/the-archives/" class="hover:text-neural-400 transition-colors">The Archives</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/debug-agent/" class="hover:text-neural-400 transition-colors">The Debug Agent</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/leadership/" class="hover:text-neural-400 transition-colors">Leadership</a>
+        <span class="text-slate-300" aria-hidden="true">·</span>
+        <a href="/about/" class="hover:text-neural-400 transition-colors">About</a>
+      </div>
+    </div>
+  </section>
+</MainLayout>

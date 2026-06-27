@@ -1,0 +1,66 @@
+---
+title: "Observability Instead of Synchrony: Retiring the Meeting That Decided Nothing"
+description: "I tried to manufacture shared context with a recurring cross-timezone meeting. It ate hours and produced no decisions. What I learned about context as a system, and the dashboards + async protocol that replaced it."
+pubDate: 2026-06-27
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+difficulty: "advanced"
+tags: ["leadership", "engineering-management", "observability", "remote-teams", "async", "an-elegant-puzzle"]
+readTime: "11 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with your real figures, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific ritual.] To keep distributed teams aligned, I instituted a
+recurring [PLACEHOLDER: weekly status meeting] — [PLACEHOLDER: N] people, [PLACEHOLDER:
+duration], spanning [PLACEHOLDER] time zones. It felt responsible. In hindsight it was a tax:
+it cost roughly [PLACEHOLDER: eng-hours/week], it ran at an awkward hour for half the room, and
+almost nothing was actually *decided* in it.
+
+## What it taught me
+
+Larson frames shared context as the glue for distributed teams — but I'd assumed context had to
+be delivered synchronously. It doesn't. Most of what that meeting conveyed (what shipped, what's
+failing, who's over their error budget) is **observable**, and observability is cheaper, more
+accurate, and available to everyone regardless of time zone.
+
+<ImplementationNote>
+  BlueRobin runs a full LGTM stack (Prometheus, Loki, Tempo, Grafana) with OpenTelemetry. The
+  realisation that ported to the day job: the instrumentation that debugs a system can also
+  replace a standing meeting about it. [PLACEHOLDER: the dashboard that retired the meeting.]
+</ImplementationNote>
+
+## What I changed
+
+- Built "team-health" dashboards (deploy frequency, MTTR, error budgets) as first-class,
+  always-on artifacts.
+- Replaced the status meeting with a short async context review: a dashboard walkthrough posted
+  [PLACEHOLDER: cadence], with a defined comment window.
+- Kept synchronous time only for the things that genuinely need it ([PLACEHOLDER]).
+
+## The results
+
+[PLACEHOLDER — your real figures, including any context that got *worse* async.]
+
+- Meeting-hours reclaimed: [PLACEHOLDER]
+- MTTR or incident clarity: [PLACEHOLDER: before → after]
+- A sentiment signal: [PLACEHOLDER: e.g. "I understand what the system is doing"]
+
+The honest caveat: [PLACEHOLDER — what dashboards can't replace, and where I added synchrony back].
+
+## Further reading
+
+- **[OpenTelemetry instrumentation in .NET](/articles/opentelemetry-instrumentation-dotnet)** — the data source.
+- **[NATS monitoring with Prometheus & Grafana](/articles/nats-monitoring-prometheus-grafana)** — dashboards in practice.
+- **[The Debug Agent](/debug-agent/)** — when observability graduates from dashboards to an autonomous agent.

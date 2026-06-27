@@ -2,7 +2,7 @@
 import BaseLayout from "./BaseLayout.astro";
 import Header from "@components/Header.astro";
 import Footer from "@components/Footer.astro";
-import { CATEGORIES, DIFFICULTIES } from "@/config";
+import { CATEGORIES, DIFFICULTIES, SITE } from "@/config";
 import type { CollectionEntry } from "astro:content";
 
 export interface Props {
@@ -12,23 +12,56 @@ export interface Props {
 const { post } = Astro.props;
 const { title, description, pubDate, updatedDate, author, category, difficulty, readTime, ogImage, toc, project, deprecated, deprecatedReason } = post.data;
 
-const categoryMeta = CATEGORIES[category];
+// Fallback covers categories not in the CATEGORIES map (e.g. "leadership").
+const categoryMeta = CATEGORIES[category as keyof typeof CATEGORIES] ?? {
+  title: category.charAt(0).toUpperCase() + category.slice(1),
+};
 const difficultyMeta = DIFFICULTIES[difficulty];
 
-// Project-aware navigation (Archives vs Debug Agent)
+// Project-aware navigation (Archives / Debug Agent / Leadership)
 const isDebugAgent = project === "debug-agent";
-const projectMeta = isDebugAgent
-  ? { label: "Debug Agent", hubHref: "/debug-agent/", backLabel: "← Back to Debug Agent" }
-  : { label: "The Archives", hubHref: "/the-archives/", backLabel: "← Back to Articles" };
+const projectMeta =
+  project === "debug-agent"
+    ? { label: "Debug Agent", hubHref: "/debug-agent/", backLabel: "← Back to Debug Agent" }
+    : project === "leadership"
+      ? { label: "Leadership", hubHref: "/leadership/", backLabel: "← Back to Leadership" }
+      : { label: "The Archives", hubHref: "/the-archives/", backLabel: "← Back to Articles" };
 
 // Format dates
 const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+// Structured data for the article + its breadcrumb trail.
+const postUrl = new URL(Astro.url.pathname, Astro.site).href;
+const blogPostingJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  headline: title,
+  description,
+  datePublished: pubDate.toISOString(),
+  ...(updatedDate ? { dateModified: updatedDate.toISOString() } : {}),
+  author: { "@type": "Person", name: author, url: SITE.linkedin },
+  publisher: { "@type": "Person", name: SITE.author },
+  image: new URL(ogImage ?? SITE.ogImage, SITE.website).href,
+  mainEntityOfPage: postUrl,
+  url: postUrl,
+};
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: new URL("/", SITE.website).href },
+    { "@type": "ListItem", position: 2, name: projectMeta.label, item: new URL(projectMeta.hubHref, SITE.website).href },
+    { "@type": "ListItem", position: 3, name: title, item: postUrl },
+  ],
+};
 ---
 
-<BaseLayout title={`${title} | BlueRobin Tech Blog`} description={description} ogImage={ogImage}>
+<BaseLayout title={`${title} | BlueRobin Tech Blog`} description={description} ogImage={ogImage} ogType="article">
+  <script type="application/ld+json" set:html={JSON.stringify(blogPostingJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
   <Header />
-  
-  <main class="flex-1">
+
+  <main id="main-content" class="flex-1">
     <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Article Header -->
       <header class="mb-8">

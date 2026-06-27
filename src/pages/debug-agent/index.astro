@@ -923,7 +923,7 @@ const stack = [
       ) : (
         <div class="space-y-6">
           {papers.map((post) => {
-            const categoryMeta = CATEGORIES[post.data.category];
+            const categoryMeta = CATEGORIES[post.data.category as keyof typeof CATEGORIES];
             const difficultyMeta = DIFFICULTIES[post.data.difficulty];
             return (
               <article class="glass-card p-6 hover:shadow-lg transition-all">

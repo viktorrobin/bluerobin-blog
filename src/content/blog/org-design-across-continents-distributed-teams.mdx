@@ -1,0 +1,68 @@
+---
+title: "Org Design Across Continents: The Reorg I Got Wrong First"
+description: "I organised teams for convenience and tried to paper over the time-zone friction with more meetings. Decisions still took days. What Conway's Law and Larson's org design taught me, and the reorg around domain boundaries that worked."
+pubDate: 2026-06-27
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+difficulty: "advanced"
+tags: ["leadership", "engineering-management", "org-design", "distributed-teams", "conways-law", "an-elegant-puzzle"]
+readTime: "13 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with your real figures and stories, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific setup.] I'd structured teams the convenient way — by [PLACEHOLDER:
+feature / who-reported-to-whom] — across India and Berlin, and when cross-zone work kept
+stalling I reached for the obvious fix: more synchronous time. It didn't help. A decision that
+should have taken an afternoon took [PLACEHOLDER: ~2 days], and adding meetings to a nine-hour
+gap just moved the waiting around.
+
+## What it taught me
+
+The constraint wasn't team *size* (Larson's 6–8 still held); it was **synchronisation**. And
+the deeper issue was Conway's Law working against me: my team boundaries didn't match the
+system's boundaries, so every change needed several teams to agree. The fix is to make team
+boundaries follow the architecture, then let teams own their contracts and decide
+independently.
+
+<ImplementationNote>
+  The throughline behind this: France → Sweden → UK → India. Working across four cultures
+  taught me that "obvious" coordination defaults aren't universal — explicit contracts and a
+  shared vocabulary travel better than shared working hours. [PLACEHOLDER: a concrete
+  India/Berlin example.]
+</ImplementationNote>
+
+## What I changed
+
+- Reorganised teams around domain aggregates, each owning an API / NATS event contract, so most
+  decisions stayed inside one team.
+- Designed for the time zones on purpose: a defined overlap window for the few genuinely shared
+  calls, async-by-default for everything else.
+- Wrote down the decision protocol so "async" meant "decided in 24h", not "stalled".
+
+## The results
+
+[PLACEHOLDER — your real figures, and the things that stayed hard.]
+
+- Decision latency: [PLACEHOLDER: before → after]
+- Team autonomy / cross-team dependencies: [PLACEHOLDER]
+- Retention or sentiment in the affected teams: [PLACEHOLDER]
+
+The honest caveat: [PLACEHOLDER — what a distributed structure still costs, even done well].
+
+## Further reading
+
+- **[Domain-Driven Design, end to end](/articles/domain-driven-design-practical-end-to-end-guide)** — the aggregate boundaries teams map onto.
+- **[NATS introduction: JetStream for .NET](/articles/nats-introduction-jetstream-dotnet)** — the contract surface between teams.
+- **[Impact](/impact/)** — what the reorg delivered.
