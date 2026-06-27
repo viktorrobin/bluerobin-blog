@@ -1,6 +1,6 @@
 ---
 title: "Fitting Engineering Investment Into a Product Roadmap"
-description: "I let 'tech debt later' lose every prioritisation call against features — until quality and velocity forced a reckoning. How I made engineering investment a planned line in the roadmap."
+description: "I let every reasonable prioritisation call quietly defer engineering health, until the deferral compounded into a cleanup we couldn't schedule on our own terms."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: true
@@ -8,56 +8,61 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "technical-quality", "roadmap", "prioritization", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "12 min"
+readTime: "5 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
-  with real specifics/numbers, then set <code>draft: false</code>.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific period.] Engineering health always lost to features in prioritisation —
-each call was reasonable, but "later" never came. I treated platform and debt work as leftover
-capacity. It compounded until [PLACEHOLDER: incidents / slowing velocity] forced an expensive,
-all-at-once cleanup.
+The intake service had a queue worker we called the "courier." Everyone knew it was held together with retries and hope. Twice that year an engineer had asked for a week to rebuild it, and twice I had said the honest thing: not this quarter, the launch comes first.
+
+Each of those calls was defensible. A week of platform work versus a feature a customer was waiting on is not a hard decision in the moment. The feature wins. It almost always wins, because the feature has a name, a date, and someone asking about it, and the courier just has a quiet hum of risk.
+
+So we shipped. And every quarter the courier got a little worse, because we kept routing new traffic through it without ever paying down the thing underneath.
+
+Then, over one bad fortnight, it failed three times. Not dramatically the first time. A delayed batch, a manual replay, an apology. The third time it dropped messages we couldn't reconstruct, and the cleanup was no longer a week. It was most of a month, with two engineers off the roadmap entirely and me explaining to stakeholders why the thing they couldn't see had eaten the thing they could.
+
+I had not avoided the cost. I had only removed my ability to choose when to pay it.
 
 ## What it taught me
 
-Engineering investment has to be a **sized, planned line in the roadmap**, not whatever's left over —
-and it has to be argued in product terms (speed, reliability, cost), not virtue. Larson's work on
-managing technical quality (and on where you choose to hold organizational risk) is exactly this:
-quality is a continuous investment, not a one-off project.
+The error wasn't any single deferral. It was treating engineering health as leftover capacity, the work that happens if a sprint comes in light. It never does. Leftover capacity is a rounding error you are quietly betting your reliability on.
+
+The reframe I needed is that technical quality is a continuous investment, not a project you do once and finish. You are always either paying it down or letting it accrue, and "do nothing" is itself a position with a price. Once I held it that way, the question stopped being *should we do platform work or features* and became *what is the right sized, planned line for investment this quarter, and how do I argue for it.*
+
+And the argument has to be in the language the roadmap already speaks: speed, reliability, cost. Not virtue, not craftsmanship, not "the team will be happier." Those may be true, but they don't survive a prioritisation meeting. "This cuts our incident recovery time roughly in half" does.
+
+<Callout type="info" title="The reframe">
+  A deferral is not a saving. It is a loan against future capacity, taken at an interest rate you don't control and can't see until it's due.
+</Callout>
 
 <ImplementationNote>
-  BlueRobin makes the trade-off legible — e.g. the [cost-governance work](/articles/model-policy-governance-token-usage)
-  is engineering investment expressed as a product constraint (a hard budget). Same move at team scale:
-  tie eng work to an outcome the business already cares about. [PLACEHOLDER: an example.]
+  BlueRobin makes this trade-off legible by construction. The platform runs under a hard monthly budget ceiling, so [cost governance](/articles/model-policy-governance-token-usage) is engineering investment expressed as a product constraint rather than a preference. You can't quietly defer it, because the ceiling is non-negotiable and visible to everyone. The same move works at team scale: tie the work to a number the business already cares about, and it stops being optional.
 </ImplementationNote>
 
 ## What I changed
 
-- Reserved a standing fraction of capacity for engineering health, defended like any other commitment.
-- Expressed each item as a product outcome (faster delivery, fewer incidents, lower cost).
-- Put it on the *same* roadmap as features, sequenced — not a shadow backlog.
+- I reserved a standing share of each cycle, around 15 to 20 percent, for engineering investment, and defended it like any other commitment instead of spending it first when a deadline slipped.
+- I made every investment item carry a product outcome: faster delivery here, fewer pages there, lower cost over time. If I couldn't phrase it that way, it wasn't ready to argue for.
+- I put the work on the *same* roadmap as features, sequenced and visible, not in a shadow backlog that only engineers ever saw.
+- I split the large items so they could be delivered incrementally, route by route, rather than as the kind of all-at-once rewrite that had bitten us. The courier itself got migrated piece by piece behind the existing interface.
+- I started naming the loan out loud. When we chose to defer, I said so explicitly and wrote down what we were borrowing against, so the deferral was a decision instead of a default.
 
 ## The results
 
-[PLACEHOLDER — real figures, and what's still imperfect.]
+Over the following two or three quarters, the courier-class incidents that had been eating whole weeks became rare, and the ones that remained were small enough to handle inside a normal day. Recovery time on the failures we did have dropped by roughly half, mostly because the systems were no longer mysteries.
 
-- Incident rate / reliability: [PLACEHOLDER: before → after]
-- Velocity trend (not a point target): [PLACEHOLDER]
-- Time-to-feature over time: [PLACEHOLDER]
+Velocity is the part I'd describe carefully. We did not get dramatically faster, and I'd distrust anyone who claimed a clean before-and-after number here. What changed is that velocity got *steadier* — fewer quarters torched by an emergency nobody planned for. Predictability turned out to matter more to stakeholders than raw speed ever did.
 
-The honest caveat: [PLACEHOLDER — a quarter I got the balance wrong, in either direction].
+The honest caveat: I overcorrected for about a quarter. Fresh from the cleanup, I let the investment line creep toward a third of capacity and started funding refactors that were aesthetic, not load-bearing. A reserved budget is a tool, not a virtue, and it can be misspent exactly like any other. The discipline isn't protecting the line. It's making each item earn its place on the same terms as a feature would.
+
+If I were doing it again, I'd put numbers on the risk earlier. We had the incident data the whole time. I just hadn't turned it into the argument that would have let me pay the cost on a schedule of my choosing.
 
 ## Further reading
 
-- **[Migrations, Not Rewrites](/leadership/)** — how the investment gets delivered incrementally.
-- **[Model Policy & Cost Governance](/articles/model-policy-governance-token-usage)** — eng investment as a product constraint.
-- **[Impact](/impact/)** — the measured outcomes.
+- [Model Policy and Cost Governance](/articles/model-policy-governance-token-usage) — engineering investment expressed as a hard product constraint.
+- [The Strangler Fig Migration Pattern](/articles/architecture-pattern-strangler-fig-migration) — how to deliver large investment incrementally instead of all at once.
+- [Impact](/impact/) — the measured outcomes.

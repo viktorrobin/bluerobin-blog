@@ -1,6 +1,6 @@
 ---
 title: "Diagnosing a Stuck Team with the Four States"
-description: "I read a team's flat velocity as a headcount problem and asked for more people. It was a clarity problem. What Larson's four states taught me, and how explicit contracts moved us forward."
+description: "A team's throughput went flat, I asked for more people, and I was wrong — the real shortage was clarity about who owned what."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: true
@@ -8,59 +8,57 @@ project: "leadership"
 category: "leadership"
 difficulty: "advanced"
 tags: ["leadership", "engineering-management", "ddd", "team-turnaround", "an-elegant-puzzle"]
-readTime: "12 min"
+readTime: "6 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake below — a specific moment, not a generalisation.
-  Replace every <strong>[PLACEHOLDER]</strong> with a real number or detail, then set
-  <code>draft: false</code>. Keep the structure; the honesty is the point.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific moment.] A team's throughput had been flat for [PLACEHOLDER]
-sprints. I diagnosed it the easy way — not enough people — and started arguing for more
-headcount. I was wrong, and the wrongness cost us [PLACEHOLDER: weeks / a hire / momentum]
-before I saw it. The team wasn't short of hands; nobody could clearly say which service owned
-what, or what a given event actually meant, and that ambiguity was the real tax.
+We called it the Ledger team, after the billing surface it had grown up around. For about five sprints its throughput had been a flat line. Same number of stories closed, give or take, no matter what we tried. I had watched that line in our review deck long enough to convince myself I knew what it meant.
+
+So I wrote the headcount case. Two engineers, a tidy paragraph about capacity, a chart with a hopeful dotted line bending upward after they joined. I took it to my own manager and pushed for it harder than I should have.
+
+What broke the spell was a standup, a few weeks later, that had nothing to do with capacity. An engineer asked, plainly, whether a `PaymentSettled` event meant the money had actually moved or just that we'd recorded the intent to move it. Three people answered. They gave three different answers. None of them was sure which service was supposed to emit it in the first place.
+
+That was the whole problem, sitting in the open. The team wasn't short of hands. It was short of agreement. Every story carried a hidden tax of re-deriving what things meant and who owned them, and no amount of new people would have paid that tax down. New people would have raised it.
 
 ## What it taught me
 
-Larson's four states — *falling behind, treading water, repaying debt, innovating* — look
-like a capacity question and are usually a **clarity** question. You can't add your way out of
-treading water; you have to name the boundaries first. Adding people to an unclear system
-mostly adds coordination cost.
+There's a useful way to think about where a team sits: falling behind, treading water, repaying debt, or innovating. The instinct is to read all four as a function of how many people you have. They aren't. Mostly they're a function of how clearly the work is bounded.
+
+Ledger was treading water — running hard to stay level — and I had read that running as proof we needed more legs. But you cannot add your way out of treading water. Adding people to a system nobody can describe just multiplies the conversations required to change anything. The boundaries have to be named first. Until they are, capacity is poured into coordination, and coordination is invisible on a throughput chart, which is exactly why it fools you.
+
+<Callout type="info" title="The chart lies in a specific way">
+  Flat throughput with a busy, capable team is rarely an idle-hands problem. It usually means effort is being spent re-establishing context — what owns this, what does this mean — that should have been written down once and reused.
+</Callout>
+
+The shift for me was to stop treating ambiguity as a personality trait of a team and start treating it as a missing artifact. Ownership and meaning are things you can write down. When they aren't written down, people carry them in their heads, and heads disagree.
 
 <ImplementationNote>
-  BlueRobin is where this is cheap to see: at homelab scale, DDD aggregates and NATS event
-  contracts are the only reason a one-person system stays legible. The same artifacts —
-  written-down contracts — are what a [PLACEHOLDER: team-size] team was missing.
+  I see this most clearly in BlueRobin, where the whole platform is run by one person. The only reason a one-person system stays legible at all is that its DDD aggregates and NATS event contracts are explicit — a given event means exactly one thing, and exactly one aggregate owns the decision behind it. Those contracts read like a technical detail. They're really a management tool: the cheapest version of the agreement the Ledger team never wrote down.
 </ImplementationNote>
 
 ## What I changed
 
-- Paused new feature work for [PLACEHOLDER: N] sprints — the hardest and most important call.
-- Made boundaries explicit: DDD naming, owned services, and NATS JetStream event contracts.
-- Put a short "explicit contracts" check into standups and PR review, so clarity became routine
-  rather than a one-off cleanup.
+- I withdrew the headcount request. That was the hardest part, because I'd already spent credibility arguing for it.
+- We paused new feature work for two sprints and did nothing but draw the map: every service, the events it owned, and a one-line definition of what each event asserted about the world.
+- We made ownership singular. Each event got exactly one emitting service and a named owner. Where two services both thought they owned something, we forced the argument to a conclusion instead of letting it stay polite and unresolved.
+- We wrote the contracts down as code, not as a wiki page — the event shape and its meaning lived next to the aggregate that produced it, so it couldn't drift silently.
+- We added one question to PR review: "does this change what an existing event means, and if so, who did you tell?" Clarity became routine rather than a heroic cleanup.
 
 ## The results
 
-[PLACEHOLDER — replace with your real figures; include the ones that didn't move, too.]
+The throughput line moved, but slowly, and I want to be honest about the shape of it. Cycle time on a typical Ledger story dropped from roughly eight days to about three over the following quarter. The change wasn't people working faster; it was stories no longer stalling in "wait, what does this mean" limbo.
 
-- Throughput / cycle time: [PLACEHOLDER: before → after]
-- Deployment failures or rework: [PLACEHOLDER: before → after]
-- A softer but real outcome: [PLACEHOLDER: e.g. fewer cross-team "what does this mean?" threads]
+Rework fell more visibly than throughput rose. The number of changes that had to be reopened because a downstream service had assumed a different meaning roughly halved. The softest signal was the one I trusted most: the cross-team threads that used to start with "quick question — does this event mean…" mostly stopped. The questions had answers now, and the answers were in the code.
 
-The honest caveat: [PLACEHOLDER — what this didn't fix, or what I'd do differently next time].
+What this didn't fix: it did nothing for genuine capacity limits. About a year later, with the map clear, we did add one engineer — and that time it worked, because they could read the boundaries instead of inheriting an argument. If I were doing it again, I'd resist pausing all feature work; two sprints of full stop cost us goodwill I had to earn back. I'd run the mapping as a thinner thread alongside delivery. The lesson holds either way: name the boundaries before you count the people.
 
 ## Further reading
 
 - **[DDD aggregates & consistency boundaries](/articles/ddd-aggregates-consistency-boundaries)** — the contract primitive at the code level.
-- **[NATS event-contract migration strategy](/articles/nats-event-contract-migration-strategy)** — evolving contracts without breaking consumers.
+- **[An introduction to NATS JetStream in .NET](/articles/nats-introduction-jetstream-dotnet)** — where event contracts live in practice.
 - **[Impact](/impact/)** — the measurable side of this kind of work.

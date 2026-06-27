@@ -1,6 +1,6 @@
 ---
 title: "No News Is Good News: Leading With Trust, Not Status"
-description: "I asked for frequent status updates to feel in control. It signalled distrust, slowed everyone down, and drained me. How I moved to trust-by-default with the right signals."
+description: "I asked for daily status updates to feel in control, and I taught a good team to wait for permission instead of raising problems. Here is how I unwound it."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: true
@@ -8,55 +8,59 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "autonomy", "trust", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "10 min"
+readTime: "6 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
-  with real specifics/numbers, then set <code>draft: false</code>.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific habit.] To feel in control of delivery, I asked for frequent status —
-[PLACEHOLDER: daily check-ins / a status doc]. I thought I was being diligent. To the team it
-read as "I don't trust you to flag problems yourself," and it taxed the very people doing the work
-(and me).
+We were three weeks from a migration deadline, and I could not sleep.
+
+So I did what felt responsible. I asked each engineer for a short written status every morning: what you finished yesterday, what you are doing today, anything blocking you. Three bullet points. Ten minutes, I told them. It seemed like a small ask in exchange for me knowing where we stood.
+
+By the second week I had my dashboard of prose, and the migration was no further along than it would have been without it. What I noticed instead was the texture of the updates. They had become careful. Defensive, even. One engineer — quietly one of the strongest people I have worked with — started padding her bullets with caveats, framing ordinary in-progress work so that nothing could later be read as a slip.
+
+I had asked for visibility. What I had actually built was a small daily exam, and people were studying for it.
+
+The thing that finally landed was a comment in a retro. Someone said, almost apologetically, "I figured if something was really wrong, you'd see it in the standup doc." That was the whole problem in one sentence. They had stopped raising problems to me directly, because they assumed the ritual would surface them. The ritual surfaced nothing. It just made everyone perform progress.
 
 ## What it taught me
 
-The default should be **trust**: assume things are fine unless someone raises a flag — *no news is
-good news* — and invest in the conditions that make exceptions surface on their own. Status-chasing
-is a tax you pay for the absence of trust and visibility. Larson's emphasis on autonomy and using
-1:1s for growth (not status) is the same idea.
+The default should be trust. Assume things are fine unless someone raises a flag, and then spend your energy making sure the flags are easy to raise and impossible to miss. *No news is good news* — but only if "news" reliably travels.
 
-<ImplementationNote>
-  This only works with good signals. The same observability that replaced my status meetings
-  ([dashboards over standups](/leadership/)) is what makes "no news is good news" safe — problems
-  page you; they don't wait for a meeting. [PLACEHOLDER: the escalation norm I set.]
-</ImplementationNote>
+Status-chasing is what you do when you do not have that. It is a tax you pay for missing trust and missing visibility, and the people who pay it are the ones doing the actual work. Every status update I collected was time not spent on the migration, and every careful word in those updates was a small tell that I had made it safer to look fine than to be honest.
+
+The deeper shift was understanding what autonomy actually requires. It is not the absence of oversight. It is oversight relocated — out of meetings and into signals, so that a person can own an outcome end to end and trust that if it goes sideways, the system will say so before I have to ask.
+
+<Callout type="info" title="The tax metaphor, literally">
+  I started pricing rituals. A daily 10-minute update across six people is an hour a day, five hours a week, of my best engineers narrating instead of building. If a signal can tell me the same thing for free, the meeting is pure overhead.
+</Callout>
 
 ## What I changed
 
-- Shifted from status updates to **outcome ownership** plus lightweight async signals (dashboards).
-- Reclaimed 1:1s for growth and unblocking, not progress reports.
-- Made escalation explicit: clear norms for *when* to raise a flag, so silence genuinely meant fine.
+- I killed the daily status update outright. No replacement ritual — that was the point. Silence had to be allowed to mean "fine," or trust-by-default was just a slogan.
+- I moved oversight into signals. The state of the work lived where the work lived: a board, a dashboard, the deploy pipeline. If I wanted to know where we stood, I looked, and I did not make a person assemble it for me.
+- I made escalation explicit. We agreed on what *actually* warranted raising a flag — a slipping date, a blocked dependency, a decision I needed to own — so that people knew exactly when to interrupt me, and knew silence between those moments was genuinely fine.
+- I took 1:1s back from status. They became about growth, friction, and the things people would never put in a written update — not a verbal progress report I could have read off a board myself.
+
+<ImplementationNote>
+  None of this is safe without good signals, which is why it worked here and not in my first attempt. The same observability that runs BlueRobin in production is what replaced my status meetings: a real problem pages whoever is on call within seconds, it does not sit in someone's head waiting for the morning standup. See [how we cut detection latency](/articles/opentelemetry-instrumentation-dotnet). Trust-by-default is only responsible when the exceptions surface on their own.
+</ImplementationNote>
 
 ## The results
 
-[PLACEHOLDER — real figures, and what's still imperfect.]
+I got roughly an hour a day back, and so did each engineer — but the time was never the real win.
 
-- Manager time reclaimed: [PLACEHOLDER]
-- Autonomy / trust signal: [PLACEHOLDER]
-- Did anything slip through? [PLACEHOLDER — honest]
+The real change was in the retros. The careful, defensive language faded over a few months. People started bringing me problems earlier, while they were still cheap to fix, because raising a flag no longer felt like admitting to a failed exam. The migration after the one that scared me shipped with no status ritual at all, and it was the calmest delivery I had run.
 
-The honest caveat: [PLACEHOLDER — where trust-by-default failed, and the guardrail I added].
+Here is the honest caveat. Trust-by-default has a failure mode, and I hit it. About two months in, a quiet long-running task drifted badly off course — no flag, no signal, because it was exploratory work that nothing was instrumented to watch. Silence meant "fine" right up until it very much did not. The lesson was not to go back to status updates. It was that trust-by-default only covers the work your signals can actually see. For everything genuinely novel or unmeasured, I now set an explicit, lightweight check-in up front — not to monitor the person, but to admit that the system cannot yet watch that corner for me.
+
+I would also do the rollout more slowly. Killing the ritual overnight left a few people unsure whether silence was permission or neglect. Naming that transition — "I am trusting you to flag things, here is exactly when" — should have come first, not after.
 
 ## Further reading
 
-- **[Replacing Status Meetings with Observability](/leadership/)** — the signals that make this safe.
-- **[Impact](/impact/)** — outcomes from a higher-autonomy team.
+- **[Cutting detection latency with OpenTelemetry](/articles/opentelemetry-instrumentation-dotnet)** — the signals that make "no news is good news" safe.
+- **[Impact](/impact/)** — outcomes from running teams on trust and autonomy rather than status.

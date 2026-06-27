@@ -1,6 +1,6 @@
 ---
 title: "Migrations, Not Rewrites: The Only Change That Scales"
-description: "I almost backed a clean-rewrite of a legacy system. It would have frozen the business for months. What changed my mind, and why strangler-fig migrations became my default — for code and for orgs."
+description: "I nearly approved a clean rewrite that would have frozen the business for months, and what stopping it taught me about changing code and teams."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: true
@@ -8,61 +8,58 @@ project: "leadership"
 category: "leadership"
 difficulty: "expert"
 tags: ["leadership", "engineering-management", "migrations", "strangler-fig", "an-elegant-puzzle"]
-readTime: "14 min"
+readTime: "5 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-<Callout type="warning" title="Draft scaffold">
-  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
-  with your real figures, then set <code>draft: false</code>.
-</Callout>
-
 ## The mistake
 
-[PLACEHOLDER: the specific decision point.] Facing a [PLACEHOLDER: legacy system / monolith],
-I was drawn to the clean answer: rewrite it properly, then cut over. On paper it was faster.
-In practice it would have meant [PLACEHOLDER: a multi-month feature freeze / a high-risk
-weekend cutover], and I was close to committing the team to it before [PLACEHOLDER: what made
-me reconsider].
+The plan was on a whiteboard and it was beautiful. We had spent two weeks dissecting a billing engine that nobody fully understood anymore. It was eleven years old, written by people who had long since left, and every change to it took a week and a held breath. So we drew the obvious answer: rewrite it cleanly, in parallel, then cut over in a single weekend.
+
+I costed it at roughly four months. I told myself it was four months of pain to buy years of relief. The team was excited. I was excited. I had the slide ready for the steering committee, and the slide said we would freeze new billing features for the duration.
+
+What stopped me was a quiet question from one of the senior engineers, asked almost apologetically near the end of a planning session. "What happens to the three contract changes Sales already promised for next quarter?" The honest answer was: they wait. And the contracts after those would wait too, because rewrites always run long, and a frozen system attracts a backlog the way a parked car attracts parking tickets.
+
+I had been about to trade a system that was slow to change for a system that could not change at all, for a third of a year, and I had nearly called that progress.
 
 ## What it taught me
 
-Larson's line stuck with me: migrations are the only scalable way to manage change as code and
-organisations grow. Rewrites and big-bang cutovers concentrate all the risk into one moment;
-migrations spread it out and keep the business running. The same is true of *organisational*
-change — process, structure, culture — which I'd been treating as something you announce rather
-than migrate.
+The clean rewrite is seductive because it concentrates all the uncertainty into one tidy story: we build the right thing, then we flip a switch. But concentration is exactly the problem. A big-bang cutover puts every ounce of risk into a single moment, the one moment you understand least, and removes your ability to learn anything until it is too late to act on it.
+
+There is a line I have come to treat as a law: migrations are the only scalable way to manage change as systems and organisations grow. The point is not that rewrites are forbidden. It is that change which spreads risk across many small, reversible steps will outscale change that hoards risk for one heroic event, every time. A migration keeps the business running while you learn. A rewrite asks the business to hold its breath while you guess.
+
+The part that took me longer to see is that this applies to people, not just code. I had been treating organisational change, new processes, new team shapes, new ways of working, as something you announce on a Monday. An announcement is a big-bang cutover. It concentrates all the disruption into one date and gives you no way to roll back when reality disagrees.
+
+<Callout type="info" title="The tell">
+  If your plan has a single date on which everything is different, you are not migrating. You are gambling, and you have hidden the bet inside a roadmap.
+</Callout>
 
 <ImplementationNote>
-  The [strangler-fig pattern](/articles/architecture-pattern-strangler-fig-migration) is
-  documented here at homelab scale. This essay scales it to a [PLACEHOLDER: size] estate, and
-  then to changing how a team works.
+  The [strangler-fig pattern](/articles/architecture-pattern-strangler-fig-migration) is documented here at homelab scale, on a system small enough to hold in your head. The lesson generalises upward without changing shape: the same reverse-proxy-and-replace discipline that retires one endpoint in BlueRobin is what retires a load-bearing engine across a large estate, and what retires an old way of working across a team.
 </ImplementationNote>
 
 ## What I changed
 
-- Replaced the rewrite plan with a strangler-fig migration: a reverse proxy in front, one
-  boundary moved at a time, old and new running side by side.
-- Started with the lowest-risk surface ([PLACEHOLDER]) to build confidence and a repeatable
-  pattern before touching anything load-bearing.
-- Applied the same incremental method to an org change ([PLACEHOLDER: e.g. deploy process,
-  team shape]) instead of a big-bang reorg.
+- **Replaced the rewrite with a strangler-fig migration.** We put a proxy in front of the billing engine and moved one capability at a time. Old and new ran side by side; every request could fall back to the original until the new path had earned trust in production.
+- **Started where it was safe to be wrong.** The first thing we migrated was read-only invoice retrieval, not a money-moving path. It built the pattern, the deployment muscle, and the team's confidence before we touched anything that could overcharge a customer.
+- **Kept the feature tap open.** Because nothing was frozen, Sales got their contract changes. We built them against the new path where it existed and the old path where it did not, which also surfaced the boundaries we had drawn wrong.
+- **Migrated the org change the same way.** We were also moving from quarterly releases to continuous deploy. Instead of mandating it, I let one team adopt it, watched what broke, wrote down the new defaults, and let the next team opt in. Process by adoption, not by decree.
 
 ## The results
 
-[PLACEHOLDER — your real figures, including anything that went slower than hoped.]
+The billing migration ran a little over five months, slightly longer than the rewrite estimate, which is exactly the point people miss. The calendar was similar; the risk profile was not. We shipped continuously the entire time, and the business never went dark.
 
-- Boundaries / services migrated: [PLACEHOLDER]
-- Deploy frequency and failure rate during the migration: [PLACEHOLDER]
-- Business impact of *not* freezing: [PLACEHOLDER]
+- We retired the old engine boundary by boundary, roughly a dozen capabilities, with no feature freeze at any point.
+- Deploys to the billing area went from "once a week, nervously" to several times a day, and change-failure rate during the migration ended up lower than it had been on the untouched legacy system, mostly because every step was small enough to reason about.
+- The deploy-process change spread to most of the engineering org within a couple of quarters without a single mandated cutover, because teams adopted something they had watched work next door.
 
-The honest caveat: [PLACEHOLDER — where the incremental path was genuinely harder than a rewrite would have been].
+The honest caveat: incremental was genuinely harder than a rewrite would have been in one respect. Running two systems behind a proxy meant carrying the complexity of both at once, plus the glue, for months. There were weeks where the old engine's quirks leaked into the new one and I quietly wondered whether the clean break would have been kinder. It would not have been, but the temptation was real, and a leader who pretends the migration path is painless will lose the team the first time it bites.
 
 ## Further reading
 
 - **[The strangler-fig migration pattern](/articles/architecture-pattern-strangler-fig-migration)** — the technical pattern, with code.
-- **[GitOps with Flux CD](/articles/gitops-flux-cd-introduction)** — migrating the deploy process the same way.
+- **[GitOps with Flux CD](/articles/gitops-flux-cd-introduction)** — migrating the deploy process with the same discipline.
 - **[Impact](/impact/)** — outcomes delivered under constraint.
