@@ -2,77 +2,43 @@
 import MainLayout from "@layouts/MainLayout.astro";
 import { getCollection } from "astro:content";
 
-// Any leadership essays already published (auto-links the cards below).
-const published = await getCollection("blog", ({ data }) => data.project === "leadership" && !data.draft);
-const publishedSlugs = new Set(published.map((p) => p.slug));
+// All leadership posts incl. drafts, so cards reflect real state:
+//   published (!draft) -> "Read" (links)   draft stub -> "Draft"   neither -> "Planned"
+const all = await getCollection("blog", ({ data }) => data.project === "leadership");
+const published = new Set(all.filter((p) => !p.data.draft).map((p) => p.slug));
+const drafted = new Set(all.filter((p) => p.data.draft).map((p) => p.slug));
 
-// Curated catalog — the director-track essays. Each opens with a mistake I made,
-// then works through what it taught me, what I changed, and what happened, in the
-// spirit of Will Larson's "An Elegant Puzzle." The top 5 are scaffolded as draft
-// stubs in the repo, ready to write.
+// Curated catalog. Each essay opens with a mistake I made, then what it taught me,
+// what I changed, and what happened — in the spirit of Will Larson's "An Elegant
+// Puzzle." Titles name the practice; the mistake lives in the opening line.
 const essays = [
-  {
-    slug: "four-states-explicit-contracts-org-turnaround",
-    title: "Four States & Explicit Contracts",
-    blurb: "The quarter I read flat velocity as a headcount problem — and learned it was a clarity problem. How explicit domain and event contracts moved a treading-water team forward.",
-    puzzle: "The four states",
-    featured: true,
-  },
-  {
-    slug: "migrations-only-scalable-change-strangler-fig-org",
-    title: "Migrations Are the Only Scalable Change",
-    blurb: "The rewrite I nearly committed to, and why strangler-fig migrations became my default for changing a codebase — and an organisation — without a freeze.",
-    puzzle: "Migrations",
-    featured: true,
-  },
-  {
-    slug: "org-design-across-continents-distributed-teams",
-    title: "Org Design Across Continents",
-    blurb: "Organising teams for convenience, then watching cross-zone decisions take days. The reorg around domain boundaries — and Conway's Law — that fixed it.",
-    puzzle: "Organizational design",
-    featured: true,
-  },
-  {
-    slug: "distributed-observability-substitute-for-synchrony",
-    title: "Observability Instead of Synchrony",
-    blurb: "The standing meeting that ate hours and decided nothing — and replacing it with team-health dashboards (Grafana/LGTM) and an async context protocol.",
-    puzzle: "Systems thinking & shared context",
-    featured: true,
-  },
-  {
-    slug: "on-call-blamelessness-incident-culture-hiring",
-    title: "On-Call Blamelessness & Hiring",
-    blurb: "The postmortem that drifted toward 'who broke it', what it cost me, and rebuilding on-call into something engineers actually want to join.",
-    puzzle: "On-call & operational excellence",
-    featured: true,
-  },
-  {
-    slug: "career-ladders-across-cultures",
-    title: "Career Ladders Across Cultures",
-    blurb: "Losing strong engineers because the only ladder ran through management — and building an IC track, with explicit regional expectations, that held.",
-    puzzle: "Career ladders & growth",
-    featured: false,
-  },
-  {
-    slug: "shipping-velocity-technical-debt-four-states",
-    title: "Velocity, Debt & the Four States",
-    blurb: "Chasing a story-point target until quality slipped. Learning to measure cycle time and stability instead, and letting velocity follow.",
-    puzzle: "Leading vs. lagging indicators",
-    featured: false,
-  },
-  {
-    slug: "knowledge-codification-ask-the-system",
-    title: "From 'Ask Victor' to 'Ask the System'",
-    blurb: "Being the onboarding bottleneck everyone routed around me — and turning runbooks, ADRs and retros into something the team could query instead.",
-    puzzle: "Scaling knowledge & onboarding",
-    featured: false,
-  },
+  // — Diagnosing & shaping teams —
+  { slug: "four-states-explicit-contracts-org-turnaround", title: "Diagnosing a Stuck Team with the Four States", blurb: "The quarter I read flat velocity as a headcount problem — and learned it was a clarity problem, not a capacity one.", puzzle: "The four states" },
+  { slug: "org-design-across-continents-distributed-teams", title: "Running a Reorg Around Domain Boundaries", blurb: "Organising teams for convenience, then watching cross-zone decisions take days. The reorg around domain boundaries — and Conway's Law — that fixed it.", puzzle: "Running a reorg" },
+  { slug: "sizing-teams-copilot-era", title: "Sizing Teams in the Copilot Era", blurb: "Assuming AI assistants meant smaller teams and linear output — and discovering the bottleneck just moved to review and context.", puzzle: "Sizing teams" },
+  { slug: "career-ladders-across-cultures", title: "Designing a Career Ladder for Senior ICs", blurb: "Losing strong engineers because the only ladder ran through management — and building an IC track, with explicit regional expectations, that held.", puzzle: "Career ladders" },
+  // — Culture & trust —
+  { slug: "low-drama-engineering-culture", title: "Building a Low-Drama Engineering Team", blurb: "Tolerating a high performer's toxic behaviour because the output was good. The math was negative — culture is what you tolerate.", puzzle: "Culture & values" },
+  { slug: "no-news-good-news-trust", title: "No News Is Good News: Leading With Trust, Not Status", blurb: "Chasing status updates to feel in control — and learning that trust-by-default, with the right signals, ships more.", puzzle: "Autonomy & trust" },
+  { slug: "on-call-blamelessness-incident-culture-hiring", title: "Building a Blameless On-Call", blurb: "The postmortem that drifted toward 'who broke it', what it cost, and rebuilding on-call into something engineers want to join.", puzzle: "On-call & operational excellence" },
+  // — Focus & delivery —
+  { slug: "reducing-wip-finishing-beats-starting", title: "Reducing WIP: Why Finishing Beats Starting", blurb: "A team that looked busy and shipped little. Limiting work in progress — not adding people — fixed throughput.", puzzle: "Systems thinking" },
+  { slug: "shipping-velocity-technical-debt-four-states", title: "Managing to Cycle Time, Not Velocity", blurb: "Chasing a story-point target until quality slipped. Measuring cycle time and stability instead, and letting velocity follow.", puzzle: "Metrics & baselines" },
+  { slug: "protecting-teams-saying-no", title: "Protecting Your Team by Learning to Say No", blurb: "Saying yes to everything to be helpful — and passing the thrash straight to the team. Becoming a filter, not a funnel.", puzzle: "Saying no" },
+  { slug: "distributed-observability-substitute-for-synchrony", title: "Replacing Status Meetings with Observability", blurb: "The standing meeting that ate hours and decided nothing — replaced with team-health dashboards and an async protocol.", puzzle: "Shared context" },
+  // — Product, roadmap & cross-functional —
+  { slug: "engineering-product-partnership", title: "Building a Real Engineering–Product Partnership", blurb: "Letting engineering settle into an order-taker relationship with product — and rebuilding it into shared ownership of outcomes.", puzzle: "Stakeholder partnership" },
+  { slug: "engineering-investment-product-roadmap", title: "Fitting Engineering Investment Into a Product Roadmap", blurb: "Letting 'tech debt later' lose every call against features — until it forced an expensive reckoning. Making it a planned, sized line.", puzzle: "Managing technical quality" },
+  { slug: "cross-team-features-incremental-milestones", title: "Aligning Cross-Team Features With Incremental Milestones", blurb: "Coordinating a cross-team feature around one big-bang date. Dependency-aware, incremental milestones fixed the slips.", puzzle: "Program sequencing" },
+  { slug: "migrations-only-scalable-change-strangler-fig-org", title: "Migrations, Not Rewrites: The Only Change That Scales", blurb: "The rewrite I nearly committed to, and why strangler-fig migrations became my default for changing a codebase — and an org.", puzzle: "Migrations" },
+  // — Scaling knowledge —
+  { slug: "knowledge-codification-ask-the-system", title: "Removing Yourself as the Onboarding Bottleneck", blurb: "Being the person everyone routed questions to — and turning runbooks, ADRs and retros into something the team could query instead.", puzzle: "Hiring & onboarding" },
 ];
 ---
 
 <MainLayout
   title="Leadership | BlueRobin"
-  description="Essays on engineering leadership — team turnaround, org design across continents, migrations, on-call culture and scaling technical discipline. Each starts with a mistake I made, grounded in Will Larson's An Elegant Puzzle."
+  description="Essays on engineering leadership — team turnaround, org design, hiring, on-call, working with product, protecting focus, and shipping cross-functional work. Each starts with a mistake I made, grounded in Will Larson's An Elegant Puzzle."
 >
   <!-- Breadcrumb -->
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
@@ -108,17 +74,18 @@ const essays = [
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         {essays.map((e) => {
-          const isPublished = publishedSlugs.has(e.slug);
+          const isPublished = published.has(e.slug);
+          const isDraft = !isPublished && drafted.has(e.slug);
+          const status = isPublished ? "Read" : isDraft ? "Draft" : "Planned";
           const Tag = isPublished ? "a" : "div";
-          const status = isPublished ? "Read" : e.featured ? "Up next" : "Planned";
           return (
             <Tag
               href={isPublished ? `/leadership/${e.slug}/` : undefined}
               class={`glass-card p-7 flex flex-col ${isPublished ? "group transition-transform hover:-translate-y-1" : ""}`}
             >
-              <div class="flex items-center justify-between mb-3">
+              <div class="flex items-center justify-between gap-3 mb-3">
                 <span class="text-[11px] font-medium px-2 py-0.5 rounded-full" style={`background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);`}>{e.puzzle}</span>
-                <span class={`text-[11px] font-medium px-2 py-0.5 rounded-full ${isPublished ? "text-complement-500" : "text-slate-500"}`} style={isPublished ? "background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);" : "background: rgba(15,23,42,0.04);"}>{status}</span>
+                <span class={`text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 ${isPublished ? "text-complement-500" : "text-slate-500"}`} style={isPublished ? "background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);" : "background: rgba(15,23,42,0.04);"}>{status}</span>
               </div>
               <h2 class="text-lg font-display font-semibold text-slate-900 mb-2">{e.title}</h2>
               <p class="text-sm text-slate-600 leading-relaxed">{e.blurb}</p>

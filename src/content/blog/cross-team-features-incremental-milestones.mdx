@@ -1,0 +1,62 @@
+---
+title: "Aligning Cross-Team Features With Incremental Milestones"
+description: "I coordinated a cross-functional feature around one big-bang integration date. The hidden dependencies surfaced late and it slipped. Dependency-aware, incremental milestones fixed it."
+pubDate: 2026-06-28
+author: "Victor Robin"
+draft: true
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "program-management", "dependencies", "milestones", "an-elegant-puzzle"]
+difficulty: "advanced"
+readTime: "12 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+<Callout type="warning" title="Draft scaffold">
+  Open with the real version of the mistake. Replace every <strong>[PLACEHOLDER]</strong>
+  with real specifics/numbers, then set <code>draft: false</code>.
+</Callout>
+
+## The mistake
+
+[PLACEHOLDER: the specific feature.] A feature spanned [PLACEHOLDER: N] teams, and I coordinated it
+around a single end-date with one big integration at the finish. Dependencies that looked fine on
+paper collided late — [PLACEHOLDER: team A waited on team B's contract] — and the whole thing slipped.
+
+## What it taught me
+
+Cross-team work fails at the **seams**, so you manage the seams: map dependencies explicitly, then
+sequence the work into **incremental milestones that each integrate and deliver something
+verifiable**. Aligning teams on the *increments* (and the dependency order) beats aligning them on a
+shared deadline. This is the same incremental-over-big-bang logic as migrations, applied to delivery.
+
+<ImplementationNote>
+  BlueRobin's architecture work makes dependencies explicit — typed contracts and
+  [the system topology](/architecture/) are the seams drawn on purpose. The org version is the same:
+  make the dependency graph visible, then walk it in increments. [PLACEHOLDER: an example.]
+</ImplementationNote>
+
+## What I changed
+
+- Built an explicit dependency map across the teams before committing a date.
+- Sequenced into incremental milestones, each with a demoable, integrated slice that retired risk.
+- Aligned teams on a shared milestone tracker showing dependencies — not just a final date.
+
+## The results
+
+[PLACEHOLDER — real figures, and what's still imperfect.]
+
+- Slip vs plan: [PLACEHOLDER: before → after]
+- Late-integration defects: [PLACEHOLDER]
+- Predictability across the program: [PLACEHOLDER]
+
+The honest caveat: [PLACEHOLDER — the overhead of milestone tracking, and where it wasn't worth it].
+
+## Further reading
+
+- **[Migrations, Not Rewrites](/leadership/)** — incremental delivery, same principle.
+- **[Architecture](/architecture/)** — the dependency seams, drawn explicitly.
+- **[Impact](/impact/)** — delivery outcomes.
