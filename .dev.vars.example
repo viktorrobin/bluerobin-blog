@@ -2,7 +2,7 @@
 # In production, set these with `wrangler secret put <NAME>` (or the dashboard).
 #
 # The access form notifies over TWO independent channels — configure either or
-# both. At least one of NTFY_WEBHOOK_URL / BREVO_API_KEY must be set.
+# both. At least one of NTFY_BLOG_URL / BREVO_API_KEY must be set.
 
 # Cloudflare Turnstile SECRET key (required). The always-passes TEST secret is
 # fine locally; use the real secret in production.
@@ -10,9 +10,9 @@ TURNSTILE_SECRET_KEY="1x0000000000000000000000000000000AA"
 
 # --- ntfy push (self-hosted) ---
 # Topic URL on the self-hosted, HA ntfy (fronted by the Cloudflare tunnel).
-NTFY_WEBHOOK_URL="https://ntfy.bluerobin.io/blog-access-requests"
+NTFY_BLOG_URL="https://ntfy.bluerobin.io/blog-access-requests"
 # Bearer token with publish rights on that topic (required — the instance needs auth).
-NTFY_TOKEN="tk_CHANGE-ME"
+NTFY_BLOG_TOKEN="tk_CHANGE-ME"
 
 # --- email (Brevo) ---
 # Brevo transactional API key. Reply-to is set to the requester so you can reply directly.

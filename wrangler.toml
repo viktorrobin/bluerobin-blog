@@ -22,12 +22,12 @@ not_found_handling = "404-page"
 # Secrets are NOT stored here. Set per environment (dashboard or wrangler):
 #   wrangler secret put TURNSTILE_SECRET_KEY          # required
 #   # ntfy channel (self-hosted): https://ntfy.bluerobin.io/<topic>
-#   wrangler secret put NTFY_WEBHOOK_URL
-#   wrangler secret put NTFY_TOKEN                     # publish token for the topic
+#   wrangler secret put NTFY_BLOG_URL
+#   wrangler secret put NTFY_BLOG_TOKEN                     # publish token for the topic
 #   # email channel (Brevo): reply-to is set to the requester
 #   wrangler secret put BREVO_API_KEY
 #   wrangler secret put CONTACT_TO_EMAIL              # optional, default victor@bluerobin.io
 #   wrangler secret put CONTACT_FROM_EMAIL            # optional, default noreply@bluerobin.io
-# At least one of {NTFY_WEBHOOK_URL, BREVO_API_KEY} must be set. Local dev reads
+# At least one of {NTFY_BLOG_URL, BREVO_API_KEY} must be set. Local dev reads
 # .dev.vars (git-ignored). The PUBLIC Turnstile site key is hardcoded in the form
 # component (it's not secret); override with build var PUBLIC_TURNSTILE_SITE_KEY.
