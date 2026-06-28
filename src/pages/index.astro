@@ -80,14 +80,14 @@ const projects = [
       </p>
 
       <div class="mt-8 flex flex-wrap items-center justify-center gap-3">
-        <a href="/impact/" class="btn-primary">See the impact</a>
-        <a href="/about/#request-access" class="btn-secondary">Work with me</a>
+        <a href="/about/#request-access" class="btn-primary">Work with me</a>
+        <a href="#projects" class="btn-secondary">Explore the projects</a>
       </div>
     </div>
   </section>
 
   <!-- Project chooser -->
-  <section class="relative py-12 sm:py-16">
+  <section id="projects" class="relative py-12 sm:py-16">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
         {projects.map((p, i) => (
@@ -137,8 +137,6 @@ const projects = [
 
       <!-- secondary links -->
       <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-        <a href="/impact/" class="hover:text-neural-400 transition-colors">Impact</a>
-        <span class="text-slate-300" aria-hidden="true">·</span>
         <a href="/leadership/" class="hover:text-neural-400 transition-colors">Leadership</a>
         <span class="text-slate-300" aria-hidden="true">·</span>
         <a href="/about/" class="hover:text-neural-400 transition-colors">About</a>
