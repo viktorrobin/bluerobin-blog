@@ -1,0 +1,50 @@
+---
+title: "Algorithms Illuminated (Part 2): Graph Algorithms and Data Structures"
+bookAuthor: "Tim Roughgarden"
+description: "The clearest graph-algorithms refresher I own — built the intuition I needed for the debug-agent's knowledge graph."
+purchaseDate: 2022-01-27
+status: "read"
+theme: "algorithms-math"
+recommendation: "recommended"
+rating: 4.3
+goodreadsRating: 4.48
+audience:
+  - "Engineers who learned graphs once and want them back"
+  - "Anyone modeling data as a graph (knowledge graphs, dependency graphs)"
+  - "Coursera Algorithms students who read faster than they listen"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "FalkorDB knowledge graph"
+    href: "/articles/falkordb-graph-database-knowledge-graph/"
+isbn: "9780999282922"
+tags:
+  - "algorithms"
+  - "graphs"
+  - "data-structures"
+  - "computer-science"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.48)">
+The best plain-English tour of graph search, shortest paths, and the four data structures you actually use. It reads like a good tutor talking, not a proof you have to survive.
+</Callout>
+
+## The one-paragraph verdict
+
+Roughgarden's gift is pacing: BFS/DFS, Dijkstra, heaps, search trees, hash tables, and bloom filters each arrive with the intuition before the machinery, and you come away knowing *why* a heap makes Dijkstra fast rather than just memorizing the bound. The "expert tutor over coffee" voice is the real product here, and the programming exercises are where the data structures finally stick. The flip side of that accessibility is real: it trades rigor and low-level implementation detail for the big picture, and it shows its origin as a companion to the author's Coursera lectures — on its own it's a touch thin if you want proofs or production-grade code. I took it as a refresher, not a reference, and on those terms it delivers.
+
+## Who should read it
+
+Read it if you learned this material once and want the intuition back without slogging through CLRS, or if you're about to model something as a graph and want the operations in your bones. Skip it if you need a rigorous, citable reference — this isn't that, and it doesn't pretend to be.
+
+## Where it earned its place
+
+The graph chapters paid off directly when I built the [FalkorDB knowledge graph](/articles/falkordb-graph-database-knowledge-graph/) for the debug-agent. Picking traversal patterns and reasoning about how a graph datastore actually walks edges was a lot less hand-wavy with this material fresh — the difference between cargo-culting a Cypher query and knowing what it costs.
+
+## Skip it if…
+
+You want depth over breadth: formal proofs, amortized-analysis derivations, or implementation details past pseudocode all live elsewhere. <ExternalCite title="Algorithms Illuminated (Part 2) on Goodreads" url="https://www.goodreads.com/book/show/41122869-algorithms-illuminated-part-2" /> If you've never written a for-loop, start with Part 1 instead.

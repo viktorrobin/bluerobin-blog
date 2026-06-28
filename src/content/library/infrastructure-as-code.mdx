@@ -1,0 +1,53 @@
+---
+title: "Infrastructure as Code"
+bookAuthor: "Kief Morris"
+description: "The book that named the patterns and anti-patterns I was already fighting — light on code, heavy on judgment."
+purchaseDate: 2020-12-19
+status: "read"
+theme: "sre-devops"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.15
+audience:
+  - "Platform & SRE engineers"
+  - "Anyone running GitOps or a homelab cluster"
+  - "Teams moving from hand-built servers to declarative infra"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "GitOps with Flux"
+    href: "/articles/gitops-flux-cd-introduction/"
+  - label: "Kustomize overlays"
+    href: "/articles/kustomize-overlays-multi-environment/"
+isbn: "9781491924358"
+tags:
+  - "infrastructure-as-code"
+  - "gitops"
+  - "devops"
+  - "kubernetes"
+  - "automation"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.15)">
+The clearest articulation of the principles behind declarative infrastructure I've read. Buy it for the vocabulary and the anti-patterns, not for copy-paste code.
+</Callout>
+
+## The one-paragraph verdict
+
+Morris is methodical, and it shows: he moves from first principles to good practice without ever feeling heavy, and his naming of anti-patterns — snowflake servers, configuration drift, the automation-fear spiral — gave words to problems I'd been firefighting blind. The public 4.15 is earned. Where it falls short is concrete code: the examples are deliberately tool-agnostic and stay shallow, so you won't leave knowing Terraform or Ansible any better. It's also heavily server-centric, which dates it slightly in a Kubernetes-and-GitOps world. I still treat it as the *why* behind every declarative decision I make, and reach for tool docs for the *how*.
+
+## Who should read it
+
+Platform and SRE engineers, and anyone who has felt the dread of touching a server nobody dares rebuild. It's most valuable early — before you've calcified bad habits into Bash. Skip it if you want a hands-on Terraform tutorial, or if you already think and work declaratively by reflex.
+
+## Where it earned its place
+
+The "reproducible, disposable, consistent" mantra is exactly what I lean on with [GitOps and Flux](/articles/gitops-flux-cd-introduction/) — the cluster is the artifact of a repo, not a pet I SSH into. His warnings about config drift across environments are the whole reason I reach for [Kustomize overlays](/articles/kustomize-overlays-multi-environment/) instead of forked, hand-edited manifests per stage.
+
+## Skip it if…
+
+You need running code more than principles, or you've already internalized declarative infra in production. Veterans will find the ideas familiar, and tutorial-seekers will find it abstract. <ExternalCite title="Infrastructure as Code on Goodreads" url="https://www.goodreads.com/book/show/56357345" />

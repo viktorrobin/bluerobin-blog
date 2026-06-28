@@ -1,0 +1,55 @@
+---
+title: "Observability Engineering"
+bookAuthor: "Charity Majors, Liz Fong-Jones & George Miranda"
+description: "The book that finally made the monitoring-vs-observability distinction click — even if it leans on its authors' product."
+purchaseDate: 2026-02-17
+status: "read"
+theme: "sre-devops"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 3.72
+audience:
+  - "SREs and platform engineers"
+  - "Anyone instrumenting distributed systems"
+  - "Teams drowning in dashboards and alerts"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "OpenTelemetry in .NET"
+    href: "/articles/opentelemetry-instrumentation-dotnet/"
+  - label: "NATS monitoring (Prometheus + Grafana)"
+    href: "/articles/nats-monitoring-prometheus-grafana/"
+  - label: "The Debug Agent"
+    href: "/debug-agent/"
+isbn: "9781492076445"
+tags:
+  - "observability"
+  - "sre"
+  - "distributed-systems"
+  - "telemetry"
+  - "debugging"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 3.72)">
+The clearest articulation I've found of *why* high-cardinality, wide events beat pre-aggregated metrics. The public rating undersells it because the book reads as part-manifesto, part-Honeycomb-pitch.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the book that made me stop treating observability as "metrics plus logs plus traces" and start treating it as the ability to ask new questions of your system without shipping new code. The chapters on high-cardinality data and structured wide events are genuinely load-bearing — they reframed how I instrument. The honest criticism, and it's the one Goodreads reviewers keep raising, is that the authors work at Honeycomb and it shows: the implementation guidance is thin and several arguments quietly assume a Honeycomb-shaped backend. Read it for the mental model, not the runbook.
+
+## Who should read it
+
+SREs, platform engineers, and anyone wiring telemetry into a distributed system should read it cover to cover. If you've already internalized cardinality, structured events, and the cost of pre-aggregation, you can skim — there's not much new tooling here. People looking for a vendor-neutral OpenTelemetry tutorial will be frustrated; this is a why book, not a how book.
+
+## Where it earned its place
+
+The wide-event model went straight into the [Debug Agent](/debug-agent/), which leans on high-cardinality trace context to do root-cause analysis instead of pattern-matching on metric thresholds. It also shaped how I argued for [OpenTelemetry in .NET](/articles/opentelemetry-instrumentation-dotnet/) — emitting rich spans over counters — and pushed me to treat the [NATS Prometheus + Grafana](/articles/nats-monitoring-prometheus-grafana/) setup as the floor, not the ceiling, of what the platform should be able to answer.
+
+## Skip it if…
+
+Skip it if you want vendor-neutral, copy-paste instrumentation recipes, or if you've already built a high-cardinality pipeline — you'll spend most of the book nodding at things you already do.

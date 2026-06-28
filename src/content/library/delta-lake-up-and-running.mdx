@@ -1,0 +1,51 @@
+---
+title: "Delta Lake: Up and Running"
+bookAuthor: "Bennie Haelen & Dan Davis"
+description: "A clean on-ramp to the lakehouse format — just don't expect it to go deep."
+purchaseDate: 2024-11-12
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 4.0
+audience:
+  - "Data & platform engineers new to the lakehouse"
+  - "Architects evaluating Delta vs. a plain object store"
+  - "Anyone running their first Spark + Delta pipeline"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "Embedding pipeline"
+    href: "/articles/embedding-pipeline-ollama-qdrant/"
+isbn: "9781098139728"
+tags:
+  - "data-engineering"
+  - "lakehouse"
+  - "storage"
+  - "spark"
+  - "software-architecture"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.0)">
+A tidy, well-paced introduction to the Delta format and the medallion pattern. It gets you running fast and stops well short of mastery.
+</Callout>
+
+## The one-paragraph verdict
+
+The book does exactly what the title promises: it walks you from "why data lakes rot" through ACID transactions, time travel, schema enforcement, and the bronze/silver/gold layout, with a companion repo that actually runs. The history-and-motivation framing in the early chapters is the strongest part — it explains *why* the transaction log exists, not just how to call the API. The honest limitation is scope: it sticks to Delta Lake OSS and explicitly punts on the Databricks-proprietary optimizations, and it leans hard on Spark notebooks, so almost everything is shown through one engine. By the back half it stays introductory where I wanted depth — concurrency semantics, file compaction trade-offs, and the log internals get a wave rather than a chapter.
+
+## Who should read it
+
+Read it if you are standing up your first Delta pipeline or deciding whether the format earns its place over raw Parquet on object storage. It is a good shared starting point for a team. Skip it if you already operate a lakehouse in production or want a deep dive on the transaction-log internals — you will outrun it in a weekend.
+
+## Where it earned its place
+
+The medallion-layering and schema-enforcement ideas here shaped how I staged the [embedding pipeline](/articles/embedding-pipeline-ollama-qdrant/): raw documents land untouched, a validated middle layer enforces shape before anything is embedded, and only the curated layer feeds the vector store. Treating the boundary between layers as a contract — not a convenience — came straight from this book.
+
+## Skip it if…
+
+You want engine-agnostic depth or hard production guidance on compaction, vacuum, and concurrent writers. This is an on-ramp, not a reference; once you're moving, it has little left to teach you. <ExternalCite title="Delta Lake: Up and Running on Goodreads" url="https://www.goodreads.com/book/show/199913762-delta-lake" />

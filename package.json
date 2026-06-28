@@ -9,6 +9,7 @@
     "build": "astro check && astro build",
     "preview": "astro preview",
     "astro": "astro",
+    "covers": "node scripts/fetch-covers.mjs",
     "lint": "eslint . --ext .ts,.tsx,.astro",
     "format": "prettier --write ."
   },

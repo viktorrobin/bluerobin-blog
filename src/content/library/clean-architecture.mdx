@@ -1,0 +1,55 @@
+---
+title: "Clean Architecture"
+bookAuthor: "Robert C. Martin"
+description: "The dependency rule is worth the price; the padding around it is not."
+purchaseDate: 2024-12-20
+status: "read"
+theme: "software-architecture"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.18
+audience:
+  - "Backend & platform engineers"
+  - "Anyone drawing layer boundaries in a real codebase"
+  - "Engineers who keep coupling business rules to frameworks"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "CQRS in .NET"
+    href: "/articles/architecture-pattern-cqrs-implementation-dotnet/"
+  - label: "FastEndpoints API design"
+    href: "/articles/fastendpoints-api-development/"
+isbn: "9780134494166"
+tags:
+  - "software-architecture"
+  - "clean-architecture"
+  - "dependency-rule"
+  - "solid"
+  - "dotnet"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.18)">
+One idea — point your dependencies at your business rules, not your framework — carries the whole book. Read it for the dependency rule and skim the rest.
+</Callout>
+
+## The one-paragraph verdict
+
+The core is genuinely good: the dependency rule, the concentric layers, and the insistence that frameworks and databases are details you should be able to defer. Martin states it plainly and the diagrams stick. But the book is padded — chapters on number systems and component cohesion that earn their keep slower than they should, and a habit of repeating the thesis where one clean statement would do. Reviewers who say it starts and ends weakly with a strong middle are right. The examples also lean Java-flavored and stay abstract; you do the work of translating principle into your own stack.
+
+## Who should read it
+
+Backend and platform engineers who keep finding their domain logic married to an ORM or a web framework. It pays off most if you've already felt that pain. Architects who want a shared vocabulary for boundaries will get one. Skip it if you want concrete, end-to-end reference implementations — that's not what this is.
+
+## Where it earned its place
+
+The dependency rule is the spine of how I structure services. It shows up directly in [CQRS in .NET](/articles/architecture-pattern-cqrs-implementation-dotnet/), where handlers depend on abstractions and the persistence layer points inward, and in [FastEndpoints API design](/articles/fastendpoints-api-development/), where the endpoint is a delivery detail and the domain stays ignorant of it. In the **archives** pipeline the same rule kept the embedding and graph stores swappable behind ports.
+
+## Skip it if…
+
+You want patterns you can paste, not principles you have to apply. If you've already internalized SOLID and dependency inversion, this is a long restatement of things you live by.
+
+<ExternalCite title="Clean Architecture on Goodreads" url="https://www.goodreads.com/book/show/18043011-clean-architecture" />

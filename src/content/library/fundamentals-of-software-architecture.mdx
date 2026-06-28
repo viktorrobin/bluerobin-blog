@@ -1,0 +1,53 @@
+---
+title: "Fundamentals of Software Architecture"
+bookAuthor: "Mark Richards & Neal Ford"
+description: "The book that gave me vocabulary for trade-offs I was already making blind."
+purchaseDate: 2023-07-12
+status: "read"
+theme: "software-architecture"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.18
+audience:
+  - "Senior engineers moving toward an architect role"
+  - "Anyone weighing architecture styles against trade-offs"
+  - "Platform engineers picking decomposition boundaries"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Cloud-to-homelab decision"
+    href: "/articles/architecture-decision-cloud-to-homelab/"
+  - label: "System architecture overview"
+    href: "/architecture/"
+isbn: "9781492043454"
+tags:
+  - "software-architecture"
+  - "architecture-styles"
+  - "trade-offs"
+  - "distributed-systems"
+  - "decision-making"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.18)">
+The single best on-ramp for engineers who design systems by instinct and want a shared vocabulary for it. It names the trade-offs you were already making blind.
+</Callout>
+
+## The one-paragraph verdict
+
+The real value here is the framing: architecture is the stuff that's hard to change, every decision is a trade-off, and "it depends" is the honest default answer. The eight architecture-style chapters are the best part — each ends with a star-rating table comparing deployability, scalability, fault tolerance and cost, and those tables alone are worth the price. It's also genuinely useful on the soft skills architects actually fail at: diagramming, presenting, and negotiating. The criticism in the reviews is fair, though — it runs long, the prose can be flat, and a few recommendations are stated more confidently than the evidence warrants. Read it for the mental model, not the prescriptions.
+
+## Who should read it
+
+Senior engineers about to inherit "architect" in their title, and anyone who has to defend a decomposition boundary to a room that disagrees. It maps the territory and hands you the language to argue precisely. If you've already shipped and operated several distributed systems, much of it will feel like formalized intuition — skim the style tables and move on.
+
+## Where it earned its place
+
+The trade-off-first habit shaped the Archives project and the [cloud-to-homelab decision](/articles/architecture-decision-cloud-to-homelab/): instead of "which is better," I forced the question into "better at what, worse at what." The star-rating tables are basically what my [system architecture overview](/architecture/) does when it scores each option against the characteristics that actually mattered for a single-operator cluster.
+
+## Skip it if…
+
+You want concrete build instructions or deep distributed-systems theory — this is deliberately broad and conceptual. <ExternalCite title="Fundamentals of Software Architecture on Goodreads" url="https://www.goodreads.com/book/show/44144493-fundamentals-of-software-architecture" /> If you already think in trade-offs by reflex, you'll outrun it fast.

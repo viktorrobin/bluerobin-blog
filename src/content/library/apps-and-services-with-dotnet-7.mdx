@@ -1,0 +1,53 @@
+---
+title: "Apps and Services with .NET 7"
+bookAuthor: "Mark J. Price"
+description: "A wide, shallow tour of the .NET 7 stack — useful as a map, not a manual."
+purchaseDate: 2022-12-29
+status: "read"
+theme: "programming-craft"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 4.0
+audience:
+  - ".NET developers surveying the modern stack"
+  - "Engineers picking between Blazor, gRPC, and GraphQL"
+  - "Anyone who already finished Price's fundamentals book"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Blazor real-time NATS updates"
+    href: "/articles/blazor-real-time-nats-updates/"
+isbn: "9781801813433"
+tags:
+  - "dotnet"
+  - "blazor"
+  - "grpc"
+  - "graphql"
+  - "programming-craft"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.0)">
+A solid breadth-first map of the .NET 7 ecosystem. Buy it to decide what to learn next, not to actually learn it deeply.
+</Callout>
+
+## The one-paragraph verdict
+
+Price does what he's good at: marching you through a wide stack — Blazor, .NET MAUI, gRPC, GraphQL, EF Core, background services — with runnable projects at every stop. The hands-on, code-first format is genuinely the draw, and the chapters are well organized. But the same breadth is the weakness: most topics get a working example and then the book moves on, so you come away knowing *that* gRPC exists and roughly how to wire it, not how it behaves under load. It also ages fast — pinned to .NET 7, it was already a version behind real work within a year. Treat it as a guided survey, not a reference.
+
+## Who should read it
+
+.NET developers who want a current mental model of the platform's moving parts, and anyone weighing Blazor vs. a JS frontend or gRPC vs. GraphQL for a service boundary. Skip it if you already work across this stack daily — you'll find it thin — or if you haven't done the fundamentals yet, because it assumes them.
+
+## Where it earned its place
+
+The Blazor and gRPC chapters were what nudged me toward server-rendered Blazor for an internal dashboard, which became the [Blazor real-time NATS updates](/articles/blazor-real-time-nats-updates/) write-up — pushing live changes into the UI over a message bus instead of polling. The book got me to the starting line; the interesting parts were everything it didn't cover.
+
+## Skip it if…
+
+You need depth on any single technology here, or you're allergic to books welded to a specific framework version. This is a tour, and tours don't go deep.
+
+<ExternalCite title="Apps and Services with .NET 7 on Goodreads" url="https://www.goodreads.com/book/show/63336482-apps-and-services-with-net-7" />

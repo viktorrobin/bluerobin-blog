@@ -170,6 +170,127 @@ export const PROJECTS = {
   },
 } as const;
 
+// Library theme metadata — the grouping dimension for the reviewed bookshelf at
+// /library/. Keep keys in sync with the `theme` enum in src/content/config.ts.
+// `flagged: true` marks themes that are off-topic for an engineering portfolio
+// (kept, but surfaced in a "confirm keep or drop" strip on the hub).
+export const LIBRARY_THEMES = {
+  "software-architecture": {
+    title: "Software Architecture",
+    description: "System design, DDD, distributed systems, and the patterns behind the platform",
+    color: "neural",
+    flagged: false,
+  },
+  "programming-craft": {
+    title: "Programming Craft",
+    description: "Clean code, refactoring, testing, and the languages I build in",
+    color: "complement",
+    flagged: false,
+  },
+  "sre-devops": {
+    title: "SRE & DevOps",
+    description: "Reliability, observability, Kubernetes, and GitOps delivery",
+    color: "glow",
+    flagged: false,
+  },
+  "ai-ml": {
+    title: "AI & Machine Learning",
+    description: "LLMs, retrieval, MLOps, and the science the agents run on",
+    color: "neural",
+    flagged: false,
+  },
+  "security-cyber": {
+    title: "Security & Cyber",
+    description: "Cryptography, threat history, and the human element of security",
+    color: "aurora",
+    flagged: false,
+  },
+  "algorithms-math": {
+    title: "Algorithms & Maths",
+    description: "Algorithms, linear algebra, causality, and the foundations underneath",
+    color: "complement",
+    flagged: false,
+  },
+  "leadership-management": {
+    title: "Leadership & Management",
+    description: "Teams, culture, org design, and the craft of leading engineering",
+    color: "neural",
+    flagged: false,
+  },
+  "product-startup": {
+    title: "Product & Startup",
+    description: "Product management, lean delivery, UX, and building things people want",
+    color: "glow",
+    flagged: false,
+  },
+  "strategy-influence": {
+    title: "Strategy & Influence",
+    description: "Strategy, persuasion, systems thinking, and clearer decisions",
+    color: "aurora",
+    flagged: false,
+  },
+  "productivity-mind": {
+    title: "Productivity & Mind",
+    description: "Habits, focus, and how the mind actually gets hard things done",
+    color: "complement",
+    flagged: true,
+  },
+  "money-finance": {
+    title: "Money & Finance",
+    description: "Investing, the psychology of money, and personal finance",
+    color: "glow",
+    flagged: true,
+  },
+  "philosophy-reflection": {
+    title: "Philosophy & Reflection",
+    description: "Stoicism, Taoism, and quality — the books I think with, not from",
+    color: "neural",
+    flagged: true,
+  },
+  "fiction-literature": {
+    title: "Fiction & Literature",
+    description: "Science fiction and novels — the off-duty shelf",
+    color: "aurora",
+    flagged: true,
+  },
+  "history-society": {
+    title: "History & Society",
+    description: "Intelligence, conflict, capitalism, and the world the tech lives in",
+    color: "complement",
+    flagged: true,
+  },
+  "craft-hobbies": {
+    title: "Craft & Hobbies",
+    description: "Chess, photography, cars, and cooking — practice away from the keyboard",
+    color: "glow",
+    flagged: true,
+  },
+} as const;
+
+// Verdict metadata for library entries — "should I use this or not".
+export const RECOMMENDATIONS = {
+  essential: {
+    label: "Essential",
+    description: "A book I'd hand to anyone working in this area",
+    color: "neural",
+  },
+  recommended: {
+    label: "Recommended",
+    description: "Worth your time if the topic is on your path",
+    color: "complement",
+  },
+  situational: {
+    label: "Situational",
+    description: "Useful for a specific need or moment, not a must-read",
+    color: "glow",
+  },
+  skip: {
+    label: "Skip",
+    description: "I read it so you don't have to — borrow the summary instead",
+    color: "aurora",
+  },
+} as const;
+
 // Difficulty metadata
 export const DIFFICULTIES = {
   beginner: {

@@ -5,7 +5,7 @@ import { getCollection } from "astro:content";
 // Get all published posts for the search index (drafts are excluded so
 // scaffolded/unfinished posts never surface in search results).
 const posts = await getCollection("blog", ({ data }) => !data.draft);
-const searchData = posts.map((post) => ({
+const postData = posts.map((post) => ({
   slug: post.slug,
   title: post.data.title,
   description: post.data.description,
@@ -14,6 +14,22 @@ const searchData = posts.map((post) => ({
   tags: post.data.tags,
   content: post.body.slice(0, 1000), // First 1000 chars for search
 }));
+
+// Library book reviews share the same search index. `theme` stands in for
+// `category`, the author is folded into `tags`, and `project: "library"` routes
+// results to /library/<slug>/ (see basePath logic below).
+const books = await getCollection("library", ({ data }) => !data.draft);
+const bookData = books.map((book) => ({
+  slug: book.slug,
+  title: book.data.title,
+  description: book.data.description,
+  category: book.data.theme,
+  project: "library",
+  tags: [...book.data.tags, book.data.bookAuthor],
+  content: book.body.slice(0, 1000),
+}));
+
+const searchData = [...postData, ...bookData];
 
 const searchDataJson = JSON.stringify(searchData);
 ---
@@ -200,7 +216,7 @@ const searchDataJson = JSON.stringify(searchData);
       }
 
       const selectedStyle = isSelected ? 'background: rgba(0,153,253,0.10); border-left: 2px solid rgba(0,153,253,0.60);' : 'border-left: 2px solid transparent;';
-      const basePath = item.project === 'debug-agent' ? '/debug-agent' : item.project === 'leadership' ? '/leadership' : '/articles';
+      const basePath = item.project === 'debug-agent' ? '/debug-agent' : item.project === 'leadership' ? '/leadership' : item.project === 'library' ? '/library' : '/articles';
 
       return `
         <a
@@ -283,7 +299,7 @@ const searchDataJson = JSON.stringify(searchData);
   function navigateToSelected(): void {
     if (selectedIndex >= 0 && currentResults[selectedIndex]) {
       const result = currentResults[selectedIndex].item;
-      const basePath = result.project === 'debug-agent' ? '/debug-agent' : result.project === 'leadership' ? '/leadership' : '/articles';
+      const basePath = result.project === 'debug-agent' ? '/debug-agent' : result.project === 'leadership' ? '/leadership' : result.project === 'library' ? '/library' : '/articles';
       window.location.href = `${basePath}/${result.slug}/`;
     }
   }

@@ -1,0 +1,55 @@
+---
+title: "Patterns of Enterprise Application Architecture"
+bookAuthor: "Martin Fowler"
+description: "Dated examples, durable vocabulary — still the catalog I reach for when naming a layer."
+purchaseDate: 2022-02-14
+status: "read"
+theme: "software-architecture"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.11
+audience:
+  - "Backend & platform engineers"
+  - "Anyone designing a domain or persistence layer"
+  - "Architects who argue about layering"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Outbox messaging reliability"
+    href: "/articles/architecture-pattern-outbox-messaging-reliability/"
+  - label: "Caching & invalidation"
+    href: "/articles/architecture-pattern-caching-invalidation-strategies/"
+isbn: "9780321127426"
+tags:
+  - "software-architecture"
+  - "design-patterns"
+  - "persistence"
+  - "domain-modeling"
+  - "enterprise"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.11)">
+A reference, not a read-through. The patterns gave me a shared vocabulary; the J2EE-era code around them did not.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the book that put names to things I'd been building badly without them — Unit of Work, Data Mapper, Identity Map, and the Domain Model vs. Transaction Script split that every layered app eventually has to settle. The catalog format holds up: each pattern has a clear "when to use it" and an honest trade-off section, which is more than most pattern books manage. The cost is age. The examples are early-2000s Java and C#, some patterns (looking at you, anonymous distributed-object remoting advice) read as cautionary tales now, and the prose is uneven — a few entries are crisp, others bury the idea under setup. I keep it for the vocabulary and the decision framing, not the listings.
+
+## Who should read it
+
+Backend and platform engineers who design persistence or domain layers, and anyone who's been in the "should this be a service or an entity" argument and lost. Skip it if you want copy-paste modern code or a tutorial — it's a reference catalog, and it assumes you already feel the pain it's naming.
+
+## Where it earned its place
+
+The trade-off framing here is what I lean on when reliability patterns get fuzzy. Fowler's discipline of pairing each pattern with its failure mode shaped how I wrote up the [Outbox messaging reliability](/articles/architecture-pattern-outbox-messaging-reliability/) approach — naming the consistency guarantee, then the cost. Same with [Caching & invalidation](/articles/architecture-pattern-caching-invalidation-strategies/): the book's Identity Map and stale-read discussion is the ancestor of how I reason about invalidation today.
+
+## Skip it if…
+
+You want current code or you've already internalized the vocabulary elsewhere. The ideas have diffused into every framework since; if you don't need the canonical source, a blog summary covers most of it.
+
+<ExternalCite title="Patterns of Enterprise Application Architecture — Goodreads" url="https://www.goodreads.com/book/show/70156.Patterns_of_Enterprise_Application_Architecture" />

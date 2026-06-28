@@ -1,0 +1,50 @@
+---
+title: "Refactoring"
+bookAuthor: "Martin Fowler"
+description: "The book that gave a shared vocabulary to changes I was already making by feel."
+purchaseDate: 2022-02-14
+status: "read"
+theme: "programming-craft"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.23
+audience:
+  - "Engineers working in large, long-lived codebases"
+  - "Anyone planning an incremental migration over a rewrite"
+  - "Tech leads who need shared language for code change"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Strangler-fig migration"
+    href: "/articles/architecture-pattern-strangler-fig-migration/"
+isbn: "9780134757599"
+tags:
+  - "refactoring"
+  - "software-design"
+  - "legacy-code"
+  - "programming-craft"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.23)">
+The value isn't the individual moves — it's that everyone on the team can now name them. "Extract function," "introduce parameter object," and "split phase" stopped being arguments and became checklist items.
+</Callout>
+
+## The one-paragraph verdict
+
+Most of the refactorings are things a competent engineer already does on instinct, and the common criticism is fair: read cover to cover, the catalog feels obvious and repetitive. That misses the point. Fowler's contribution is the naming and the discipline — small, behavior-preserving steps backed by tests, each one mechanical enough to describe precisely. The second edition's switch to JavaScript examples reads cleanly, and the opening worked example is still the best argument for the method. It's a reference you raid, not a novel you finish.
+
+## Who should read it
+
+Read it if you spend your days inside code other people wrote, or if you're about to argue for incremental change over a rewrite and need the vocabulary to win that argument. Skip it if you're a beginner still learning to make code work at all — refactoring assumes you already have tests and a working system to improve.
+
+## Where it earned its place
+
+The catalog shaped how I framed the [strangler-fig migration](/articles/architecture-pattern-strangler-fig-migration/) for **archives**: the whole approach is just Fowler's small-steps discipline scaled from functions to services. Each slice we peeled off the legacy path was a behavior-preserving move with a test harness around it — the book's core idea, applied at architecture altitude.
+
+## Skip it if…
+
+You want advanced design theory or novel techniques — this is a disciplined catalog of the basics, not a frontier. If "extract function" is already muscle memory and you don't lead a team that needs shared language for it, your money goes further elsewhere.

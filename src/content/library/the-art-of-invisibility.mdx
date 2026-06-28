@@ -1,0 +1,50 @@
+---
+title: "The Art of Invisibility"
+bookAuthor: "Kevin D. Mitnick"
+description: "Sharp threat awareness wrapped around OPSEC advice that's already aging."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.9
+audience:
+  - "Engineers building a personal threat model"
+  - "Anyone curious how surveillance and tracking actually work"
+  - "Self-hosters thinking about exposure and metadata"
+relatedProjects: []
+relatedLinks:
+  - label: "Cloudflare Tunnel"
+    href: "/articles/cloudflare-tunnel-secure-service-exposure/"
+isbn: "9780316380508"
+tags:
+  - "security"
+  - "privacy"
+  - "opsec"
+  - "surveillance"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.9)">
+  Worth it for the mental model of how you get tracked. Treat the step-by-step
+  recipes as illustrative, not a checklist to run in 2026.
+</Callout>
+
+## The one-paragraph verdict
+
+Mitnick is at his best explaining *mechanism*: how metadata leaks, how a single reused identifier collapses your anonymity, how convenience quietly sells you out. Those chapters earn the price on their own. The criticism the reviews keep raising is fair, though — the operational advice is uneven and dates fast, and some of his "go fully invisible" walkthroughs are internally inconsistent (buy a burner phone, then leave it powered on at home). Read it for the adversary's-eye view, not as a runbook.
+
+## Who should read it
+
+Engineers who want an honest picture of their attack surface and how tracking actually works will get the most out of it. Anyone hoping for a current, copy-paste hardening guide should look elsewhere — the specific tooling has moved on and the extreme nation-state-grade threat model doesn't fit most people.
+
+## Where it earned its place
+
+The book's core lesson — minimize what you expose, and assume every open port is a tracked identifier — is exactly the instinct behind reaching for a [Cloudflare Tunnel](/articles/cloudflare-tunnel-secure-service-exposure/) instead of punching holes in the firewall. No inbound ports, no advertised origin IP: the same reduce-your-footprint thinking, applied to a homelab.
+
+## Skip it if…
+
+You want a maintained, practical privacy checklist, or your real threat model is "don't get phished," not "evade a state actor." For that, the book is overkill and partly out of date.

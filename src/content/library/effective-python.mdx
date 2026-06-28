@@ -1,0 +1,51 @@
+---
+title: "Effective Python"
+bookAuthor: "Brett Slatkin"
+description: "The book that turned my Python from working to idiomatic — read it once a year."
+purchaseDate: 2021-01-18
+status: "read"
+theme: "programming-craft"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.3
+audience:
+  - "Python developers past the beginner stage"
+  - "Engineers shipping production Python, not scripts"
+  - "Anyone reviewing other people's Python"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "spaCy NER document analysis"
+    href: "/articles/spacy-ner-document-analysis/"
+  - label: "Ensemble NER (spaCy + LLM)"
+    href: "/articles/ensemble-ner-spacy-llm-voting/"
+isbn: "9780134853987"
+tags:
+  - "python"
+  - "programming-craft"
+  - "code-quality"
+  - "best-practices"
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.3)">
+The single most useful Python book I own. Each item is a self-contained, defensible opinion on how to write the language well — no padding, no tutorial filler.
+</Callout>
+
+## The one-paragraph verdict
+
+Slatkin took Scott Meyers' "Effective C++" item format and applied it to Python, and it works better than it has any right to. Each entry is a few pages: a concrete recommendation, the reasoning, and a worked example you can actually steal. The deep dives into Python's object model — generators, descriptors, metaclasses, the way `__init_subclass__` and the data model fit together — are the real value; this is where idiomatic Python stops being folklore. It is not exhaustive the way <ExternalCite title="Fluent Python" url="https://www.goodreads.com/book/show/22800567-fluent-python" /> is, and a few early items are basic enough that a seasoned dev will skim them. That trade is fine: I'd rather have 90 sharp opinions I can finish than 800 pages I won't.
+
+## Who should read it
+
+Anyone writing Python past the "it runs" stage, and especially anyone who reviews other people's Python and wants a shared vocabulary for *why* a snippet is wrong. Skip it if you've never written a class or a comprehension — start with a tutorial first, then come back.
+
+## Where it earned its place
+
+The concurrency and generator items shaped the document pipeline behind Archives. The [spaCy NER document analysis](/articles/spacy-ner-document-analysis/) stage leans on generator-based streaming straight out of the book's "prefer generators" guidance, and the [Ensemble NER (spaCy + LLM)](/articles/ensemble-ner-spacy-llm-voting/) voting layer uses the data-model and `dataclass` patterns Slatkin argues for instead of ad-hoc dicts. Cleaner diffs, fewer surprises.
+
+## Skip it if…
+
+You want a reference manual or an exhaustive deep dive — this is a curated set of opinions, not a complete map of the language. Reach for Fluent Python instead.

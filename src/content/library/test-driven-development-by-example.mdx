@@ -1,0 +1,52 @@
+---
+title: "Test-Driven Development: By Example"
+bookAuthor: "Kent Beck"
+description: "The book that made the red-green-refactor loop feel like a default, not a chore."
+purchaseDate: 2023-12-04
+status: "read"
+theme: "programming-craft"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.10
+audience:
+  - "Engineers new to disciplined TDD"
+  - "Anyone who writes tests after the fact and wants to flip the order"
+  - "Tech leads codifying a team testing rhythm"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Integration testing with Testcontainers"
+    href: "/articles/integration-testing-dotnet-testcontainers/"
+  - label: "Consumer-driven contract testing"
+    href: "/articles/pact-consumer-driven-contract-testing/"
+isbn: "9780321146533"
+tags:
+  - "testing"
+  - "tdd"
+  - "programming-craft"
+  - "refactoring"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.10)">
+The clearest articulation of red-green-refactor I've read, and short enough to finish in an afternoon. Read it for the rhythm, not for a blueprint of how TDD survives a real system.
+</Callout>
+
+## The one-paragraph verdict
+
+Beck's strength is that he shows the work instead of preaching it: the money example and the xUnit example are written test-by-test, mistakes left in, so you watch the loop tighten in real time. The chapters are tiny and almost entirely signal, which is rare. The honest criticism — and it's the one every reviewer lands on — is that the examples are toys. A multi-currency `Money` class and a test framework bootstrapping itself never face the things that make testing hard in production: I/O, time, concurrency, a database. The prose is also showing its age. But the discipline it teaches is timeless, and most engineers who think they "do TDD" are actually writing tests last; this book fixes that.
+
+## Who should read it
+
+Read it if you write tests after the implementation and suspect you'd design better the other way around — that's the gap it closes. Tech leads codifying a team's testing rhythm will get a shared vocabulary out of it. Skip it if you already practice TDD fluently; you'll find it remedial. It is a primer on the loop, not a reference on test architecture.
+
+## Where it earned its place
+
+The red-green-refactor instinct carried straight into the Archives pipeline, where I let failing tests drive the entity-extraction boundaries before writing the parsers. Where Beck stops — real infrastructure — is exactly where [integration testing with Testcontainers](/articles/integration-testing-dotnet-testcontainers/) and [consumer-driven contract testing](/articles/pact-consumer-driven-contract-testing/) pick up: the same discipline applied to a Postgres instance and a service boundary instead of a `Money` class.
+
+## Skip it if…
+
+You want guidance on testing distributed systems, async workers, or anything with real I/O — the book deliberately stays in the small, and you'll have to bridge that gap yourself.

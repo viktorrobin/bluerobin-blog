@@ -1,0 +1,50 @@
+---
+title: "Data Mesh"
+bookAuthor: "Zhamak Dehghani"
+description: "The reframe is worth your time; the page count is not."
+purchaseDate: 2022-10-27
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.8
+audience:
+  - "Platform & data engineers"
+  - "Architects scaling analytical data across teams"
+  - "Engineering leaders weighing a decentralization bet"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "Knowledge-graph entity modelling"
+    href: "/articles/bluerobin-features-knowledge-graph-entity-modelling/"
+isbn: "9781492092391"
+tags:
+  - "data-architecture"
+  - "distributed-systems"
+  - "domain-driven-design"
+  - "platform-engineering"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.8)">
+A genuinely useful reframe of analytical data ownership, buried inside a book that's roughly twice as long as the idea requires.
+</Callout>
+
+## The one-paragraph verdict
+
+Dehghani's core move — treat data as a product, push ownership into the domains that produce it, and build a self-serve platform plus federated governance underneath — is the right diagnosis for why centralized data lakes rot at scale. That framing alone earned the book its reputation, and it deserves the credit. But the execution is where it wears thin: it's heavy on principle and manifesto, light on the concrete mechanics you actually hit in implementation, and it repeats itself enough that the signal-to-page ratio drops sharply after the first third. Reviewers consistently land on the same two notes — bold, pioneering reframe; far too theoretical and could've been 150 pages. I agree with both.
+
+## Who should read it
+
+Read it if you're an architect or platform engineer staring at a centralized data team that has become a bottleneck, and you need vocabulary and a model to argue for decentralization. It's also worth it for leaders deciding whether to make that org bet at all. Skip it if you're looking for a build guide — there's no reference implementation here, and you'll leave with principles, not patterns.
+
+## Where it earned its place
+
+The "data as a product, owned by the domain" lens carried directly into BlueRobin's [knowledge-graph entity modelling](/articles/bluerobin-features-knowledge-graph-entity-modelling/): instead of one team curating a central schema, each domain owns its entities and the contracts they expose downstream. That single idea did more for the design than the rest of the book combined.
+
+## Skip it if…
+
+You want implementation detail, you've already internalized domain-driven design, or you resent paying for 300 pages to absorb a 40-page argument. The thesis is sound; the packaging is not.

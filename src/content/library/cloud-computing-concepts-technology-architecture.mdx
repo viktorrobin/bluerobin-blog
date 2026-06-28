@@ -1,0 +1,50 @@
+---
+title: "Cloud Computing: Concepts, Technology & Architecture"
+bookAuthor: "Thomas Erl"
+description: "A solid vendor-neutral taxonomy buried under a lot of padding."
+purchaseDate: 2020-12-19
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.72
+audience:
+  - "Engineers new to cloud architecture vocabulary"
+  - "Architects who want a vendor-neutral mental model"
+  - "Anyone prepping for a cloud-fundamentals cert"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "Cloud-to-homelab decision"
+    href: "/articles/architecture-decision-cloud-to-homelab/"
+isbn: "9780133387520"
+tags:
+  - "cloud-computing"
+  - "software-architecture"
+  - "distributed-systems"
+  - "infrastructure"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.72)">
+A clean, provider-agnostic taxonomy of cloud mechanisms — useful as a shared vocabulary, but it takes 500 pages to say what a sharp 150 would.
+</Callout>
+
+## The one-paragraph verdict
+
+Erl's strength is the same here as in his SOA books: he names things precisely and draws the same boxes the same way every time. The catalogue of cloud mechanisms — load balancers, hypervisors, resource pools, SLA monitors — gives you a vendor-neutral way to reason about architecture before AWS or Azure marketing gets in the way. The cost is verbosity: the layered, repetitive structure pads concepts that deserve a paragraph into whole sections, and there are no exercises or worked problems to anchor any of it. Read it for the model, not the depth. <ExternalCite title="Goodreads — Cloud Computing: Concepts, Technology & Architecture" url="https://www.goodreads.com/book/show/17133059-cloud-computing" />
+
+## Who should read it
+
+Engineers who need the *vocabulary* of cloud architecture and want it decoupled from any single provider — this is a good first pass. Cert candidates will find the taxonomy maps neatly onto exam objectives. Skip it if you already operate clusters daily; you've absorbed all of this by osmosis and the prose will frustrate you.
+
+## Where it earned its place
+
+The vendor-neutral framing is exactly what made the [cloud-to-homelab decision](/articles/architecture-decision-cloud-to-homelab/) legible. Erl's mechanism vocabulary let me describe what I was actually giving up and rebuilding — resource pooling, automated scaling, SLA monitoring — without leaning on any one cloud's branded service names, which kept the trade-off honest.
+
+## Skip it if…
+
+You want hands-on depth, real pricing math, or current managed-service detail. This is a conceptual reference, not an operations manual, and it shows its 2013 age.

@@ -1,0 +1,55 @@
+---
+title: "Graph Algorithms: Practical Examples in Apache Spark & Neo4j"
+bookAuthor: "Mark Needham & Amy E. Hodler"
+description: "A solid centrality/pathfinding primer wrapped in a vendor demo — read the first half, skip the tooling."
+purchaseDate: 2022-02-12
+status: "read"
+theme: "algorithms-math"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 4.06
+audience:
+  - "Engineers wiring up a knowledge graph"
+  - "Anyone reaching for PageRank or community detection"
+  - "Neo4j / Spark users who want intuition, not just API docs"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "FalkorDB knowledge graph"
+    href: "/articles/falkordb-graph-database-knowledge-graph/"
+  - label: "Correlation-first blame propagation (PageRank)"
+    href: "/debug-agent/correlation-first-blame-propagation-pagerank-baro/"
+isbn: "9781492047681"
+tags:
+  - "graph-algorithms"
+  - "neo4j"
+  - "pagerank"
+  - "knowledge-graphs"
+  - "spark"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.06)">
+The first half is a genuinely good, diagram-heavy intro to centrality, pathfinding, and community detection. The second half is a Neo4j/Spark product tour that has aged badly — buy it for the concepts, not the code.
+</Callout>
+
+## The one-paragraph verdict
+
+The book does one thing very well: it builds intuition for the algorithm families — pathfinding, centrality, community detection — with clear diagrams and worked examples that don't assume a graph-theory background. Reviewers consistently praise that first half, and they're right. Where it falls down is the back end: chapter 7 onward turns into "Graph Algorithms in Practice," which is really a vendor walkthrough, and the code has rotted against newer Neo4j versions with dead repo links to match. It also quietly assumes you already know Cypher and Spark. Treat it as a concepts book that happens to ship runnable snippets, not the reverse.
+
+## Who should read it
+
+Read it if you're standing up a knowledge graph and need to reason about which algorithm fits which question — "what's important here" (centrality) versus "what clusters together" (community detection). Skip it if you want a rigorous algorithms text (this isn't CLRS) or an up-to-date Neo4j/Spark manual; the official docs have long since overtaken it.
+
+## Where it earned its place
+
+The centrality chapter is exactly what I leaned on for [correlation-first blame propagation (PageRank)](/debug-agent/correlation-first-blame-propagation-pagerank-baro/) in the debug-agent — ranking which service in a failing dependency graph is most likely the culprit. The same intuition fed how I think about traversal and weighting in the [FalkorDB knowledge graph](/articles/falkordb-graph-database-knowledge-graph/). The math came from elsewhere; this book made the choices obvious.
+
+## Skip it if…
+
+You want depth over breadth, or you're buying it as a Neo4j tutorial — the practical chapters are dated and partly broken, and you'll spend more time fixing examples than learning from them.
+
+<ExternalCite title="Graph Algorithms on O'Reilly" url="https://www.oreilly.com/library/view/graph-algorithms/9781492047674/" />

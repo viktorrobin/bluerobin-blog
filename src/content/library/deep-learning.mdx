@@ -1,0 +1,50 @@
+---
+title: "Deep Learning"
+bookAuthor: "Ian Goodfellow, Yoshua Bengio & Aaron Courville"
+description: "The rigorous reference you reach for, not the book you learn from."
+purchaseDate: 2018-08-01
+status: "read"
+theme: "ai-ml"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.4
+audience:
+  - "ML engineers who want the math under the framework"
+  - "Anyone building or debugging neural-net pipelines"
+  - "Readers with linear algebra, calculus and probability already in hand"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Embedding pipeline"
+    href: "/articles/embedding-pipeline-ollama-qdrant/"
+isbn: "9780262035613"
+tags:
+  - "deep-learning"
+  - "machine-learning"
+  - "neural-networks"
+  - "reference"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.4)">
+The definitive single-volume treatment of the theory, and a book I keep on the desk rather than read cover to cover. Buy it for the reference value, not the tutorial.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the most rigorous one-volume map of deep learning's foundations I own — the probabilistic framing, optimization, and architecture chapters are dense in the good way, and the names on the spine are the ones in half the papers I read. The Part I math refresher alone earns shelf space. But it is honestly a poor place to *learn* the basics: the backpropagation and intro-network explanations are some of the weakest I've seen for a book this authoritative, and there is almost no code, so nothing here runs without you porting it yourself. Treat it as a reference that assumes you already fight with linear algebra, calculus, and probability daily. Read that way, it rarely disappoints.
+
+## Who should read it
+
+ML engineers who want the math beneath the framework abstractions, and anyone debugging a network who needs to understand *why* a choice fails, not just which knob to turn. Skip it if you're after a first introduction or a hands-on, code-first path — it will frustrate you and you'll bounce off the notation.
+
+## Where it earned its place
+
+The optimization and representation-learning chapters shaped how I reasoned about the [embedding pipeline](/articles/embedding-pipeline-ollama-qdrant/) behind the `archives` agents — specifically why normalization and distance choice matter once vectors leave the model and hit a store. The book gave me the vocabulary to argue those trade-offs instead of guessing.
+
+## Skip it if…
+
+You want to ship a model this week, or you learn best from runnable examples. This is a theory reference, not a cookbook — pair it with something hands-on and come back when you need the rigor. See <ExternalCite title="Deep Learning on Goodreads" url="https://www.goodreads.com/en/book/show/24072897-deep-learning" />.

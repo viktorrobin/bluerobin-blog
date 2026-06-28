@@ -1,0 +1,47 @@
+---
+title: "Linear Algebra Done Right"
+bookAuthor: "Sheldon Axler"
+description: "The determinant-free path to actually understanding linear maps — abstract, but worth it."
+purchaseDate: 2023-01-16
+status: "read"
+theme: "algorithms-math"
+recommendation: "recommended"
+rating: 4.3
+goodreadsRating: 4.42
+audience:
+  - "Engineers who want intuition, not just matrix mechanics"
+  - "Self-learners revisiting linear algebra properly"
+  - "Anyone heading into ML or graphics who skipped the theory"
+relatedProjects: []
+relatedLinks: []
+isbn: "9783319110790"
+tags:
+  - "linear-algebra"
+  - "mathematics"
+  - "fundamentals"
+  - "self-study"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.42)">
+Axler delays determinants for ten chapters and builds the whole subject from linear maps instead. It rewires how you think about the material — but it is a theory book, not a how-to.
+</Callout>
+
+## The one-paragraph verdict
+
+The book's pitch is in the title: do linear algebra *right*, meaning operator-first, with determinants postponed until they fall out naturally near the end. It works. The proofs are clean, the exposition is unhurried, and concepts like eigenvalues and spectral theorems stop feeling like magic incantations. The honest cost is that it is abstract and light on computation and applications — you will not learn to crunch a large system or see why any of this matters to a renderer or a solver here. I also found the lack of worked numerical examples occasionally frustrating when I wanted to sanity-check intuition against arithmetic.
+
+## Who should read it
+
+Read it if you can already row-reduce a matrix in your sleep but never understood *why* the machinery works. It is a second pass, not a first one. Skip it as an introductory text — without prior exposure, the abstraction-first ordering will leave you with elegant proofs and no ground to stand on.
+
+## Where it earned its place
+
+This is the book that made linear algebra click for me as structure rather than bookkeeping. It gave me the habit of asking what a transformation *does* before reaching for its matrix — a framing that pays off any time eigenstuff shows up in embeddings, PCA, or graphics. Pure intellectual payoff; no project tie-in, and I am fine with that. See <ExternalCite title="Linear Algebra Done Right (author's site)" url="https://linear.axler.net/" />.
+
+## Skip it if…
+
+You need to ship something that does numerical linear algebra next week, or you are after applications and code. This book trades all of that for conceptual clarity — a great deal, but only if clarity is what you came for.

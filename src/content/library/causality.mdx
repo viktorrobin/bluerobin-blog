@@ -1,0 +1,53 @@
+---
+title: "Causality"
+bookAuthor: "Judea Pearl"
+description: "The reference text for do-calculus — foundational, but not the book you learn from."
+purchaseDate: 2019-03-01
+status: "read"
+theme: "algorithms-math"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 4.17
+audience:
+  - "Engineers building causal or root-cause systems"
+  - "ML practitioners past correlation who want the formal apparatus"
+  - "Anyone needing the do-calculus rules cited correctly"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "Correlation-first blame propagation"
+    href: "/debug-agent/correlation-first-blame-propagation-pagerank-baro/"
+  - label: "StackGraph world-model RCA"
+    href: "/debug-agent/stackgraph-neuro-symbolic-world-model-rca/"
+isbn: "9780521895606"
+tags:
+  - "causal-inference"
+  - "algorithms-math"
+  - "root-cause-analysis"
+  - "statistics"
+  - "reference"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.17)">
+The definitive formal treatment of structural causal models and the do-calculus. Indispensable as a reference, punishing as a first read — keep it on the shelf, not on the nightstand.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the book that put structural causal models, the do-operator, and the three rules of do-calculus on a rigorous footing, and it earned its <ExternalCite title="Lakatos Award" url="https://en.wikipedia.org/wiki/Causality_(book)" /> for good reason. When you need to cite the identifiability conditions correctly, this is the source — not a blog post that paraphrases it. But the common Goodreads complaint is fair: Pearl is a brilliant theorist and an uneven writer. Chapters jump in difficulty, notation arrives before motivation, and the proofs assume you already half-believe the conclusion. I got more from re-reading sections than from any linear pass.
+
+## Who should read it
+
+Read it if you are building systems that reason about cause, not just correlation — and you need the formal machinery to be exactly right. ML practitioners who have hit the ceiling of "controlling for confounders" by hand will find the vocabulary they were missing. Skip it if you want an accessible on-ramp; <ExternalCite title="The Book of Why" url="https://www.goodreads.com/book/show/36204378-the-book-of-why" /> is the gentler door into the same ideas.
+
+## Where it earned its place
+
+It shaped how I think about blame. The distinction between seeing and intervening is exactly what separates [correlation-first blame propagation](/debug-agent/correlation-first-blame-propagation-pagerank-baro/) — ranking suspects by observed co-movement — from the [StackGraph world-model RCA](/debug-agent/stackgraph-neuro-symbolic-world-model-rca/), which asks the interventional question: which node, if changed, breaks the failure. Pearl's framing is why the second approach exists at all.
+
+## Skip it if…
+
+You want intuition over rigor, or you are not actually going to build something that needs identifiability proofs. As a textbook it is hard going, and there are kinder teachers for the same material.

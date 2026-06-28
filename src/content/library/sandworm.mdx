@@ -1,0 +1,51 @@
+---
+title: "Sandworm"
+bookAuthor: "Andy Greenberg"
+description: "The book that made me stop treating network segmentation as optional."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "recommended"
+rating: 4.3
+goodreadsRating: 4.34
+audience:
+  - "Platform and infrastructure engineers"
+  - "Anyone designing network trust boundaries"
+  - "Security-curious readers who want the story behind the CVEs"
+relatedProjects: []
+relatedLinks:
+  - label: "Zero-trust mTLS & identity"
+    href: "/articles/zero-trust-architecture-mtls-tokens-identity/"
+  - label: "K8s network policies (zero trust)"
+    href: "/articles/kubernetes-network-policies-zero-trust/"
+isbn: "9780525564638"
+tags:
+  - "cybersecurity"
+  - "infrastructure"
+  - "threat-modeling"
+  - "zero-trust"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.34)">
+Greenberg traces NotPetya from a Ukrainian accounting server to a billion-dollar global blast radius, and it lands as a working argument for why flat networks are a liability. Read it for the systems thinking, not the spy-thriller cover.
+</Callout>
+
+## The one-paragraph verdict
+
+This is reported journalism, not a security manual, and it earns the comparison to a good thriller — the pacing is relentless and the BlackEnergy-to-NotPetya throughline is genuinely clarifying. Greenberg is good at the part that usually gets lost: how a single trusted update channel becomes a worm that erases Maersk and Merck without ever "targeting" them. The flip side of that talent is the occasional drift into doom-narration, and if you already live in this domain the technical depth is thin — you get the shape of the attacks, rarely the internals. It also repeats its own beats; the back third circles. Still, the central lesson holds up under scrutiny.
+
+## Who should read it
+
+Platform and infra engineers who keep deferring segmentation work should read it as motivation — it makes lateral movement viscerally concrete. It's also a clean entry point for security-curious generalists. Skip it if you want packet-level forensics or a defender's playbook; this is the why, not the how.
+
+## Where it earned its place
+
+NotPetya is the reason I stopped trusting the inside of my own network. That conviction is exactly what [zero-trust mTLS and identity](/articles/zero-trust-architecture-mtls-tokens-identity/) is built around — every call authenticated, no implicit trust from "it's on the LAN." The blast-radius argument also drove the default-deny posture in [Kubernetes network policies](/articles/kubernetes-network-policies-zero-trust/): a compromised pod should reach nothing it wasn't explicitly granted.
+
+## Skip it if…
+
+You want hands-on detection or response technique — this is narrative history, and a security practitioner hunting depth will outpace it fast.

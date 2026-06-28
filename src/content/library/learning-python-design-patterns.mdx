@@ -1,0 +1,50 @@
+---
+title: "Learning Python Design Patterns"
+bookAuthor: "Chetan Giridhar"
+description: "A serviceable GoF-in-Python refresher — thin, occasionally sloppy, but it does the job if you keep expectations low."
+purchaseDate: 2021-09-02
+status: "read"
+theme: "programming-craft"
+recommendation: "situational"
+rating: 3.0
+goodreadsRating: 2.87
+audience:
+  - "Python developers new to the GoF catalog"
+  - "Engineers wanting a fast pattern refresher"
+  - "Self-taught coders without a CS-patterns background"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "spaCy NER document analysis"
+    href: "/articles/spacy-ner-document-analysis/"
+isbn: "9781785888038"
+tags:
+  - "python"
+  - "design-patterns"
+  - "software-craft"
+  - "object-oriented"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.0 · public 2.87)">
+A competent walk through the creational, structural, and behavioral patterns in idiomatic Python 3 — useful as a refresher, not as the one book you keep.
+</Callout>
+
+## The one-paragraph verdict
+
+The book does the obvious thing well: it takes the Gang of Four catalog and shows each pattern in plain Python 3, one chapter at a time, with enough motivation that you understand *why* before the *how*. Factory, Proxy, Observer, and the rest are all here, and the examples are short enough to read in a sitting. The problems are equally plain — at ~140 pages it is thin, several code listings carry typos and small bugs, and a few examples feel contrived rather than drawn from real systems. The public 2.87 average is harsh but not unfair: this is a starter, not a reference.
+
+## Who should read it
+
+Read it if you came to Python without a formal patterns grounding and want the vocabulary fast. It is a fine bridge from "I write classes" to "I recognise a Strategy when I see one." Skip it if you have already absorbed GoF or Pythonic equivalents — you will outpace it in an afternoon and resent the errata.
+
+## Where it earned its place
+
+The Strategy and Factory chapters mapped almost directly onto the pluggable extractor design in [Archives](/articles/spacy-ner-document-analysis/), where swapping NER backends behind a stable interface kept the document-analysis pipeline from hard-coding spaCy. Naming the pattern made the refactor a five-minute conversation instead of an argument.
+
+## Skip it if…
+
+Pass if you want depth, rigour, or production-grade examples — the brevity that makes it approachable also makes it shallow, and the uncorrected mistakes will annoy anyone who reads code carefully.
