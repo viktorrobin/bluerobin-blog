@@ -8,7 +8,8 @@ permissions:
 
 jobs:
   cite:
-    runs-on: ubuntu-latest
+    # Self-hosted ARC runner — hosted ubuntu-latest budget exhausted on free plan (GIT-1, COST-1, ADR-029)
+    runs-on: bluerobin-blog
     steps:
       - name: Check PR body cites a requirement ID
         env:
