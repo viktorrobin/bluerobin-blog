@@ -1,6 +1,6 @@
 ---
 title: "Replacing Status Meetings with Observability"
-description: "I created a weekly status meeting to feel in control of delivery; it ate hours and decided nothing — here is what replaced it."
+description: "A weekly status meeting reassures the manager and decides nothing. Observable system state beats reported status on accuracy, freshness, and reach."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: false
@@ -8,55 +8,43 @@ project: "leadership"
 category: "leadership"
 difficulty: "advanced"
 tags: ["leadership", "engineering-management", "observability", "async", "an-elegant-puzzle"]
-readTime: "5 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-The meeting was called "Delivery Sync." I named it myself, which should have been the first warning.
+A standing status meeting feels like control and usually delivers reassurance instead. Most of what it collects is already true somewhere more reliable than memory, and the meeting bills the team for the difference.
 
-It started after a release slipped and I was caught flat-footed in front of my own boss. I had no good answer for why, so I did the thing anxious managers do: I added a meeting. Forty-five minutes, every week, the whole team, going around the room so everyone could say what they were working on.
+I ran one. After a release slipped and I was caught flat-footed, I added a weekly 45-minute "Delivery Sync" — the whole team, going around the room. It felt informative until I priced it: eight engineers, 45 minutes, plus the context-switch tax on either side, is eight to ten engineering-hours a week. I went back through six weeks of my notes and counted the decisions made in that room. There were two. We reversed one by Thursday. The meeting wasn't informing me; it was reassuring me.
 
-For a while it felt like control. I had a recurring slot on the calendar where, in theory, I would always know the state of delivery. I would nod, take notes, ask the occasional sharp question, and leave feeling informed.
+## The model
 
-Then I actually looked at it. Eight engineers, forty-five minutes, plus the fifteen-minute tax on either side where people stop coding to context-switch in and out. Call it eight to ten engineering-hours a week, every week, for a meeting whose output I could not name. I went back through six weeks of my own notes and tried to count the decisions that had been made in that room. I found two. One of them we reversed by Thursday.
-
-The meeting was not informing me. It was reassuring me. Those are not the same thing, and I had been billing the team for the difference.
-
-## What it taught me
-
-A team runs on shared context — everyone holding a roughly accurate picture of what is happening, so they can act without checking in first. I had been treating that context as something I manufactured by getting people in a room and having them recite. But most of what we recited was already true somewhere more reliable than memory.
-
-What shipped, what is failing, who is burning through their error budget, where the queue is backing up — that is not status, that is *state*. It is observable. And observed state beats reported state on every axis I care about: it is more accurate, it is always current, and it is available to everyone at once instead of trapped in a forty-five-minute window I happened to schedule.
-
-The other half of the lesson was about knowing which levers are actually mine to pull. A manager has a small number of real controls — what gets measured, what gets surfaced, what the team agrees is worth interrupting work for. A standing meeting felt like a control but mostly consumed the very attention it claimed to coordinate. The instrumentation we already had was the better lever; I just had not wired it to the job the meeting was failing to do.
+A team runs on shared context — everyone holding a roughly accurate picture so they can act without checking in first. What shipped, what's failing, who's burning error budget, where the queue backs up: that isn't status, it's *state*, and state is observable. Observed state beats reported state on every axis that matters — more accurate, always current, available to everyone at once instead of trapped in a window you happened to schedule. A manager has only a few real controls (what gets measured, what gets surfaced, what's worth interrupting work for); a standing meeting feels like one but mostly consumes the attention it claims to coordinate.
 
 <Callout type="info" title="Status is a snapshot; state is the system">
   If a piece of information changes between the moment someone says it and the moment someone acts on it, a meeting is the wrong place to keep it. Put it where it stays true.
 </Callout>
 
+## What to do
+
+- **Build a "team health" dashboard as a first-class artifact:** deploy frequency, change-failure rate, time-to-restore, and current error-budget burn per service. One screen, always on, owned like production code.
+- **Replace the meeting with a short async review.** Post the dashboard with three or four sentences of narration ("budget tight on the ingest path, two PRs stuck in review") and keep the comment window open a couple of days.
+- **Define what still earns synchronous time:** decisions with real disagreement, anything touching a person directly, and incident command. If it fits on the dashboard, it's banned from the calendar.
+- **Make the dashboard your source of truth upward,** so you stop privately re-deriving state the team can already see. Same picture, top to bottom.
+
 <ImplementationNote>
-  BlueRobin runs a full LGTM stack — Prometheus, Loki, Tempo, Grafana — fed by OpenTelemetry. The realisation that ported straight to the day job: the same instrumentation that lets the debug agent reason about a failing system can also answer "how are we doing this week" without anyone scheduling a thing. The dashboard that diagnoses an incident is, with a few extra panels, the dashboard that retires the standing meeting about it.
+  BlueRobin runs a full LGTM stack — Prometheus, Loki, Tempo, Grafana — fed by OpenTelemetry. The same instrumentation that lets the debug agent reason about a failing system answers "how are we doing this week" without anyone scheduling a thing. The dashboard that diagnoses an incident is, with a few extra panels, the dashboard that retires the standing meeting about it.
 </ImplementationNote>
-
-## What I changed
-
-- Built a "team health" dashboard as a first-class artifact: deploy frequency, change-failure rate, time-to-restore, and current error-budget burn per service. One screen, always on, owned like production code rather than maintained out of goodwill.
-- Killed Delivery Sync. In its place: a short async review every Monday — I post the dashboard with three or four sentences of narration ("budget tight on the ingest path, two PRs stuck in review"), and the comment window stays open until Wednesday.
-- Defined what still earns synchronous time. Not status. Decisions with real disagreement, anything touching a person directly, and incident command. If a thing fit on the dashboard, it was banned from the calendar.
-- Made the dashboard the source of truth in my own reporting upward, so I stopped privately re-deriving the state the team could already see. Same picture, top to bottom.
 
 ## The results
 
-We got back most of the meeting — roughly eight engineering-hours a week, give or take, the moment the recurring slot disappeared. That number is soft; some of it migrated into reading and commenting on the async review. The honest version is that we converted synchronous attention into asynchronous attention and came out ahead, not that we conjured free time.
+We recovered roughly eight engineering-hours a week the moment the recurring slot disappeared — though some migrated into reading and commenting on the async review; the honest version is that we converted synchronous attention into asynchronous and came out ahead, not that we conjured free time. Incident calls got sharper: with state already on screen we argued about the fix, not the facts, and time-to-restore on the messier incidents fell from around a day to a few hours over the quarter (we tightened on-call at the same time, so the dashboard didn't do that alone).
 
-Incident conversations got noticeably sharper. We used to spend the first stretch of a call reconstructing what had even happened; with the state already on screen, we walked in arguing about the fix instead of the facts. Time-to-restore on the messier incidents came down from somewhere around a day to a few hours over the following quarter — though I will not pretend the dashboard did that alone; we tightened on-call at the same time.
-
-What it did not fix: the quiet ones. A status meeting, for all its waste, gave reticent people a scheduled moment to surface a worry. The dashboard shows me the system; it does not show me the engineer who is stuck and not saying so. I had to add that synchrony back — short, regular one-on-ones — because some context genuinely does not instrument. If I were doing it again I would have stood those up *first*, before touching the meeting, instead of discovering the gap after I had already removed the floor.
+The caveat: a dashboard shows the system, not the engineer who is stuck and not saying so. A status meeting at least gave reticent people a scheduled moment to surface a worry. I had to add that synchrony back as short, regular one-on-ones — and I'd stand those up *first* next time, before removing the meeting, rather than discovering the gap after.
 
 ## Further reading
 
