@@ -1,0 +1,50 @@
+---
+title: "Mastering Object-Oriented Python"
+bookAuthor: "Steven F. Lott"
+description: "A deep tour of Python's dunder methods that sprawls past its title."
+purchaseDate: 2021-08-28
+status: "read"
+theme: "programming-craft"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.8
+audience:
+  - "Intermediate Python devs ready to go past tutorials"
+  - "Library authors designing class hierarchies and protocols"
+  - "Anyone reverse-engineering Python's special methods"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Text chunking strategies"
+    href: "/articles/text-chunking-strategies-rag/"
+isbn: "9781783280971"
+tags:
+  - "python"
+  - "object-oriented"
+  - "software-design"
+  - "programming-craft"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.8)">
+Genuinely strong on Python's special methods and class internals. The reach into persistence, serialization, and testing turns it into three half-books wearing one title.
+</Callout>
+
+## The one-paragraph verdict
+
+The best parts of this book are the deep dives into Python's dunder methods — `__new__`, descriptors, `__getattr__`, the numeric and container protocols — where Lott explains not just the syntax but *why* the data model behaves the way it does. That material is hard to find written this clearly, and it changed how I design classes. The trouble is the title oversells the focus: large stretches drift into SQLite, shelve, REST, and unit testing, which are fine topics but dilute the object-oriented thesis. The Packt editing also shows in places — uneven prose and a few examples that feel padded. Read it for the protocols, skim the rest.
+
+## Who should read it
+
+Intermediate Python developers who already write classes but don't fully understand the data model behind them — this is where it earns its keep. Library and framework authors designing hierarchies or custom protocols will get the most value. Beginners should not start here, and anyone wanting a tight, modern OO-design treatise will find the scope too diffuse.
+
+## Where it earned its place
+
+The protocol chapters paid off directly when I built the document model for [Archives](/articles/text-chunking-strategies-rag/). Treating chunks as objects with well-behaved `__len__`, `__iter__`, and equality semantics — rather than passing dicts around — made the [chunking pipeline](/articles/text-chunking-strategies-rag/) far easier to reason about and test. The book's framing of "make your objects act like Python expects" was the concrete idea I kept reaching for.
+
+## Skip it if…
+
+You want a focused, opinionated guide to OO design, or you're past the intermediate stage and already fluent in the data model. At that point the protocol chapters are review and the rest is reference material you'd sooner look up.

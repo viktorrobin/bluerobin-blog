@@ -1,0 +1,52 @@
+---
+title: "The Phoenix Project"
+bookAuthor: "Gene Kim, Kevin Behr & George Spafford"
+description: "A DevOps fable that smuggles real systems thinking past your defenses."
+purchaseDate: 2022-12-28
+status: "read"
+theme: "sre-devops"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.26
+audience:
+  - "Engineering managers and tech leads"
+  - "Platform and SRE engineers"
+  - "Anyone untangling IT-to-business friction"
+relatedProjects:
+  - "leadership"
+relatedLinks:
+  - label: "Replacing status meetings with observability"
+    href: "/leadership/distributed-observability-substitute-for-synchrony/"
+  - label: "Migrations, not rewrites"
+    href: "/leadership/migrations-only-scalable-change-strangler-fig-org/"
+isbn: "9780988262591"
+tags:
+  - "devops"
+  - "theory-of-constraints"
+  - "engineering-management"
+  - "flow"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.26)">
+A novel that teaches the Theory of Constraints by stealth. Read it for the mental model, not the prose.
+</Callout>
+
+## The one-paragraph verdict
+
+The trick here is that it's a business novel, and the trick mostly works. Watching Bill drown in unplanned work, then map his constraint, then drain the queue, lands harder than any whiteboard ever did — the Three Ways stick because you watched them fail first. The recurring praise is right: it makes flow, WIP limits, and constraint thinking feel obvious in retrospect. The recurring criticism is also right: the characters are cardboard, the mysterious mentor Erik is insufferable, and the final act tips into a vendor pitch where everything resolves a little too cleanly. Read it for the model, skim the melodrama.
+
+## Who should read it
+
+Engineering managers, tech leads, and anyone living in the gap between IT and the business — this book gives you shared vocabulary for "unplanned work" and "the constraint" that's worth more than the plot. SREs and platform engineers will recognize every fire. Skip it if you already think in queues and Goldratt; you'll be ahead of the cast the whole way.
+
+## Where it earned its place
+
+The Second Way — feedback loops over status theater — is exactly the argument I made in [Replacing status meetings with observability](/leadership/distributed-observability-substitute-for-synchrony/): you don't coordinate flow by talking about it, you instrument it. And Bill's refusal to do a big-bang re-architecture is the same bet behind [Migrations, not rewrites](/leadership/migrations-only-scalable-change-strangler-fig-org/) — reduce batch size, ship the strangler, never stop the line.
+
+## Skip it if…
+
+You want a rigorous treatment rather than a parable — go to the source (Goldratt's <ExternalCite title="The Goal" url="https://www.goodreads.com/book/show/113934.The_Goal" />) or the <ExternalCite title="DevOps Handbook" url="https://www.goodreads.com/book/show/26083308-the-devops-handbook" />. The fiction wrapper is the whole pitch; if it grates, you'll get more from the manuals.

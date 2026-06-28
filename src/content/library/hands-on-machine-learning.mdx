@@ -1,0 +1,52 @@
+---
+title: "Hands-On Machine Learning with Scikit-Learn, Keras & TensorFlow"
+bookAuthor: "Aurélien Géron"
+description: "The one ML book I'd hand a backend engineer who needs working models, not a math degree."
+purchaseDate: 2021-08-27
+status: "read"
+theme: "ai-ml"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.66
+audience:
+  - "Backend & platform engineers shipping their first ML feature"
+  - "Engineers who want intuition before theory"
+  - "Anyone moving from scikit-learn into deep learning"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Ensemble NER (spaCy + LLM)"
+    href: "/articles/ensemble-ner-spacy-llm-voting/"
+  - label: "spaCy NER document analysis"
+    href: "/articles/spacy-ner-document-analysis/"
+isbn: "9781492032649"
+tags:
+  - "machine-learning"
+  - "scikit-learn"
+  - "tensorflow"
+  - "deep-learning"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.66)">
+The fastest path from "I can write Python" to "I shipped a model that works." It earns the praise; just know the deep-learning half is a moving target.
+</Callout>
+
+## The one-paragraph verdict
+
+Géron does the thing most ML books refuse to: he builds intuition first and saves the math for when you actually need it. Part 1 walks scikit-learn end to end — pipelines, cross-validation, the un-glamorous data-prep work nobody else dwells on — and Part 2 takes you into Keras and TensorFlow without pretending it's easy. Reviewers who waded through twenty ML books keep landing on this one as the best, and I agree. The honest catch: it's light on theory by design, so if you want proofs you'll look elsewhere — and the TensorFlow chapters age faster than the rest, because the API keeps moving under them.
+
+## Who should read it
+
+Read it if you're a backend or platform engineer who needs a working model this quarter and wants intuition before notation. The exercises are worth doing, not skimming. Skip it if you're after a rigorous statistical-learning treatment — this is a builder's book, not a theorist's.
+
+## Where it earned its place
+
+The pipeline-and-evaluation discipline from Part 1 is exactly what carried over into the NER work behind Archives. Treating models as components you measure, version, and ensemble — rather than oracles — shaped the [Ensemble NER (spaCy + LLM)](/articles/ensemble-ner-spacy-llm-voting/) voting setup, and the feature-and-evaluation habits show up directly in the [spaCy NER document analysis](/articles/spacy-ner-document-analysis/) pipeline.
+
+## Skip it if…
+
+You want deep mathematical foundations, or you're already past the basics and live in production ML — the book's strength is onboarding, and you'll outgrow the second half as the frameworks shift.

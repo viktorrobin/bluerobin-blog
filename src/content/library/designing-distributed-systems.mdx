@@ -1,0 +1,53 @@
+---
+title: "Designing Distributed Systems"
+bookAuthor: "Brendan Burns"
+description: "A pattern catalog dressed as a distributed-systems book — short, useful, and narrower than its title."
+purchaseDate: 2022-12-26
+status: "read"
+theme: "software-architecture"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 3.58
+audience:
+  - "Backend & platform engineers"
+  - "Anyone running workloads on Kubernetes"
+  - "Engineers who think in containers, not just code"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Distributed rate limiting (NATS KV)"
+    href: "/articles/distributed-rate-limiting-nats-kv/"
+  - label: "K3s home server"
+    href: "/articles/k3s-home-server-setup/"
+isbn: "9781491983645"
+tags:
+  - "distributed-systems"
+  - "kubernetes"
+  - "design-patterns"
+  - "containers"
+  - "architecture"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 3.58)">
+A tight, honest catalog of container-orchestration patterns. Read it for the vocabulary — sidecar, ambassador, adapter, scatter/gather — not for a deep treatment of distributed systems.
+</Callout>
+
+## The one-paragraph verdict
+
+Burns co-founded Kubernetes, and it shows: this is really a book about multi-container patterns, named and drawn clearly enough that you stop reinventing them. The single-node groups (sidecar, ambassador, adapter) are the strongest chapters — short, concrete, immediately applicable. The public 3.58 is fair, though. The title oversells: this is "design patterns for container-based systems," not consensus, replication, or failure theory. At ~160 pages it's a long afternoon, and if you've run real orchestration for a year you'll already know most of it. I still keep it close for the shared names alone.
+
+## Who should read it
+
+Backend and platform engineers who deploy on Kubernetes and want a common vocabulary for composing containers. It's ideal for the engineer who has wired sidecars by instinct but never had words for them. Skip it if you want the hard theory — Kleppmann and the Tanenbaum lineage live on a different shelf — or if you've already internalized these patterns in production.
+
+## Where it earned its place
+
+When I built [distributed rate limiting on NATS KV](/articles/distributed-rate-limiting-nats-kv/), treating the limiter as an ambassador in front of the real service came straight from this vocabulary. The sidecar pattern is the mental default for every workload on my [K3s home server](/articles/k3s-home-server-setup/) — logging, TLS, and metrics ride alongside the app instead of inside it, exactly as Burns lays out.
+
+## Skip it if…
+
+You want depth over breadth, or you've spent real time running orchestration. Veterans will find it thin, and theory-seekers will find it the wrong book entirely. <ExternalCite title="Designing Distributed Systems on Goodreads" url="https://www.goodreads.com/book/show/34691716-designing-distributed-systems" />

@@ -1,0 +1,54 @@
+---
+title: "Site Reliability Engineering"
+bookAuthor: "Betsy Beyer, Chris Jones, Jennifer Petoff & Niall Richard Murphy"
+description: "The book that gave on-call a vocabulary — read it for the SLO chapters, skim the Google war stories."
+purchaseDate: 2026-05-31
+status: "read"
+theme: "sre-devops"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.20
+audience:
+  - "On-call engineers tired of heroics"
+  - "Platform & infra teams setting SLOs"
+  - "Anyone designing monitoring or alerting"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "OpenTelemetry in .NET"
+    href: "/articles/opentelemetry-instrumentation-dotnet/"
+  - label: "Health checks for Kubernetes"
+    href: "/articles/dotnet-health-checks-kubernetes/"
+  - label: "The Debug Agent"
+    href: "/debug-agent/"
+isbn: "9781491929124"
+tags:
+  - "sre"
+  - "observability"
+  - "reliability"
+  - "on-call"
+  - "slo"
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.20)">
+This is the book that turned "keep the site up" into something you can actually measure and argue about. Read it for the SLO and error-budget chapters; everything downstream of on-call inherits that vocabulary.
+</Callout>
+
+## The one-paragraph verdict
+
+The genuinely load-bearing idea here is the error budget: it reframes reliability from an absolute ("don't break things") into a spendable number that aligns the people shipping features with the people carrying the pager. The chapters on SLOs, monitoring philosophy, and "eliminating toil" are crisp and have aged well. The honest criticism is that it reads like a Google internal anthology — multi-author, uneven, and occasionally repetitive, with war stories about Borg and global load balancers that simply don't map onto a five-node homelab. You skim as much as you read. But the conceptual spine is correct, and almost no later SRE writing improves on the originals here. See the <ExternalCite title="Goodreads page (4.20 avg)" url="https://www.goodreads.com/book/show/33396252" />.
+
+## Who should read it
+
+Anyone who owns a pager, sets SLOs, or designs alerting should read at least the first third cover to cover. Platform and infra engineers will get the most out of it. Skip it if you want a hands-on runbook — this is philosophy and organizational design, not a copy-paste implementation guide.
+
+## Where it earned its place
+
+The error-budget framing shaped how I instrument services with [OpenTelemetry in .NET](/articles/opentelemetry-instrumentation-dotnet/) and how I draw the line between liveness and readiness in [health checks for Kubernetes](/articles/dotnet-health-checks-kubernetes/) — readiness is an SLO signal, not a uptime checkbox. Most directly, the "automate the toil out of on-call" thesis is the entire premise of [the Debug Agent](/debug-agent/): triage and RCA are exactly the repetitive operational work the book argues a machine should own.
+
+## Skip it if…
+
+If you run a small team and want concrete tooling tomorrow, the companion Workbook serves you better — this volume assumes Google-scale problems and Google-scale staffing, and a lot of it won't transfer.

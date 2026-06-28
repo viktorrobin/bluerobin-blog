@@ -1,0 +1,53 @@
+---
+title: "Introducing MLOps"
+bookAuthor: "Mark Treveil & the Dataiku team"
+description: "A solid org-chart of the model lifecycle, but thin where the engineering actually hurts."
+purchaseDate: 2021-08-07
+status: "read"
+theme: "ai-ml"
+recommendation: "situational"
+rating: 3.4
+goodreadsRating: 3.45
+audience:
+  - "Engineering leads standing up an ML platform"
+  - "Data scientists shipping their first model to prod"
+  - "Anyone mapping governance onto a model lifecycle"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Model policy & token governance"
+    href: "/articles/model-policy-governance-token-usage/"
+  - label: "K8s for agentic AI workloads"
+    href: "/articles/kubernetes-cluster-setup-for-agentic-ai-workloads/"
+isbn: "9781492083290"
+tags:
+  - "mlops"
+  - "machine-learning"
+  - "model-lifecycle"
+  - "governance"
+  - "deployment"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.4 · public 3.45)">
+A clean conceptual map of the model lifecycle and where governance bolts on. Read it for the vocabulary and the lifecycle framing, not for implementation detail.
+</Callout>
+
+## The one-paragraph verdict
+
+This is a short book that does one thing well: it names the five stages of a model's life — build, preproduction, deployment, monitoring, governance — and makes the case that the last two are where teams actually fail. The governance and risk chapters are the strongest, and the vendor-neutral framing holds up better than I expected from a book written by a platform vendor. The recurring complaint in reviews is fair, though: it is thin. At under 200 pages it stays at the altitude of diagrams and principles, and topics I wanted depth on — CI/CD for models, monitoring drift in practice — get a paragraph where they need a chapter. It tells you *what* to build and almost nothing about *how*.
+
+## Who should read it
+
+Engineering leads and data scientists who have trained models but never operated one will get the most out of it — it gives you the shared vocabulary to argue about ownership and rollback. If you have already run models in production, or you came looking for runnable pipelines, skip it; you will outpace the book in an afternoon.
+
+## Where it earned its place
+
+The lifecycle-plus-governance framing fed directly into how I scoped [model policy and token governance](/articles/model-policy-governance-token-usage/) for [Archives](/articles/model-policy-governance-token-usage/) — treating policy as a first-class lifecycle stage rather than an afterthought. The deployment chapter's "models are services" stance also shaped how I sized [K8s for agentic AI workloads](/articles/kubernetes-cluster-setup-for-agentic-ai-workloads/).
+
+## Skip it if…
+
+You want hands-on tooling, or you already operate models in production. The book is a map, not a manual — valuable once, then it lives on the shelf.

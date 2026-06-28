@@ -1,0 +1,74 @@
+---
+title: "Designing Data-Intensive Applications"
+bookAuthor: "Martin Kleppmann"
+description: "The one book that made every later architecture decision on the platform less of a guess."
+purchaseDate: 2020-12-19
+status: "read"
+theme: "software-architecture"
+recommendation: "essential"
+rating: 5
+goodreadsRating: 4.7
+audience:
+  - "Backend & platform engineers"
+  - "Anyone choosing a database or a consistency model"
+  - "Architects who want vocabulary, not vibes"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "RAG pipeline (Ollama + Qdrant)"
+    href: "/articles/rag-pipeline-ollama-qdrant/"
+  - label: "PostgreSQL on K8s (CNPG)"
+    href: "/articles/postgresql-kubernetes-cnpg/"
+  - label: "Vector search with Qdrant"
+    href: "/articles/qdrant-kubernetes-vector-search/"
+isbn: "9781449373320"
+tags:
+  - "distributed-systems"
+  - "databases"
+  - "data-engineering"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 5 · public 4.7)">
+If you build systems that store, move, or reason over data, read this end to end at
+least once. It's the rare technical book that ages well because it teaches the
+*trade-offs*, not a product.
+</Callout>
+
+## The one-paragraph verdict
+
+Kleppmann does the thing most architecture books refuse to: he names the trade-off and
+then shows you the failure mode on the other side of it. Replication, partitioning,
+consistency, batch vs. stream — each chapter leaves you with a model you can actually
+argue from. The common criticism is fair (it's long, and it's denser than it looks), but
+that density is the point. I've reread chapters before big decisions more than any other
+book I own.
+
+## Who should read it
+
+Backend and platform engineers, and anyone about to pick a datastore or a consistency
+model. It is *not* a beginner's first programming book — it assumes you've felt the pain
+it describes. If you've ever shipped something that lost data under load, this is the book
+that explains why.
+
+## Where it earned its place
+
+The Archives runs a Postgres + Qdrant + object-store split, and almost every call about
+*which store owns what* traces back to this book's framing of derived data and indexes:
+
+- The retrieval design in the [RAG pipeline](/articles/rag-pipeline-ollama-qdrant/) leans
+  directly on its "systems of record vs. derived data" distinction.
+- The [CNPG Postgres setup](/articles/postgresql-kubernetes-cnpg/) and the
+  [Qdrant vector store](/articles/qdrant-kubernetes-vector-search/) are the system-of-record
+  and derived-index halves of exactly that pattern.
+
+## Skip it if…
+
+You want a quick how-to or a single framework's docs — this is a concepts book, not a
+recipe. And if you only ever work on a single small CRUD app that will never scale, you
+can borrow the executive summary: pick boring, well-understood storage and move on.
+
+<ExternalCite title="Designing Data-Intensive Applications on Goodreads" url="https://www.goodreads.com/book/show/23463279-designing-data-intensive-applications" author="Martin Kleppmann" date="2017" />

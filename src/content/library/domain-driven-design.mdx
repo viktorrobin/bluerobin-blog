@@ -1,0 +1,54 @@
+---
+title: "Domain-Driven Design"
+bookAuthor: "Eric Evans"
+description: "The vocabulary half my architecture arguments now run on — worth the slog."
+purchaseDate: 2021-01-30
+status: "read"
+theme: "software-architecture"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.14
+audience:
+  - "Backend & domain modellers"
+  - "Architects fighting complexity"
+  - "Anyone naming aggregates badly"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "DDD end-to-end guide"
+    href: "/articles/domain-driven-design-practical-end-to-end-guide/"
+  - label: "Aggregates & consistency boundaries"
+    href: "/articles/ddd-aggregates-consistency-boundaries/"
+  - label: "Value objects in C#"
+    href: "/articles/ddd-value-objects-csharp/"
+isbn: "9780321125217"
+tags:
+  - "domain-driven-design"
+  - "software-architecture"
+  - "domain-modelling"
+  - "ddd"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.14)">
+The book that gave a generation of engineers a shared vocabulary for modelling complexity. Dense, occasionally academic, and still the one I hand people before an architecture argument.
+</Callout>
+
+## The one-paragraph verdict
+
+Evans' real contribution isn't the patterns — aggregates, value objects, repositories — it's the insistence that the *language* you speak with domain experts becomes the language of the code. Ubiquitous language and bounded contexts reframed how I think about service boundaries, full stop. The criticism reviewers level at it is fair: the prose drifts toward academia, the sentences are long, and several concepts are abstract to the point of being unreadable without the worked examples. You skim the strategic-design chapters once and *use* them for years. It earns "essential" despite, not because of, how it reads.
+
+## Who should read it
+
+Backend engineers and architects wrestling with genuinely complex domains — the kind where the business rules, not the database, are the hard part. If you're building CRUD over a handful of tables, the overhead isn't worth it and you'll resent the abstraction tax. Read it when the model is the problem.
+
+## Where it earned its place
+
+The vocabulary runs straight through Archives. Bounded contexts gave the document-processing pipeline clean seams; the [end-to-end guide](/articles/domain-driven-design-practical-end-to-end-guide/) is essentially my field notes from applying it. The hardest call — where one aggregate ends and consistency stops being guaranteed — is the subject of [aggregates & consistency boundaries](/articles/ddd-aggregates-consistency-boundaries/), and the smallest, highest-leverage idea, modelling identity-free concepts as immutable [value objects in C#](/articles/ddd-value-objects-csharp/), I now reach for reflexively.
+
+## Skip it if…
+
+Your domain is thin, your deadlines are short, or you want a tutorial rather than a treatise — start with a modern DDD distillation instead and come back to <ExternalCite title="Domain-Driven Design (Goodreads)" url="https://www.goodreads.com/book/show/179133.Domain_Driven_Design" /> when the complexity actually shows up.

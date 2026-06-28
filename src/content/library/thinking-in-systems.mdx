@@ -1,0 +1,55 @@
+---
+title: "Thinking in Systems"
+bookAuthor: "Donella H. Meadows"
+description: "The book that rewired how I read incidents, backlogs, and org charts — not just code."
+purchaseDate: 2022-05-29
+status: "read"
+theme: "strategy-influence"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.18
+audience:
+  - "Engineers who debug systems, not just functions"
+  - "Tech leads fighting recurring fires"
+  - "Anyone deciding where to apply leverage"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "Reducing WIP"
+    href: "/leadership/reducing-wip-finishing-beats-starting/"
+  - label: "StackGraph world-model RCA"
+    href: "/debug-agent/stackgraph-neuro-symbolic-world-model-rca/"
+isbn: "9781603580557"
+tags:
+  - "systems-thinking"
+  - "leverage-points"
+  - "strategy"
+  - "feedback-loops"
+  - "leadership"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.18)">
+The clearest articulation I've read of stocks, flows, and feedback loops. It changed how I look at a recurring incident — and that's worth more than most "engineering" books on my shelf.
+</Callout>
+
+## The one-paragraph verdict
+
+Meadows takes systems thinking out of the simulation lab and into plain language, and she does it without dumbing it down. Stocks, flows, delays, balancing vs. reinforcing loops, and the famous leverage-points hierarchy are all explained with examples you actually retain — a thermostat, a population, a company's hiring pipeline. The honest criticism: it's a *primer*, and it shows. The back half leans on early-2000s environmental and economic cases that feel dated, and a few ideas get repeated past the point of payoff. If you want rigor and equations, look elsewhere; this is the conceptual on-ramp, and a very good one.
+
+## Who should read it
+
+Read it if you debug systems rather than functions — SREs, tech leads, anyone who keeps fixing the same outage and suspects the structure is the bug. It's also genuinely useful for the org side: backlogs and team dynamics are stock-and-flow problems too. Skip it if you're after a formal control-theory text or hands-on modeling tutorial; that's not what this is.
+
+## Where it earned its place
+
+The leverage-points idea is load-bearing in two places. In [Reducing WIP](/leadership/reducing-wip-finishing-beats-starting/), the whole argument is that a backlog is a stock and finishing work is the only flow that drains it — pure Meadows. And the [StackGraph world-model RCA](/debug-agent/stackgraph-neuro-symbolic-world-model-rca/) work in the [debug-agent](/debug-agent/stackgraph-neuro-symbolic-world-model-rca/) leans directly on her framing: model the system's structure and feedback, not just the surface symptom, so root-cause analysis targets where the leverage actually is.
+
+## Skip it if…
+
+You already think in feedback loops and want depth, not a primer — this will feel thin. And if dated environmental case studies grate on you, the second half will test your patience.
+
+<ExternalCite title="Thinking in Systems: A Primer — Goodreads" url="https://www.goodreads.com/book/show/3828902-thinking-in-systems" />

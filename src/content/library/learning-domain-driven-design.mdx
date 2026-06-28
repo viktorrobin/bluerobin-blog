@@ -1,0 +1,52 @@
+---
+title: "Learning Domain-Driven Design"
+bookAuthor: "Vlad Khononov"
+description: "The DDD book I hand to people instead of Evans — practical, current, and it actually finishes a thought."
+purchaseDate: 2022-04-30
+status: "read"
+theme: "software-architecture"
+recommendation: "recommended"
+rating: 4.3
+goodreadsRating: 4.4
+audience:
+  - "Backend engineers adopting DDD for the first time"
+  - "Architects mapping bounded contexts onto services"
+  - "Anyone who bounced off the Evans blue book"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "DDD end-to-end guide"
+    href: "/articles/domain-driven-design-practical-end-to-end-guide/"
+  - label: "Shared kernel in .NET"
+    href: "/articles/ddd-shared-kernel-implementation-dotnet/"
+isbn: "9781098100131"
+tags:
+  - "domain-driven-design"
+  - "software-architecture"
+  - "bounded-contexts"
+  - "strategic-design"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.4)">
+The clearest modern on-ramp to DDD. If you only own one DDD book and you're not Eric Evans, own this one.
+</Callout>
+
+## The one-paragraph verdict
+
+Khononov does the thing the original blue book never quite managed: he makes strategic design — subdomains, bounded contexts, context maps — feel like decisions you can actually make on a Monday, then connects them to tactical patterns without drowning you in jargon. The writing is direct and the running narrative of rolling DDD out at a startup keeps it honest about the messy bits. Where it slips is the back third: the tour through aggregates, event sourcing, and architecture styles is a survey, not a deep dive, and if you already practice DDD you'll find whole chapters confirming what you know. That's the trade-off for being the best *introduction* on the shelf. <ExternalCite title="Learning Domain-Driven Design on Goodreads" url="https://www.goodreads.com/en/book/show/57573212" />
+
+## Who should read it
+
+Read it if you're adopting DDD and want a single coherent mental model instead of a decade of scattered blog posts — backend engineers, and architects deciding where service boundaries should fall. Skip it if you're already fluent in DDD and want depth on event sourcing or CQRS; this is breadth, and you'll outgrow it fast.
+
+## Where it earned its place
+
+The context-mapping chapters shaped how I drew boundaries in the Archives service. When I wrote the [DDD end-to-end guide](/articles/domain-driven-design-practical-end-to-end-guide/), the subdomain-first framing came straight from here, and the [shared kernel in .NET](/articles/ddd-shared-kernel-implementation-dotnet/) post leans on his integration-pattern vocabulary to justify exactly when sharing a model is worth the coupling.
+
+## Skip it if…
+
+You want the canonical, exhaustive treatment — go to Evans or Vernon. This is the gateway drug, not the encyclopedia.

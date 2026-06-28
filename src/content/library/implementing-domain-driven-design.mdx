@@ -1,0 +1,52 @@
+---
+title: "Implementing Domain-Driven Design"
+bookAuthor: "Vaughn Vernon"
+description: "The bridge from Evans' theory to code I actually ship — dense, but it earns the page count."
+purchaseDate: 2022-10-27
+status: "read"
+theme: "software-architecture"
+recommendation: "recommended"
+rating: 4.3
+goodreadsRating: 4.05
+audience:
+  - "Backend engineers adopting DDD on a real project"
+  - ".NET / Java developers building aggregates and domain events"
+  - "Architects mapping bounded contexts"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Domain events in C#"
+    href: "/articles/ddd-domain-events-csharp/"
+  - label: "Repository pattern with EF Core"
+    href: "/articles/ddd-repository-pattern-efcore/"
+isbn: "9780321834577"
+tags:
+  - "domain-driven-design"
+  - "software-architecture"
+  - "ddd"
+  - "backend"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.05)">
+This is the book that turned Evans' DDD from a vocabulary into something I could ship. Buy it for the tactical chapters; skim the rest.
+</Callout>
+
+## The one-paragraph verdict
+
+Evans tells you *what* DDD is; Vernon tells you *how* to write it. The strength everyone cites is real: aggregates, domain events, value objects, and repositories all come with concrete, reusable base code, held together by one running SaaS case study instead of disconnected toy snippets. That single-thread approach is what makes the strategic patterns finally click. The honest cost is length — it's long, occasionally verbose, and the examples are Java, so .NET readers do some mental translation. Worth it.
+
+## Who should read it
+
+Backend engineers actually adopting DDD on a system with real domain complexity, and architects drawing bounded-context boundaries. If you only need the strategic map — context maps, ubiquitous language — Vernon's own *Distilled* is faster. Don't reach for this if your domain is genuinely CRUD; the ceremony will outweigh the payoff.
+
+## Where it earned its place
+
+The aggregate-design and event chapters went straight into <ExternalCite title="Archives" url="https://blog.bluerobin.io" />. The pattern in [Domain events in C#](/articles/ddd-domain-events-csharp/) is Vernon's domain-event base adapted to .NET, and [Repository pattern with EF Core](/articles/ddd-repository-pattern-efcore/) follows his rule of one repository per aggregate root — not per table — which is exactly the mistake the book talks you out of.
+
+## Skip it if…
+
+You want a quick reference or you're new to DDD entirely — start with *Distilled* and come back. And if your service has no real invariants to protect, this book will sell you machinery you don't need.

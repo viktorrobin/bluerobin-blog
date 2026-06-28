@@ -1,0 +1,50 @@
+---
+title: "Clean Code"
+bookAuthor: "Robert C. Martin"
+description: "Worth reading once for the naming and small-functions discipline; ignore the dogma."
+purchaseDate: 2024-12-20
+status: "read"
+theme: "programming-craft"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.35
+audience:
+  - "Junior and mid-level developers"
+  - "Anyone reviewing code on a team"
+  - "Engineers wanting a shared vocabulary for craft"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Error handling & resilience"
+    href: "/articles/error-handling-resilience-patterns-dotnet/"
+isbn: "9780132350884"
+tags:
+  - "programming-craft"
+  - "code-quality"
+  - "refactoring"
+  - "software-design"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.35)">
+Read it once for the chapters on naming and function size, take those to heart, and treat the rest as one experienced engineer's opinion rather than law.
+</Callout>
+
+## The one-paragraph verdict
+
+The strongest parts of this book are the early chapters: naming, keeping functions small, and the discipline of a single level of abstraction per function. That material genuinely changed how I review code. The weaker parts are where Martin presents personal taste as universal rule — the later examples sometimes shatter a readable method into a swarm of tiny ones, and the "argument for X" is often "because I say so." The Java-only examples also age unevenly. As <ExternalCite title="Clean Code on Goodreads" url="https://www.goodreads.com/book/show/3735293-clean-code" /> reviewers note, it lands best for beginner-to-intermediate developers and frustrates anyone wanting justification over assertion.
+
+## Who should read it
+
+Junior and mid-level developers get the most here — it gives a team a shared vocabulary for what "messy" actually means. Anyone who does code review will find a useful checklist. Senior engineers who already have opinions on abstraction and testing can skim it in an afternoon and should not expect revelation.
+
+## Where it earned its place
+
+The book's instinct against swallowing or hiding failure modes shaped how I think about [error handling and resilience](/articles/error-handling-resilience-patterns-dotnet/) — exceptions over return codes, never returning null, failing loudly. That same bias toward explicit, observable failure runs through the [Archives](/projects/archives) ingestion pipeline, where a silently dropped document is far worse than a noisy one.
+
+## Skip it if…
+
+You are already comfortable reasoning about abstraction levels and testing, or you bristle at advice delivered as commandment — the dogma-to-insight ratio climbs steeply after the first third.

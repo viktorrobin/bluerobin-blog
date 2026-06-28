@@ -1,0 +1,55 @@
+---
+title: "Cryptography and Network Security"
+bookAuthor: "William Stallings"
+description: "The reference you reach for to remember how a primitive actually works — not how to ship one."
+purchaseDate: 2023-02-16
+status: "read"
+theme: "security-cyber"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.12
+audience:
+  - "Backend & platform engineers touching TLS, PKI, or auth"
+  - "Anyone who wants the math under the primitives, not just the API"
+  - "Students and self-taught engineers building a foundation"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "Zero-trust mTLS & identity"
+    href: "/articles/zero-trust-architecture-mtls-tokens-identity/"
+  - label: "Private PKI / root CA"
+    href: "/articles/building-private-pki-root-ca-certificates/"
+isbn: "9780134444284"
+tags:
+  - "cryptography"
+  - "network-security"
+  - "tls"
+  - "pki"
+  - "reference"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.12)">
+The standard map of the territory: thorough, correct, and dry. Keep it as a reference, not a build guide.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the book people mean when they say "go read Stallings." Its strength is breadth done carefully — block ciphers, public-key, hashes, key exchange, and the protocols that wrap them are all laid out with the actual math instead of hand-waving, which is exactly what I wanted when TLS internals stopped being a black box. The recurring praise is fair: it's an excellent place to *start* and an even better place to *return to*. The recurring criticism is also fair: it reads like a textbook, leans encyclopedic, and will not tell you how to avoid the footguns of a real implementation. I bought it to stop guessing about handshakes and certificate chains; it delivered that, and not much beyond it.
+
+## Who should read it
+
+Read it if you operate or design systems that lean on TLS, mTLS, or a private CA and you're tired of treating the crypto as magic. It rewards engineers who want the *why* under the primitive. Skip it if you came for secure-coding patterns or a hardening checklist — that's a different shelf, and a more opinionated, practitioner-focused book will serve you better there.
+
+## Where it earned its place
+
+Stallings is the layer underneath two things I actually wrote up. The certificate-chain and key-usage chapters are what let me reason confidently about [a private PKI and root CA](/articles/building-private-pki-root-ca-certificates/) instead of copy-pasting OpenSSL incantations. And the key-exchange and authentication material is the theory I lean on in [zero-trust mTLS and identity](/articles/zero-trust-architecture-mtls-tokens-identity/) — knowing what a handshake is *proving* changes how you scope trust.
+
+## Skip it if…
+
+You want pragmatic "do this, not that" guidance, you already know the primitives, or a dense academic treatment will bounce off you. It's a foundation, not a recipe.
+
+<ExternalCite title="Cryptography and Network Security on Goodreads" url="https://www.goodreads.com/book/show/634829.Cryptography_and_Network_Security" />

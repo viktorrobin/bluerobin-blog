@@ -1,0 +1,54 @@
+---
+title: "C# 11 and .NET 7"
+bookAuthor: "Mark J. Price"
+description: "The reference I actually keep open while writing .NET — broad, current, occasionally shallow."
+purchaseDate: 2022-12-29
+status: "read"
+theme: "programming-craft"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.25
+audience:
+  - "Engineers new to modern .NET"
+  - "Backend devs moving from .NET Framework"
+  - "Anyone needing a current C# 11 reference"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "FastEndpoints API design"
+    href: "/articles/fastendpoints-api-development/"
+  - label: "Background job processing"
+    href: "/articles/dotnet-background-job-processing/"
+isbn: "9781803237800"
+tags:
+  - "csharp"
+  - "dotnet"
+  - "backend"
+  - "reference"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.25)">
+The best single-volume on-ramp to modern .NET. Wide and current, even if it never goes deep enough to replace the docs on any one topic.
+</Callout>
+
+## The one-paragraph verdict
+
+Price's strength is coverage: C# 11, ASP.NET Core, EF Core, and Blazor in one current, well-organized volume, with a GitHub repo that actually builds. The step-by-step projects in the back half are where it earns its keep — you finish them with something running, not just notes. The recurring complaint is fair: it's a mile wide and an inch deep, so any topic you care about ends with "see the official docs." A few chapters also read like padded API tours rather than design guidance. As a tour of the platform it's excellent; as a deep reference for any single subsystem it isn't, and it doesn't pretend to be.
+
+## Who should read it
+
+Buy it if you're new to modern .NET or crossing over from .NET Framework and want one trustworthy map of the whole landscape. Skip it if you're already fluent in ASP.NET Core and EF Core — you'll outrun it by chapter three and learn more from release notes.
+
+## Where it earned its place
+
+The EF Core and minimal-API chapters were the warm-up for the real work. The patterns translated directly into [FastEndpoints API design](/articles/fastendpoints-api-development/) once I traded the book's controllers for a thinner endpoint model, and the async/hosted-service material seeded the [background job processing](/articles/dotnet-background-job-processing/) approach behind the `archives` ingestion pipeline. It got me to working code fast; the depth came later, elsewhere.
+
+## Skip it if…
+
+You want architecture, DDD, or performance tuning — this is a fundamentals tour, not a design book. Past the basics, the docs and a good patterns book will serve you better.
+
+<ExternalCite title="C# 11 and .NET 7 on Goodreads" url="https://www.goodreads.com/book/show/63259355-c-11-and-net-7-modern-cross-platform-development-fundamentals" />

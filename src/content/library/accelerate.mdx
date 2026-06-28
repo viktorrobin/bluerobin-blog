@@ -1,0 +1,52 @@
+---
+title: "Accelerate"
+bookAuthor: "Nicole Forsgren, Jez Humble & Gene Kim"
+description: "The book that turned 'good engineering org' from opinion into measurable claim."
+purchaseDate: 2020-08-21
+status: "read"
+theme: "sre-devops"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.02
+audience:
+  - "Engineering leaders defending delivery practices with data"
+  - "Platform and SRE teams choosing what to measure"
+  - "Anyone tired of arguing about DevOps from anecdote"
+relatedProjects:
+  - "leadership"
+relatedLinks:
+  - label: "GitHub Actions CI/CD"
+    href: "/articles/github-actions-cicd-dotnet/"
+  - label: "Engineering investment in the roadmap"
+    href: "/leadership/engineering-investment-product-roadmap/"
+isbn: "9781942788331"
+tags:
+  - "devops"
+  - "dora-metrics"
+  - "continuous-delivery"
+  - "engineering-leadership"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.02)">
+The first book that gives you a defensible, data-backed answer to "are we a good engineering org?" — four DORA metrics instead of vibes. Read Part 1; skim the rest.
+</Callout>
+
+## The one-paragraph verdict
+
+What sets this apart from the usual DevOps shelf is that it is research, not testimony: Forsgren ran the State of DevOps survey through real statistical methods and came out with the four DORA metrics — deploy frequency, lead time, change-fail rate, time to restore. That gives you something rare in this field, a claim you can actually defend in a leadership meeting. The cost is that the book is front-loaded: Part 1 is the gold, Part 2 is a methods appendix that reads like one, and the whole thing repeats its own thesis more than it needs to. You can get 90% of the value from the first hundred pages. But that 90% reframed how I argue about engineering quality.
+
+## Who should read it
+
+Read it if you lead or influence delivery practice and keep losing the argument by anecdote — it hands you the vocabulary and the evidence. Platform and SRE teams choosing their first dashboard should start here. Skip it if you want a hands-on CI/CD implementation guide; this is the *why measure*, not the *how to build*.
+
+## Where it earned its place
+
+The DORA framing is exactly why I treat pipeline work as product work, not overhead — the argument I make in [engineering investment in the roadmap](/leadership/engineering-investment-product-roadmap/). And the four metrics are the reason BlueRobin's [GitHub Actions CI/CD](/articles/github-actions-cicd-dotnet/) optimises for lead time and low change-fail rate rather than raw build speed.
+
+## Skip it if…
+
+You already live and breathe the DORA metrics, or you want code on the page. This book sells you the measurement; it does not hand you the implementation. <ExternalCite title="Accelerate on Goodreads" url="https://www.goodreads.com/book/show/35747076-accelerate" />

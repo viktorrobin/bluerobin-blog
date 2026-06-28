@@ -1,0 +1,23 @@
+---
+import BookLayout from "@layouts/BookLayout.astro";
+import { getCollection, type CollectionEntry } from "astro:content";
+
+export async function getStaticPaths() {
+  const books = await getCollection("library", ({ data }) => !data.draft);
+  return books.map((book) => ({
+    params: { slug: book.slug },
+    props: { book },
+  }));
+}
+
+interface Props {
+  book: CollectionEntry<"library">;
+}
+
+const { book } = Astro.props;
+const { Content } = await book.render();
+---
+
+<BookLayout post={book}>
+  <Content />
+</BookLayout>
