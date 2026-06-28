@@ -8,6 +8,11 @@ on:
 
 jobs:
   build-and-deploy:
+    # Stays on GitHub-hosted ubuntu-latest: `npm ci` + Cloudflare Pages deploy need
+    # external egress (npm registry + Cloudflare API) the egress-locked in-cluster ARC
+    # pool (ADR-032) cannot provide. Production is deployed by Cloudflare Workers Builds
+    # (Git integration) regardless. NB: blocked while the hosted Actions budget is
+    # exhausted — separate remedy needed. (COST-1, ADR-029)
     runs-on: ubuntu-latest
     permissions:
       contents: read
