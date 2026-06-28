@@ -8,7 +8,13 @@ permissions:
 
 jobs:
   cite:
-    runs-on: ubuntu-latest
+    # Self-hosted ARC pool - the GitHub-hosted ubuntu-latest Actions budget is
+    # exhausted on this free-plan account ("the job was not started because an
+    # Actions budget is preventing further use"): jobs failed at runner-acquisition
+    # (runner_name:"", 0 steps, ~3s, no logs). This gate is pure shell over the
+    # PR-body env, so the in-cluster runner serves it at zero hosted-minute cost.
+    # Mirrors bluerobin-debug-agent#73. (GIT-1, COST-1, ADR-029)
+    runs-on: bluerobin-blog
     steps:
       - name: Check PR body cites a requirement ID
         env:
