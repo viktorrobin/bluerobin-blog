@@ -14,3 +14,6 @@ dist/
 # Local debug artifacts (do not commit)
 debug-screenshot.png
 debug-snapshot.txt
+
+# Claude Code local tooling (preview config, worktrees)
+.claude/
