@@ -1,6 +1,6 @@
 ---
 title: "Building a Blameless On-Call"
-description: "I let an incident review drift toward who deployed the change, watched a strong engineer go quiet, and learned that the first question after an outage is a hiring signal."
+description: "The first question after an incident — 'who broke it?' or 'what broke?' — sets how candid the team will be from then on. Blamelessness is a precondition, not a reward."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: false
@@ -8,57 +8,43 @@ project: "leadership"
 category: "leadership"
 difficulty: "advanced"
 tags: ["leadership", "engineering-management", "on-call", "incident-response", "blameless", "an-elegant-puzzle"]
-readTime: "5 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-We were forty minutes into the postmortem for the payments-queue stall. The room was tired, the incident itself already resolved, and I was running the review. Somewhere around the timeline reconstruction, someone said "this started right after the 14:02 deploy," and instead of staying on the failure, I asked, "whose change was that?"
+The first question an organisation asks after an incident — "who broke it?" or "what broke?" — is read instantly by everyone in the room, and they recalibrate how candid they'll be from that moment on. Ask the first one and you forfeit the second one's worth of information: the theories, the "here's what confused me at the time," the texture that makes a review useful.
 
-I didn't say it unkindly. I genuinely wanted the context. But I watched it land. The engineer who had shipped that change — one of the most careful people on the team, the kind who writes the migration notes nobody else writes — answered the question, and then stopped talking. For the rest of the hour she gave me facts and nothing else. No theories, no "here's what confused me at the time," none of the texture that actually makes a review useful.
+I asked it. Forty minutes into a postmortem for a payments-queue stall, someone noted the failure started after the 14:02 deploy, and I said, "whose change was that?" Not unkindly — but I watched it land. The engineer who had shipped it, one of the most careful people on the team, answered and then gave me facts and nothing else for the rest of the hour. The bug was a misconfigured retry backoff, cheap to fix. What I'd done to the room was not.
 
-The bug was a misconfigured retry backoff. Cheap to fix. What I'd done to the room was not cheap, and I knew it before I left.
+## The model
 
-## What it taught me
-
-The first question an organization asks after an incident — "who broke it?" or "what broke?" — is read instantly by everyone present, and they recalibrate how candid they'll be from that moment on. I had asked the first one out loud, and the price was the second one's worth of information.
-
-Larson frames operational excellence as resting on trust and autonomy, and I'd had it backwards. I thought blamelessness was the reward you give a mature team. It's the precondition. You can't ask people to own systems they're afraid to be honest about. Blame doesn't merely feel bad; it suppresses exactly the signal you need to become more reliable. The quiet engineer wasn't sulking. She was being rational.
+Operational excellence rests on trust and autonomy, and I'd had the order backwards. I thought blamelessness was a reward you give a mature team; it's the precondition. You can't ask people to own systems they're afraid to be honest about. Blame doesn't merely feel bad — it suppresses exactly the signal you need to get more reliable. The quiet engineer wasn't sulking; she was being rational.
 
 <Callout type="info" title="The signal is the question">
   Candidates and engineers don't evaluate your incident culture by reading your runbook. They evaluate it by what happens in the first thirty seconds of the next outage. You are always being read.
 </Callout>
 
+## What to do
+
+- **Move postmortems async and off the hot path.** The first draft is written ~two days after the incident, in a shared doc, by whoever held the pager — not interrogated live while everyone is still raw.
+- **Ban the name in the timeline.** Timelines read "the 14:02 deploy" and "the retry config," never "Maria's change." If a person genuinely matters, it's because the system made it too easy for any reasonable person to make that mistake — and *that* is the finding.
+- **Put a system between the alert and the human,** so on-call opens a triage with the evidence already assembled: less staring at dashboards alone at 3am, less defensiveness, faster orientation.
+- **Adopt SLOs and error budgets,** so reliability is a target the whole team owns. A spent budget is a planning conversation, not a tribunal.
+
 <ImplementationNote>
-  BlueRobin's Debug Agent is this principle made literal. When an alert fires, an agent runs the
-  investigation — correlation-first scoring, evidence gathering, a hypothesis tree — and a human
-  makes the call on what to do about it. Because a system opens the inquiry, the first artifact in
-  front of everyone is evidence, not a name. The diagnosis is about what failed by construction,
-  which turns out to be the cheapest way I know to keep a review honest.
+  BlueRobin's Debug Agent is this principle made literal. When an alert fires, an agent runs the investigation — correlation-first scoring, evidence gathering, a hypothesis tree — and a human makes the call on what to do. Because a system opens the inquiry, the first artifact in front of everyone is evidence, not a name. The diagnosis is about what failed, by construction, which is the cheapest way I know to keep a review honest.
 </ImplementationNote>
-
-## What I changed
-
-- **Moved postmortems async and off the hot path.** The first draft is written roughly two days after the incident, in a shared doc, by whoever held the pager — not interrogated live while everyone is still raw.
-- **Banned the name in the timeline.** Timelines now read "the 14:02 deploy" and "the retry config," never "Maria's change." If a person genuinely matters to the story, it's because the system made it too easy for any reasonable person to make that mistake — and that's the finding.
-- **Put a system between the alert and the human.** Tooling-first diagnosis means the on-call engineer opens a triage that already has the evidence assembled. Less staring at dashboards alone at 3am, less defensiveness, faster orientation.
-- **Adopted SLOs and error budgets.** Reliability became a target the whole team owns, not a stick to wave at whoever shipped last. When the budget is spent, that's a planning conversation, not a tribunal.
 
 ## The results
 
-Over the following two quarters, the change I cared about most was qualitative: reviews got their texture back. People started writing the "here's what confused me at the time" lines again, which is where the real fixes hide.
+Over two quarters the change I cared about most was qualitative: reviews got their texture back, and people started writing the "here's what confused me" lines again — where the real fixes hide. The measurable parts, roughly: willingness to join the on-call rota stopped being a fight, moving from quietly losing people to a full, volunteered rotation; time-to-diagnosis came down by close to half once the agent assembled evidence first (a good chunk of that is better tooling, not pure culture); and it became a recruiting line that landed — more than one candidate said the way we ran incidents was why they signed.
 
-The measurable parts, approximately:
-
-- Willingness to join the on-call rota stopped being a fight. We went from quietly losing people off the rota to a roughly full, volunteered rotation.
-- Time-to-diagnosis came down by something close to half once the agent was assembling evidence before a human looked. I'd caution against reading that as pure culture — a good chunk of it is just better tooling.
-- It became a recruiting line that landed. More than one candidate told me, unprompted, that the way we ran incidents was why they signed.
-
-What this didn't fix: blamelessness can quietly slide into no-accountability, and I've had to hold that line deliberately. Blameless means we don't punish the human for the system's gaps; it does not mean nobody owns the follow-up. The discipline is separating the two out loud — the system gets the scrutiny, a named person gets the action item — so "no blame" never becomes "no owner." I'd also start the async-postmortem habit earlier than I did; I waited until after the damage in that room before I took my own process seriously.
+The caveat: blamelessness can slide into no-accountability, and I've had to hold that line deliberately. Blameless means we don't punish the human for the system's gaps; it does not mean nobody owns the follow-up. The discipline is separating the two out loud — the system gets the scrutiny, a named person gets the action item — so "no blame" never becomes "no owner."
 
 ## Further reading
 

@@ -1,6 +1,6 @@
 ---
 title: "No News Is Good News: Leading With Trust, Not Status"
-description: "I asked for daily status updates to feel in control, and I taught a good team to wait for permission instead of raising problems. Here is how I unwound it."
+description: "Daily status updates feel like control but teach a good team to perform progress instead of raising problems. Default to trust; invest in signals that surface the exceptions."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: false
@@ -8,57 +8,43 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "autonomy", "trust", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "6 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-We were three weeks from a migration deadline, and I could not sleep.
+Status-chasing feels like control and quietly corrodes a good team. Ask for a daily update and people don't just report — they perform: padding ordinary in-progress work with caveats so nothing can later be read as a slip. You wanted visibility and you built a daily exam.
 
-So I did what felt responsible. I asked each engineer for a short written status every morning: what you finished yesterday, what you are doing today, anything blocking you. Three bullet points. Ten minutes, I told them. It seemed like a small ask in exchange for me knowing where we stood.
+I did it three weeks out from a migration deadline. A short written status each morning — finished, doing, blocked; three bullets, ten minutes. By the second week the migration was no further along and the updates had gone careful and defensive. The tell came in a retro: "I figured if something was really wrong, you'd see it in the standup doc." People had stopped raising problems directly because they assumed the ritual would surface them. It surfaced nothing; it just made everyone narrate progress.
 
-By the second week I had my dashboard of prose, and the migration was no further along than it would have been without it. What I noticed instead was the texture of the updates. They had become careful. Defensive, even. One engineer — quietly one of the strongest people I have worked with — started padding her bullets with caveats, framing ordinary in-progress work so that nothing could later be read as a slip.
+## The model
 
-I had asked for visibility. What I had actually built was a small daily exam, and people were studying for it.
+The default should be trust: assume things are fine unless someone raises a flag, then spend your energy making flags easy to raise and impossible to miss. *No news is good news* — but only if "news" reliably travels. Status-chasing is the tax you pay for missing trust and missing visibility, and the people who pay it are the ones doing the work. Autonomy isn't the absence of oversight; it's oversight relocated out of meetings and into signals, so a person can own an outcome end to end and trust the system will say so if it goes sideways.
 
-The thing that finally landed was a comment in a retro. Someone said, almost apologetically, "I figured if something was really wrong, you'd see it in the standup doc." That was the whole problem in one sentence. They had stopped raising problems to me directly, because they assumed the ritual would surface them. The ritual surfaced nothing. It just made everyone perform progress.
-
-## What it taught me
-
-The default should be trust. Assume things are fine unless someone raises a flag, and then spend your energy making sure the flags are easy to raise and impossible to miss. *No news is good news* — but only if "news" reliably travels.
-
-Status-chasing is what you do when you do not have that. It is a tax you pay for missing trust and missing visibility, and the people who pay it are the ones doing the actual work. Every status update I collected was time not spent on the migration, and every careful word in those updates was a small tell that I had made it safer to look fine than to be honest.
-
-The deeper shift was understanding what autonomy actually requires. It is not the absence of oversight. It is oversight relocated — out of meetings and into signals, so that a person can own an outcome end to end and trust that if it goes sideways, the system will say so before I have to ask.
-
-<Callout type="info" title="The tax metaphor, literally">
-  I started pricing rituals. A daily 10-minute update across six people is an hour a day, five hours a week, of my best engineers narrating instead of building. If a signal can tell me the same thing for free, the meeting is pure overhead.
+<Callout type="info" title="Price the ritual">
+  A daily 10-minute update across six people is an hour a day — five hours a week of your best engineers narrating instead of building. If a signal can tell you the same thing for free, the meeting is pure overhead.
 </Callout>
 
-## What I changed
+## What to do
 
-- I killed the daily status update outright. No replacement ritual — that was the point. Silence had to be allowed to mean "fine," or trust-by-default was just a slogan.
-- I moved oversight into signals. The state of the work lived where the work lived: a board, a dashboard, the deploy pipeline. If I wanted to know where we stood, I looked, and I did not make a person assemble it for me.
-- I made escalation explicit. We agreed on what *actually* warranted raising a flag — a slipping date, a blocked dependency, a decision I needed to own — so that people knew exactly when to interrupt me, and knew silence between those moments was genuinely fine.
-- I took 1:1s back from status. They became about growth, friction, and the things people would never put in a written update — not a verbal progress report I could have read off a board myself.
+- **Kill the standing status update,** with no replacement ritual. Silence has to be allowed to mean "fine," or trust-by-default is just a slogan.
+- **Move oversight into signals.** Let the state of the work live where the work lives — a board, a dashboard, the deploy pipeline. If you want to know where things stand, look; don't make a person assemble it for you.
+- **Make escalation explicit.** Agree on what actually warrants a flag — a slipping date, a blocked dependency, a decision you must own — so people know exactly when to interrupt you, and know silence between those moments is genuinely fine.
+- **Take 1:1s back from status.** Use them for growth, friction, and the things people would never put in a written update.
 
 <ImplementationNote>
-  None of this is safe without good signals, which is why it worked here and not in my first attempt. The same observability that runs BlueRobin in production is what replaced my status meetings: a real problem pages whoever is on call within seconds, it does not sit in someone's head waiting for the morning standup. See [how we cut detection latency](/articles/opentelemetry-instrumentation-dotnet). Trust-by-default is only responsible when the exceptions surface on their own.
+  None of this is safe without good signals, which is why it worked here and not on my first attempt. The same observability that runs BlueRobin in production replaced the status meeting: a real problem pages whoever is on call within seconds — see [how we cut detection latency](/articles/opentelemetry-instrumentation-dotnet) — instead of waiting for the morning standup. Trust-by-default is only responsible when the exceptions surface on their own.
 </ImplementationNote>
 
 ## The results
 
-I got roughly an hour a day back, and so did each engineer — but the time was never the real win.
+Everyone got roughly an hour a day back, but the time was never the real win. Over a few months the careful, defensive language faded, and people began bringing me problems earlier — while they were still cheap to fix — because raising a flag no longer felt like admitting to a failed exam. The migration after the one that scared me shipped with no status ritual at all, and it was the calmest delivery I'd run.
 
-The real change was in the retros. The careful, defensive language faded over a few months. People started bringing me problems earlier, while they were still cheap to fix, because raising a flag no longer felt like admitting to a failed exam. The migration after the one that scared me shipped with no status ritual at all, and it was the calmest delivery I had run.
-
-Here is the honest caveat. Trust-by-default has a failure mode, and I hit it. About two months in, a quiet long-running task drifted badly off course — no flag, no signal, because it was exploratory work that nothing was instrumented to watch. Silence meant "fine" right up until it very much did not. The lesson was not to go back to status updates. It was that trust-by-default only covers the work your signals can actually see. For everything genuinely novel or unmeasured, I now set an explicit, lightweight check-in up front — not to monitor the person, but to admit that the system cannot yet watch that corner for me.
-
-I would also do the rollout more slowly. Killing the ritual overnight left a few people unsure whether silence was permission or neglect. Naming that transition — "I am trusting you to flag things, here is exactly when" — should have come first, not after.
+The caveat: trust-by-default has a failure mode, and I hit it. A quiet, long-running exploratory task drifted badly off course with no flag and no signal, because nothing was instrumented to watch it — silence meant "fine" right up until it didn't. The lesson wasn't to bring back status updates; it was that trust-by-default only covers the work your signals can see. For anything genuinely novel or unmeasured, I now set one explicit, lightweight check-in up front — not to monitor the person, but to admit the system can't yet watch that corner for me.
 
 ## Further reading
 

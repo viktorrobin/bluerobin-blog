@@ -1,6 +1,6 @@
 ---
 title: "Fitting Engineering Investment Into a Product Roadmap"
-description: "I let every reasonable prioritisation call quietly defer engineering health, until the deferral compounded into a cleanup we couldn't schedule on our own terms."
+description: "Treating engineering health as leftover capacity defers it forever, until the deferral compounds into a cleanup you can't schedule. Make it a planned, argued line item."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: false
@@ -8,58 +8,44 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "technical-quality", "roadmap", "prioritization", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "5 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-The intake service had a queue worker we called the "courier." Everyone knew it was held together with retries and hope. Twice that year an engineer had asked for a week to rebuild it, and twice I had said the honest thing: not this quarter, the launch comes first.
+Treat engineering health as leftover capacity — the work that happens if a sprint comes in light — and it never happens, because sprints don't come in light. Each individual deferral is defensible: a week of platform work versus a feature a customer is waiting on isn't a hard call in the moment. The feature wins, because it has a name, a date, and someone asking, while the platform risk just hums quietly. Defer enough times and you stop choosing *when* to pay the cost.
 
-Each of those calls was defensible. A week of platform work versus a feature a customer was waiting on is not a hard decision in the moment. The feature wins. It almost always wins, because the feature has a name, a date, and someone asking about it, and the courier just has a quiet hum of risk.
+We had a queue worker we called the "courier," held together with retries and hope. Twice that year an engineer asked for a week to rebuild it; twice I said "not this quarter, the launch comes first." Then it failed three times in a bad fortnight — a delayed batch, a manual replay, and finally dropped messages we couldn't reconstruct. The cleanup was no longer a week; it was most of a month with two engineers off the roadmap. I hadn't avoided the cost, only my ability to choose when to pay it.
 
-So we shipped. And every quarter the courier got a little worse, because we kept routing new traffic through it without ever paying down the thing underneath.
+## The model
 
-Then, over one bad fortnight, it failed three times. Not dramatically the first time. A delayed batch, a manual replay, an apology. The third time it dropped messages we couldn't reconstruct, and the cleanup was no longer a week. It was most of a month, with two engineers off the roadmap entirely and me explaining to stakeholders why the thing they couldn't see had eaten the thing they could.
-
-I had not avoided the cost. I had only removed my ability to choose when to pay it.
-
-## What it taught me
-
-The error wasn't any single deferral. It was treating engineering health as leftover capacity, the work that happens if a sprint comes in light. It never does. Leftover capacity is a rounding error you are quietly betting your reliability on.
-
-The reframe I needed is that technical quality is a continuous investment, not a project you do once and finish. You are always either paying it down or letting it accrue, and "do nothing" is itself a position with a price. Once I held it that way, the question stopped being *should we do platform work or features* and became *what is the right sized, planned line for investment this quarter, and how do I argue for it.*
-
-And the argument has to be in the language the roadmap already speaks: speed, reliability, cost. Not virtue, not craftsmanship, not "the team will be happier." Those may be true, but they don't survive a prioritisation meeting. "This cuts our incident recovery time roughly in half" does.
+Technical quality is a continuous investment, not a project you finish once. You're always either paying it down or letting it accrue, and "do nothing" is a position with a price. Once you hold it that way, the question stops being *platform work or features* and becomes *what's the right-sized, planned line for investment this quarter, and how do I argue for it.* And the argument has to be in the language the roadmap already speaks — speed, reliability, cost — not virtue or craftsmanship. "This cuts incident recovery time roughly in half" survives a prioritisation meeting; "the team will be happier" does not.
 
 <Callout type="info" title="The reframe">
   A deferral is not a saving. It is a loan against future capacity, taken at an interest rate you don't control and can't see until it's due.
 </Callout>
 
+## What to do
+
+- **Reserve a standing share of each cycle** — around 15–20% — for engineering investment, and defend it like any other commitment instead of spending it first when a deadline slips.
+- **Make every investment item carry a product outcome:** faster delivery here, fewer pages there, lower cost over time. If you can't phrase it that way, it isn't ready to argue for.
+- **Put the work on the *same* roadmap as features,** sequenced and visible, not in a shadow backlog only engineers ever see.
+- **Split large items to deliver incrementally,** route by route, rather than as an all-at-once rewrite. The courier got migrated piece by piece behind its existing interface.
+- **Name the loan out loud.** When you choose to defer, say so and write down what you're borrowing against, so the deferral is a decision instead of a default.
+
 <ImplementationNote>
-  BlueRobin makes this trade-off legible by construction. The platform runs under a hard monthly budget ceiling, so [cost governance](/articles/model-policy-governance-token-usage) is engineering investment expressed as a product constraint rather than a preference. You can't quietly defer it, because the ceiling is non-negotiable and visible to everyone. The same move works at team scale: tie the work to a number the business already cares about, and it stops being optional.
+  BlueRobin makes this trade-off legible by construction. The platform runs under a hard monthly budget ceiling, so [cost governance](/articles/model-policy-governance-token-usage) is engineering investment expressed as a product constraint, not a preference. You can't quietly defer it, because the ceiling is non-negotiable and visible to everyone. The same move works at team scale: tie the work to a number the business already cares about, and it stops being optional.
 </ImplementationNote>
-
-## What I changed
-
-- I reserved a standing share of each cycle, around 15 to 20 percent, for engineering investment, and defended it like any other commitment instead of spending it first when a deadline slipped.
-- I made every investment item carry a product outcome: faster delivery here, fewer pages there, lower cost over time. If I couldn't phrase it that way, it wasn't ready to argue for.
-- I put the work on the *same* roadmap as features, sequenced and visible, not in a shadow backlog that only engineers ever saw.
-- I split the large items so they could be delivered incrementally, route by route, rather than as the kind of all-at-once rewrite that had bitten us. The courier itself got migrated piece by piece behind the existing interface.
-- I started naming the loan out loud. When we chose to defer, I said so explicitly and wrote down what we were borrowing against, so the deferral was a decision instead of a default.
 
 ## The results
 
-Over the following two or three quarters, the courier-class incidents that had been eating whole weeks became rare, and the ones that remained were small enough to handle inside a normal day. Recovery time on the failures we did have dropped by roughly half, mostly because the systems were no longer mysteries.
+Over the following two or three quarters, the courier-class incidents that had eaten whole weeks became rare, and the ones that remained were small enough to handle inside a normal day; recovery time on the failures we did have dropped by roughly half, mostly because the systems were no longer mysteries. Velocity is the part I'd describe carefully — we didn't get dramatically faster, and I'd distrust a clean before-and-after number here. What changed is that velocity got *steadier*: fewer quarters torched by an unplanned emergency. Predictability mattered more to stakeholders than raw speed ever did.
 
-Velocity is the part I'd describe carefully. We did not get dramatically faster, and I'd distrust anyone who claimed a clean before-and-after number here. What changed is that velocity got *steadier* — fewer quarters torched by an emergency nobody planned for. Predictability turned out to matter more to stakeholders than raw speed ever did.
-
-The honest caveat: I overcorrected for about a quarter. Fresh from the cleanup, I let the investment line creep toward a third of capacity and started funding refactors that were aesthetic, not load-bearing. A reserved budget is a tool, not a virtue, and it can be misspent exactly like any other. The discipline isn't protecting the line. It's making each item earn its place on the same terms as a feature would.
-
-If I were doing it again, I'd put numbers on the risk earlier. We had the incident data the whole time. I just hadn't turned it into the argument that would have let me pay the cost on a schedule of my choosing.
+The caveat: I over-corrected for about a quarter, letting the investment line creep toward a third of capacity and funding refactors that were aesthetic, not load-bearing. A reserved budget is a tool, not a virtue, and it can be misspent like any other. The discipline isn't protecting the line; it's making each item earn its place on the same terms as a feature. Next time I'd put numbers on the risk earlier — I had the incident data the whole time.
 
 ## Further reading
 

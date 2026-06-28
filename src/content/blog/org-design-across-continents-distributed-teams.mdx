@@ -1,6 +1,6 @@
 ---
 title: "Running a Reorg Around Domain Boundaries"
-description: "I drew the team chart around who reported to whom, then watched a one-line change stall for a week because it touched three teams at once."
+description: "When the org chart and the architecture disagree, the architecture wins and you pay in coordination. Draw teams around domain boundaries, not reporting lines."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: false
@@ -8,59 +8,43 @@ project: "leadership"
 category: "leadership"
 difficulty: "advanced"
 tags: ["leadership", "engineering-management", "org-design", "conways-law", "domain-driven-design", "an-elegant-puzzle"]
-readTime: "6 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-The change was a single field. A new "cancellation reason" on an order, surfaced in the UI, persisted, and emitted on the event that downstream billing already consumed. I estimated it at an afternoon.
+When a routine change reliably needs three teams to agree, the boundaries are wrong. Org charts drawn around reporting lines — who has headroom, who sits closest to a screen — look tidy and cut straight through domains that want to be one thing. Every change across that cut then needs a meeting.
 
-It took eight days.
+I built exactly that org. A single new field — a "cancellation reason" on an order, surfaced in the UI, persisted, and emitted on an event billing already consumed — I estimated at an afternoon. It took eight days. It touched three teams (Checkout owned the screen, Orders the write path and schema, Payments the consumer and the enum), and none of them owned the change, because it lived in the seams between them.
 
-The field touched three teams. The Checkout team owned the screen. The Orders team owned the write path and the schema. The Payments team owned the event consumer and had opinions about the enum values. None of them owned the change, because the change didn't live inside any one of them — it lived in the seams between them.
+## The model
 
-So we did what you do. We scheduled a sync. Payments couldn't agree the enum without Orders, Orders didn't want to migrate the schema until Checkout confirmed the copy, and Checkout was waiting on the event shape. Three calendars, one decision, and a quiet week of "waiting to hear back from the other team."
-
-I had built that org. I'd drawn the boundaries the convenient way — by who already reported to whom, by which manager had headroom, by which team was closest to a given screen. It looked tidy on the chart. It was the wrong shape for the system underneath it.
-
-## What it taught me
-
-The teams disagreed with the architecture, and when the org chart and the architecture disagree, the architecture wins — it just makes you pay in coordination. This is Conway's Law read backwards. Your systems come to mirror your communication structures, so if your communication structure cuts straight through a domain that wants to be one thing, every change across that cut needs a meeting.
-
-I had treated team boundaries as an HR artifact. They are an architectural one. The boundary between two teams is a contract, whether you designed it or not, and an undesigned contract is the most expensive kind: implicit, contested, and renegotiated every time someone touches it.
-
-The fix wasn't more synchronization. More meetings only redistribute the waiting. The fix was to move the boundaries so that the common changes stayed inside a single team — to let the domain decide the org, instead of the other way around.
+This is Conway's Law read backwards: systems come to mirror communication structures, so a structure that cuts through a domain makes every change across the cut expensive. Team boundaries aren't an HR artifact; they're an architectural one. The boundary between two teams is a contract whether you designed it or not, and an undesigned contract is the most expensive kind — implicit, contested, renegotiated every time someone touches it. More synchronization doesn't fix this; meetings only redistribute the waiting. Moving the boundaries does.
 
 <Callout type="info" title="The tell">
-  If a routine change reliably needs three teams to agree, the change is trying to tell you where a team should be. Coordination cost is a map of your mismatched boundaries — read it.
+  If a routine change reliably needs three teams to agree, the change is telling you where a team should be. Coordination cost is a map of your mismatched boundaries — read it.
 </Callout>
 
-## What I changed
+## What to do
 
-I ran the reorg around the domain model rather than the reporting lines.
-
-- **Drew teams around aggregates, not screens.** Orders, including its events and the rules that govern them, became one team's full responsibility — write path, schema, and the contract it emits. The "cancellation reason" change would now land inside one team's walls.
-- **Made each seam an owned contract.** Every cross-team boundary got an explicit, typed interface with a single owning team. Changing the contract is a deliberate, versioned act; living behind it is nobody else's business.
-- **Gave each team end-to-end ownership of its slice.** A team that owns a domain owns it from API to event to data, so it can ship most changes without a quorum from its neighbours.
-- **Killed the standing cross-team syncs.** They were a symptom. Once the boundaries matched the domains, the meetings had nothing left to coordinate, and I deleted them rather than let them fill with new work.
+- **Draw teams around aggregates, not screens.** Orders — its events and the rules governing them — becomes one team's full responsibility, so a "cancellation reason" change lands inside one team's walls.
+- **Make each seam an owned contract.** Every cross-team boundary gets an explicit, typed interface with a single owning team. Changing it is a deliberate, versioned act; living behind it is nobody else's business.
+- **Give each team end-to-end ownership** of its slice — API to event to data — so it ships most changes without a quorum from its neighbours.
+- **Kill the standing cross-team syncs.** They were a symptom. Once boundaries match domains the meetings have nothing to coordinate; delete them before they refill with new work.
 
 <ImplementationNote>
-  This is why BlueRobin makes its seams explicit on purpose. The domain aggregates and the typed contracts between them — the API surface and the NATS event shapes — aren't only an engineering convenience. They are the lines a team would map onto cleanly. When the model names the boundaries, the org chart has somewhere honest to follow.
+  This is why BlueRobin makes its seams explicit on purpose. The domain aggregates and the typed contracts between them — the API surface and the NATS event shapes — aren't only an engineering convenience; they are the lines a team would map onto cleanly. When the model names the boundaries, the org chart has somewhere honest to follow.
 </ImplementationNote>
 
 ## The results
 
-The next change of that shape — another field, another reason code, threaded through write path and event — shipped in about a day, by one team, with no cross-team meeting. Decision latency on that class of work dropped from roughly a week to roughly a day.
+The next change of that shape — another field, another reason code, threaded through write path and event — shipped in about a day, by one team, with no cross-team meeting. Decision latency on that class of work dropped from roughly a week to roughly a day. Three standing coordination meetings went away, and teams stopped describing their work as "blocked on another team."
 
-The standing coordination meetings, three of them, went away. The people in them got the hours back, and the teams stopped describing their work as "blocked on another team," which had been the quiet refrain in every retro.
-
-The honest caveat: this didn't make the genuinely cross-cutting decisions any cheaper. Changing a shared contract still costs real coordination, and it should — a versioned interface is exactly the kind of thing two teams ought to slow down and agree on. What the reorg fixed was the accidental coordination, the meetings we were holding because the boundaries were wrong. It did nothing for the essential kind, and a few large changes still need every team in the room.
-
-If I were doing it again, I'd reorg sooner and smaller. I waited until the coordination tax was obvious to everyone, which meant the eventual move was bigger and more disruptive than a series of quiet boundary corrections along the way would have been.
+The caveat: this didn't make genuinely cross-cutting decisions cheaper. Changing a shared contract still costs real coordination — and should; a versioned interface is exactly what two teams ought to slow down and agree on. The reorg fixed the accidental coordination, not the essential kind, and a few large changes still need every team in the room. I'd also reorg sooner and smaller next time — I waited until the tax was obvious to everyone, which made the eventual move bigger and more disruptive than a series of quiet boundary corrections would have been.
 
 ## Further reading
 
