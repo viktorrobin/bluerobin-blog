@@ -41,8 +41,7 @@ const websiteJsonLd = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="color-scheme" content="light" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" type="image/png" href="/bluerobin-logo.png" />
+    <link rel="icon" type="image/png" href="/bluerobin-logo.png" sizes="any" />
     <link rel="apple-touch-icon" href="/bluerobin-logo.png" />
     <link rel="canonical" href={canonicalURL} />
     <meta name="generator" content={Astro.generator} />
@@ -82,6 +81,14 @@ const websiteJsonLd = {
 
     <!-- Structured data -->
     <script type="application/ld+json" set:html={JSON.stringify(websiteJsonLd)} />
+
+    <!-- Cloudflare Web Analytics — cookieless, no-consent-banner needed -->
+    <script
+      is:inline
+      defer
+      src="https://static.cloudflareinsights.com/beacon.min.js"
+      data-cf-beacon='{"token": "6cfaa3ea9f974eea8cb63e6629886e05"}'
+    />
   </head>
   <body class="min-h-screen flex flex-col">
     <!-- Skip to main content (keyboard / screen-reader users) -->
