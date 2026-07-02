@@ -306,6 +306,13 @@
     --radius-3xl: 2rem;
     --radius-full: 9999px;
 
+    /* Semantic component radii — interaction-consistency: ONE card radius and
+       ONE pill/control radius, so visually-similar surfaces share corners (DS-1). */
+    --radius-card: var(--radius-xl);
+    /* --radius-pill is the button/pill-control radius. Defined here now; the
+       .btn / .br-btn system adopts it in the button-consolidation follow-up. */
+    --radius-pill: var(--radius-xl);
+
     /* ==================== SHADOWS ==================== */
     /* Base shadows using alpha tokens */
     --shadow-xs: 0 1px 2px 0 var(--color-slate-alpha-5);
@@ -434,7 +441,14 @@
     --duration-slow: 350ms;
     --duration-slower: 500ms;
     --duration-orb: 20s;
+    /* Unified hover/focus speed for interactive controls (buttons, cards, links).
+       ONE knob so visually-similar controls respond identically (DS-1). */
+    --duration-interaction: 150ms;
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Unified hover-lift — ONE translateY for cards & buttons, applied as
+       transform: translateY(var(--lift-hover)). */
+    --lift-hover: -2px;
 
     /* ==================== Z-INDEX ==================== */
     --z-base: 0;
