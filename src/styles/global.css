@@ -74,6 +74,17 @@
     --color-quantum-800: oklch(40% 0.115 125);
     --color-quantum-900: oklch(35% 0.085 124);
 
+    /* Semantic status aliases (first-class success/error colors).
+       Defined INSIDE @theme so Tailwind generates text-/bg-/border-success
+       and -error utilities (a plain :root {} block would emit the vars but
+       NOT the utilities). success mirrors quantum-400 (grass green), error
+       mirrors aurora-400 (vermilion) — the design system's Success/Danger
+       families. DS-1 (tokens only) / DS-2 (no hardcoded hex/rgba). */
+    --color-success: oklch(74% 0.185 127);
+    /* = quantum-400 (grass green) — positive amounts / credit */
+    --color-error: oklch(68% 0.215 28);
+    /* = aurora-400 (vermilion) — debit / danger amounts */
+
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
     --color-glow-100: oklch(95% 0.08 85);
