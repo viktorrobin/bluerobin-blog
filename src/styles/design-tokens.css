@@ -12,14 +12,13 @@
 
 @theme {
     /* ==================== COLOR PALETTE ==================== */
-    /* Primary: Blue — Neural palette, centered on #0099fd */
+    /* Primary: Blue — Neural palette (hue 232), centered on #0099fd at -500.
     --color-neural-50: oklch(98% 0.015 232);
     --color-neural-100: oklch(20% 0.08 232);
     --color-neural-200: oklch(32% 0.13 232);
     --color-neural-300: oklch(42% 0.17 232);
     --color-neural-400: oklch(52% 0.21 232);
-    --color-neural-500: oklch(69% 0.235 232);
-    /* pumpkin-500 #0099fd — SUNO PRIMARY */
+    --color-neural-500: oklch(69% 0.235 232); /* #0099fd — primary */
     --color-neural-600: oklch(76% 0.20 232);
     --color-neural-700: oklch(83% 0.15 232);
     --color-neural-800: oklch(89% 0.10 232);
@@ -74,13 +73,12 @@
     --color-slate-900: #0f172a;
     --color-slate-950: #020617;
 
-    /* Complement: Pumpkin Orange — pairs with Neural Blue */
+    /* Complement: Pumpkin Orange (hue 43) — the warm accent that pairs with the
     --color-complement-100: oklch(20% 0.08 43);
     --color-complement-200: oklch(29% 0.13 43);
     --color-complement-300: oklch(39% 0.17 43);
     --color-complement-400: oklch(52% 0.20 43);
-    --color-complement-500: oklch(66% 0.21 43);
-    /* #0099FD - electric blue PRIMARY */
+    --color-complement-500: oklch(66% 0.21 43); /* primary complement */
     --color-complement-600: oklch(74% 0.18 43);
     --color-complement-700: oklch(81% 0.14 43);
     --color-complement-800: oklch(88% 0.09 43);
@@ -97,6 +95,75 @@
 
     /* Neural blue tint */
 
+    /* Suno --color-border-primary */
+
+
+
+
+    /* Neural color with opacity variants — Suno pumpkin #0099fd */
+    --color-neural-alpha-10: oklch(69% 0.235 232 / 0.10);
+    --color-neural-alpha-15: oklch(69% 0.235 232 / 0.15);
+    --color-neural-alpha-20: oklch(69% 0.235 232 / 0.20);
+    --color-neural-alpha-30: oklch(69% 0.235 232 / 0.30);
+    --color-neural-alpha-40: oklch(69% 0.235 232 / 0.40);
+    --color-neural-alpha-50: oklch(69% 0.235 232 / 0.50);
+
+    /* Aurora color with opacity variants — Suno vermilion #f8441b */
+    --color-aurora-alpha-10: oklch(60% 0.240 29 / 0.10);
+    --color-aurora-alpha-15: oklch(60% 0.240 29 / 0.15);
+    --color-aurora-alpha-20: oklch(60% 0.240 29 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
+    --color-aurora-alpha-50: oklch(60% 0.240 29 / 0.50);
+
+    /* Quantum color with opacity variants — Suno grass #4aab04 */
+    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
+    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
+    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+    --color-quantum-alpha-50: oklch(63% 0.190 127 / 0.50);
+
+    /* Glow color with opacity variants */
+    --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-15: oklch(74% 0.17 70 / 0.15);
+    --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
+    --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+    --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
+
+    /* Slate color with opacity variants - for shadows and borders */
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+    --color-slate-alpha-80: oklch(25% 0.02 260 / 0.80);
+
+
+
+    /* Complement Electric Blue — deep navy to electric blue */
+
+
+
+    /* Mesh Background — dark neutral architectural gradient */
+
+
+
+
+
+
+
+
+    /* Glow effect tokens - for hover states */
+
+
+
+
+
+    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
+    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
     /* Suno --color-border-primary */
 
 
