@@ -10,14 +10,23 @@
 @theme {
     /* ==================== COLOR PALETTE ==================== */
     /* Primary: Blue — Neural palette (hue 232), centered on #0099fd at -500.
-       DARK-THEME CONVENTION (intentional, inverted vs stock Tailwind): stops
-       ascend 100→900 from dark to light, so LOW numbers are deep navy (surfaces,
-       borders) and HIGH numbers are bright blue (accent text/icons on the dark
-       canvas). -400 (52% L) is the canonical accent-text blue; -500 (#0099fd) is
-       the brand primary; -600..-900 are lighter highlights. Do NOT "fix" to
-       stock light→dark — ~120 consumers depend on this ordering. (-50 is a
-       near-white outlier used as a primary on-dark text/icon color.) Stale
-       "pumpkin"/orange hex comments removed — every stop is blue (hue 232). */
+       ┌─ ⚠ INVERTED RAMP — intentional (see DESIGN-SYSTEM.md §1) ─────────────┐
+       │ DARK-THEME CONVENTION: stops ASCEND -100→-900 from DARK to LIGHT, so a │
+       │ DECREMENT means DARKER — the OPPOSITE of stock Tailwind and of the     │
+       │ aurora / quantum / glow / slate ramps below. LOW numbers = deep navy   │
+       │ (surfaces, borders, fills); HIGH numbers = bright blue (accent text /  │
+       │ icons on the dark canvas). Key stops:                                  │
+       │   -400 (52% L) canonical accent-text / link blue                       │
+       │   -500 (#0099fd) brand primary — buttons, focus ring                   │
+       │   -600..-900 progressively lighter highlights                          │
+       │   -50 (98% L) near-white OUTLIER — on-dark text/icon (breaks the order)│
+       │ Do NOT "normalize" to stock light→dark: ~120 consumers (634 refs)      │
+       │ depend on this order; flipping it inverts the whole blue accent system.│
+       │ Any such pass MUST be a dedicated, visual-regression-gated change.     │
+       │ `npm run lint:token-ramps` guards this ordering in CI. For NEW code    │
+       │ prefer the role-named --color-brand-neural-* aliases below over stops. │
+       │ (Every stop is blue, hue 232 — stale "pumpkin"/orange comments gone.)  │
+       └────────────────────────────────────────────────────────────────────────┘ */
     --color-neural-50: oklch(98% 0.015 232);
     --color-neural-100: oklch(20% 0.08 232);
     --color-neural-200: oklch(32% 0.13 232);
@@ -28,6 +37,16 @@
     --color-neural-700: oklch(83% 0.15 232);
     --color-neural-800: oklch(89% 0.10 232);
     --color-neural-900: oklch(94% 0.06 232);
+
+    /* Semantic aliases for the neural ramp — role-named entry points so intent is
+       self-evident without memorizing the inverted numeric order above. ADDITIVE:
+       the raw --color-neural-* scale stays canonical; these just map roles onto it.
+       Solid colors only — for transparency use --color-neural-alpha-*, not a /NN
+       opacity modifier (the var() indirection can't be alpha-composited). */
+    --color-brand-neural-surface: var(--color-neural-100); /* deep navy — surfaces, borders, fills */
+    --color-brand-neural-accent:  var(--color-neural-400); /* canonical accent / link TEXT (52% L) */
+    --color-brand-neural-primary: var(--color-neural-500); /* #0099fd — brand primary: buttons, focus ring */
+    --color-brand-neural-on:      var(--color-neural-50);  /* near-white on-dark text / icon */
 
     /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
     --color-aurora-50: oklch(97% 0.020 28);
@@ -80,10 +99,14 @@
     --color-slate-900: #0f172a;
     --color-slate-950: #020617;
 
-    /* Complement: Pumpkin Orange (hue 43) — the warm accent that pairs with the
-       neural blue primary. Same dark-theme convention as neural: stops ascend
-       100→900 (dark→light). Stale blue/navy hex comments removed — every value
-       below is orange (hue 43), not blue. */
+    /* Complement: warm orange accent (hue 43) that pairs with the neural blue
+       primary. ⚠ SAME INVERTED CONVENTION as neural (see DESIGN-SYSTEM.md §1):
+       stops ASCEND -50/-100→-900 from DARK to LIGHT, so a DECREMENT means DARKER.
+       Do NOT normalize to stock light→dark — `npm run lint:token-ramps` guards it.
+       For NEW code prefer the --color-brand-complement-* aliases below.
+       -50 (98% L) is the near-white outlier (mirrors neural-50, for on-dark text).
+       Every value is orange (hue 43), not blue. */
+    --color-complement-50:  oklch(98% 0.02 43);
     --color-complement-100: oklch(20% 0.08 43);
     --color-complement-200: oklch(29% 0.13 43);
     --color-complement-300: oklch(39% 0.17 43);
@@ -93,6 +116,12 @@
     --color-complement-700: oklch(81% 0.14 43);
     --color-complement-800: oklch(88% 0.09 43);
     --color-complement-900: oklch(94% 0.05 43);
+
+    /* Semantic aliases for the complement ramp (mirror the neural aliases; additive). */
+    --color-brand-complement-surface: var(--color-complement-100); /* deep — surfaces / fills */
+    --color-brand-complement-accent:  var(--color-complement-400); /* accent TEXT */
+    --color-brand-complement-primary: var(--color-complement-500); /* primary warm accent */
+    --color-brand-complement-on:      var(--color-complement-50);  /* near-white on-dark */
 
     /* Complement color with opacity variants */
     --color-complement-alpha-10: oklch(66% 0.21 43 / 0.10);
@@ -191,6 +220,7 @@
     --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
     --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
     --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
+    --color-glow-alpha-50: oklch(74% 0.17 70 / 0.50); /* completes the amber alpha ramp (was capped at -40, forcing raw-value shadows) */
 
     /* Slate color with opacity variants - for shadows and borders */
     --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
@@ -378,7 +408,10 @@
         0 2px 6px 0 rgba(0, 0, 0, 0.30);
 
     /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
-    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
+    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities.
+       NOTE: these are BLUE (neural, oklch 232) despite the `glow` name, which the
+       amber `--shadow-glow` also uses — a known amber-vs-blue naming collision left
+       as follow-up (see DESIGN-SYSTEM.md §7). */
     --shadow-glow-sm: 0 0 20px oklch(69% 0.235 232 / 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
     --shadow-glow-md: 0 0 40px oklch(69% 0.235 232 / 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
     --shadow-glow-lg: 0 0 60px oklch(69% 0.235 232 / 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);

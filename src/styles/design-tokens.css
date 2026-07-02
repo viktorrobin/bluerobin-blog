@@ -24,6 +24,12 @@
     --color-neural-800: oklch(89% 0.10 232);
     --color-neural-900: oklch(94% 0.06 232);
 
+    /* Semantic aliases for the neural ramp — role-named entry points so intent is
+    --color-brand-neural-surface: var(--color-neural-100); /* deep navy — surfaces, borders, fills */
+    --color-brand-neural-accent:  var(--color-neural-400); /* canonical accent / link TEXT (52% L) */
+    --color-brand-neural-primary: var(--color-neural-500); /* #0099fd — brand primary: buttons, focus ring */
+    --color-brand-neural-on:      var(--color-neural-50);  /* near-white on-dark text / icon */
+
     /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
     --color-aurora-50: oklch(97% 0.020 28);
     --color-aurora-100: oklch(93% 0.060 28);
@@ -73,7 +79,8 @@
     --color-slate-900: #0f172a;
     --color-slate-950: #020617;
 
-    /* Complement: Pumpkin Orange (hue 43) — the warm accent that pairs with the
+    /* Complement: warm orange accent (hue 43) that pairs with the neural blue
+    --color-complement-50:  oklch(98% 0.02 43);
     --color-complement-100: oklch(20% 0.08 43);
     --color-complement-200: oklch(29% 0.13 43);
     --color-complement-300: oklch(39% 0.17 43);
@@ -83,6 +90,12 @@
     --color-complement-700: oklch(81% 0.14 43);
     --color-complement-800: oklch(88% 0.09 43);
     --color-complement-900: oklch(94% 0.05 43);
+
+    /* Semantic aliases for the complement ramp (mirror the neural aliases; additive). */
+    --color-brand-complement-surface: var(--color-complement-100); /* deep — surfaces / fills */
+    --color-brand-complement-accent:  var(--color-complement-400); /* accent TEXT */
+    --color-brand-complement-primary: var(--color-complement-500); /* primary warm accent */
+    --color-brand-complement-on:      var(--color-complement-50);  /* near-white on-dark */
 
     /* Complement color with opacity variants */
     --color-complement-alpha-10: oklch(66% 0.21 43 / 0.10);
@@ -95,6 +108,86 @@
 
     /* Neural blue tint */
 
+    /* Suno --color-border-primary */
+
+
+
+
+    /* Neural color with opacity variants — Suno pumpkin #0099fd */
+    --color-neural-alpha-10: oklch(69% 0.235 232 / 0.10);
+    --color-neural-alpha-15: oklch(69% 0.235 232 / 0.15);
+    --color-neural-alpha-20: oklch(69% 0.235 232 / 0.20);
+    --color-neural-alpha-30: oklch(69% 0.235 232 / 0.30);
+    --color-neural-alpha-40: oklch(69% 0.235 232 / 0.40);
+    --color-neural-alpha-50: oklch(69% 0.235 232 / 0.50);
+
+    /* Aurora color with opacity variants — Suno vermilion #f8441b */
+    --color-aurora-alpha-10: oklch(60% 0.240 29 / 0.10);
+    --color-aurora-alpha-15: oklch(60% 0.240 29 / 0.15);
+    --color-aurora-alpha-20: oklch(60% 0.240 29 / 0.20);
+    --color-aurora-alpha-30: oklch(60% 0.240 29 / 0.30);
+    --color-aurora-alpha-40: oklch(60% 0.240 29 / 0.40);
+    --color-aurora-alpha-50: oklch(60% 0.240 29 / 0.50);
+
+    /* Quantum color with opacity variants — Suno grass #4aab04 */
+    --color-quantum-alpha-10: oklch(63% 0.190 127 / 0.10);
+    --color-quantum-alpha-15: oklch(63% 0.190 127 / 0.15);
+    --color-quantum-alpha-20: oklch(63% 0.190 127 / 0.20);
+    --color-quantum-alpha-30: oklch(63% 0.190 127 / 0.30);
+    --color-quantum-alpha-40: oklch(63% 0.190 127 / 0.40);
+    --color-quantum-alpha-50: oklch(63% 0.190 127 / 0.50);
+
+    /* Glow color with opacity variants */
+    --color-glow-alpha-10: oklch(74% 0.17 70 / 0.10);
+    --color-glow-alpha-15: oklch(74% 0.17 70 / 0.15);
+    --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
+    --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
+    --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
+    --color-glow-alpha-50: oklch(74% 0.17 70 / 0.50); /* completes the amber alpha ramp (was capped at -40, forcing raw-value shadows) */
+
+    /* Slate color with opacity variants - for shadows and borders */
+    --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
+    --color-slate-alpha-5: oklch(25% 0.02 260 / 0.05);
+    --color-slate-alpha-6: oklch(25% 0.02 260 / 0.06);
+    --color-slate-alpha-8: oklch(25% 0.02 260 / 0.08);
+    --color-slate-alpha-10: oklch(25% 0.02 260 / 0.10);
+    --color-slate-alpha-12: oklch(25% 0.02 260 / 0.12);
+    --color-slate-alpha-15: oklch(25% 0.02 260 / 0.15);
+    --color-slate-alpha-80: oklch(25% 0.02 260 / 0.80);
+
+
+
+    /* Complement Electric Blue — deep navy to electric blue */
+
+
+
+    /* Mesh Background — dark neutral architectural gradient */
+
+
+
+
+
+
+
+
+
+    /* Glow effect tokens - for hover states */
+
+
+
+
+
+    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
+    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities.
+
+
+
+
+
+
+
+
+    /* Unified hover-lift — ONE translateY for cards & buttons, applied as
     /* Suno --color-border-primary */
 
 
