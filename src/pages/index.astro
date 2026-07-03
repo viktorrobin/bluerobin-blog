@@ -162,7 +162,7 @@ const projects = [
           The Archives and the Debug Agent run on the same homelab K3s cluster — one on-prem node plus a Hetzner cloud worker, joined over a Tailscale mesh and fronted by Cloudflare. Production is the only in-cluster environment (ADR-034).
         </p>
       </div>
-      <div class="glass-card p-4 sm:p-6 overflow-x-auto">
+      <div class="figure-plate p-4 sm:p-6 overflow-x-auto">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 734" role="img" style="width:100%;height:auto;max-width:780px;margin:0 auto;display:block;" font-family="ui-sans-serif, -apple-system, system-ui, sans-serif">
 <title>BlueRobin platform architecture — on-prem and cloud</title>
 <desc>Zoned topology: users and external LLM APIs at top; a Cloudflare edge zone (DNS/WAF/Tunnel, R2 storage, AI Gateway); a Tailscale-meshed prod-only K3s cluster with an on-prem homelab node (Traefik/Authelia, the Archives agent platform with triage, retrieval, finance, health and tax agents, Ollama, and a data layer of PostgreSQL, NATS, Qdrant, FalkorDB plus an NAS registry) and a Hetzner CX43 cloud worker (cloudflared, LGTM observability, debug agent and RCA, MCP fleet, ARC runners, API/Web spillover); outputs to GitHub auto-PRs and ntfy alerts; a developer laptop runs off-cluster.</desc>

@@ -900,6 +900,24 @@ pre {
     border-color: var(--border-default);
 }
 
+/* ==================== FIGURE PLATE ==================== */
+/* Frame for light-authored diagrams/infographics (inline SVG, Mermaid) that
+   use hardcoded light fills. Kept on a near-white surface in BOTH themes so the
+   figure stays legible; in dark it reads as a deliberately framed plate rather
+   than a low-contrast island. Avoids recoloring dozens of SVG hex fills (CSS
+   custom properties don't resolve inside SVG presentation attributes). */
+.figure-plate {
+    background: #ffffff;
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-2xl);
+}
+
+[data-theme="dark"] .figure-plate {
+    background: #f4f7fb;
+    border-color: rgba(255, 255, 255, 0.12);
+    box-shadow: 0 10px 34px rgba(0, 0, 0, 0.38);
+}
+
 /* ==================== BENTO FEATURE GRID ==================== */
 
 .bento-grid {
