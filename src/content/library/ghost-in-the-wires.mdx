@@ -1,0 +1,49 @@
+---
+title: "Ghost in the Wires"
+bookAuthor: "Kevin Mitnick"
+description: "The best argument for treating humans as the attack surface — wrapped in a thriller."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 3.94
+audience:
+  - "Security engineers and red-teamers"
+  - "Anyone designing auth or access controls"
+  - "Readers who want the human side of breaches"
+relatedProjects: []
+relatedLinks:
+  - label: "Hardened security with YubiKey"
+    href: "/articles/hardened-security-yubikey-certificate-signing/"
+isbn: "9780316037709"
+tags:
+  - "security"
+  - "social-engineering"
+  - "hacking"
+  - "memoir"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 3.94)">
+A first-person field manual on social engineering disguised as a fugitive thriller. Read it for how people get talked past controls, not for the cat-and-mouse chase.
+</Callout>
+
+## The one-paragraph verdict
+
+Mitnick's real subject isn't computers — it's people, and how reliably a confident voice on the phone defeats a control nobody thought to question. The pretexting playbook here is genuinely instructive: badge numbers, internal jargon, manufactured urgency, the slow assembly of trust from harmless-looking fragments. It's also, as plenty of reviewers note, too long and repetitive — the escapes start to blur, and the relentless I-was-the-smartest-guy-in-the-room framing wears thin by the back half. But strip the bravado and you're left with the clearest case I've read for treating humans as the primary attack surface. <ExternalCite title="Ghost in the Wires on Goodreads" url="https://www.goodreads.com/en/book/show/10256723" />
+
+## Who should read it
+
+Security engineers, red-teamers, and anyone writing auth or access policy — because the failures here are almost never cryptographic, they're procedural and human. If you want a technical treatise on exploits, skip it; the tradecraft is dated and the depth is anecdotal, not systematic.
+
+## Where it earned its place
+
+It sharpened why I lean on hardware-backed identity. Phishing and pretext calls don't get you anywhere against a key that physically has to be present, which is the whole point of my [YubiKey certificate-signing setup](/articles/hardened-security-yubikey-certificate-signing/) — move the trust into something a smooth talker can't extract over the phone.
+
+## Skip it if…
+
+You want current technique or you've already read enough about social engineering to recite the patterns — this is a memoir first, and the lessons are buried in a lot of self-mythologizing.

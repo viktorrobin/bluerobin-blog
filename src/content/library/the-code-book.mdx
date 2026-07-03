@@ -1,0 +1,49 @@
+---
+title: "The Code Book"
+bookAuthor: "Simon Singh"
+description: "The clearest on-ramp to crypto thinking I've handed anyone — history first, math when you've earned it."
+purchaseDate: 2023-05-13
+status: "read"
+theme: "security-cyber"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.30
+audience:
+  - "Engineers who touch TLS, PKI, or auth and want the why"
+  - "Anyone learning cryptography for the first time"
+  - "Security-curious readers who like history over equations"
+relatedProjects: []
+relatedLinks:
+  - label: "Private PKI / root CA"
+    href: "/articles/building-private-pki-root-ca-certificates/"
+isbn: "9780385730624"
+tags:
+  - "cryptography"
+  - "security"
+  - "history"
+  - "ciphers"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.30)">
+The single best book for turning "encryption is magic" into intuition. Read it before you read anything formal.
+</Callout>
+
+## The one-paragraph verdict
+
+Singh tells the history of secrecy as a 3,000-year arms race — Mary Queen of Scots losing her head to a broken cipher, the Navajo code talkers, Bletchley Park — and the narrative pull is real: it's genuinely hard to put down. The trick that makes it work is structural. He earns every piece of math before he shows it, so by the time RSA and public-key exchange arrive they feel inevitable rather than imposed. It isn't perfect: a few sections still ask more arithmetic patience than the prose admits, and the closing chapter on quantum cryptography reads as dated now — that frontier moved. But the core stays sharp, and the explanation of why public-key changed everything is the cleanest I've found anywhere.
+
+## Who should read it
+
+Read it if you ship anything that signs, encrypts, or verifies and you've been treating the primitives as black boxes — Singh gives you the mental model, not just the API. It also works as a first cryptography book for a smart non-specialist. Skip it if you want a rigorous, proof-driven treatment; this is history with math, not a textbook, and it won't satisfy someone who already knows how Diffie-Hellman works.
+
+## Where it earned its place
+
+The public-key chapter is exactly what made the abstractions click when I wrote up [building a private PKI and root CA](/articles/building-private-pki-root-ca-certificates/). Knowing *why* asymmetric keys exist — the key-distribution problem Singh spends a whole chapter setting up — is what kept that piece from being a copy-paste of `openssl` invocations and turned it into something I actually understood.
+
+## Skip it if…
+
+You already work in cryptography, or you need formal rigor and proofs. This is a popular history that happens to teach the math well — superb as a first book, redundant as a tenth.

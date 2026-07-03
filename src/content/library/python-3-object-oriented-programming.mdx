@@ -1,0 +1,50 @@
+---
+title: "Python 3 Object-Oriented Programming"
+bookAuthor: "Dusty Phillips"
+description: "Solid OOP onboarding for Python, but thin once you've shipped a few classes."
+purchaseDate: 2021-08-28
+status: "read"
+theme: "programming-craft"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 4.03
+audience:
+  - "Developers new to OOP in Python"
+  - "Engineers crossing into Python from another language"
+  - "Self-taught coders filling in design gaps"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Embedding pipeline"
+    href: "/articles/embedding-pipeline-ollama-qdrant/"
+isbn: "9781789615852"
+tags:
+  - "python"
+  - "object-oriented-programming"
+  - "design-patterns"
+  - "software-craft"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.03)">
+A clear, example-driven on-ramp to OOP in Python. Useful if those ideas are new to you; skippable if you've already internalized them.
+</Callout>
+
+## The one-paragraph verdict
+
+Phillips is genuinely good at the thing the book sets out to do: explaining classes, inheritance, composition, and the standard design patterns with practical, real-world examples instead of toy `Animal`/`Dog` hierarchies. The pacing is gentle and the code is idiomatic Python, not Java-with-`self`. The flip side is that it spreads thin — the design-pattern chapters skim the surface of material that <ExternalCite title="Design Patterns (GoF)" url="https://www.goodreads.com/book/show/85009.Design_Patterns" /> treats in depth, and an experienced engineer will find whole chapters that confirm what they already know. It teaches OOP competently; it doesn't push you past it.
+
+## Who should read it
+
+Read it if OOP itself is the unfamiliar part — you're self-taught, or arriving in Python from a language where objects worked differently. The worked examples do real teaching. Don't bother if you've already designed a few class hierarchies in anger; you'll be paying for a lot of recap to reach the few sections that earn their keep.
+
+## Where it earned its place
+
+The composition-over-inheritance instinct it drills shaped the [embedding pipeline](/articles/embedding-pipeline-ollama-qdrant/) in [archives](/articles/embedding-pipeline-ollama-qdrant/): each pipeline stage is a small, swappable object with one responsibility rather than a tall subclass tree, which made wiring Ollama and Qdrant together a matter of plugging parts in, not rewriting a base class.
+
+## Skip it if…
+
+You've shipped production OOP and just want the patterns — go straight to GoF or the source. This book is an onboarding ramp, not a reference you'll reach for twice.

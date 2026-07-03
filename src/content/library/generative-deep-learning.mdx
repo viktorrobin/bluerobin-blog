@@ -1,0 +1,50 @@
+---
+title: "Generative Deep Learning"
+bookAuthor: "David Foster"
+description: "The clearest hands-on tour of generative models — strong on vision, thinner on text."
+purchaseDate: 2023-07-02
+status: "read"
+theme: "ai-ml"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.31
+audience:
+  - "ML engineers building generative models"
+  - "Backend engineers ramping into deep learning"
+  - "Anyone wiring up embeddings or autoencoders in practice"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Embedding pipeline"
+    href: "/articles/embedding-pipeline-ollama-qdrant/"
+isbn: "9781098134181"
+tags:
+  - "generative-ai"
+  - "deep-learning"
+  - "embeddings"
+  - "keras"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.31)">
+The best from-scratch walkthrough of VAEs, GANs, and diffusion I've read. It builds intuition by building the models, not by waving at the math.
+</Callout>
+
+## The one-paragraph verdict
+
+Foster does the rare thing: he makes you implement each generative architecture in Keras until the mechanism clicks, instead of admiring it from a distance. The chapters on autoencoders, GANs, and diffusion are excellent — clear diagrams, runnable code, and just enough theory to know why each piece exists. Where it sags is text: the Transformer and attention material is noticeably thinner than the vision chapters, and a few deep claims get stated without the elaboration they deserve. It's a builder's book, not a reference, and it ages with its framework choices — but as a first real contact with generative modeling it's hard to beat.
+
+## Who should read it
+
+ML and backend engineers who learn by typing out the model and watching it train. If you want a rigorous probabilistic treatment or a current survey of frontier LLM internals, look elsewhere — this is a practical on-ramp, not the last word on attention.
+
+## Where it earned its place
+
+The latent-space intuition from the autoencoder chapters carried straight into the [embedding pipeline](/articles/embedding-pipeline-ollama-qdrant/) behind [Archives](/articles/embedding-pipeline-ollama-qdrant/): thinking of an embedding as a point in a learned, navigable space — not a magic vector — is exactly the framing Foster drills in, and it made the retrieval design far less mysterious.
+
+## Skip it if…
+
+You need a math-first or framework-agnostic treatment, or you're chasing the latest LLM architecture details — the code-bound, Keras-centric approach will feel dated and shallow on text generation.

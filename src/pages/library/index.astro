@@ -1,0 +1,243 @@
+---
+import MainLayout from "@layouts/MainLayout.astro";
+import { getCollection } from "astro:content";
+import { LIBRARY_THEMES, RECOMMENDATIONS } from "@/config";
+
+const all = await getCollection("library", ({ data }) => !data.draft);
+
+// Group by theme, in the canonical LIBRARY_THEMES order. Within a theme, sort by
+// my rating (desc), then most-recently bought.
+const themeKeys = Object.keys(LIBRARY_THEMES) as Array<keyof typeof LIBRARY_THEMES>;
+const groups = themeKeys
+  .map((key) => ({
+    key,
+    meta: LIBRARY_THEMES[key],
+    books: all
+      .filter((b) => b.data.theme === key)
+      .sort(
+        (a, b) =>
+          (b.data.rating ?? 0) - (a.data.rating ?? 0) ||
+          b.data.purchaseDate.valueOf() - a.data.purchaseDate.valueOf(),
+      ),
+  }))
+  .filter((g) => g.books.length > 0);
+
+const flagged = all.filter((b) => b.data.flagged);
+
+// Stats.
+const total = all.length;
+const themeCount = groups.length;
+const years = all.map((b) => b.data.purchaseDate.getFullYear());
+const yearRange = years.length ? `${Math.min(...years)}–${Math.max(...years)}` : "";
+
+const badgeStyle = (color: string) =>
+  `background: var(--color-${color}-alpha-10); border: 1px solid var(--color-${color}-alpha-20); color: var(--color-${color}-400);`;
+
+const monthYear = (date: Date) =>
+  date.toLocaleDateString("en-US", { year: "numeric", month: "short" });
+const readLabel = (b: (typeof all)[number]) =>
+  b.data.status === "read"
+    ? monthYear(b.data.readDate ?? b.data.purchaseDate)
+    : b.data.status === "reading"
+      ? "Reading"
+      : b.data.status === "reference"
+        ? "Reference"
+        : "To read";
+const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}.jpg`;
+---
+
+<MainLayout
+  title="The Library | BlueRobin"
+  description="A reviewed bookshelf — every book I've bought, with a verdict, who should read it, and links to where it actually paid off in the BlueRobin platform. Grouped by theme, searchable, ratings cross-checked against public reviews."
+>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
+    <div class="absolute inset-0 overflow-hidden" aria-hidden="true">
+      <div class="absolute -top-40 -right-40 w-96 h-96 bg-neural-500/10 rounded-full blur-3xl animate-pulse"></div>
+      <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-complement-500/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 1.2s;"></div>
+    </div>
+    <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-10 sm:pt-24 text-center animate-entry">
+      <div class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-7" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-neural-400);">
+        <span class="w-1.5 h-1.5 rounded-full" style="background: var(--color-complement-400);"></span>
+        The shelf behind the platform
+      </div>
+      <h1 class="text-4xl sm:text-5xl font-display font-bold mb-5 leading-tight tracking-tight">
+        <span class="title-blue">The</span> <span class="title-warm">Library.</span>
+      </h1>
+      <p class="text-lg text-ink-muted">
+        Every book I've bought, reviewed and sorted by theme — with a straight verdict, who
+        it's for, and a link to the article, essay or project where it actually paid off.
+        These are working notes from my shelf: the verdicts are mine, the ratings are
+        cross-checked against public reviews.
+      </p>
+      <div class="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-ink-subtle">
+        <span><span class="font-semibold text-ink-body">{total}</span> books</span>
+        <span><span class="font-semibold text-ink-body">{themeCount}</span> themes</span>
+        {yearRange && <span><span class="font-semibold text-ink-body">{yearRange}</span></span>}
+      </div>
+    </div>
+  </section>
+
+  <!-- Theme filter -->
+  <div class="sticky top-16 z-30 border-b border-line" style="background: var(--glass-white-80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+      <div id="theme-filter" class="flex gap-2 overflow-x-auto pb-1 -mb-1" role="group" aria-label="Filter by theme">
+        <button type="button" data-filter="all" class="theme-pill is-active" aria-pressed="true">All</button>
+        {groups.map((g) => (
+          <button type="button" data-filter={g.key} class="theme-pill" aria-pressed="false">
+            {g.meta.title} <span class="opacity-50">{g.books.length}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <!-- Themed sections -->
+  <section class="relative py-12 sm:py-16">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-16">
+      {groups.map((g) => (
+        <div class="theme-section" data-theme={g.key}>
+          <div class="mb-6">
+            <h2 class="text-2xl font-display font-semibold text-ink">{g.meta.title}</h2>
+            <p class="text-sm text-ink-subtle mt-1">{g.meta.description}</p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {g.books.map((b) => (
+              <a href={`/library/${b.slug}/`} class="glass-card group p-4 flex gap-4 transition-transform hover:-translate-y-1">
+                <!-- Cover -->
+                <div class="shrink-0 w-16 sm:w-20">
+                  <div class="cover-wrap overflow-hidden rounded-md aspect-[2/3] flex items-center justify-center bg-card/60 border border-line-subtle">
+                    <img
+                      src={coverSrc(b)}
+                      alt={`Cover of ${b.data.title}`}
+                      class="w-full h-full object-cover"
+                      loading="lazy"
+                      onerror="this.closest('.cover-wrap')?.classList.add('cover-missing'); this.remove();"
+                    />
+                    <span class="cover-fallback hidden px-1 text-center text-[10px] font-display text-ink-faint leading-tight">{b.data.title}</span>
+                  </div>
+                </div>
+                <!-- Meta -->
+                <div class="min-w-0 flex flex-col">
+                  <div class="flex items-center gap-1.5 mb-1">
+                    <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style={badgeStyle(RECOMMENDATIONS[b.data.recommendation].color)}>
+                      {RECOMMENDATIONS[b.data.recommendation].label}
+                    </span>
+                    {b.data.flagged && <span class="text-[10px] text-ink-faint" title="Off-topic — confirm keep or drop">⚑</span>}
+                  </div>
+                  <h3 class="font-display font-semibold text-ink text-sm leading-snug line-clamp-2 group-hover:text-neural-400 transition-colors">{b.data.title}</h3>
+                  <p class="text-xs text-ink-subtle mt-0.5 truncate">{b.data.bookAuthor}</p>
+                  <div class="mt-auto pt-2 flex items-center gap-2 text-xs text-ink-faint">
+                    {b.data.rating != null && (
+                      <span class="inline-flex items-center gap-0.5 text-ink-muted">
+                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="var(--color-glow-500)" aria-hidden="true"><path d="M12 2l2.9 6.26L21.5 9.27l-4.75 4.64L17.8 21 12 17.27 6.2 21l1.05-7.09L2.5 9.27l6.6-1.01L12 2z"/></svg>
+                        {b.data.rating.toFixed(1)}
+                      </span>
+                    )}
+                    <span>·</span>
+                    <span>{readLabel(b)}</span>
+                  </div>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Flagged strip -->
+  {flagged.length > 0 && (
+    <section class="relative py-12" style="background: var(--gradient-mesh-light);">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="glass-card p-6 sm:p-8">
+          <div class="flex items-start gap-3 mb-4">
+            <span class="text-lg" aria-hidden="true">⚑</span>
+            <div>
+              <h2 class="text-lg font-display font-semibold text-ink">Flagged — confirm keep or drop</h2>
+              <p class="text-sm text-ink-muted mt-1">
+                These {flagged.length} aren't about engineering, science or maths (fiction, philosophy,
+                finance, history, hobbies, self-help). They're kept for now — tell me which to drop.
+              </p>
+            </div>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            {flagged.map((b) => (
+              <a href={`/library/${b.slug}/`} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-ink-muted hover:text-neural-400 transition-colors" style="background: var(--surface-hover); border: 1px solid var(--border-subtle);">
+                {b.data.title}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+</MainLayout>
+
+<style>
+  .theme-pill {
+    white-space: nowrap;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    color: var(--text-secondary);
+    background: var(--surface-hover);
+    border: 1px solid var(--border-subtle);
+    transition: all 0.15s ease;
+    cursor: pointer;
+  }
+  .theme-pill:hover {
+    border-color: var(--color-neural-alpha-40);
+    color: var(--color-neural-400);
+  }
+  .theme-pill.is-active {
+    background: var(--color-neural-alpha-10);
+    border-color: var(--color-neural-alpha-30);
+    color: var(--color-neural-400);
+  }
+  .cover-wrap.cover-missing .cover-fallback {
+    display: flex;
+    align-items: center;
+  }
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<script>
+  // Theme filter: show one theme section or all. Deep-linkable via ?theme=<key>.
+  const filterBar = document.getElementById("theme-filter");
+  const pills = Array.from(document.querySelectorAll<HTMLButtonElement>(".theme-pill"));
+  const sections = Array.from(document.querySelectorAll<HTMLElement>(".theme-section"));
+
+  function applyFilter(key: string) {
+    sections.forEach((s) => {
+      s.style.display = key === "all" || s.dataset.theme === key ? "" : "none";
+    });
+    pills.forEach((p) => {
+      const active = p.dataset.filter === key;
+      p.classList.toggle("is-active", active);
+      p.setAttribute("aria-pressed", String(active));
+    });
+  }
+
+  filterBar?.addEventListener("click", (e) => {
+    const btn = (e.target as HTMLElement).closest<HTMLButtonElement>(".theme-pill");
+    if (!btn) return;
+    const key = btn.dataset.filter || "all";
+    applyFilter(key);
+    const url = new URL(window.location.href);
+    if (key === "all") url.searchParams.delete("theme");
+    else url.searchParams.set("theme", key);
+    history.replaceState(null, "", url);
+  });
+
+  // Honour a ?theme= deep link on load (e.g. from a book page's theme badge).
+  const initial = new URLSearchParams(window.location.search).get("theme");
+  if (initial && pills.some((p) => p.dataset.filter === initial)) applyFilter(initial);
+</script>

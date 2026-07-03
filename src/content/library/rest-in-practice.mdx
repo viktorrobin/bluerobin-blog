@@ -1,0 +1,50 @@
+---
+title: "REST in Practice"
+bookAuthor: "Jim Webber, Savas Parastatidis & Ian Robinson"
+description: "The clearest walk-through of hypermedia I've read — dated SOAP/WS-* baggage and all."
+purchaseDate: 2021-01-30
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.83
+audience:
+  - "Backend & API engineers designing HTTP services"
+  - "Architects weighing hypermedia vs. plain JSON-over-HTTP"
+  - "Anyone who keeps calling RPC-over-HTTP 'REST'"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "FastEndpoints API design"
+    href: "/articles/fastendpoints-api-development/"
+isbn: "9780596805821"
+tags:
+  - "rest"
+  - "api-design"
+  - "hypermedia"
+  - "distributed-systems"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.83)">
+The best explanation of the Richardson Maturity Model and hypermedia you'll find, wrapped in a 2010 enterprise-SOA frame you'll have to read past.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the book that finally made hypermedia click for me — the worked coffee-shop example and the climb up the Richardson Maturity Model are genuinely the clearest treatment of the subject in print. Reviewers consistently praise that conceptual clarity, and it's deserved. What dates it badly is the back half: long detours into SOAP, WS-* and Atom that felt heavy even in 2010 and feel archaeological now. The other honest criticism, which shows up in reviews too, is that few real systems ever reach the HATEOAS level the book argues for — so a chunk of it is aspirational rather than practical. Read it for the model, not the toolchain.
+
+## Who should read it
+
+Engineers who design HTTP APIs and want to understand what "REST" actually means beyond verbs-and-nouns should read it. It's especially useful if your team throws the word around loosely. Skip it if you want a copy-paste guide for a modern framework — there are no concrete patterns here for today's JSON-first stacks, and the .NET/WCF examples won't help you.
+
+## Where it earned its place
+
+The Level 2-vs-Level 3 distinction directly shaped how I scoped resource design in [FastEndpoints API design](/articles/fastendpoints-api-development/): I deliberately stopped at pragmatic Level 2 for the Archives services rather than chasing full hypermedia, and this book is why I can defend that as a choice instead of an oversight.
+
+## Skip it if…
+
+If you've already internalised the maturity model, or you only ship internal RPC-style endpoints, this won't move you — and the WS-* chapters are pure dead weight. <ExternalCite title="REST in Practice on Goodreads" url="https://www.goodreads.com/book/show/8266727-rest-in-practice" />

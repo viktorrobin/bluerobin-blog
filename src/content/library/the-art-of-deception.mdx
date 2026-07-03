@@ -1,0 +1,49 @@
+---
+title: "The Art of Deception"
+bookAuthor: "Kevin D. Mitnick & William L. Simon"
+description: "The case that your firewall's weakest port is a human being — made through story after story."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 3.77
+audience:
+  - "Security engineers and blue-teamers"
+  - "Anyone who designs auth, helpdesk, or access flows"
+  - "Engineers who think security is only a code problem"
+relatedProjects: []
+relatedLinks:
+  - label: "Authelia SSO / OIDC"
+    href: "/articles/authelia-sso-oidc-dotnet/"
+isbn: "9780764542800"
+tags:
+  - "social-engineering"
+  - "security"
+  - "human-factors"
+  - "infosec"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 3.77)">
+The single most useful security book I've read about the part of the system you can't patch: people. Read it for the mindset, not the war stories.
+</Callout>
+
+## The one-paragraph verdict
+
+Mitnick's thesis is brutally simple — attackers don't break the crypto, they call the helpdesk and ask nicely. The book makes that case through dozens of pretexting scenarios told from both the attacker's and the victim's side, which is genuinely the strongest thing about it: you watch each con land and understand exactly which trust assumption failed. The weakness is that the scenarios are obviously fictionalized, repetitive by the halfway mark, and dated in their tradecraft (a lot of phone-and-fax). But the underlying pattern — authority, urgency, plausibility, a small favor — has not aged a day. <ExternalCite title="The Art of Deception on Goodreads" url="https://www.goodreads.com/book/show/18160.The_Art_of_Deception" />
+
+## Who should read it
+
+Anyone who builds authentication, helpdesk, password-reset, or access-provisioning flows. If your threat model stops at the network boundary, this book will widen it. Skip it if you wanted a technical hacking manual — there is almost no code here, and that's by design.
+
+## Where it earned its place
+
+It changed how I think about [Authelia SSO / OIDC](/articles/authelia-sso-oidc-dotnet/). Strong SSO and MFA close the technical door, but the book is a constant reminder that the recovery and support paths around that door are where the real attack lives — so the account-recovery and helpdesk story matters as much as the token flow.
+
+## Skip it if…
+
+You want current tradecraft or hands-on technique. The principles endure; the specific cons read like a museum piece. If anecdote-driven writing annoys you, the repetition will too.

@@ -1,6 +1,6 @@
 ---
 title: "Reducing WIP: Why Finishing Beats Starting"
-description: "My team looked busy and finished almost nothing, and I nearly mistook it for a staffing problem."
+description: "Throughput is governed by how much work is in progress, not how much you start. A busy team that finishes nothing has a WIP problem, not a staffing one."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: false
@@ -8,63 +8,44 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "flow", "wip", "delivery", "an-elegant-puzzle"]
 difficulty: "intermediate"
-readTime: "5 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-It was the end of a long quarter, and I was staring at a board that should have made me proud. Nine initiatives in flight. Every engineer's name attached to something. Standups full of motion — refactors underway, a migration started, two integrations half-built, a dashboard "nearly there."
+A team can look fully busy and finish almost nothing: every name attached to something, standups full of motion, and an empty "shipped" column. The reflex is to read it as a staffing shortage. It's usually a work-in-progress problem, and hiring makes it worse.
 
-And almost nothing had shipped.
+I nearly wrote the headcount case. End of a long quarter: nine initiatives in flight, everyone busy, the backlog growing — therefore, more hands. Then I listed every initiative with its start and finish dates. The "finished" column was mostly empty; the "started" column went back months. We weren't short on people. We were short on *endings*. WIP had quietly climbed until the team spent more time switching between threads than moving any single one forward.
 
-I remember the moment I got it wrong. I was preparing a note for my manager, and the honest version read: the team is at capacity and we're still behind, so we probably need to hire. I had a headcount case half-written. The logic felt airtight. Everyone was busy, the backlog was growing, therefore we needed more hands.
+## The model
 
-Then I did something I should have done weeks earlier. I listed every initiative with the date it had started and the date it had finished. The "finished" column was mostly empty. The "started" column went back months. We weren't short on people. We were short on *endings*. The work-in-progress had quietly climbed until the team was spending more time switching between threads than moving any single thread forward.
-
-## What it taught me
-
-Throughput is governed by how much work is in progress, not by how much you start. Little's Law makes it concrete: average cycle time equals work-in-progress divided by throughput. Hold throughput roughly fixed — which is what capacity does — and every extra item in progress *stretches* how long each one takes to finish. Start more, and everything finishes later.
-
-This is systems thinking applied to delivery. The activity was real; the team genuinely was busy. But busyness is not the constraint. The constraint was the queue we kept feeding. Adding people to a system with no WIP discipline does not raise output — it raises the number of half-done things and the coordination tax of keeping them all alive.
-
-The principle I took away is plain: **finishing beats starting.** A shipped thing has value and frees attention. A started thing is a liability carrying interest.
+Throughput is governed by how much work is in progress, not by how much you start. Little's Law makes it concrete: average cycle time equals work-in-progress divided by throughput. Hold throughput roughly fixed — which is what capacity does — and every extra in-flight item *stretches* how long each one takes to finish. Start more, and everything finishes later. The activity is real; busyness just isn't the constraint. Adding people to a system with no WIP discipline raises the number of half-done things and the tax of keeping them all alive. Finishing beats starting: a shipped thing has value and frees attention, while a started thing is a liability carrying interest.
 
 <Callout type="info" title="Busy is not the same as productive">
-  A team at 100% allocation looks healthy and is often the slowest configuration you can run.
-  Full utilization guarantees queues, and queues are where time goes to die. Some slack is what
-  lets work *flow* instead of pile up.
+  A team at 100% allocation looks healthy and is often the slowest configuration you can run. Full utilization guarantees queues, and queues are where time goes to die. Some slack is what lets work *flow* instead of pile up.
 </Callout>
 
-## What I changed
+## What to do
 
-- **Set explicit WIP limits and enforced finish-before-start.** Each engineer carried at most one primary item; the team carried a hard cap on concurrent initiatives. Picking up something new required closing something out first.
-- **Cut concurrent initiatives and swarmed the survivors.** We paused roughly half the in-flight work — explicitly, with a written "not now," not a silent drift. Then we put multiple people on the few items closest to done and pushed them over the line.
-- **Measured cycle time and aging, not starts.** I retired "how much did we kick off" as a signal and replaced it with "how long are things taking" and "what is our oldest open item." An aging work-item became something we talked about by name in standup.
-- **Made starting expensive and finishing cheap.** Starting a new initiative needed a short justification and a parking decision for whatever it displaced. Finishing got celebrated and unblocked aggressively.
+- **Set explicit WIP limits and enforce finish-before-start.** Each engineer carries at most one primary item; the team carries a hard cap on concurrent initiatives. Picking up something new requires closing something out.
+- **Cut concurrent initiatives and swarm the survivors.** Pause roughly half the in-flight work explicitly — a written "not now," not a silent drift — then put multiple people on the items closest to done.
+- **Measure cycle time and aging, not starts.** Retire "how much did we kick off." Track "how long are things taking" and "what is our oldest open item," and name an aging work-item in standup.
+- **Make starting expensive and finishing cheap.** A new initiative needs a short justification and a parking decision for whatever it displaces; finishing gets celebrated and unblocked aggressively.
+
+<ImplementationNote>
+  The same lesson shows up in BlueRobin's [latency work](/articles/latency-revolution-optimizing-60s-to-3s): the big win came from reducing in-flight work and serialising the bottleneck, not from adding compute. We had been fanning requests out wide and wondering why nothing got faster; throughput came back once we limited concurrency at the constraint and let work flow through it. Flow beats raw capacity, in a pipeline and on a team.
+</ImplementationNote>
 
 ## The results
 
-Within about two months the board looked different, and so did the numbers.
+Within about two months the numbers moved. Cycle time on a typical item dropped from roughly three weeks to a little over one — not because anyone worked harder, but because they worked on fewer things at once. Throughput, measured as items actually closed per month, roughly doubled with the same people, and the oldest open item went from "I'd rather not say" to under two weeks and stayed there.
 
-- Cycle time on a typical item dropped from roughly three weeks to a little over one. Not because anyone worked harder — because they worked on fewer things at once.
-- Throughput, measured as items actually closed per month, roughly doubled, with the same people.
-- The oldest open item went from "I'd rather not say" to under two weeks, and stayed there.
-
-The honest caveat: strict WIP limits are blunt, and early on they created visible idle moments — an engineer finished, the next item wasn't groomed, and they sat waiting. That stung the first few times. The fix was not to loosen the limit but to keep a small, well-shaped buffer of ready work and to treat those idle moments as a grooming signal, not a utilization failure. I'd also tune the limits more gently next time; I set them tight, hit friction, and had to walk a couple back. What WIP limits did *not* fix was prioritization — limiting how much we ran in parallel forced the hard "which one" conversations we'd been avoiding, but it didn't have those conversations for us.
-
-<ImplementationNote>
-  The same lesson shows up in BlueRobin's [latency work](/articles/latency-revolution-optimizing-60s-to-3s):
-  the big win came from reducing in-flight work and serialising the bottleneck, not from adding compute.
-  We had been fanning requests out wide and wondering why nothing got faster; the throughput came back
-  once we limited concurrency at the constraint and let work flow through it. Flow beats raw capacity,
-  in a pipeline and on a team.
-</ImplementationNote>
+The caveat: strict WIP limits are blunt, and early on they created visible idle moments — an engineer finished, the next item wasn't groomed, and they sat waiting. The fix wasn't to loosen the limit but to keep a small buffer of ready work and treat idle as a grooming signal, not a utilization failure. I set the limits too tight at first and had to walk a couple back. And WIP limits don't do prioritisation for you — they force the hard "which one" conversations, they don't have them for you.
 
 ## Further reading
 
 - **[Latency Revolution](/articles/latency-revolution-optimizing-60s-to-3s)** — flow over capacity, expressed in code.
-- **[Impact](/impact/)** — the delivery outcomes this thinking fed into.

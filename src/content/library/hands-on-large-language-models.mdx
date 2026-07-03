@@ -1,0 +1,55 @@
+---
+title: "Hands-On Large Language Models"
+bookAuthor: "Jay Alammar & Maarten Grootendorst"
+description: "The book that turned my embedding pipeline from cargo-culting into engineering."
+purchaseDate: 2025-11-06
+status: "read"
+theme: "ai-ml"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.3
+audience:
+  - "Engineers shipping LLM features, not training models"
+  - "Anyone building retrieval or embedding pipelines"
+  - "Backend devs who skipped the ML-theory phase"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Hybrid search (semantic + keyword)"
+    href: "/articles/hybrid-search-semantic-keyword/"
+  - label: "Embedding pipeline"
+    href: "/articles/embedding-pipeline-ollama-qdrant/"
+  - label: "The Archives"
+    href: "/the-archives/"
+isbn: "9781098150969"
+tags:
+  - "large-language-models"
+  - "embeddings"
+  - "retrieval"
+  - "machine-learning"
+  - "rag"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.3)">
+If you're building on top of LLMs instead of training them, this is the most useful single book I've read. Alammar's diagrams alone earn the shelf space.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the rare ML book aimed squarely at the engineer who consumes models rather than invents them. The diagrams — Alammar's signature — do real work: tokenization, attention, and embedding spaces finally clicked as pictures instead of equations, and every chapter ships runnable code with references back to the source papers. The honest weakness is breadth over depth. It's a guided tour of the whole landscape — prompting, embeddings, fine-tuning, RAG — so each topic gets enough to be dangerous and rarely enough to be expert. It also assumes you arrive with Python and some applied-math comfort; true beginners will feel the current. For a working engineer, those are features, not bugs.
+
+## Who should read it
+
+Read it if you're wiring LLMs into a product — retrieval, semantic search, classification, RAG — and you want a correct mental model fast. It's pitched perfectly for backend and platform engineers who skipped the formal ML track. Skip it if you're chasing the research frontier or planning to pretrain a model from scratch; this is an applied book and won't pretend otherwise.
+
+## Where it earned its place
+
+The embeddings and semantic-search chapters went straight into [the Archives](/the-archives/). The book's framing of dense vectors versus lexical matching is exactly the reasoning behind my [hybrid search](/articles/hybrid-search-semantic-keyword/) writeup, and its chunking-and-encoding walkthrough shaped the [embedding pipeline](/articles/embedding-pipeline-ollama-qdrant/) I run on Ollama and Qdrant. I stopped guessing at chunk sizes and started reasoning about them.
+
+## Skip it if…
+
+You already ship LLM systems daily and live in the papers — you'll find it remedial. And if you want depth on any one subsystem, treat this as the map, not the territory.

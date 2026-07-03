@@ -1,0 +1,49 @@
+---
+title: "REST API Design Rulebook"
+bookAuthor: "Mark Massé"
+description: "Half a solid checklist for consistent REST APIs, half a pitch for a format nobody adopted."
+purchaseDate: 2021-05-17
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.5
+goodreadsRating: 3.36
+audience:
+  - "Backend & API engineers"
+  - "Anyone standardizing URI and resource conventions across a team"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "FastEndpoints API design"
+    href: "/articles/fastendpoints-api-development/"
+isbn: "9781449310509"
+tags:
+  - "rest"
+  - "api-design"
+  - "http"
+  - "web-services"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.36)">
+A tight, opinionated checklist for naming resources and using HTTP correctly — worth an afternoon, but skip the back half.
+</Callout>
+
+## The one-paragraph verdict
+
+The first half is genuinely useful: crisp rules for URI structure, status-code semantics, content negotiation, and versioning, each with a short rationale you can actually quote in a code review. It is short enough to finish in a sitting, which is the point. The problem, and the most common complaint in reviews, is that a large chunk of the book pivots into WRML — the author's own media-type framework — which never gained traction and now reads as dated advocacy rather than guidance. Take the rules, leave the format. As a rulebook it earns its name; as a design philosophy it overreaches.
+
+## Who should read it
+
+Backend engineers settling arguments about plural nouns, trailing slashes, and when a 422 beats a 400 will get value fast. Teams that want a shared, citable convention sheet will too. Anyone looking for deep REST/HATEOAS theory, or a current view of API design in a GraphQL/gRPC world, should look elsewhere.
+
+## Where it earned its place
+
+The consistency rules shaped how I structured endpoints in my [FastEndpoints API work](/articles/fastendpoints-api-development/) — predictable resource URIs, honest status codes, and explicit versioning rather than ad-hoc query flags. None of it was novel, but having one terse reference made the conventions easy to enforce.
+
+## Skip it if…
+
+You already use HTTP correctly, or you want anything beyond a rules checklist — the WRML chapters have not aged well, and there are fresher treatments of the same ground.

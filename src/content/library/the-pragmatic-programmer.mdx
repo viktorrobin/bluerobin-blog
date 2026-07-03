@@ -1,0 +1,52 @@
+---
+title: "The Pragmatic Programmer"
+bookAuthor: "David Thomas & Andrew Hunt"
+description: "Still the best single book on the day-to-day habits that separate working code from a working career."
+purchaseDate: 2022-01-11
+status: "read"
+theme: "programming-craft"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.33
+audience:
+  - "Working software engineers at any level"
+  - "Self-taught developers filling craft gaps"
+  - "Tech leads setting team norms"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Local dev setup"
+    href: "/articles/local-development-setup-guide/"
+  - label: "Better IDs: UUID to NanoID"
+    href: "/articles/better-ids-switching-uuid-to-nanoid/"
+isbn: "9780201616224"
+tags:
+  - "programming-craft"
+  - "software-engineering"
+  - "best-practices"
+  - "career"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.33)">
+The one craft book I'd hand a junior engineer without a caveat. It ages well because it argues about habits, not frameworks.
+</Callout>
+
+## The one-paragraph verdict
+
+Most "be a better programmer" books rot in five years; this one mostly hasn't, because it talks about decisions instead of syntax. DRY, tracer bullets, orthogonality, "don't live with broken windows" — these are still the vocabulary I reach for in code review. The recurring praise is fair: it's a great mix of solid advice and memorable analogies, readable in a weekend. The honest criticism is also fair — by now a lot of it is folklore you've half-absorbed by osmosis, the tips can feel like a listicle, and the original edition's tooling examples are dated. The 20th-anniversary edition patches some of that.
+
+## Who should read it
+
+Any working engineer who's never sat down with it, and any self-taught dev who can ship features but senses gaps in the why. It's also a clean reference for a tech lead codifying team norms. Skip it if you're chasing depth on a specific topic — this is breadth, not a deep dive on testing, design, or distributed systems.
+
+## Where it earned its place
+
+The "don't live with broken windows" rule is why my [local dev setup](/articles/local-development-setup-guide/) front-loads linting, formatting, and a one-command bootstrap — friction is where rot starts. And the chapter on reversible decisions is exactly the reasoning behind [switching from UUID to NanoID](/articles/better-ids-switching-uuid-to-nanoid/): pick the identifier that keeps later choices cheap rather than the one that's merely conventional.
+
+## Skip it if…
+
+You've been writing software for a decade and already mentor others — you'll nod along and learn little. And if you wanted a rigorous treatment of one subject, this deliberately isn't that; it's a generalist's checklist, not a specialist's manual.

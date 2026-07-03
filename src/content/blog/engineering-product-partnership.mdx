@@ -1,6 +1,6 @@
 ---
 title: "Building a Real Engineering–Product Partnership"
-description: "We built the export feature exactly as specified, shipped it on time, and almost no one used it — because we owned the how and never asked about the why."
+description: "Shipping a feature exactly to spec, on time, that nobody uses is a partnership failure, not an execution one. Engineering has to own the outcome, not just the how."
 pubDate: 2026-06-28
 author: "Victor Robin"
 draft: false
@@ -8,56 +8,45 @@ project: "leadership"
 category: "leadership"
 tags: ["leadership", "engineering-management", "product", "collaboration", "an-elegant-puzzle"]
 difficulty: "advanced"
-readTime: "6 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-We called it the "Bulk Export" project, and for six weeks it was the cleanest thing my team had run all year. The ticket was precise: let admins export their account data as a configurable CSV, with column selection, date filters, and a progress bar for large jobs. We sized it, broke it down, and built it well. The progress bar was genuinely nice. We shipped on the day we said we would.
+A team can build a feature exactly to spec, ship it on time, and watch almost no one use it. That's not an execution failure; it's a partnership failure. When engineering owns only the *how*, it never sees the problem — only the solution someone already chose — and can't push back when the solution is wrong.
 
-Three weeks later I pulled the usage numbers. A handful of accounts had touched it once. Almost no one came back.
+We shipped a "Bulk Export": configurable CSV, column selection, date filters, a genuinely nice progress bar, delivered on the day we promised. Three weeks later a handful of accounts had touched it once. There was no bug. Customers had never wanted a configurable CSV — they wanted their data *in a spreadsheet they already had*, which meant a scheduled sync. Product knew customers were frustrated about "getting data out"; somewhere between that and the ticket, the real problem got compressed into a spec, and my team treated the spec as the truth. We had been excellent order-takers, and not one engineer was in a position to say so.
 
-I went looking for the bug and there wasn't one. The feature worked. The problem was that customers had never wanted a configurable CSV. They wanted to get their data *into a spreadsheet they already had*, and a raw export dropped them at the start of an hour of manual cleanup. What they were actually asking for, underneath the ticket, was a scheduled sync. Product knew customers were frustrated about "getting data out." Somewhere between that and the ticket, the real problem had been compressed into a spec, and my team had treated the spec as the truth.
+## The model
 
-That was the part that stung. We hadn't been sloppy. We had been excellent order-takers. Tickets came over the wall, we estimated and built them, and we measured ourselves on throughput. It felt cooperative. It produced a thing built right that solved the wrong problem, and not one engineer in the room had been in a position to say so.
-
-## What it taught me
-
-The healthiest engineering–product setup is not a clean handoff. It is shared ownership of the outcome.
-
-Engineering that only executes cannot push back on the wrong problem, because it never sees the problem — only the solution someone already chose. And product that decides alone loses the feasibility instinct and the leverage that engineers can see from inside the system: the cheaper adjacent fix, the constraint that makes the elegant version impossible, the thing that is two days of work instead of two months.
-
-The shift I needed was about influence. You earn a seat in defining the problem, not just in solving it, and you earn it by being useful upstream rather than by being fast downstream. Nobody hands that seat to a team that has only ever taken tickets.
-
-<ImplementationNote>
-  This is the same instinct I now design for in BlueRobin: features start from a real problem rather than a spec ([see the Archives](/the-archives/)). When a request lands, the first artifact is not a ticket but a short statement of the problem and the metric that would tell us we solved it. At team scale, that meant putting engineers in discovery — sitting in on the customer calls, reading the support threads — not just in delivery.
-</ImplementationNote>
-
-## What I changed
-
-- I put two engineers into discovery for every meaningful initiative. Not to estimate — to help frame the problem and argue about the success metric before anyone wrote a ticket.
-- I changed what we measured. Throughput stopped being the headline number. We started tracking whether shipped work moved the metric it was supposed to move, and we reviewed that together with product.
-- We wrote one shared definition of done that included the outcome, not just the acceptance criteria. "Built and merged" no longer counted as finished on its own.
-- I started a standing weekly forum where product and engineering traded context before commitments — constraints, leverage, known risk — so the cheap-adjacent-fix conversation happened before the roadmap hardened, not after.
+The healthiest engineering–product setup is not a clean handoff; it's shared ownership of the outcome. Product deciding alone loses the feasibility instinct engineers have from inside the system — the cheaper adjacent fix, the constraint that kills the elegant version, the thing that's two days instead of two months. You earn a seat in defining the *problem*, not just solving it, by being useful upstream rather than fast downstream. Nobody hands that seat to a team that has only ever taken tickets.
 
 <Callout type="info" title="The tell I watch for now">
   When an engineer can only describe *what* they're building and not *why it matters to a customer*, that is not an engineer problem. It is a sign the partnership has quietly slipped back into a handoff.
 </Callout>
 
+## What to do
+
+- **Put engineers in discovery.** Two on every meaningful initiative — not to estimate, but to help frame the problem and argue the success metric before anyone writes a ticket.
+- **Change what you measure.** Retire throughput as the headline. Track whether shipped work moved the metric it was supposed to, and review that *with* product.
+- **Write one shared definition of done that includes the outcome,** not just acceptance criteria. "Built and merged" stops counting as finished on its own.
+- **Trade context before commitments.** A standing weekly forum where product and engineering exchange constraints, leverage, and known risk — so the cheap-adjacent-fix conversation happens before the roadmap hardens, not after.
+
+<ImplementationNote>
+  This is the instinct I now design for in BlueRobin: features start from a real problem, not a spec ([see the Archives](/the-archives/)). When a request lands, the first artifact isn't a ticket but a short statement of the problem and the metric that would tell us we solved it. At team scale that meant putting engineers in the customer calls and the support threads, not just in delivery.
+</ImplementationNote>
+
 ## The results
 
-Over the next two quarters, scope churn — work we threw away or substantially reworked after the fact — dropped to roughly half of what it had been. The Bulk Export pattern stopped repeating: we caught two would-be tickets in discovery and reframed them before they cost a sprint.
+Over two quarters, scope churn — work thrown away or substantially reworked after the fact — dropped to roughly half. The Bulk Export pattern stopped repeating; we caught two would-be tickets in discovery and reframed them before they cost a sprint. Time from idea to something customers actually used got shorter, though more honestly than the dashboards suggested: some initiatives took *longer* to start, because we argued about the problem first — they just failed far less often once they shipped.
 
-Time from idea to something customers actually used got shorter, though more honestly than the dashboards suggested. Some initiatives took *longer* to start, because we argued about the problem first. They just failed far less often once they shipped.
-
-The honest caveat: shared ownership blurred accountability for a while. When everyone owns the outcome, it gets murky who owns the call when product and engineering disagree. I had to draw an explicit line — engineering owns *how* and has a real voice in *what*, but product still owns the final prioritization decision. Co-ownership is not consensus, and pretending it was cost me a few slow, frustrating weeks before I named it.
+The caveat: shared ownership blurred accountability for a while. When everyone owns the outcome, it gets murky who owns the call when product and engineering disagree. I had to draw the line explicitly — engineering owns *how* and has a real voice in *what*, but product still owns the final prioritisation. Co-ownership is not consensus, and pretending it was cost a few slow, frustrating weeks before I named it.
 
 ## Further reading
 
-- **[Impact](/impact/)** — the outcomes this way of working produced.
 - **[The Archives](/the-archives/)** — problem-first design in BlueRobin, in practice.
 - **[About](/about/)** — how I think about engineering leadership.

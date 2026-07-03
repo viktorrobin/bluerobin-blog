@@ -8,7 +8,11 @@ permissions:
 
 jobs:
   cite:
-    runs-on: ubuntu-latest
+    # Self-hosted ARC pool — GitHub-hosted ubuntu-latest budget is exhausted on this
+    # private free-plan repo, so this gate fails at runner-acquisition (0 steps, no
+    # logs). The check is pure shell over the PR body — no egress. The blog build/deploy
+    # stays hosted (needs npm + CF egress); only this gate moves. (GIT-1, COST-1, ADR-029)
+    runs-on: bluerobin-blog
     steps:
       - name: Check PR body cites a requirement ID
         env:

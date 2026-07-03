@@ -1,0 +1,53 @@
+---
+title: "Building LLMs for Production"
+bookAuthor: "Louis-François Bouchard & Louie Peters"
+description: "A solid breadth-first map of the LLM stack — just don't expect the framework chapters to age well."
+purchaseDate: 2025-11-06
+status: "read"
+theme: "ai-ml"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.10
+audience:
+  - "Engineers shipping their first RAG or fine-tuning pipeline"
+  - "Backend devs who want the whole LLM stack in one pass"
+  - "Anyone evaluating where prompting stops and fine-tuning starts"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Improving RAG query quality"
+    href: "/articles/improving-rag-query-quality-and-relevance/"
+  - label: "Model policy & token governance"
+    href: "/articles/model-policy-governance-token-usage/"
+isbn: "9798324731472"
+tags:
+  - "llm"
+  - "rag"
+  - "fine-tuning"
+  - "ai-ml"
+  - "prompt-engineering"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.10)">
+A genuinely useful end-to-end map of the production LLM stack. Buy it for the conceptual scaffolding, not the code listings — those have a short shelf life.
+</Callout>
+
+## The one-paragraph verdict
+
+This is the rare LLM book that actually goes start to finish — prompting, retrieval, fine-tuning, evaluation, deployment — without pretending any single one is a silver bullet. The strength is breadth and sequencing: it makes the *why-now* decisions legible, especially when prompting runs out of road and RAG or fine-tuning becomes the right tool. The weakness is the flip side of that breadth. It leans hard on LangChain and LlamaIndex, so a chunk of the code is already dating, and the editing is uneven — some chapters are tight, others read like rushed first drafts. Treat the prose as the product and the snippets as disposable, and it earns its keep.
+
+## Who should read it
+
+Engineers shipping their first retrieval or fine-tuning pipeline who want the full landscape in one pass, rather than stitching it together from forty blog posts. It's also a decent gut-check for backend devs deciding where prompting stops paying off. Skip it if you're already running LLMs in production — you'll find little here you haven't learned the hard way.
+
+## Where it earned its place
+
+The retrieval chapters mapped almost directly onto the work in [improving RAG query quality](/articles/improving-rag-query-quality-and-relevance/) — the book's framing of query rewriting and reranking as separate, measurable stages is exactly the decomposition I leaned on in [Archives](archives). Its insistence on treating cost and token budgets as a first-class design constraint also fed straight into [model policy & token governance](/articles/model-policy-governance-token-usage/).
+
+## Skip it if…
+
+You want deep, current framework code or you're past the beginner stage. The concepts hold up; the LangChain-heavy implementations will not, and a more advanced reader will outpace the material quickly.

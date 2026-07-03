@@ -1,0 +1,52 @@
+---
+title: "Designing Machine Learning Systems"
+bookAuthor: "Chip Huyen"
+description: "The book that taught me ML in production is mostly data plumbing, not models."
+purchaseDate: 2022-06-16
+status: "read"
+theme: "ai-ml"
+recommendation: "essential"
+rating: 4.5
+goodreadsRating: 4.42
+audience:
+  - "Engineers shipping ML or LLM features to production"
+  - "Platform engineers owning data and serving pipelines"
+  - "Tech leads scoping an ML system end to end"
+relatedProjects:
+  - "archives"
+relatedLinks:
+  - label: "Agentic RRF ensembling"
+    href: "/articles/agentic-rrf-ensembling-production-search/"
+  - label: "Model policy & token governance"
+    href: "/articles/model-policy-governance-token-usage/"
+isbn: "9781098107963"
+tags:
+  - "machine-learning"
+  - "mlops"
+  - "production-systems"
+  - "data-engineering"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.5 · public 4.42)">
+The clearest single-volume map of what an ML system actually requires once it leaves the notebook. Read it for the system thinking, not for cutting-edge model code.
+</Callout>
+
+## The one-paragraph verdict
+
+Huyen's framing — that the hard parts of production ML are data, feedback loops, and serving, not the model — reorganized how I scope this work. The book is comprehensive and unusually clear: data distribution shifts, feature stores, batch-vs-online prediction, and monitoring all get honest, practical treatment with real failure modes. The recurring criticism is fair: it favors breadth over depth, so you get vocabulary and trade-offs rather than implementation you can copy. And being a 2022 book, it predates the LLM-app patterns most teams now ship — the principles transfer, but the examples feel a half-step behind. I still reach for it as the reference that names the problem before I solve it.
+
+## Who should read it
+
+Engineers and tech leads putting ML or LLM features into production, and platform people who own the data and serving pipelines underneath them. If you want PyTorch internals, deep math, or a copy-paste training loop, this is the wrong book — it operates one level up, at the system boundary.
+
+## Where it earned its place
+
+The data-and-feedback framing showed up directly in Archives. When I built [agentic RRF ensembling](/articles/agentic-rrf-ensembling-production-search/), Huyen's insistence on treating evaluation and drift as first-class — not an afterthought — is what pushed me to instrument retrieval quality instead of trusting offline numbers. The same discipline informs [model policy and token governance](/articles/model-policy-governance-token-usage/): cost and behavior monitoring as a system concern, not a dashboard you check after something breaks.
+
+## Skip it if…
+
+You only ship pre-built models behind an API and never own the pipeline, or you want depth on a specific framework. The value here is the system-level map, and if you already carry that map in your head, the book will feel like review.

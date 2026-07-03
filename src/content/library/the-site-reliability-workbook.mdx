@@ -1,0 +1,53 @@
+---
+title: "The Site Reliability Workbook"
+bookAuthor: "Betsy Beyer, Niall Richard Murphy, David K. Rensin, Kent Kawahara & Stephen Thorne"
+description: "The 'how' to the first SRE book's 'why' — strongest when it stops being a Google brochure."
+purchaseDate: 2026-05-31
+status: "read"
+theme: "sre-devops"
+recommendation: "recommended"
+rating: 4.0
+goodreadsRating: 4.35
+audience:
+  - "SREs and platform engineers operationalizing SLOs"
+  - "Backend engineers running their own services in prod"
+  - "Anyone who read the first SRE book and wanted the worked examples"
+relatedProjects:
+  - "debug-agent"
+relatedLinks:
+  - label: "NATS monitoring (Prometheus + Grafana)"
+    href: "/articles/nats-monitoring-prometheus-grafana/"
+  - label: "Latency: 60s to 3s"
+    href: "/articles/latency-revolution-optimizing-60s-to-3s/"
+isbn: "9781492029502"
+tags:
+  - "sre"
+  - "observability"
+  - "slos"
+  - "incident-response"
+  - "reliability"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 4.35)">
+The companion that finally makes SLOs concrete. Worth owning, but read it as a pattern catalog rather than a step-by-step manual — the depth is uneven.
+</Callout>
+
+## The one-paragraph verdict
+
+The first SRE book told you *why* error budgets and SLOs matter; this one shows the worked arithmetic, and that's where it earns its keep. The SLO and alerting chapters are genuinely good — concrete examples, real burn-rate math, the kind of thing you can adapt the same afternoon. The recurring criticism is fair, though: chapters vary wildly in usefulness, and a few read like Google-Cloud case studies dressed up as guidance (Evernote, Home Depot, NYT). You get less from those than from the technical core. Treat it as a buffet, not a recipe.
+
+## Who should read it
+
+Anyone who finished the original SRE book and wanted to see the patterns instantiated, not just argued. SREs and platform engineers standing up SLOs for the first time get the most value. Skip it if you want a vendor-neutral, prescriptive runbook — that book doesn't exist here, and the case-study chapters will frustrate you.
+
+## Where it earned its place
+
+The SLO-and-burn-rate framing shaped how I instrumented messaging in [NATS monitoring (Prometheus + Grafana)](/articles/nats-monitoring-prometheus-grafana/) — defining what "good" means before wiring a single alert. And the latency-objective thinking is exactly what drove [Latency: 60s to 3s](/articles/latency-revolution-optimizing-60s-to-3s/): pick the target percentile, measure against it, then optimize, rather than chasing a vague "make it faster."
+
+## Skip it if…
+
+You want hands-on config you can paste, or you're allergic to Google-flavored examples. The principles travel; the case studies mostly don't.

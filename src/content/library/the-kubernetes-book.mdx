@@ -1,0 +1,54 @@
+---
+title: "The Kubernetes Book"
+bookAuthor: "Nigel Poulton"
+description: "The fastest way from zero to deploying on Kubernetes — but it stops where the hard parts start."
+purchaseDate: 2021-09-05
+status: "read"
+theme: "sre-devops"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.25
+audience:
+  - "Engineers new to Kubernetes who already know Docker"
+  - "Backend devs deploying their first cluster"
+  - "Anyone who wants the mental model before the reference docs"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "K3s home server"
+    href: "/articles/k3s-home-server-setup/"
+  - label: "Traefik ingress"
+    href: "/articles/traefik-ingress-kubernetes/"
+isbn: "9781916585003"
+tags:
+  - "kubernetes"
+  - "containers"
+  - "devops"
+  - "orchestration"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.25)">
+The cleanest on-ramp to Kubernetes I've read. It gets you to a working mental model fast, then leaves you at the door of every interesting problem.
+</Callout>
+
+## The one-paragraph verdict
+
+Poulton's strength is pacing: chapters are short, each builds on the last, and the writing is blunt in a way that respects your time. Pods, Deployments, Services, the control loop — you finish understanding *why* they exist, not just the YAML. The flip side is real and other reviewers flag it too: the book is thin past the basics. Ingress, secrets, ConfigMaps, volumes, and anything resembling production networking get a paragraph where they need a chapter. It also re-explains itself often enough to feel padded for a book this short. Treat it as the primer it is, not the reference it occasionally pretends to be.
+
+## Who should read it
+
+If you know Docker and the Kubernetes object model is a fog, this clears it in a weekend. New backend engineers and anyone standing up a first cluster will get the most out of it. Skip it if you already run workloads in production — you've internalised everything here and will want the official docs or a deeper SRE text instead.
+
+## Where it earned its place
+
+The mental model here is exactly what I leaned on building out my [K3s home server](/articles/k3s-home-server-setup/) — the control-loop framing made debugging a stuck reconcile feel obvious rather than mysterious. Where the book runs out of road is ingress, which is the gap I had to fill myself in [Traefik ingress](/articles/traefik-ingress-kubernetes/); Poulton hands you the concept and not much more.
+
+## Skip it if…
+
+You're already comfortable with kubectl and reconciliation loops, or you need production-grade networking and secrets management. This book stops precisely where that work begins.
+
+<ExternalCite title="The Kubernetes Book on Goodreads" url="https://www.goodreads.com/book/show/35494978-the-kubernetes-book" />

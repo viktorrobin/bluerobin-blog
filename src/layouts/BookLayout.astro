@@ -1,0 +1,276 @@
+---
+import BaseLayout from "./BaseLayout.astro";
+import Header from "@components/Header.astro";
+import Footer from "@components/Footer.astro";
+import { LIBRARY_THEMES, RECOMMENDATIONS, SITE } from "@/config";
+import type { CollectionEntry } from "astro:content";
+
+export interface Props {
+  post: CollectionEntry<"library">;
+}
+
+const { post } = Astro.props;
+const {
+  title,
+  bookAuthor,
+  description,
+  author,
+  purchaseDate,
+  readDate,
+  status,
+  theme,
+  recommendation,
+  rating,
+  goodreadsRating,
+  audience,
+  relatedProjects,
+  relatedLinks,
+  cover,
+  isbn,
+  tags,
+} = post.data;
+
+const themeMeta = LIBRARY_THEMES[theme as keyof typeof LIBRARY_THEMES] ?? {
+  title: theme,
+  color: "neural",
+};
+const recMeta = RECOMMENDATIONS[recommendation];
+
+// Map a design-system colour name to its alpha-backed badge styles.
+const badgeStyle = (color: string) =>
+  `background: var(--color-${color}-alpha-10); border: 1px solid var(--color-${color}-alpha-20); color: var(--color-${color}-400);`;
+
+// Project chips → their hubs.
+const PROJECT_META: Record<string, { label: string; href: string }> = {
+  archives: { label: "The Archives", href: "/the-archives/" },
+  "debug-agent": { label: "The Debug Agent", href: "/debug-agent/" },
+  leadership: { label: "Leadership", href: "/leadership/" },
+  platform: { label: "The Platform", href: "/architecture/" },
+};
+
+// Dates. "Read" falls back to the purchase month when no explicit readDate is set.
+const formatDate = (date: Date) =>
+  date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+const monthYear = (date: Date) =>
+  date.toLocaleDateString("en-US", { year: "numeric", month: "long" });
+const readLabel =
+  status === "read"
+    ? `Read · ${monthYear(readDate ?? purchaseDate)}`
+    : status === "reading"
+      ? "Currently reading"
+      : status === "reference"
+        ? "On the reference shelf"
+        : "On the to-read pile";
+
+// Star rendering (rounded to the nearest half).
+const stars = (value: number) => {
+  const rounded = Math.round(value * 2) / 2;
+  return Array.from({ length: 5 }, (_, i) => {
+    const n = i + 1;
+    if (rounded >= n) return "full";
+    if (rounded >= n - 0.5) return "half";
+    return "empty";
+  });
+};
+
+const coverSrc = cover ?? `/covers/${post.slug}.jpg`;
+
+// Structured data: a Book with my Review.
+const pageUrl = new URL(Astro.url.pathname, Astro.site).href;
+const bookJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Book",
+  name: title,
+  author: { "@type": "Person", name: bookAuthor },
+  ...(isbn ? { isbn } : {}),
+  image: new URL(coverSrc, SITE.website).href,
+  review: {
+    "@type": "Review",
+    reviewBody: description,
+    datePublished: purchaseDate.toISOString(),
+    author: { "@type": "Person", name: author, url: SITE.linkedin },
+    ...(rating
+      ? {
+          reviewRating: {
+            "@type": "Rating",
+            ratingValue: rating,
+            bestRating: 5,
+            worstRating: 0,
+          },
+        }
+      : {}),
+  },
+};
+const breadcrumbJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: new URL("/", SITE.website).href },
+    { "@type": "ListItem", position: 2, name: "Library", item: new URL("/library/", SITE.website).href },
+    { "@type": "ListItem", position: 3, name: title, item: pageUrl },
+  ],
+};
+---
+
+<BaseLayout title={`${title} — Review | BlueRobin`} description={description} ogImage={coverSrc} ogType="article">
+  <script type="application/ld+json" set:html={JSON.stringify(bookJsonLd)} />
+  <script type="application/ld+json" set:html={JSON.stringify(breadcrumbJsonLd)} />
+  <Header />
+
+  <main id="main-content" class="flex-1">
+    <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <!-- Breadcrumb -->
+      <nav class="text-sm text-ink-muted mb-6" aria-label="Breadcrumb">
+        <a href="/" class="hover:text-neural-400 transition-colors">Home</a>
+        <span class="mx-2 text-ink-faint">/</span>
+        <a href="/library/" class="hover:text-neural-400 transition-colors">Library</a>
+        <span class="mx-2 text-ink-faint">/</span>
+        <span class="text-ink-subtle">{themeMeta.title}</span>
+      </nav>
+
+      <!-- Header band: cover rail + verdict -->
+      <header class="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-6 sm:gap-8 mb-10">
+        <!-- Cover -->
+        <div class="shrink-0">
+          <div class="glass-card overflow-hidden rounded-xl aspect-[2/3] flex items-center justify-center bg-card/60">
+            <img
+              src={coverSrc}
+              alt={`Cover of ${title} by ${bookAuthor}`}
+              class="w-full h-full object-cover"
+              loading="eager"
+              onerror="this.closest('.glass-card')?.classList.add('cover-missing'); this.remove();"
+            />
+            <span class="cover-fallback hidden px-3 text-center text-sm font-display text-ink-subtle">{title}</span>
+          </div>
+        </div>
+
+        <!-- Verdict -->
+        <div>
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <a
+              href={`/library/?theme=${theme}`}
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+              style={badgeStyle(themeMeta.color)}
+            >
+              {themeMeta.title}
+            </a>
+            <span
+              class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium"
+              style={badgeStyle(recMeta.color)}
+            >
+              {recMeta.label}
+            </span>
+          </div>
+
+          <h1 class="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold mb-2 leading-tight title-blue">
+            {title}
+          </h1>
+          <p class="text-base text-ink-subtle mb-3">by {bookAuthor}</p>
+          <p class="text-lg text-ink-muted mb-5">{description}</p>
+
+          <!-- Ratings -->
+          <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-5">
+            {rating != null && (
+              <div class="flex items-center gap-2">
+                <span class="flex items-center" aria-label={`My rating: ${rating} out of 5`}>
+                  {stars(rating).map((s) => (
+                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <defs>
+                        <linearGradient id={`half-${post.slug}`}>
+                          <stop offset="50%" stop-color="var(--color-glow-500)" />
+                          <stop offset="50%" stop-color="transparent" />
+                        </linearGradient>
+                      </defs>
+                      <path
+                        d="M12 2l2.9 6.26L21.5 9.27l-4.75 4.64L17.8 21 12 17.27 6.2 21l1.05-7.09L2.5 9.27l6.6-1.01L12 2z"
+                        fill={s === "full" ? "var(--color-glow-500)" : s === "half" ? `url(#half-${post.slug})` : "transparent"}
+                        stroke="var(--color-glow-500)"
+                        stroke-width="1.2"
+                      />
+                    </svg>
+                  ))}
+                </span>
+                <span class="text-sm font-medium text-ink-body">{rating.toFixed(1)}</span>
+                <span class="text-xs text-ink-faint">my rating</span>
+              </div>
+            )}
+            {goodreadsRating != null && (
+              <div class="text-sm text-ink-subtle">
+                <span class="font-medium text-ink-body">{goodreadsRating.toFixed(2)}</span>
+                <span class="text-xs text-ink-faint"> public avg</span>
+              </div>
+            )}
+          </div>
+
+          <!-- Meta rows -->
+          <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
+            <dt class="text-ink-faint">Status</dt>
+            <dd class="text-ink-muted">{readLabel}</dd>
+            <dt class="text-ink-faint">Bought</dt>
+            <dd class="text-ink-muted">{formatDate(purchaseDate)}</dd>
+            {audience.length > 0 && (
+              <>
+                <dt class="text-ink-faint">For</dt>
+                <dd class="text-ink-muted">{audience.join(" · ")}</dd>
+              </>
+            )}
+          </dl>
+
+          <!-- Where it helped -->
+          {(relatedProjects.length > 0 || relatedLinks.length > 0) && (
+            <div class="mt-5 pt-5 border-t border-line">
+              <p class="text-xs uppercase tracking-wide text-ink-faint mb-2">Where it earned its place</p>
+              <div class="flex flex-wrap gap-2">
+                {relatedProjects.map((p) => {
+                  const meta = PROJECT_META[p];
+                  return meta ? (
+                    <a href={meta.href} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium glass-card hover:-translate-y-0.5 transition-transform">
+                      {meta.label}
+                    </a>
+                  ) : null;
+                })}
+                {relatedLinks.map((l) => (
+                  <a href={l.href} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium glass-card hover:-translate-y-0.5 transition-transform">
+                    {l.label}
+                    <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      <!-- Review body -->
+      <div class="prose prose-slate prose-headings:font-display prose-code:before:content-none prose-code:after:content-none max-w-none">
+        <slot />
+      </div>
+
+      <!-- Tags -->
+      {tags.length > 0 && (
+        <div class="mt-10 flex flex-wrap gap-2">
+          {tags.map((tag) => (
+            <span class="text-xs text-ink-subtle">#{tag}</span>
+          ))}
+        </div>
+      )}
+
+      <!-- Footer -->
+      <footer class="mt-12 pt-8 border-t border-line">
+        <div class="flex justify-between items-center">
+          <a href="/library/" class="btn-secondary">← Back to the Library</a>
+        </div>
+      </footer>
+    </article>
+  </main>
+
+  <Footer />
+</BaseLayout>
+
+<style>
+  /* Cover fallback: if the <img> errors, show the title placeholder. */
+  .glass-card.cover-missing .cover-fallback {
+    display: flex;
+    align-items: center;
+  }
+</style>

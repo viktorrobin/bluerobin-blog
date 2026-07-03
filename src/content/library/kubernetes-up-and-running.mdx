@@ -1,0 +1,53 @@
+---
+title: "Kubernetes: Up and Running"
+bookAuthor: "Brendan Burns, Joe Beda & Kelsey Hightower"
+description: "The fastest way from zero to a working mental model of Kubernetes — just keep the docs open next to it."
+purchaseDate: 2021-09-05
+status: "read"
+theme: "sre-devops"
+recommendation: "recommended"
+rating: 4.2
+goodreadsRating: 4.04
+audience:
+  - "Engineers new to Kubernetes"
+  - "Platform & SRE folks wanting the core object model"
+  - "Anyone running a homelab cluster"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "K3s home server"
+    href: "/articles/k3s-home-server-setup/"
+  - label: "K8s for agentic AI workloads"
+    href: "/articles/kubernetes-cluster-setup-for-agentic-ai-workloads/"
+isbn: "9781491935675"
+tags:
+  - "kubernetes"
+  - "containers"
+  - "sre"
+  - "devops"
+  - "orchestration"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.2 · public 4.04)">
+The cleanest on-ramp to Kubernetes I've read. It builds the object model in the right order — pods, then services, then deployments — and never drowns you in YAML.
+</Callout>
+
+## The one-paragraph verdict
+
+Three people who actually built Kubernetes wrote this, and the pedagogy shows: every concept is demonstrated against a real demo app (kuard) instead of a hollow "hello world," so you watch pods, services, and deployments behave rather than just reading their definitions. The sequencing is the real strength — you understand *why* a Deployment exists before you're asked to write one. The honest catch is shelf life. Kubernetes moves faster than any print cycle, so flags, APIs, and best practices drift; the book is a model-builder, not a current reference, and you'll want the official docs open alongside it. It's also unapologetically an introduction — once the model clicks, you outgrow it. For getting the model to click in the first place, though, nothing beats it.
+
+## Who should read it
+
+Anyone meeting Kubernetes for the first time, and platform or SRE engineers who can run `kubectl` but couldn't cleanly explain the difference between a ReplicaSet and a Deployment. It's an ideal first cluster companion. Skip it if you're already operating production clusters — you'll find it thin — or if you need an authoritative reference for a specific API version.
+
+## Where it earned its place
+
+The mental model from this book is exactly what I leaned on standing up my [K3s home server](/articles/k3s-home-server-setup/) — thinking in declarative objects and reconciliation loops, not imperative commands. When I extended that into a [cluster for agentic AI workloads](/articles/kubernetes-cluster-setup-for-agentic-ai-workloads/), the deployment-and-service primitives the book drills made scheduling GPU-bound pods feel routine rather than mysterious.
+
+## Skip it if…
+
+You run clusters for a living, or you want a versioned API reference. Veterans will outpace it in a chapter, and anyone chasing the latest CRD or admission-controller behavior should go straight to the docs. <ExternalCite title="Kubernetes: Up and Running on Goodreads" url="https://www.goodreads.com/book/show/57865749-kubernetes" />

@@ -1,0 +1,50 @@
+---
+title: "The Cuckoo's Egg"
+bookAuthor: "Clifford Stoll"
+description: "A 75-cent accounting error becomes a spy hunt — still the best primer on what real detection work feels like."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "essential"
+rating: 4.7
+goodreadsRating: 4.27
+audience:
+  - "Anyone running or securing a homelab"
+  - "Detection & incident-response engineers"
+  - "People who think security is about tooling, not patience"
+relatedProjects: []
+relatedLinks:
+  - label: "Securing the homelab (subnetting & firewall)"
+    href: "/articles/securing-homelab-subnetting-firewall-hardening/"
+isbn: "9781416507789"
+tags:
+  - "security"
+  - "incident-response"
+  - "detection"
+  - "homelab"
+  - "classic"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Essential (my rating 4.7 · public 4.27)">
+The original SOC war story: an astronomer chases a $0.75 billing discrepancy into a KGB-funded intrusion. Decades on, the tech is a museum piece and the instinct is exactly current.
+</Callout>
+
+## The one-paragraph verdict
+
+Stoll notices a 75-cent accounting error on a shared system, refuses to let it go, and ends up tracking a paid intruder across the early internet with nothing but logs, printers wired to terminal lines, and stubbornness. What makes it essential isn't the espionage — it's the texture of real detection: the hypothesis-building, the dead ends, the institutional indifference from the agencies he keeps phoning. Reviewers rightly call it a gripping techno-thriller that holds up decades later. They're also right that it meanders: Stoll digresses into his cooking, his relationship, his Berkeley life, and the 1980s tech detail is now firmly historical. I didn't mind the digressions; they're the reason the chase feels human instead of like a postmortem.
+
+## Who should read it
+
+Read it if you run anything you're responsible for defending — a homelab, a cluster, a SOC queue. The core lesson is that detection is patience and curiosity, not a dashboard. Skip it if you want a modern, technique-current reference: nothing here transfers as procedure.
+
+## Where it earned its place
+
+The book is why I treat small anomalies as threads to pull rather than noise to filter. That instinct shaped [securing my homelab with proper subnetting and firewall hardening](/articles/securing-homelab-subnetting-firewall-hardening/) — segmenting the network so a single odd connection is *visible* and *attributable*, which is exactly the leverage Stoll improvised with printer logs.
+
+## Skip it if…
+
+You're after actionable 2026 security tooling, or you have no patience for folksy 1980s memoir between the technical beats. It's a story about a mindset, not a manual.

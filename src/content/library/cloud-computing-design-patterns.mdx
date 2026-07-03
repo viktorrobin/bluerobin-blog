@@ -1,0 +1,50 @@
+---
+title: "Cloud Computing Design Patterns"
+bookAuthor: "Thomas Erl"
+description: "A diagram-rich pattern catalog that names problems well but stays too abstract to act on."
+purchaseDate: 2020-12-19
+status: "read"
+theme: "software-architecture"
+recommendation: "situational"
+rating: 3.4
+goodreadsRating: 3.8
+audience:
+  - "Cloud & platform architects"
+  - "Engineers building a shared pattern vocabulary"
+  - "Anyone vetting an early cloud design"
+relatedProjects:
+  - "platform"
+relatedLinks:
+  - label: "Cloud-to-homelab decision"
+    href: "/articles/architecture-decision-cloud-to-homelab/"
+isbn: "9780133858563"
+tags:
+  - "cloud"
+  - "software-architecture"
+  - "design-patterns"
+  - "distributed-systems"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Situational (my rating 3.4 · public 3.8)">
+A reference you skim, not a book you read. The 300+ diagrams give you a shared vocabulary for cloud trade-offs, but you'll close it wanting depth it never delivers.
+</Callout>
+
+## The one-paragraph verdict
+
+Erl and his co-authors catalog 100-plus cloud patterns, and the visual documentation is genuinely the standout — clean, consistent diagrams of a kind you rarely find collected in one place. The trouble is that each pattern rarely runs past a screen of text, and the problem/solution framing sits at such a high, vendor-neutral altitude that it tells you a pattern exists without telling you how to build it. As a vocabulary-builder it works; as an implementation guide it doesn't. I keep it as a lookup table, not a tutorial, which is exactly why the rating lands where it does.
+
+## Who should read it
+
+Architects and platform engineers who want a common name for "burst offloading" or "redundant storage" before a design review will get value here. So will anyone sanity-checking an early cloud topology. Engineers who already think in distributed-systems terms, or who want copy-pasteable detail, should not bother — the abstraction will frustrate you.
+
+## Where it earned its place
+
+It earned its keep during the [cloud-to-homelab decision](/articles/architecture-decision-cloud-to-homelab/): the catalog gave me a neutral checklist of cloud-native patterns to weigh against, which made it obvious how many I'd be re-implementing by hand on a single-node cluster — and which ones simply didn't justify the bill.
+
+## Skip it if…
+
+You want hands-on depth, current vendor specifics, or anything you can ship from directly. This is a map of the territory, not a route — pass if you already know the terrain.

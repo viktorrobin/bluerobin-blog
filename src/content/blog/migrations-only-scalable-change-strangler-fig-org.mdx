@@ -1,6 +1,6 @@
 ---
 title: "Migrations, Not Rewrites: The Only Change That Scales"
-description: "I nearly approved a clean rewrite that would have frozen the business for months, and what stopping it taught me about changing code and teams."
+description: "A big-bang rewrite concentrates all risk into one cutover and freezes the business while you guess. Incremental migration spreads the risk and keeps shipping."
 pubDate: 2026-06-27
 author: "Victor Robin"
 draft: false
@@ -8,58 +8,45 @@ project: "leadership"
 category: "leadership"
 difficulty: "expert"
 tags: ["leadership", "engineering-management", "migrations", "strangler-fig", "an-elegant-puzzle"]
-readTime: "5 min"
+readTime: "4 min"
 toc: false
 ---
 
 import Callout from '@components/Callout.astro';
 import ImplementationNote from '@components/ImplementationNote.astro';
 
-## The mistake
+## The problem
 
-The plan was on a whiteboard and it was beautiful. We had spent two weeks dissecting a billing engine that nobody fully understood anymore. It was eleven years old, written by people who had long since left, and every change to it took a week and a held breath. So we drew the obvious answer: rewrite it cleanly, in parallel, then cut over in a single weekend.
+The clean rewrite is the most seductive plan in engineering: build the right thing in parallel, then flip a switch. It concentrates every ounce of risk into a single cutover — the moment you understand least — and freezes the business while you guess. At any real scale, that trade loses.
 
-I costed it at roughly four months. I told myself it was four months of pain to buy years of relief. The team was excited. I was excited. I had the slide ready for the steering committee, and the slide said we would freeze new billing features for the duration.
+I nearly made it. We had an eleven-year-old billing engine nobody fully understood, where every change took a week and a held breath. I costed a clean rewrite at four months and had the steering-committee slide ready, feature freeze and all. A senior engineer stopped me with one question: "What happens to the three contract changes Sales already promised next quarter?" The answer was that they wait — and so would everything queued behind them.
 
-What stopped me was a quiet question from one of the senior engineers, asked almost apologetically near the end of a planning session. "What happens to the three contract changes Sales already promised for next quarter?" The honest answer was: they wait. And the contracts after those would wait too, because rewrites always run long, and a frozen system attracts a backlog the way a parked car attracts parking tickets.
+## The model
 
-I had been about to trade a system that was slow to change for a system that could not change at all, for a third of a year, and I had nearly called that progress.
-
-## What it taught me
-
-The clean rewrite is seductive because it concentrates all the uncertainty into one tidy story: we build the right thing, then we flip a switch. But concentration is exactly the problem. A big-bang cutover puts every ounce of risk into a single moment, the one moment you understand least, and removes your ability to learn anything until it is too late to act on it.
-
-There is a line I have come to treat as a law: migrations are the only scalable way to manage change as systems and organisations grow. The point is not that rewrites are forbidden. It is that change which spreads risk across many small, reversible steps will outscale change that hoards risk for one heroic event, every time. A migration keeps the business running while you learn. A rewrite asks the business to hold its breath while you guess.
-
-The part that took me longer to see is that this applies to people, not just code. I had been treating organisational change, new processes, new team shapes, new ways of working, as something you announce on a Monday. An announcement is a big-bang cutover. It concentrates all the disruption into one date and gives you no way to roll back when reality disagrees.
+Migrations are the only scalable way to manage change as systems and organisations grow. The point isn't that rewrites are forbidden; it's that change spread across many small, reversible steps outscales change that hoards risk for one heroic event — every time. A migration keeps the business running while you learn; a rewrite asks it to hold its breath while you guess. The same logic applies to people: an org change announced on a Monday is a big-bang cutover, all the disruption on one date with no way to roll back when reality disagrees.
 
 <Callout type="info" title="The tell">
   If your plan has a single date on which everything is different, you are not migrating. You are gambling, and you have hidden the bet inside a roadmap.
 </Callout>
 
+## What to do
+
+- **Replace the rewrite with a strangler-fig migration.** Put a proxy in front of the old system and move one capability at a time; let every request fall back to the original until the new path earns trust in production.
+- **Start where it is safe to be wrong.** Migrate read-only invoice retrieval before any money-moving path, building the pattern and the deployment muscle on low stakes.
+- **Keep the feature tap open.** Nothing freezes. Build new work against the new path where it exists and the old path where it doesn't — which also surfaces the boundaries you drew wrong.
+- **Migrate org change the same way.** Moving to continuous deploy? Let one team adopt it, watch what breaks, write down the new defaults, and let the next team opt in. Process by adoption, not decree.
+
 <ImplementationNote>
-  The [strangler-fig pattern](/articles/architecture-pattern-strangler-fig-migration) is documented here at homelab scale, on a system small enough to hold in your head. The lesson generalises upward without changing shape: the same reverse-proxy-and-replace discipline that retires one endpoint in BlueRobin is what retires a load-bearing engine across a large estate, and what retires an old way of working across a team.
+  The [strangler-fig pattern](/articles/architecture-pattern-strangler-fig-migration) is documented here at homelab scale, on a system small enough to hold in your head. The lesson generalises upward without changing shape: the same reverse-proxy-and-replace discipline that retires one endpoint in BlueRobin is what retires a load-bearing engine across a large estate — and what retires an old way of working across a team.
 </ImplementationNote>
-
-## What I changed
-
-- **Replaced the rewrite with a strangler-fig migration.** We put a proxy in front of the billing engine and moved one capability at a time. Old and new ran side by side; every request could fall back to the original until the new path had earned trust in production.
-- **Started where it was safe to be wrong.** The first thing we migrated was read-only invoice retrieval, not a money-moving path. It built the pattern, the deployment muscle, and the team's confidence before we touched anything that could overcharge a customer.
-- **Kept the feature tap open.** Because nothing was frozen, Sales got their contract changes. We built them against the new path where it existed and the old path where it did not, which also surfaced the boundaries we had drawn wrong.
-- **Migrated the org change the same way.** We were also moving from quarterly releases to continuous deploy. Instead of mandating it, I let one team adopt it, watched what broke, wrote down the new defaults, and let the next team opt in. Process by adoption, not by decree.
 
 ## The results
 
-The billing migration ran a little over five months, slightly longer than the rewrite estimate, which is exactly the point people miss. The calendar was similar; the risk profile was not. We shipped continuously the entire time, and the business never went dark.
+The migration ran a little over five months — slightly longer than the rewrite estimate, which is the part people miss. The calendar was similar; the risk profile was not. We shipped continuously throughout and the business never went dark. We retired the old engine boundary by boundary (about a dozen capabilities) with no freeze; billing-area deploys went from "weekly, nervously" to several times a day, with a lower change-failure rate than the untouched legacy. The deploy-process change spread across most of the org within two quarters, with no mandated cutover.
 
-- We retired the old engine boundary by boundary, roughly a dozen capabilities, with no feature freeze at any point.
-- Deploys to the billing area went from "once a week, nervously" to several times a day, and change-failure rate during the migration ended up lower than it had been on the untouched legacy system, mostly because every step was small enough to reason about.
-- The deploy-process change spread to most of the engineering org within a couple of quarters without a single mandated cutover, because teams adopted something they had watched work next door.
-
-The honest caveat: incremental was genuinely harder than a rewrite would have been in one respect. Running two systems behind a proxy meant carrying the complexity of both at once, plus the glue, for months. There were weeks where the old engine's quirks leaked into the new one and I quietly wondered whether the clean break would have been kinder. It would not have been, but the temptation was real, and a leader who pretends the migration path is painless will lose the team the first time it bites.
+The caveat: incremental is genuinely harder in one respect — running two systems behind a proxy means carrying both, plus the glue, for months. There were weeks the old engine's quirks leaked into the new one and the clean break looked tempting. It wasn't the better choice, but the temptation is real; a leader who pretends the migration path is painless loses the team the first time it bites.
 
 ## Further reading
 
 - **[The strangler-fig migration pattern](/articles/architecture-pattern-strangler-fig-migration)** — the technical pattern, with code.
 - **[GitOps with Flux CD](/articles/gitops-flux-cd-introduction)** — migrating the deploy process with the same discipline.
-- **[Impact](/impact/)** — outcomes delivered under constraint.

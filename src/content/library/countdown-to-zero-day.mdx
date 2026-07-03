@@ -1,0 +1,50 @@
+---
+title: "Countdown to Zero Day"
+bookAuthor: "Kim Zetter"
+description: "The definitive Stuxnet account — investigative reporting that reads like a thriller and holds up technically."
+purchaseDate: 2024-09-03
+status: "read"
+theme: "security-cyber"
+recommendation: "recommended"
+rating: 4.5
+goodreadsRating: 4.16
+audience:
+  - "Security and platform engineers"
+  - "Anyone defending industrial or critical infrastructure"
+  - "Engineers who want a real-world threat model, not a CTF write-up"
+relatedProjects: []
+relatedLinks:
+  - label: "Container security in .NET"
+    href: "/articles/container-security-best-practices-dotnet/"
+isbn: "9780770436193"
+tags:
+  - "security-cyber"
+  - "stuxnet"
+  - "malware-analysis"
+  - "critical-infrastructure"
+  - "threat-modeling"
+draft: false
+---
+
+import Callout from "@components/Callout.astro";
+import ExternalCite from "@components/ExternalCite.astro";
+
+<Callout type="tip" title="Verdict — Recommended (my rating 4.5 · public 4.16)">
+The best long-form account of Stuxnet there is. Zetter reconstructs a nation-state weapon from the malware outward, and the technical claims survive scrutiny.
+</Callout>
+
+## The one-paragraph verdict
+
+This is investigative journalism that actually respects the engineering. Zetter walks from the first odd Belarusian detection down to the centrifuge PLC payload, and the reporting is dense with primary sources — Symantec, Kaspersky, Langner — rather than hand-waving. The praise reviewers repeat is fair: it reads like a thriller and stays accurate, which is rare. The recurring criticism is also fair: it sags in the middle, repeats itself, and the export-control and cyberweapon-policy chapters drag where the forensic chapters fly. Read past the slow stretch; the spine is excellent.
+
+## Who should read it
+
+Anyone who builds, defends, or threat-models systems that touch the physical world — ICS/SCADA, OT, anything with a PLC — should read it for the air-gap-is-not-a-control lesson alone. Security engineers wanting a concrete nation-state case study will get more here than from a dozen vendor whitepapers. People hunting a hands-on reverse-engineering tutorial should look elsewhere; this is narrative, not a lab manual.
+
+## Where it earned its place
+
+The book's core lesson — that trust boundaries you assume are impassable get crossed anyway — is exactly what I argue in [Container security in .NET](/articles/container-security-best-practices-dotnet/): the supply chain and the runtime boundary are the soft targets, not the obvious perimeter. Stuxnet rode signed drivers and removable media past an air gap; the modern analogue is a poisoned base image riding your CI past every network control.
+
+## Skip it if…
+
+You only want the technical post-mortem — the Symantec dossier and Langner's analysis are shorter and free. And if policy-history chapters bore you, expect to skim a third of it.

@@ -17,26 +17,44 @@
 
 @theme {
     /* ==================== COLOR PALETTE ==================== */
-    /* Primary: Blue — Neural palette, centered on #0099fd */
+    /* Primary: Blue — Neural palette (hue 232), centered on #0099fd at -500.
+       ┌─ ⚠ INVERTED RAMP — intentional (see DESIGN-SYSTEM.md §1) ─────────────┐
+       │ DARK-THEME CONVENTION: stops ASCEND -100→-900 from DARK to LIGHT, so a │
+       │ DECREMENT means DARKER — the OPPOSITE of stock Tailwind and of the     │
+       │ aurora / quantum / glow / slate ramps below. LOW numbers = deep navy   │
+       │ (surfaces, borders, fills); HIGH numbers = bright blue (accent text /  │
+       │ icons on the dark canvas). Key stops:                                  │
+       │   -400 (52% L) canonical accent-text / link blue                       │
+       │   -500 (#0099fd) brand primary — buttons, focus ring                   │
+       │   -600..-900 progressively lighter highlights                          │
+       │   -50 (98% L) near-white OUTLIER — on-dark text/icon (breaks the order)│
+       │ Do NOT "normalize" to stock light→dark: ~120 consumers (634 refs)      │
+       │ depend on this order; flipping it inverts the whole blue accent system.│
+       │ Any such pass MUST be a dedicated, visual-regression-gated change.     │
+       │ `npm run lint:token-ramps` guards this ordering in CI. For NEW code    │
+       │ prefer the role-named --color-brand-neural-* aliases below over stops. │
+       │ (Every stop is blue, hue 232 — stale "pumpkin"/orange comments gone.)  │
+       └────────────────────────────────────────────────────────────────────────┘ */
     --color-neural-50: oklch(98% 0.015 232);
     --color-neural-100: oklch(20% 0.08 232);
-    /* pumpkin-100 #3b1900 */
     --color-neural-200: oklch(32% 0.13 232);
-    /* pumpkin-200 #652a00 */
     --color-neural-300: oklch(42% 0.17 232);
-    /* pumpkin-300 #8d3b00 */
     --color-neural-400: oklch(52% 0.21 232);
-    /* pumpkin-400 #bc4e00 */
-    --color-neural-500: oklch(69% 0.235 232);
-    /* pumpkin-500 #0099fd — SUNO PRIMARY */
+    --color-neural-500: oklch(69% 0.235 232); /* #0099fd — primary */
     --color-neural-600: oklch(76% 0.20 232);
-    /* pumpkin-600 #3db5ff */
     --color-neural-700: oklch(83% 0.15 232);
-    /* pumpkin-700 #ffb27b */
     --color-neural-800: oklch(89% 0.10 232);
-    /* pumpkin-800 #ffcba6 */
     --color-neural-900: oklch(94% 0.06 232);
-    /* pumpkin-900 #ffe4d1 */
+
+    /* Semantic aliases for the neural ramp — role-named entry points so intent is
+       self-evident without memorizing the inverted numeric order above. ADDITIVE:
+       the raw --color-neural-* scale stays canonical; these just map roles onto it.
+       Solid colors only — for transparency use --color-neural-alpha-*, not a /NN
+       opacity modifier (the var() indirection can't be alpha-composited). */
+    --color-brand-neural-surface: var(--color-neural-100); /* deep navy — surfaces, borders, fills */
+    --color-brand-neural-accent:  var(--color-neural-400); /* canonical accent / link TEXT (52% L) */
+    --color-brand-neural-primary: var(--color-neural-500); /* #0099fd — brand primary: buttons, focus ring */
+    --color-brand-neural-on:      var(--color-neural-50);  /* near-white on-dark text / icon */
 
     /* Danger: Aurora — Suno vermilion-style #f8441b (orange-red, not pure red) */
     --color-aurora-50: oklch(97% 0.020 28);
@@ -64,6 +82,17 @@
     --color-quantum-800: oklch(40% 0.115 125);
     --color-quantum-900: oklch(35% 0.085 124);
 
+    /* Semantic status aliases (first-class success/error colors).
+       Defined INSIDE @theme so Tailwind generates text-/bg-/border-success
+       and -error utilities (a plain :root {} block would emit the vars but
+       NOT the utilities). success mirrors quantum-400 (grass green), error
+       mirrors aurora-400 (vermilion) — the design system's Success/Danger
+       families. DS-1 (tokens only) / DS-2 (no hardcoded hex/rgba). */
+    --color-success: oklch(74% 0.185 127);
+    /* = quantum-400 (grass green) — positive amounts / credit */
+    --color-error: oklch(68% 0.215 28);
+    /* = aurora-400 (vermilion) — debit / danger amounts */
+
     /* Accent: Glow Amber (Warnings/Highlights) - oklch for consistent brightness */
     --color-glow-50: oklch(98% 0.03 85);
     --color-glow-100: oklch(95% 0.08 85);
@@ -89,25 +118,29 @@
     --color-slate-900: #0f172a;
     --color-slate-950: #020617;
 
-    /* Complement: Pumpkin Orange — pairs with Neural Blue */
+    /* Complement: warm orange accent (hue 43) that pairs with the neural blue
+       primary. ⚠ SAME INVERTED CONVENTION as neural (see DESIGN-SYSTEM.md §1):
+       stops ASCEND -50/-100→-900 from DARK to LIGHT, so a DECREMENT means DARKER.
+       Do NOT normalize to stock light→dark — `npm run lint:token-ramps` guards it.
+       For NEW code prefer the --color-brand-complement-* aliases below.
+       -50 (98% L) is the near-white outlier (mirrors neural-50, for on-dark text).
+       Every value is orange (hue 43), not blue. */
+    --color-complement-50:  oklch(98% 0.02 43);
     --color-complement-100: oklch(20% 0.08 43);
-    /* #0a1a2e - darkest navy */
     --color-complement-200: oklch(29% 0.13 43);
-    /* #0d2a52 */
     --color-complement-300: oklch(39% 0.17 43);
-    /* #0b4080 - deep blue */
     --color-complement-400: oklch(52% 0.20 43);
-    /* #0070c8 - medium electric blue */
-    --color-complement-500: oklch(66% 0.21 43);
-    /* #0099FD - electric blue PRIMARY */
+    --color-complement-500: oklch(66% 0.21 43); /* primary complement */
     --color-complement-600: oklch(74% 0.18 43);
-    /* #3db5ff - lighter blue */
     --color-complement-700: oklch(81% 0.14 43);
-    /* #7dceff */
     --color-complement-800: oklch(88% 0.09 43);
-    /* #b3e3ff */
     --color-complement-900: oklch(94% 0.05 43);
-    /* #def2ff - lightest */
+
+    /* Semantic aliases for the complement ramp (mirror the neural aliases; additive). */
+    --color-brand-complement-surface: var(--color-complement-100); /* deep — surfaces / fills */
+    --color-brand-complement-accent:  var(--color-complement-400); /* accent TEXT */
+    --color-brand-complement-primary: var(--color-complement-500); /* primary warm accent */
+    --color-brand-complement-on:      var(--color-complement-50);  /* near-white on-dark */
 
     /* Complement color with opacity variants */
     --color-complement-alpha-10: oklch(66% 0.21 43 / 0.10);
@@ -117,58 +150,56 @@
     --color-complement-alpha-50: oklch(66% 0.21 43 / 0.50);
 
     /* ==================== SEMANTIC DESIGN TOKENS ==================== */
-    /* Surface hierarchy — LIGHT theme (cool near-white canvas, crisp white cards) */
-    --surface-base: #f6f8fb;
-    /* page background — soft cool off-white so blue/orange pop */
-    --surface-canvas: #f6f8fb;
+    /* Surface hierarchy — exact Suno values from suno-chakra-desing.js */
+    --surface-base: #101012;
+    /* Suno --color-background-primary (was #101012) */
+    --surface-canvas: #101012;
     /* same as base */
-    --surface-card: #ffffff;
-    /* elevated card / panel surface */
-    --surface-overlay: #ffffff;
-    /* popovers, menus, modals */
-    --surface-sunken: #eef2f7;
-    /* inset wells, code chrome on light */
+    --surface-card: #1c1c1f;
+    /* Suno --color-gray-100 / background-secondary (was #1c1c1f) */
+    --surface-overlay: #252529;
+    /* Suno --color-background-tertiary (was #252529) */
+    --surface-sunken: #252529;
+    /* Suno --color-background-button-inactive (was #252529) */
 
-    /* Interaction state surfaces — dark-alpha for a light theme */
-    --surface-hover: rgba(15, 23, 42, 0.04);
-    --surface-pressed: rgba(15, 23, 42, 0.07);
-    --surface-selected: oklch(69% 0.235 232 / 0.10);
+    /* Interaction state surfaces */
+    --surface-hover: rgba(255, 255, 255, 0.04);
+    --surface-pressed: rgba(255, 255, 255, 0.07);
+    --surface-selected: oklch(69% 0.235 232 / 0.15);
     /* Neural blue tint */
     --surface-selected-border: oklch(69% 0.235 232 / 0.30);
 
-    /* Border system — slate hairlines (dark-alpha) for a light theme */
-    --border-hairline: rgba(15, 23, 42, 0.04);
-    --border-subtle: rgba(15, 23, 42, 0.07);
-    --border-default: rgba(15, 23, 42, 0.10);
-    /* default border on light */
-    --border-strong: rgba(15, 23, 42, 0.16);
-    /* emphasized border on light */
+    /* Border system — Suno exact values */
+    --border-hairline: rgba(255, 255, 255, 0.04);
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-default: rgba(255, 255, 255, 0.10);
+    /* Suno --color-border-primary */
+    --border-strong: rgba(255, 255, 255, 0.20);
+    /* Suno --color-border-secondary */
     --border-neural: oklch(69% 0.235 232 / 0.40);
     /* brand-colored border */
 
     /* ==================== GLASSMORPHISM ==================== */
-    /* LIGHT theme: frosted-white panels — high white opacity over the cool
-       canvas + lava so cards read as crisp glass. (Token names kept stable;
-       values re-tuned from translucent → frosted for the light surface.) */
-    --glass-white-10: rgba(255, 255, 255, 0.50);
-    --glass-white-12: rgba(255, 255, 255, 0.55);
-    --glass-white-15: rgba(255, 255, 255, 0.60);
-    --glass-white-20: rgba(255, 255, 255, 0.70);
-    --glass-white-25: rgba(255, 255, 255, 0.82);
-    --glass-white-30: rgba(255, 255, 255, 0.85);
-    --glass-white-35: rgba(255, 255, 255, 0.88);
-    --glass-white-40: rgba(255, 255, 255, 0.78);
-    --glass-white-60: rgba(255, 255, 255, 0.90);
-    --glass-white-70: rgba(255, 255, 255, 0.93);
-    --glass-white-80: rgba(255, 255, 255, 0.96);
+    /* Apple-style: lower opacity + higher blur for frosted translucency */
+    --glass-white-10: rgba(255, 255, 255, 0.10);
+    --glass-white-12: rgba(255, 255, 255, 0.12);
+    --glass-white-15: rgba(255, 255, 255, 0.15);
+    --glass-white-20: rgba(255, 255, 255, 0.20);
+    --glass-white-25: rgba(255, 255, 255, 0.25);
+    --glass-white-30: rgba(255, 255, 255, 0.30);
+    --glass-white-35: rgba(255, 255, 255, 0.35);
+    --glass-white-40: rgba(255, 255, 255, 0.40);
+    --glass-white-60: rgba(255, 255, 255, 0.60);
+    --glass-white-70: rgba(255, 255, 255, 0.70);
+    --glass-white-80: rgba(255, 255, 255, 0.80);
     --glass-dark-10: rgba(15, 23, 42, 0.10);
     --glass-dark-15: rgba(15, 23, 42, 0.15);
     --glass-dark-20: rgba(15, 23, 42, 0.20);
     --glass-dark-40: rgba(15, 23, 42, 0.40);
     --glass-dark-60: rgba(15, 23, 42, 0.60);
 
-    /* Semantic border color — slate hairline for frosted-white cards on light */
-    --glass-border: rgba(15, 23, 42, 0.08);
+    /* Semantic border color — dark-mode calibrated (white-alpha) */
+    --glass-border: rgba(255, 255, 255, 0.08);
 
     --blur-xs: blur(4px);
     --blur-sm: blur(8px);
@@ -208,6 +239,7 @@
     --color-glow-alpha-20: oklch(74% 0.17 70 / 0.20);
     --color-glow-alpha-30: oklch(74% 0.17 70 / 0.30);
     --color-glow-alpha-40: oklch(74% 0.17 70 / 0.40);
+    --color-glow-alpha-50: oklch(74% 0.17 70 / 0.50); /* completes the amber alpha ramp (was capped at -40, forcing raw-value shadows) */
 
     /* Slate color with opacity variants - for shadows and borders */
     --color-slate-alpha-3: oklch(25% 0.02 260 / 0.03);
@@ -256,16 +288,6 @@
             oklch(52% 0.20 43) 38%,
             oklch(69% 0.235 232) 100%);
 
-    /* Display title gradients — a deep, readable BLUE (Archives context) and its
-       deep ORANGE counterpart (Debug Agent). Single-hue each, so no muddy
-       blue↔orange blend; together they restore the blue+orange brand balance. */
-    --gradient-title: linear-gradient(115deg,
-            oklch(60% 0.21 235) 0%,
-            oklch(50% 0.19 250) 100%);
-    --gradient-title-warm: linear-gradient(115deg,
-            oklch(66% 0.19 52) 0%,
-            oklch(54% 0.175 34) 100%);
-
     /* Aura — shifting blue ↔ pumpkin orange for lava button effect */
     --gradient-aura: linear-gradient(45deg,
             oklch(29% 0.13 43) 0%,
@@ -286,33 +308,6 @@
     --gradient-mesh-light:
         radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.10) 0%, transparent 58%),
         radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.06) 0%, transparent 52%);
-
-    /* Dark ambient mesh — used as body background-image on dark surface */
-    --gradient-mesh:
-        radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.15) 0%, transparent 58%),
-        radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.10) 0%, transparent 52%);
-
-    /* ==================== LAVA BLOB COLORS ==================== */
-    /* Light-theme ambient glow — soft neural-blue + complement-orange clouds,
-       brightened so they read as gentle tints over the near-white canvas */
-    --lava-color-1: oklch(64% 0.20 232 / 0.22);
-    --lava-color-1-outer: oklch(60% 0.18 232 / 0.08);
-    --lava-color-2: oklch(72% 0.17 43 / 0.20);
-    --lava-color-2-outer: oklch(66% 0.15 43 / 0.07);
-    --lava-color-3: oklch(72% 0.20 232 / 0.14);
-    --lava-color-3-outer: oklch(66% 0.18 232 / 0.05);
-    --lava-color-4: oklch(70% 0.17 43 / 0.16);
-    --lava-color-4-outer: oklch(62% 0.15 43 / 0.05);
-
-    /* ==================== CODE BLOCK TOKENS ==================== */
-    /* Code blocks stay DARK ISLANDS on the light page (Shiki Dracula).
-       Inline code is re-tuned for the light prose surface. */
-    --code-bg: #1b1b1f;
-    --code-border: rgba(15, 23, 42, 0.10);
-    --code-shadow: rgba(15, 23, 42, 0.18);
-    --code-text: var(--color-slate-200);
-    --code-inline-bg: rgba(15, 23, 42, 0.05);
-    --code-inline-text: var(--color-neural-300);
 
     /* ==================== SPACING ==================== */
     --spacing-xs: 0.25rem;
@@ -360,6 +355,13 @@
     --radius-3xl: 2rem;
     --radius-full: 9999px;
 
+    /* Semantic component radii — interaction-consistency: ONE card radius and
+       ONE pill/control radius, so visually-similar surfaces share corners (DS-1). */
+    --radius-card: var(--radius-xl);
+    /* --radius-pill is the button/pill-control radius. Defined here now; the
+       .btn / .br-btn system adopts it in the button-consolidation follow-up. */
+    --radius-pill: var(--radius-xl);
+
     /* ==================== SHADOWS ==================== */
     /* Base shadows using alpha tokens */
     --shadow-xs: 0 1px 2px 0 var(--color-slate-alpha-5);
@@ -385,11 +387,11 @@
     --shadow-inner-sm: inset 0 2px 4px 0 var(--color-slate-alpha-5);
     --shadow-inner-md: inset 0 4px 8px 0 var(--color-slate-alpha-8);
 
-    /* Focus ring tokens (calibrated for light backgrounds) */
+    /* Focus ring tokens (calibrated for dark backgrounds) */
     --ring-neural: 0 0 0 3px oklch(69% 0.235 232 / 0.40);
     --ring-aurora: 0 0 0 3px oklch(58% 0.250 22 / 0.40);
     --ring-quantum: 0 0 0 3px oklch(63% 0.175 145 / 0.40);
-    --ring-slate: 0 0 0 3px rgba(15, 23, 42, 0.20);
+    --ring-slate: 0 0 0 3px rgba(255, 255, 255, 0.25);
 
     /* Glow effect tokens - for hover states */
     --glow-neural: 0 0 32px var(--color-neural-alpha-40), 0 0 64px var(--color-neural-alpha-20);
@@ -397,51 +399,53 @@
     --glow-quantum: 0 0 32px var(--color-quantum-alpha-40), 0 0 64px var(--color-quantum-alpha-20);
     --glow-glow: 0 0 32px var(--color-glow-alpha-40), 0 0 64px var(--color-glow-alpha-20);
 
-    /* === 4-TIER SEMANTIC ELEVATION SHADOWS (light-mode) === */
-    /* Soft slate shadows + faint slate ring — no white inset, no harsh black */
-    /* Tier 1 — Float: card sitting on the light page */
+    /* === 4-TIER SEMANTIC ELEVATION SHADOWS (dark-mode) === */
+    /* Tier 1 — Float: card sitting on dark page */
     --shadow-float:
-        0 0 0 1px rgba(15, 23, 42, 0.04),
-        0 1px 2px 0 rgba(15, 23, 42, 0.06),
-        0 2px 6px -1px rgba(15, 23, 42, 0.05);
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 1px 3px 0 rgba(0, 0, 0, 0.30),
+        0 1px 2px 0 rgba(0, 0, 0, 0.20);
 
     /* Tier 2 — Card: clear separation, standard card depth */
     --shadow-card-premium:
-        0 0 0 1px rgba(15, 23, 42, 0.05),
-        0 4px 12px -2px rgba(15, 23, 42, 0.10),
-        0 2px 4px -1px rgba(15, 23, 42, 0.06);
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 3px 8px 0 rgba(0, 0, 0, 0.40),
+        0 1px 3px 0 rgba(0, 0, 0, 0.25);
 
     /* Tier 3 — Modal: dialog-level depth, clearly floating */
     --shadow-modal-premium:
-        0 0 0 1px rgba(15, 23, 42, 0.06),
-        0 12px 32px -6px rgba(15, 23, 42, 0.18),
-        0 6px 12px -3px rgba(15, 23, 42, 0.10),
-        0 2px 4px -1px rgba(15, 23, 42, 0.06);
+        0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 8px 24px 0 rgba(0, 0, 0, 0.55),
+        0 3px 8px 0 rgba(0, 0, 0, 0.35),
+        0 1px 3px 0 rgba(0, 0, 0, 0.20);
 
     /* Tier 4 — Sheet: maximum elevation, overlay panels */
     --shadow-sheet:
-        0 0 0 1px rgba(15, 23, 42, 0.06),
-        0 24px 64px -12px rgba(15, 23, 42, 0.24),
-        0 12px 24px -8px rgba(15, 23, 42, 0.14),
-        0 4px 8px -2px rgba(15, 23, 42, 0.08);
+        0 0 0 1px rgba(255, 255, 255, 0.05),
+        0 20px 60px 0 rgba(0, 0, 0, 0.70),
+        0 8px 20px 0 rgba(0, 0, 0, 0.45),
+        0 2px 6px 0 rgba(0, 0, 0, 0.30);
 
-    /* === BLUE AMBIENT GLOW SHADOWS — on light === */
-    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities */
-    --shadow-glow-sm: 0 0 20px rgba(0, 153, 253, 0.14), 0 4px 12px rgba(15, 23, 42, 0.08);
-    --shadow-glow-md: 0 0 36px rgba(0, 153, 253, 0.16), 0 8px 24px rgba(15, 23, 42, 0.10);
-    --shadow-glow-lg: 0 0 56px rgba(0, 153, 253, 0.20), 0 16px 40px rgba(15, 23, 42, 0.14);
-    --shadow-dark-sm: 0 2px 8px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.05);
-    --shadow-dark-md: 0 4px 16px rgba(15, 23, 42, 0.10), 0 2px 6px rgba(15, 23, 42, 0.06);
-    --shadow-dark-lg: 0 8px 32px rgba(15, 23, 42, 0.14), 0 4px 12px rgba(15, 23, 42, 0.08);
+    /* === NEURAL GLOW SHADOWS — blue (neural, oklch 232) ambient glow on dark ===
+       Generates shadow-neural-glow-sm/-md/-lg Tailwind utilities. Named `neural`
+       (not `glow`) to resolve the amber-vs-blue collision with the amber
+       `--shadow-glow` (derived from the glow AMBER ramp): these are BLUE, not amber.
+       Values unchanged from the former `--shadow-glow-{sm,md,lg}` (renamed). */
+    --shadow-neural-glow-sm: 0 0 20px oklch(69% 0.235 232 / 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-neural-glow-md: 0 0 40px oklch(69% 0.235 232 / 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
+    --shadow-neural-glow-lg: 0 0 60px oklch(69% 0.235 232 / 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);
+    --shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
+    --shadow-dark-md: 0 4px 20px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
+    --shadow-dark-lg: 0 8px 40px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.40);
 
     /* ==================== TYPOGRAPHY ==================== */
     --font-sans: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    /* Headings use Inter too — a single highly-legible typeface reads far better
-       for long technical titles than the condensed Cal Sans display face. */
-    --font-display: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-display: 'Cal Sans', 'SF Pro Display', system-ui, sans-serif;
     --font-mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 
-    --text-xs: 0.6875rem;
+    --text-xs: 0.75rem;
+    /* 12px — WCAG legibility floor (NFR-13); raised from 0.6875rem/11px. Smallest size
+       allowed for meaningful copy. Sub-12px is decorative-only (use raw utilities sparingly). */
     --text-sm: 0.8125rem;
     --text-base: 0.9375rem;
     --text-lg: 1.0625rem;
@@ -489,7 +493,14 @@
     --duration-slow: 350ms;
     --duration-slower: 500ms;
     --duration-orb: 20s;
+    /* Unified hover/focus speed for interactive controls (buttons, cards, links).
+       ONE knob so visually-similar controls respond identically (DS-1). */
+    --duration-interaction: 150ms;
     --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Unified hover-lift — ONE translateY for cards & buttons, applied as
+       transform: translateY(var(--lift-hover)). */
+    --lift-hover: -2px;
 
     /* ==================== Z-INDEX ==================== */
     --z-base: 0;
@@ -1313,6 +1324,7 @@ pre {
         oklch(86% 0.19 80 / 0.55) 0%,
         oklch(78% 0.21 60 / 0.25) 40%,
         transparent 70%);
+    background-size: 175% 175%;
     mix-blend-mode: screen;
     animation: btn-lava-1 11s ease-in-out infinite;
 }
@@ -1358,51 +1370,70 @@ pre {
     animation: none;
 }
 
-/* Secondary — warm lava-glass. Crisp frosted surface with a visible
-   amber-tinted edge and a low-banked ember that warms on hover, so it
-   reads as part of the lava family instead of washed-out grey. */
+/* Secondary — molten blue. Identical lava treatment to .btn-primary but in
+   the theme's Neural blue (#0099fd): a flowing blue gradient, a screen-blended
+   hot-spot blob that only brightens (keeps white text readable), and a glassy
+   top sheen. Pairs with the orange primary as a two-tone CTA. */
 .btn-secondary {
-    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl font-medium text-sm tracking-wide transition-all gap-2;
+    @apply inline-flex items-center justify-center px-5 py-2.5 rounded-xl text-white font-medium text-sm tracking-wide transition-all gap-2;
     position: relative;
     overflow: hidden;
     clip-path: inset(0 round var(--radius-xl));
     z-index: 0;
-    color: var(--color-slate-800);
-    background: linear-gradient(135deg,
-        oklch(98% 0.02 75 / 0.70) 0%,
-        oklch(96% 0.035 50 / 0.50) 100%);
-    border: 1px solid oklch(70% 0.16 50 / 0.38);
+    background: linear-gradient(110deg,
+        oklch(55% 0.18 250) 0%,
+        oklch(62% 0.21 240) 28%,
+        oklch(70% 0.235 232) 52%,
+        oklch(62% 0.21 240) 76%,
+        oklch(56% 0.19 248) 100%);
+    background-size: 220% 220%;
+    background-position: 0% 50%;
     box-shadow:
-        0 1px 3px oklch(60% 0.10 50 / 0.10),
-        inset 0 1px 0 oklch(100% 0 0 / 0.65);
-    backdrop-filter: var(--blur-sm);
-    -webkit-backdrop-filter: var(--blur-sm);
+        0 2px 10px oklch(60% 0.20 245 / 0.40),
+        0 6px 22px oklch(55% 0.19 250 / 0.28),
+        inset 0 1px 0 oklch(96% 0.05 230 / 0.45);
+    animation: btn-lava-flow 10s ease-in-out infinite;
 }
 
 .btn-secondary::before {
     content: '';
     position: absolute;
     inset: 0;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 50%,
+        oklch(86% 0.13 215 / 0.55) 0%,
+        oklch(78% 0.19 230 / 0.25) 40%,
+        transparent 70%);
+    background-size: 175% 175%;
+    mix-blend-mode: screen;
+    animation: btn-lava-1 12s ease-in-out infinite;
+}
+
+.btn-secondary::after {
+    content: '';
+    position: absolute;
+    inset: 0;
     z-index: -1;
-    background: radial-gradient(circle at 30% 120%,
-        oklch(76% 0.19 55 / 0.28) 0%,
-        oklch(82% 0.16 75 / 0.12) 42%,
-        transparent 68%);
-    animation: btn-lava-1 13s ease-in-out infinite;
+    background: radial-gradient(120% 80% at 50% -25%,
+        oklch(99% 0.02 230 / 0.50) 0%,
+        transparent 60%);
+    pointer-events: none;
 }
 
 .btn-secondary:hover {
-    color: var(--color-slate-900);
-    border-color: oklch(70% 0.18 52 / 0.58);
     box-shadow:
-        0 4px 14px oklch(66% 0.18 50 / 0.22),
-        0 0 20px oklch(74% 0.17 60 / 0.22),
-        inset 0 1px 0 oklch(100% 0 0 / 0.75);
+        0 4px 16px oklch(60% 0.20 245 / 0.50),
+        0 0 26px oklch(72% 0.21 232 / 0.40),
+        inset 0 1px 0 oklch(96% 0.05 230 / 0.55);
     transform: translateY(-2px);
 }
 
 .btn-secondary:hover::before {
     animation-duration: 8s;
+}
+
+.btn-secondary:focus-visible {
+    @apply ring-2 ring-neural-400 ring-offset-2 ring-offset-[#f6f8fb];
 }
 
 .btn-secondary:active {
@@ -1424,19 +1455,17 @@ pre {
     50% { background-position: 100% 50%; }
 }
 
+/* Drift the ember via background-position only — NO transform. A
+   transform-animated pseudo gets its own GPU layer that the parent's
+   clip-path/overflow stops clipping the moment the button is itself
+   transformed (hover lift), letting the blob escape the corners. Moving
+   the gradient instead keeps the pseudo on the main paint layer, so it is
+   always clipped to the button shape. Needs background-size > 100% on the
+   pseudo for the gradient to have room to travel. */
 @keyframes btn-lava-1 {
-    0%, 100% {
-        transform: translate(0%, 0%) scale(1);
-        border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    }
-    33% {
-        transform: translate(10%, -5%) scale(1.05);
-        border-radius: 40% 60% 70% 30% / 40% 70% 30% 60%;
-    }
-    66% {
-        transform: translate(-5%, 5%) scale(0.95);
-        border-radius: 50% 50% 40% 60% / 50% 40% 60% 50%;
-    }
+    0%, 100% { background-position: 30% 70%; }
+    33%      { background-position: 70% 30%; }
+    66%      { background-position: 45% 55%; }
 }
 
 @keyframes btn-lava-2 {
