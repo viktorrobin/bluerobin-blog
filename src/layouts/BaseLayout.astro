@@ -41,18 +41,13 @@ const websiteJsonLd = {
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <!-- Theme bootstrap — set data-theme before first paint to avoid a flash.
-         Stored choice wins; otherwise follow the OS preference. -->
+         Light is the default; a stored toggle choice (br-theme) overrides it. -->
     <script is:inline>
       (() => {
         try {
           const stored = localStorage.getItem("br-theme");
-          const theme =
-            stored === "light" || stored === "dark"
-              ? stored
-              : matchMedia("(prefers-color-scheme: dark)").matches
-                ? "dark"
-                : "light";
-          document.documentElement.dataset.theme = theme;
+          document.documentElement.dataset.theme =
+            stored === "dark" ? "dark" : "light";
         } catch {
           document.documentElement.dataset.theme = "light";
         }
