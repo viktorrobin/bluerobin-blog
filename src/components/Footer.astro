@@ -14,22 +14,22 @@ const activeSocials = SOCIALS.filter((social) => social.active);
       <div class="md:col-span-2">
         <a href="/" class="flex items-center space-x-2 mb-4">
           <img src="/bluerobin-logo.png" alt="BlueRobin" class="w-8 h-8 object-contain" />
-          <span class="font-display font-semibold text-lg text-slate-900">
+          <span class="font-display font-semibold text-lg text-ink">
             {SITE.title}
           </span>
         </a>
-        <p class="text-slate-600 max-w-md">
+        <p class="text-ink-muted max-w-md">
           Production-grade AI on a self-hosted homelab, by Victor Robin — Director of
-          Engineering. Two projects on one K3s cluster: <strong class="font-medium text-slate-700">The Archives</strong>,
-          a team of document-intelligence agents, and <strong class="font-medium text-slate-700">The Debug Agent</strong>,
+          Engineering. Two projects on one K3s cluster: <strong class="font-medium text-ink-body">The Archives</strong>,
+          a team of document-intelligence agents, and <strong class="font-medium text-ink-body">The Debug Agent</strong>,
           autonomous root-cause analysis. Built with .NET, Kubernetes, NATS, and LLMs.
         </p>
       </div>
 
       <!-- Quick Links -->
       <div>
-        <h3 class="font-medium text-slate-800 mb-4">Quick Links</h3>
-        <ul class="space-y-2 text-slate-600">
+        <h3 class="font-medium text-ink mb-4">Quick Links</h3>
+        <ul class="space-y-2 text-ink-muted">
           <li><a href="/the-archives/" class="hover:text-neural-400 transition-colors">The Archives</a></li>
           <li><a href="/debug-agent/" class="hover:text-neural-400 transition-colors">Debug Agent</a></li>
           <li><a href="/about/" class="hover:text-neural-400 transition-colors">About</a></li>
@@ -37,8 +37,8 @@ const activeSocials = SOCIALS.filter((social) => social.active);
       </div>
     </div>
 
-    <div class="mt-8 pt-8 border-t border-slate-900/10 flex flex-col sm:flex-row justify-between items-center gap-4">
-      <p class="text-slate-600 text-sm">
+    <div class="mt-8 pt-8 border-t border-[var(--border-default)] flex flex-col sm:flex-row justify-between items-center gap-4">
+      <p class="text-ink-muted text-sm">
         © {currentYear} {SITE.author}. All rights reserved.
       </p>
 
@@ -48,7 +48,7 @@ const activeSocials = SOCIALS.filter((social) => social.active);
           <a
             href={href}
             title={linkTitle}
-            class="text-slate-600 hover:text-neural-400 transition-colors"
+            class="text-ink-muted hover:text-neural-400 transition-colors"
             target="_blank"
             rel="noopener noreferrer"
           >

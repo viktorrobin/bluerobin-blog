@@ -3,8 +3,16 @@
 /* ============================================
    BLUEROBIN BLOG DESIGN SYSTEM
    Based on BlueRobin App v5.4 Design Tokens
-   Dark theme matching the BlueRobin web UI
-   Floating Glass Interface with Neural Colors
+   Dual-theme (light default + dark) Floating Glass
+   Interface with Neural Colors.
+
+   ARCHITECTURE
+   - @theme            : brand palette + primitives (theme-independent)
+   - @theme inline     : semantic, theme-aware utilities (text-ink*, bg-card…)
+   - :root             : LIGHT semantic tokens (surfaces, text, borders, glass)
+   - [data-theme=dark] : DARK overrides for the same semantic tokens
+   Components must consume SEMANTIC tokens (text-ink, var(--surface-*), …),
+   never hardcoded slate/white, so they flip with the theme.
    ============================================ */
 
 @theme {
@@ -496,6 +504,101 @@
     --z-command-palette: 1800;
 }
 
+/* ==================== THEME MODES ==================== */
+/* Selector-based dark mode: `dark:` utilities activate under [data-theme=dark].
+   The no-flash <head> script in BaseLayout sets data-theme before first paint. */
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Semantic, theme-aware UTILITIES. `inline` keeps the var() reference in each
+   generated class, so overriding the underlying token below re-themes them.
+   → text-ink / text-ink-body / text-ink-muted / text-ink-subtle / text-ink-faint,
+     bg-card / bg-canvas, border-line, etc. */
+@theme inline {
+    --color-ink: var(--text-primary);
+    --color-ink-body: var(--text-body);
+    --color-ink-muted: var(--text-secondary);
+    --color-ink-subtle: var(--text-muted);
+    --color-ink-faint: var(--text-faint);
+    --color-card: var(--surface-card);
+    --color-canvas: var(--surface-base);
+    --color-line: var(--border-default);
+    --color-line-subtle: var(--border-subtle);
+}
+
+/* LIGHT theme — semantic text ramp (surfaces/glass/borders default light in
+   @theme above). Slate ink on the near-white canvas. */
+:root {
+    color-scheme: light;
+    --text-primary: var(--color-slate-900);
+    --text-body: var(--color-slate-700);
+    --text-secondary: var(--color-slate-600);
+    --text-muted: var(--color-slate-500);
+    --text-faint: var(--color-slate-400);
+}
+
+/* DARK theme — overrides ONLY the semantic tokens. The brand palette
+   (neural / aurora / quantum / complement) is identical in both modes. */
+[data-theme="dark"] {
+    color-scheme: dark;
+
+    /* Surface hierarchy — deep slate canvas, elevated cards */
+    --surface-base: #0a0f17;
+    --surface-canvas: #0a0f17;
+    --surface-card: #121a24;
+    --surface-overlay: #141d29;
+    --surface-sunken: #0d141d;
+    --surface-hover: rgba(255, 255, 255, 0.05);
+    --surface-pressed: rgba(255, 255, 255, 0.09);
+    --surface-selected: oklch(69% 0.235 232 / 0.16);
+    --surface-selected-border: oklch(69% 0.235 232 / 0.42);
+
+    /* Text ramp — near-white → slate */
+    --text-primary: #f1f5f9;
+    --text-body: #cbd5e1;
+    --text-secondary: #b4c0cf;
+    --text-muted: #8b97a8;
+    --text-faint: #6b7688;
+
+    /* Borders — light hairlines on dark */
+    --border-hairline: rgba(255, 255, 255, 0.05);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-default: rgba(255, 255, 255, 0.11);
+    --border-strong: rgba(255, 255, 255, 0.18);
+    --border-neural: oklch(69% 0.235 232 / 0.45);
+    --glass-border: rgba(255, 255, 255, 0.10);
+
+    /* Glass — dark frosted panels (token names stable, values re-tuned) */
+    --glass-white-10: rgba(18, 26, 36, 0.50);
+    --glass-white-12: rgba(18, 26, 36, 0.55);
+    --glass-white-15: rgba(18, 26, 36, 0.60);
+    --glass-white-20: rgba(18, 26, 36, 0.66);
+    --glass-white-25: rgba(18, 26, 36, 0.72);
+    --glass-white-30: rgba(18, 26, 36, 0.76);
+    --glass-white-35: rgba(18, 26, 36, 0.80);
+    --glass-white-40: rgba(18, 26, 36, 0.70);
+    --glass-white-60: rgba(18, 26, 36, 0.85);
+    --glass-white-70: rgba(18, 26, 36, 0.90);
+    --glass-white-80: rgba(18, 26, 36, 0.94);
+
+    /* Inline code on dark prose (code blocks stay Dracula dark islands) */
+    --code-border: rgba(255, 255, 255, 0.10);
+    --code-inline-bg: rgba(255, 255, 255, 0.08);
+    --code-inline-text: var(--color-neural-600);
+
+    /* Ambient mesh + lava glow re-tuned for the dark canvas */
+    --gradient-mesh-light:
+        radial-gradient(ellipse 80% 55% at 50% -8%, oklch(70% 0.15 232 / 0.12) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 45% at 95% 25%, oklch(66% 0.16 43 / 0.09) 0%, transparent 52%);
+    --lava-color-1: oklch(64% 0.20 232 / 0.30);
+    --lava-color-1-outer: oklch(60% 0.18 232 / 0.10);
+    --lava-color-2: oklch(72% 0.17 43 / 0.26);
+    --lava-color-2-outer: oklch(66% 0.15 43 / 0.09);
+    --lava-color-3: oklch(72% 0.20 232 / 0.18);
+    --lava-color-3-outer: oklch(66% 0.18 232 / 0.06);
+    --lava-color-4: oklch(70% 0.17 43 / 0.20);
+    --lava-color-4-outer: oklch(62% 0.15 43 / 0.06);
+}
+
 /* ==================== BASE STYLES ==================== */
 
 html {
@@ -506,7 +609,7 @@ body {
     @apply antialiased;
     font-family: var(--font-sans);
     background-color: var(--surface-base);
-    color: var(--color-slate-700);
+    color: var(--text-body);
     background-image: var(--gradient-mesh-light);
     background-attachment: fixed;
     background-size: 100% 100%;
@@ -521,7 +624,8 @@ input:focus-visible,
 select:focus-visible,
 textarea:focus-visible,
 [tabindex]:focus-visible {
-    @apply outline-none ring-2 ring-neural-400 ring-offset-2 ring-offset-[#f6f8fb] rounded-sm;
+    @apply outline-none ring-2 ring-neural-400 ring-offset-2 rounded-sm;
+    --tw-ring-offset-color: var(--surface-base);
 }
 
 /* ==================== TYPOGRAPHY ==================== */
@@ -782,7 +886,7 @@ pre {
 
 .glass-card:hover {
     background-color: var(--glass-white-25);
-    border-color: rgba(15, 23, 42, 0.10);
+    border-color: var(--border-default);
 }
 
 /* ==================== BENTO FEATURE GRID ==================== */
@@ -1163,7 +1267,7 @@ pre {
 
 .nav-link {
     @apply transition-colors font-medium;
-    color: var(--color-slate-600);
+    color: var(--text-secondary);
 }
 
 .nav-link:hover {

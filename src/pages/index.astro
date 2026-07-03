@@ -67,14 +67,14 @@ const projects = [
         <span class="title-warm">one homelab.</span>
       </h1>
 
-      <p class="text-lg sm:text-xl text-slate-600 max-w-2xl mx-auto">
+      <p class="text-lg sm:text-xl text-ink-muted max-w-2xl mx-auto">
         I build production-grade AI on self-hosted infrastructure — and write about it.
-        One is the <strong class="font-semibold text-slate-800">team of agents</strong> that runs my documents;
-        the other is the <strong class="font-semibold text-slate-800">research</strong> behind making the platform debug itself.
+        One is the <strong class="font-semibold text-ink">team of agents</strong> that runs my documents;
+        the other is the <strong class="font-semibold text-ink">research</strong> behind making the platform debug itself.
       </p>
 
-      <p class="mt-5 text-base text-slate-500 max-w-2xl mx-auto">
-        Built and run by <strong class="font-medium text-slate-700">Victor Robin</strong>, an engineering
+      <p class="mt-5 text-base text-ink-subtle max-w-2xl mx-auto">
+        Built and run by <strong class="font-medium text-ink-body">Victor Robin</strong>, an engineering
         director. BlueRobin is my homelab — where I stay close to the same disciplines I lead with at
         work, at a scale I can hold in my head.
       </p>
@@ -105,29 +105,29 @@ const projects = [
                 style={`background: var(${p.kindBg}); color: var(${p.accentVar}); border: 1px solid var(${p.kindBorder});`}
                 set:html={p.icon}
               />
-              <span class="inline-flex items-center gap-2 text-xs font-medium text-slate-500">
+              <span class="inline-flex items-center gap-2 text-xs font-medium text-ink-subtle">
                 <span class="w-1.5 h-1.5 rounded-full" style={`background: var(${p.accentVar});`}></span>
                 {p.kind}
               </span>
             </div>
 
-            <h2 class="relative text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-1.5">
+            <h2 class="relative text-2xl sm:text-3xl font-display font-semibold text-ink mb-1.5">
               {p.label}
             </h2>
             <p class="relative text-sm font-medium mb-4" style={`color: var(${p.accentVar});`}>
               {p.tagline}
             </p>
 
-            <p class="relative text-slate-600 leading-relaxed mb-6">
+            <p class="relative text-ink-muted leading-relaxed mb-6">
               {p.description}
             </p>
 
-            <div class="relative mt-auto flex items-center justify-between border-t border-slate-900/5 pt-5">
-              <span class="inline-flex items-center gap-2 font-medium text-slate-900 group-hover:gap-3 transition-all">
+            <div class="relative mt-auto flex items-center justify-between border-t border-[var(--border-subtle)] pt-5">
+              <span class="inline-flex items-center gap-2 font-medium text-ink group-hover:gap-3 transition-all">
                 {p.cta}
                 <svg class="w-4 h-4 transition-transform group-hover:translate-x-1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
               </span>
-              <span class="text-xs text-slate-500 px-2.5 py-1 rounded-full bg-slate-900/5">
+              <span class="text-xs text-ink-subtle px-2.5 py-1 rounded-full bg-[var(--surface-hover)]">
                 {p.count > 0 ? `${p.count} ${p.countLabel}` : "coming soon"}
               </span>
             </div>
@@ -136,11 +136,11 @@ const projects = [
       </div>
 
       <!-- secondary links -->
-      <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
+      <div class="mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-ink-subtle">
         <a href="/impact/" class="hover:text-neural-400 transition-colors">Impact</a>
-        <span class="text-slate-300" aria-hidden="true">·</span>
+        <span class="text-ink-faint" aria-hidden="true">·</span>
         <a href="/leadership/" class="hover:text-neural-400 transition-colors">Leadership</a>
-        <span class="text-slate-300" aria-hidden="true">·</span>
+        <span class="text-ink-faint" aria-hidden="true">·</span>
         <a href="/about/" class="hover:text-neural-400 transition-colors">About</a>
       </div>
 
@@ -148,8 +148,8 @@ const projects = [
       <a href="/about/" class="group mt-8 flex items-center gap-4 max-w-2xl mx-auto glass-card p-5 text-left transition-transform hover:-translate-y-0.5">
         <img src="/bluerobin-logo.png" alt="" class="w-10 h-10 object-contain shrink-0" />
         <div class="min-w-0">
-          <p class="text-sm font-semibold text-slate-900">Victor Robin, Ph.D. — Director of Engineering</p>
-          <p class="text-sm text-slate-600 truncate">France → Sweden → UK → India · engineering leadership · production AI on a €50/mo homelab</p>
+          <p class="text-sm font-semibold text-ink">Victor Robin, Ph.D. — Director of Engineering</p>
+          <p class="text-sm text-ink-muted truncate">France → Sweden → UK → India · engineering leadership · production AI on a €50/mo homelab</p>
         </div>
         <span class="ml-auto text-neural-400 shrink-0 transition-transform group-hover:translate-x-1" aria-hidden="true">→</span>
       </a>
@@ -160,7 +160,7 @@ const projects = [
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-8">
         <h2 class="text-2xl sm:text-3xl font-display font-semibold title-blue mb-3">One platform, two projects</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">
+        <p class="text-ink-muted max-w-2xl mx-auto">
           The Archives and the Debug Agent run on the same homelab K3s cluster — one on-prem node plus a Hetzner cloud worker, joined over a Tailscale mesh and fronted by Cloudflare. Production is the only in-cluster environment (ADR-034).
         </p>
       </div>
