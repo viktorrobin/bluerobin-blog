@@ -19,15 +19,15 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
       <h1 class="text-3xl sm:text-4xl font-display font-semibold title-blue mb-4">
         Architecture Deep Dives
       </h1>
-      <p class="text-lg text-slate-600 max-w-2xl">
-        In-depth exploration of system design, patterns, and architectural decisions. 
+      <p class="text-lg text-ink-muted max-w-2xl">
+        In-depth exploration of system design, patterns, and architectural decisions.
         Learn the "why" behind BlueRobin's architecture with detailed diagrams and trade-off analysis.
       </p>
     </header>
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 text-lg">
+        <p class="text-ink-muted text-lg">
           Architecture deep dives coming soon. The DDD SharedKernel article is first in the queue.
         </p>
       </div>
@@ -43,22 +43,22 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   {difficultyMeta.label}
                 </span>
                 {post.data.readTime && (
-                  <span class="text-xs text-slate-600">
+                  <span class="text-xs text-ink-muted">
                     {post.data.readTime}
                   </span>
                 )}
-                <time class="text-xs text-slate-600" datetime={post.data.pubDate.toISOString()}>
+                <time class="text-xs text-ink-muted" datetime={post.data.pubDate.toISOString()}>
                   {formatDate(post.data.pubDate)}
                 </time>
               </div>
               
               <a href={`/articles/${post.slug}/`}>
-                <h2 class="text-2xl font-semibold text-slate-900 hover:text-neural-400 transition-colors mb-3">
+                <h2 class="text-2xl font-semibold text-ink hover:text-neural-400 transition-colors mb-3">
                   {post.data.title}
                 </h2>
               </a>
-              
-              <p class="text-slate-600 mb-4 text-lg">
+
+              <p class="text-ink-muted mb-4 text-lg">
                 {post.data.description}
               </p>
             </article>

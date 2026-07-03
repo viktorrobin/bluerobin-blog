@@ -42,7 +42,7 @@ const essays = [
 >
   <!-- Breadcrumb -->
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
-    <a href="/" class="text-sm text-slate-600 hover:text-neural-400 transition-colors">← All projects</a>
+    <a href="/" class="text-sm text-ink-muted hover:text-neural-400 transition-colors">← All projects</a>
   </div>
 
   <!-- Hero -->
@@ -59,7 +59,7 @@ const essays = [
       <h1 class="text-4xl sm:text-5xl font-display font-bold mb-5 leading-tight tracking-tight">
         <span class="title-blue">Notes on</span> <span class="title-warm">engineering leadership.</span>
       </h1>
-      <p class="text-lg text-slate-600">
+      <p class="text-lg text-ink-muted">
         The rest of this site is about the engineering; these essays are about leading it.
         Each one starts where the learning actually did — with a mistake I made — then works
         through what it taught me, what I changed, and what happened. They lean on concepts from
@@ -85,10 +85,10 @@ const essays = [
             >
               <div class="flex items-center justify-between gap-3 mb-3">
                 <span class="text-[11px] font-medium px-2 py-0.5 rounded-full" style={`background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);`}>{e.puzzle}</span>
-                <span class={`text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 ${isPublished ? "text-complement-500" : "text-slate-500"}`} style={isPublished ? "background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);" : "background: rgba(15,23,42,0.04);"}>{status}</span>
+                <span class={`text-[11px] font-medium px-2 py-0.5 rounded-full shrink-0 ${isPublished ? "text-complement-500" : "text-ink-subtle"}`} style={isPublished ? "background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);" : "background: var(--surface-hover);"}>{status}</span>
               </div>
-              <h2 class="text-lg font-display font-semibold text-slate-900 mb-2">{e.title}</h2>
-              <p class="text-sm text-slate-600 leading-relaxed">{e.blurb}</p>
+              <h2 class="text-lg font-display font-semibold text-ink mb-2">{e.title}</h2>
+              <p class="text-sm text-ink-muted leading-relaxed">{e.blurb}</p>
               {isPublished && (
                 <span class="mt-4 inline-flex items-center gap-1.5 text-sm font-medium text-neural-400">
                   Read the essay
@@ -99,7 +99,7 @@ const essays = [
           );
         })}
       </div>
-      <p class="text-center text-sm text-slate-500 mt-8">
+      <p class="text-center text-sm text-ink-subtle mt-8">
         Reference: <em>An Elegant Puzzle — Systems of Engineering Management</em>, Will Larson.
       </p>
     </div>
@@ -108,8 +108,8 @@ const essays = [
   <!-- CTA -->
   <section class="relative py-14" style="background: var(--gradient-mesh-light);">
     <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-      <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-4">Leadership, grounded in practice</h2>
-      <p class="text-slate-600 mb-8">
+      <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-4">Leadership, grounded in practice</h2>
+      <p class="text-ink-muted mb-8">
         These notes sit alongside the measurable delivery documented across the rest of the site.
       </p>
       <div class="flex flex-wrap justify-center gap-4">

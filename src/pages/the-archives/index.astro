@@ -68,7 +68,7 @@ const coreAgents = [
 
 <MainLayout title="The Archives | BlueRobin" description="The Archives — ask anything across your documents and get answers cited from your own files. A self-hosted team of specialist AI agents (finance, health, tax, retrieval) that read every document, connect them in a knowledge graph, and answer in plain English. Your data never leaves your infrastructure.">
   <!-- Breadcrumb back to chooser -->
-  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"><a href="/" class="text-sm text-slate-600 hover:text-neural-400 transition-colors">← All projects</a></div>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6"><a href="/" class="text-sm text-ink-muted hover:text-neural-400 transition-colors">← All projects</a></div>
 
   <!-- Hero Section -->
   <section class="relative overflow-hidden" style="background: var(--gradient-mesh-light);">
@@ -87,11 +87,11 @@ const coreAgents = [
           Homelab project &middot; The Archives &middot; Multi-Agent Document AI
         </div>
 
-        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-ink mb-6 leading-tight tracking-tight">
           <span class="title-blue">Ask anything across your documents.<br>Answers cited from your own files.</span>
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
+        <p class="text-lg sm:text-xl text-ink-muted max-w-3xl mx-auto mb-10">
           A self-hosted team of specialist AI agents &mdash; finance, health, tax, and retrieval &mdash; that read every document, connect them in a knowledge graph, and answer in plain English. Your data never leaves your infrastructure.
         </p>
 
@@ -106,15 +106,15 @@ const coreAgents = [
 
         <!-- USP pillars -->
         <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
-          <span class="flex items-center gap-2 text-slate-700 font-medium">
+          <span class="flex items-center gap-2 text-ink-body font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
             Cross-document reasoning
           </span>
-          <span class="flex items-center gap-2 text-slate-700 font-medium">
+          <span class="flex items-center gap-2 text-ink-body font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
             A team of specialist agents
           </span>
-          <span class="flex items-center gap-2 text-slate-700 font-medium">
+          <span class="flex items-center gap-2 text-ink-body font-medium">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
             100% self-hosted &amp; encrypted
           </span>
@@ -127,22 +127,22 @@ const coreAgents = [
   <section class="py-20 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Not one chatbot &mdash; a team</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">One generic model can't file your taxes <em>and</em> read your lab results. The Archives runs a team: specialists do the work you came for, while a core of shared-intelligence agents reads, connects, and enriches everything behind them.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">Not one chatbot &mdash; a team</h2>
+        <p class="text-ink-muted max-w-2xl mx-auto">One generic model can't file your taxes <em>and</em> read your lab results. The Archives runs a team: specialists do the work you came for, while a core of shared-intelligence agents reads, connects, and enriches everything behind them.</p>
       </div>
 
       <!-- Agent roster -->
       <div class="glass-card overflow-hidden">
         <!-- Specialists -->
         <div class="p-6 sm:p-7">
-          <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Specialist agents &mdash; what you came for</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-ink-subtle mb-5">Specialist agents &mdash; what you came for</h3>
           <ul class="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-5">
             {specialistAgents.map((a) => (
               <li class="flex items-start gap-3.5">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white shrink-0 mt-0.5" style="background: var(--gradient-complement);" set:html={a.icon} />
                 <div>
-                  <h4 class="font-display font-semibold text-slate-900 text-sm">{a.name}</h4>
-                  <p class="text-sm text-slate-600 leading-relaxed mt-0.5">{a.role}</p>
+                  <h4 class="font-display font-semibold text-ink text-sm">{a.name}</h4>
+                  <p class="text-sm text-ink-muted leading-relaxed mt-0.5">{a.role}</p>
                   <div class="flex flex-wrap gap-1.5 mt-2">
                     {a.tools.map((t) => (
                       <span class="text-[11px] px-1.5 py-0.5 rounded-full" style="background: var(--color-complement-alpha-10); color: var(--color-complement-400); border: 1px solid var(--color-complement-alpha-20);">{t}</span>
@@ -155,14 +155,14 @@ const coreAgents = [
         </div>
         <!-- Core intelligence -->
         <div class="p-6 sm:p-7" style="border-top: 1px solid var(--color-neural-alpha-20); background: var(--color-neural-alpha-12);">
-          <h3 class="text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Core intelligence &mdash; the engine behind them</h3>
+          <h3 class="text-xs font-semibold uppercase tracking-widest text-ink-subtle mb-5">Core intelligence &mdash; the engine behind them</h3>
           <ul class="grid grid-cols-1 sm:grid-cols-3 gap-x-8 gap-y-5">
             {coreAgents.map((a) => (
               <li class="flex items-start gap-3.5">
                 <span class="inline-flex items-center justify-center w-9 h-9 rounded-lg text-white shrink-0 mt-0.5" style="background: var(--gradient-neural);" set:html={a.icon} />
                 <div>
-                  <h4 class="font-display font-semibold text-slate-900 text-sm">{a.name}</h4>
-                  <p class="text-sm text-slate-600 leading-relaxed mt-0.5">{a.role}</p>
+                  <h4 class="font-display font-semibold text-ink text-sm">{a.name}</h4>
+                  <p class="text-sm text-ink-muted leading-relaxed mt-0.5">{a.role}</p>
                   <div class="flex flex-wrap gap-1.5 mt-2">
                     {a.tools.map((t) => (
                       <span class="text-[11px] px-1.5 py-0.5 rounded-full" style="background: var(--color-neural-alpha-12); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">{t}</span>
@@ -177,7 +177,7 @@ const coreAgents = [
 
       <!-- Pipeline flow strip -->
       <div class="mt-10">
-        <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">How a document flows through the team</h3>
+        <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-ink-subtle mb-5">How a document flows through the team</h3>
         <ol class="flex flex-wrap items-center justify-center gap-x-2.5 gap-y-3 text-sm">
           <li class="archive-flow-step">Upload</li>
           <li class="archive-flow-arrow">&rarr;</li>
@@ -191,7 +191,7 @@ const coreAgents = [
           <li class="archive-flow-arrow">&rarr;</li>
           <li class="archive-flow-step"><strong>Retrieval</strong> answers</li>
         </ol>
-        <p class="text-center text-xs text-slate-500 mt-4">Every hand-off is an event on NATS JetStream &mdash; each agent is a separate worker.</p>
+        <p class="text-center text-xs text-ink-subtle mt-4">Every hand-off is an event on NATS JetStream &mdash; each agent is a separate worker.</p>
       </div>
     </div>
   </section>
@@ -200,8 +200,8 @@ const coreAgents = [
   <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">See it in action</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">Pick a specialist. Same knowledge-graph engine, three lenses &mdash; general retrieval, spend intelligence, and health timelines. Not keyword search: cross-document reasoning, grounded in a graph and cited to the source.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">See it in action</h2>
+        <p class="text-ink-muted max-w-2xl mx-auto">Pick a specialist. Same knowledge-graph engine, three lenses &mdash; general retrieval, spend intelligence, and health timelines. Not keyword search: cross-document reasoning, grounded in a graph and cited to the source.</p>
       </div>
 
       <!-- Tablist -->
@@ -225,7 +225,7 @@ const coreAgents = [
         <div class="flex items-center gap-3 mb-5">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-neural-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Librarian</span>
+            <span class="font-display font-semibold text-ink">The Librarian</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-neural-400);">Retrieval agent &middot; cross-document Q&amp;A</span>
           </div>
         </div>
@@ -235,18 +235,18 @@ const coreAgents = [
 
           <!-- Row: Documents in -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Documents</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Documents</div>
             <div class="flex flex-wrap gap-3 flex-1">
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Apartment lease &mdash; Jun 2023</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#9993;&#65039; Landlord email &mdash; Feb 2025</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Renewal notice &mdash; Mar 2025</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#128196; Apartment lease &mdash; Jun 2023</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#9993;&#65039; Landlord email &mdash; Feb 2025</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#128196; Renewal notice &mdash; Mar 2025</span>
             </div>
           </div>
 
           <!-- Divider with arrow -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
               Entity agent &mdash; extraction &amp; graph linking
             </div>
@@ -393,7 +393,7 @@ const coreAgents = [
           <!-- Divider with arrow -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               Retrieval agent &mdash; graph + vector search
             </div>
@@ -401,7 +401,7 @@ const coreAgents = [
           </div>
 
           <!-- Row: Generated query -->
-          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+          <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-glow-alpha-20);">
             <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(62% 0.20 285);"></span>
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(70% 0.18 300);"></span>
@@ -418,12 +418,12 @@ const coreAgents = [
 
           <!-- Row: The answer -->
           <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">You ask</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">You ask</div>
             <div class="flex-1">
-              <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-800 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+              <div class="rounded-xl px-4 py-3 text-sm font-medium text-ink mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
                 &ldquo;When does my lease end, and how much notice must I give to move out?&rdquo;
               </div>
-              <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-25);">
+              <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--surface-card); border: 1px solid var(--color-neural-alpha-25);">
                 <span class="font-medium" style="color: var(--color-neural-400);">BlueRobin:</span> Based on your lease (Jun 2023) and the renewal notice (Mar 2025), your current term ends 31 Aug 2025. To move out you must give 60 days&rsquo; written notice &mdash; so notify the landlord by 1 Jul 2025. If you stay, rent rises 4% to $1,924/mo.
                 <div class="flex gap-2 mt-2.5 flex-wrap">
                   <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: apartment-lease-jun-2023.pdf</span>
@@ -442,7 +442,7 @@ const coreAgents = [
         <div class="flex items-center gap-3 mb-5">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-neural-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Physician</span>
+            <span class="font-display font-semibold text-ink">The Physician</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-neural-400);">Health agent &middot; cross-document Q&amp;A</span>
           </div>
         </div>
@@ -452,18 +452,18 @@ const coreAgents = [
 
           <!-- Row: Documents in -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Documents</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Documents</div>
             <div class="flex flex-wrap gap-3 flex-1">
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Medical letter &mdash; Jan 2024</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Lab results &mdash; Mar 2024</span>
-              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">📄 Prescription &mdash; Apr 2024</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">📄 Medical letter &mdash; Jan 2024</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">📄 Lab results &mdash; Mar 2024</span>
+              <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-12); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">📄 Prescription &mdash; Apr 2024</span>
             </div>
           </div>
 
           <!-- Divider with arrow -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
               Entity agent &mdash; extraction &amp; graph linking
             </div>
@@ -610,7 +610,7 @@ const coreAgents = [
           <!-- Divider with arrow -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
               Retrieval agent &mdash; graph + vector search
             </div>
@@ -618,7 +618,7 @@ const coreAgents = [
           </div>
 
           <!-- Row: Generated query -->
-          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+          <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-glow-alpha-20);">
             <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
@@ -635,12 +635,12 @@ const coreAgents = [
 
           <!-- Row: The answer -->
           <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">You ask</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">You ask</div>
             <div class="flex-1">
-              <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-800 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+              <div class="rounded-xl px-4 py-3 text-sm font-medium text-ink mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
                 &ldquo;What has Dr. Nguyen prescribed since my diagnosis, and why?&rdquo;
               </div>
-              <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-25);">
+              <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--surface-card); border: 1px solid var(--color-neural-alpha-25);">
                 <span class="font-medium" style="color: var(--color-neural-400);">BlueRobin:</span> Based on your medical letter (Jan 2024) and prescription (Apr 2024), Dr. Nguyen prescribed Lisinopril 10mg following a diagnosis of stage-1 hypertension. The decision was informed by the HbA1c reading of 7.2 from your March lab results, which indicated elevated cardiovascular risk.
                 <div class="flex gap-2 mt-2.5 flex-wrap">
                   <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: medical-letter-jan-2024.pdf</span>
@@ -660,7 +660,7 @@ const coreAgents = [
         <div class="flex items-center gap-3 mb-5">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-400);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Accountant</span>
+            <span class="font-display font-semibold text-ink">The Accountant</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-400);">Finance agent &middot; spend intelligence</span>
           </div>
         </div>
@@ -670,18 +670,18 @@ const coreAgents = [
 
             <!-- Row: Documents in -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Documents</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Documents</div>
               <div class="flex flex-wrap gap-3 flex-1">
-                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128179; Credit Statement &mdash; Jan 2025</span>
-                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Grocery Receipts &mdash; Jan 2025</span>
-                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128196; Amazon Orders &mdash; Jan 2025</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#128179; Credit Statement &mdash; Jan 2025</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#128203; Grocery Receipts &mdash; Jan 2025</span>
+                <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--text-body);">&#128196; Amazon Orders &mdash; Jan 2025</span>
               </div>
             </div>
 
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><circle cx="5" cy="6" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="5" cy="18" r="2"/><circle cx="19" cy="18" r="2"/><path d="M6.5 7.5 10 10M17.5 7.5 14 10M6.5 16.5 10 14M17.5 16.5 14 14"/></svg>
                 Entity agent &mdash; extraction &amp; graph linking
               </div>
@@ -818,7 +818,7 @@ const coreAgents = [
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-glow-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
                 Retrieval agent &mdash; graph + vector search
               </div>
@@ -826,7 +826,7 @@ const coreAgents = [
             </div>
 
             <!-- Row: Generated query -->
-            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-glow-alpha-20);">
+            <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-glow-alpha-20);">
               <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-glow-alpha-20);">
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(74% 0.19 60);"></span>
@@ -844,12 +844,12 @@ const coreAgents = [
 
             <!-- Row: The answer -->
             <div class="flex flex-col sm:flex-row items-start gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">You ask</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">You ask</div>
               <div class="flex-1">
-                <div class="rounded-xl px-4 py-3 text-sm font-medium text-slate-800 mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
+                <div class="rounded-xl px-4 py-3 text-sm font-medium text-ink mb-3" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);">
                   &ldquo;What did I spend on groceries last month, and at which stores?&rdquo;
                 </div>
-                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--surface-card); border: 1px solid var(--color-neural-alpha-20);">
                   <span class="font-medium" style="color: var(--color-neural-400);">BlueRobin:</span> Based on your credit card statement and grocery receipts (January 2025), you spent $847 at grocery stores across 12 transactions: Whole Foods ($312), Trader Joe&rsquo;s ($287), and Costco ($248). Your total January spend across all categories was $1,634.
                   <div class="flex gap-2 mt-2.5 flex-wrap">
                     <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-complement-alpha-10); color: var(--color-complement-500); border: 1px solid var(--color-complement-alpha-20);">Cited: credit-statement-jan-2025.pdf</span>
@@ -869,8 +869,8 @@ const coreAgents = [
   <section class="py-4 pb-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it's built</h2>
-        <p class="text-slate-600 max-w-xl mx-auto">The platform underneath the agents &mdash; private storage, async messaging, and an event-driven pipeline, all self-hosted with no third-party AI APIs.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">How it's built</h2>
+        <p class="text-ink-muted max-w-xl mx-auto">The platform underneath the agents &mdash; private storage, async messaging, and an event-driven pipeline, all self-hosted with no third-party AI APIs.</p>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -902,10 +902,10 @@ const coreAgents = [
   <section class="py-16" style="background: var(--gradient-mesh-light);">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-8">
-        <h2 class="text-3xl font-display font-semibold text-slate-900 mb-4">
+        <h2 class="text-3xl font-display font-semibold text-ink mb-4">
           Architecture
         </h2>
-        <p class="text-slate-600 max-w-2xl mx-auto mb-8">
+        <p class="text-ink-muted max-w-2xl mx-auto mb-8">
           .NET 10 with Clean Architecture and DDD aggregates. NATS JetStream for async event processing. Flux GitOps on K3s. Full documentation in the Architecture section.
         </p>
 
@@ -1049,10 +1049,10 @@ const coreAgents = [
     <div class="relative max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
       <!-- Gradient divider -->
       <div class="w-24 h-1 mx-auto mb-10 rounded-full" style="background: var(--gradient-signature);"></div>
-      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold text-slate-900 mb-6">
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-display font-semibold text-ink mb-6">
         100+ Engineering Articles
       </h2>
-      <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
+      <p class="text-lg text-ink-muted mb-10 max-w-2xl mx-auto">
         The decisions behind each component: why NATS, how multi-model RAG works in practice, what broke in production, and how it was fixed.
       </p>
       <div class="flex flex-wrap justify-center gap-4">
@@ -1071,9 +1071,9 @@ const coreAgents = [
     .archive-flow-step {
       padding: 0.4rem 0.85rem;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.65);
+      background: var(--glass-white-20);
       border: 1px solid var(--color-neural-alpha-20);
-      color: #334155;
+      color: var(--text-body);
       white-space: nowrap;
     }
     .archive-flow-step strong { color: var(--color-neural-400); font-weight: 600; }
@@ -1093,21 +1093,21 @@ const coreAgents = [
       gap: 0.55rem;
       padding: 0.55rem 1.1rem;
       border-radius: 0.85rem;
-      background: rgba(255, 255, 255, 0.55);
+      background: var(--glass-white-12);
       border: 1px solid var(--color-neural-alpha-20);
-      color: #475569;
+      color: var(--text-secondary);
       font-weight: 600;
       line-height: 1.15;
       cursor: pointer;
       transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
     }
-    .archive-tab svg { color: #94a3b8; transition: color 0.18s ease; }
-    .archive-tab:hover { border-color: var(--color-neural-alpha-30); color: #1e293b; }
+    .archive-tab svg { color: var(--text-faint); transition: color 0.18s ease; }
+    .archive-tab:hover { border-color: var(--color-neural-alpha-30); color: var(--text-primary); }
     .archive-tab .archive-tab-sub {
       display: block;
       font-size: 0.68rem;
       font-weight: 500;
-      color: #94a3b8;
+      color: var(--text-faint);
       font-family: ui-monospace, monospace;
       margin-top: 0.1rem;
     }
@@ -1131,15 +1131,15 @@ const coreAgents = [
 
     /* "How it's built" facts */
     .archive-fact {
-      background: rgba(255, 255, 255, 0.65);
+      background: var(--glass-white-20);
       border: 1px solid var(--color-neural-alpha-20);
       border-radius: 1rem;
       padding: 1.25rem;
       backdrop-filter: blur(8px);
     }
     .archive-fact svg { width: 1.5rem; height: 1.5rem; color: var(--color-neural-400); margin-bottom: 0.6rem; }
-    .archive-fact h3 { font-weight: 600; color: #1e293b; margin-bottom: 0.35rem; font-size: 0.95rem; }
-    .archive-fact p { font-size: 0.8rem; color: #64748b; line-height: 1.5; }
+    .archive-fact h3 { font-weight: 600; color: var(--text-primary); margin-bottom: 0.35rem; font-size: 0.95rem; }
+    .archive-fact p { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; }
     .archive-fact code { font-size: 0.72rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.25rem; border-radius: 0.25rem; }
 
     @media (prefers-reduced-motion: reduce) {
