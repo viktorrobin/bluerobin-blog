@@ -418,14 +418,14 @@
         0 8px 20px 0 rgba(0, 0, 0, 0.45),
         0 2px 6px 0 rgba(0, 0, 0, 0.30);
 
-    /* === SUNO GLOW SHADOWS — blue ambient glow on dark === */
-    /* Generates shadow-glow-sm, shadow-glow-md, shadow-glow-lg Tailwind utilities.
-       NOTE: these are BLUE (neural, oklch 232) despite the `glow` name, which the
-       amber `--shadow-glow` also uses — a known amber-vs-blue naming collision left
-       as follow-up (see DESIGN-SYSTEM.md §7). */
-    --shadow-glow-sm: 0 0 20px oklch(69% 0.235 232 / 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
-    --shadow-glow-md: 0 0 40px oklch(69% 0.235 232 / 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
-    --shadow-glow-lg: 0 0 60px oklch(69% 0.235 232 / 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);
+    /* === NEURAL GLOW SHADOWS — blue (neural, oklch 232) ambient glow on dark ===
+       Generates shadow-neural-glow-sm/-md/-lg Tailwind utilities. Named `neural`
+       (not `glow`) to resolve the amber-vs-blue collision with the amber
+       `--shadow-glow` (derived from the glow AMBER ramp): these are BLUE, not amber.
+       Values unchanged from the former `--shadow-glow-{sm,md,lg}` (renamed). */
+    --shadow-neural-glow-sm: 0 0 20px oklch(69% 0.235 232 / 0.18), 0 4px 12px rgba(0, 0, 0, 0.45);
+    --shadow-neural-glow-md: 0 0 40px oklch(69% 0.235 232 / 0.22), 0 8px 24px rgba(0, 0, 0, 0.55);
+    --shadow-neural-glow-lg: 0 0 60px oklch(69% 0.235 232 / 0.28), 0 16px 48px rgba(0, 0, 0, 0.65);
     --shadow-dark-sm: 0 2px 8px rgba(0, 0, 0, 0.45), 0 1px 3px rgba(0, 0, 0, 0.30);
     --shadow-dark-md: 0 4px 20px rgba(0, 0, 0, 0.55), 0 2px 8px rgba(0, 0, 0, 0.35);
     --shadow-dark-lg: 0 8px 40px rgba(0, 0, 0, 0.65), 0 4px 16px rgba(0, 0, 0, 0.40);
