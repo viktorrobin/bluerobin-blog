@@ -65,22 +65,22 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
       <h1 class="text-4xl sm:text-5xl font-display font-bold mb-5 leading-tight tracking-tight">
         <span class="title-blue">The</span> <span class="title-warm">Library.</span>
       </h1>
-      <p class="text-lg text-slate-600">
+      <p class="text-lg text-ink-muted">
         Every book I've bought, reviewed and sorted by theme — with a straight verdict, who
         it's for, and a link to the article, essay or project where it actually paid off.
         These are working notes from my shelf: the verdicts are mine, the ratings are
         cross-checked against public reviews.
       </p>
-      <div class="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-slate-500">
-        <span><span class="font-semibold text-slate-700">{total}</span> books</span>
-        <span><span class="font-semibold text-slate-700">{themeCount}</span> themes</span>
-        {yearRange && <span><span class="font-semibold text-slate-700">{yearRange}</span></span>}
+      <div class="mt-7 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-ink-subtle">
+        <span><span class="font-semibold text-ink-body">{total}</span> books</span>
+        <span><span class="font-semibold text-ink-body">{themeCount}</span> themes</span>
+        {yearRange && <span><span class="font-semibold text-ink-body">{yearRange}</span></span>}
       </div>
     </div>
   </section>
 
   <!-- Theme filter -->
-  <div class="sticky top-16 z-30 border-b border-slate-900/10" style="background: rgba(255,255,255,0.82); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
+  <div class="sticky top-16 z-30 border-b border-line" style="background: var(--glass-white-80); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
       <div id="theme-filter" class="flex gap-2 overflow-x-auto pb-1 -mb-1" role="group" aria-label="Filter by theme">
         <button type="button" data-filter="all" class="theme-pill is-active" aria-pressed="true">All</button>
@@ -99,15 +99,15 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
       {groups.map((g) => (
         <div class="theme-section" data-theme={g.key}>
           <div class="mb-6">
-            <h2 class="text-2xl font-display font-semibold text-slate-900">{g.meta.title}</h2>
-            <p class="text-sm text-slate-500 mt-1">{g.meta.description}</p>
+            <h2 class="text-2xl font-display font-semibold text-ink">{g.meta.title}</h2>
+            <p class="text-sm text-ink-subtle mt-1">{g.meta.description}</p>
           </div>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {g.books.map((b) => (
               <a href={`/library/${b.slug}/`} class="glass-card group p-4 flex gap-4 transition-transform hover:-translate-y-1">
                 <!-- Cover -->
                 <div class="shrink-0 w-16 sm:w-20">
-                  <div class="cover-wrap overflow-hidden rounded-md aspect-[2/3] flex items-center justify-center bg-white/60 border border-slate-900/5">
+                  <div class="cover-wrap overflow-hidden rounded-md aspect-[2/3] flex items-center justify-center bg-card/60 border border-line-subtle">
                     <img
                       src={coverSrc(b)}
                       alt={`Cover of ${b.data.title}`}
@@ -115,7 +115,7 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
                       loading="lazy"
                       onerror="this.closest('.cover-wrap')?.classList.add('cover-missing'); this.remove();"
                     />
-                    <span class="cover-fallback hidden px-1 text-center text-[10px] font-display text-slate-400 leading-tight">{b.data.title}</span>
+                    <span class="cover-fallback hidden px-1 text-center text-[10px] font-display text-ink-faint leading-tight">{b.data.title}</span>
                   </div>
                 </div>
                 <!-- Meta -->
@@ -124,13 +124,13 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
                     <span class="text-[10px] font-medium px-2 py-0.5 rounded-full" style={badgeStyle(RECOMMENDATIONS[b.data.recommendation].color)}>
                       {RECOMMENDATIONS[b.data.recommendation].label}
                     </span>
-                    {b.data.flagged && <span class="text-[10px] text-slate-400" title="Off-topic — confirm keep or drop">⚑</span>}
+                    {b.data.flagged && <span class="text-[10px] text-ink-faint" title="Off-topic — confirm keep or drop">⚑</span>}
                   </div>
-                  <h3 class="font-display font-semibold text-slate-900 text-sm leading-snug line-clamp-2 group-hover:text-neural-400 transition-colors">{b.data.title}</h3>
-                  <p class="text-xs text-slate-500 mt-0.5 truncate">{b.data.bookAuthor}</p>
-                  <div class="mt-auto pt-2 flex items-center gap-2 text-xs text-slate-400">
+                  <h3 class="font-display font-semibold text-ink text-sm leading-snug line-clamp-2 group-hover:text-neural-400 transition-colors">{b.data.title}</h3>
+                  <p class="text-xs text-ink-subtle mt-0.5 truncate">{b.data.bookAuthor}</p>
+                  <div class="mt-auto pt-2 flex items-center gap-2 text-xs text-ink-faint">
                     {b.data.rating != null && (
-                      <span class="inline-flex items-center gap-0.5 text-slate-600">
+                      <span class="inline-flex items-center gap-0.5 text-ink-muted">
                         <svg class="w-3 h-3" viewBox="0 0 24 24" fill="var(--color-glow-500)" aria-hidden="true"><path d="M12 2l2.9 6.26L21.5 9.27l-4.75 4.64L17.8 21 12 17.27 6.2 21l1.05-7.09L2.5 9.27l6.6-1.01L12 2z"/></svg>
                         {b.data.rating.toFixed(1)}
                       </span>
@@ -155,8 +155,8 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
           <div class="flex items-start gap-3 mb-4">
             <span class="text-lg" aria-hidden="true">⚑</span>
             <div>
-              <h2 class="text-lg font-display font-semibold text-slate-900">Flagged — confirm keep or drop</h2>
-              <p class="text-sm text-slate-600 mt-1">
+              <h2 class="text-lg font-display font-semibold text-ink">Flagged — confirm keep or drop</h2>
+              <p class="text-sm text-ink-muted mt-1">
                 These {flagged.length} aren't about engineering, science or maths (fiction, philosophy,
                 finance, history, hobbies, self-help). They're kept for now — tell me which to drop.
               </p>
@@ -164,7 +164,7 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
           </div>
           <div class="flex flex-wrap gap-2">
             {flagged.map((b) => (
-              <a href={`/library/${b.slug}/`} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-slate-600 hover:text-neural-400 transition-colors" style="background: rgba(15,23,42,0.04); border: 1px solid rgba(15,23,42,0.08);">
+              <a href={`/library/${b.slug}/`} class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs text-ink-muted hover:text-neural-400 transition-colors" style="background: var(--surface-hover); border: 1px solid var(--border-subtle);">
                 {b.data.title}
               </a>
             ))}
@@ -182,9 +182,9 @@ const coverSrc = (b: (typeof all)[number]) => b.data.cover ?? `/covers/${b.slug}
     font-weight: 500;
     padding: 0.35rem 0.85rem;
     border-radius: 9999px;
-    color: var(--color-slate-600, #475569);
-    background: rgba(15, 23, 42, 0.04);
-    border: 1px solid rgba(15, 23, 42, 0.08);
+    color: var(--text-secondary);
+    background: var(--surface-hover);
+    border: 1px solid var(--border-subtle);
     transition: all 0.15s ease;
     cursor: pointer;
   }

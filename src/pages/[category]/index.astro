@@ -28,12 +28,12 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
   <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-12">
       <!-- Breadcrumb -->
-      <nav class="text-sm text-slate-600 mb-4" aria-label="Breadcrumb">
+      <nav class="text-sm text-ink-muted mb-4" aria-label="Breadcrumb">
         <a href="/" class="hover:text-neural-400 transition-colors">Home</a>
         <span class="mx-2">/</span>
         <a href="/articles/" class="hover:text-neural-400 transition-colors">Articles</a>
         <span class="mx-2">/</span>
-        <span class="text-slate-600">{categoryMeta.title}</span>
+        <span class="text-ink-muted">{categoryMeta.title}</span>
       </nav>
 
       <div class={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium category-${category} mb-4`}>
@@ -42,14 +42,14 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
       <h1 class="text-3xl sm:text-4xl font-display font-semibold title-blue mb-4">
         {categoryMeta.title} Articles
       </h1>
-      <p class="text-lg text-slate-600 max-w-2xl">
+      <p class="text-lg text-ink-muted max-w-2xl">
         {categoryMeta.description}. Explore {sortedPosts.length} article{sortedPosts.length !== 1 ? 's' : ''} in this category.
       </p>
     </header>
 
     {sortedPosts.length === 0 ? (
       <div class="glass-card p-12 text-center">
-        <p class="text-slate-600 text-lg">
+        <p class="text-ink-muted text-lg">
           No articles in this category yet. Check back soon.
         </p>
         <a href="/articles/" class="btn-primary mt-6 inline-block">
@@ -68,22 +68,22 @@ const formatDate = (date: Date) => date.toLocaleDateString("en-US", { year: "num
                   {difficultyMeta.label}
                 </span>
                 {post.data.readTime && (
-                  <span class="text-xs text-slate-600">
+                  <span class="text-xs text-ink-muted">
                     {post.data.readTime}
                   </span>
                 )}
-                <time class="text-xs text-slate-600" datetime={post.data.pubDate.toISOString()}>
+                <time class="text-xs text-ink-muted" datetime={post.data.pubDate.toISOString()}>
                   {formatDate(post.data.pubDate)}
                 </time>
               </div>
               
               <a href={`/articles/${post.slug}/`}>
-                <h2 class="text-xl font-medium text-slate-900 group-hover:text-neural-400 transition-colors mb-2">
+                <h2 class="text-xl font-medium text-ink group-hover:text-neural-400 transition-colors mb-2">
                   {post.data.title}
                 </h2>
               </a>
-              
-              <p class="text-slate-600 mb-4 line-clamp-2">
+
+              <p class="text-ink-muted mb-4 line-clamp-2">
                 {post.data.description}
               </p>
             </article>

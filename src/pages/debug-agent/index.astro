@@ -155,11 +155,11 @@ const stack = [
           Research project &middot; The Debug Agent &middot; Autonomous RCA
         </div>
 
-        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-slate-900 mb-6 leading-tight tracking-tight">
+        <h1 class="text-4xl sm:text-5xl lg:text-7xl font-display font-bold text-ink mb-6 leading-tight tracking-tight">
           <span class="title-warm">An agent that finds<br>the root cause</span>
         </h1>
 
-        <p class="text-lg sm:text-xl text-slate-600 max-w-3xl mx-auto mb-10">
+        <p class="text-lg sm:text-xl text-ink-muted max-w-3xl mx-auto mb-10">
           When production breaks, an LLM agent investigates — grounded in a FalkorDB world-model, disciplined by hard evidence, and honest about what it does not know. It only opens a pull request when the evidence supports it. Research-grade RCA at a €50/month homelab budget.
         </p>
 
@@ -169,19 +169,19 @@ const stack = [
         </div>
 
         <div class="flex flex-wrap justify-center gap-x-8 gap-y-3 text-sm">
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-ink-muted">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
             Graph-grounded
           </span>
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-ink-muted">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-neural-500"></span>
             Correlation-first
           </span>
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-ink-muted">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-glow-500"></span>
             MAST-aligned reasoning
           </span>
-          <span class="flex items-center gap-2 text-slate-600">
+          <span class="flex items-center gap-2 text-ink-muted">
             <span class="w-1.5 h-1.5 rounded-full shrink-0 bg-complement-400"></span>
             €50 / month
           </span>
@@ -194,12 +194,12 @@ const stack = [
   <section id="pipeline" class="py-20 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-12">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">How it works</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">An alert fires; the agent recalls similar incidents, ranks suspects from the graph, runs a bounded tool-using investigation, and decides by confidence — never auto-remediating. Five research ideas make that possible, each written up as a paper below.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">How it works</h2>
+        <p class="text-ink-muted max-w-2xl mx-auto">An alert fires; the agent recalls similar incidents, ranks suspects from the graph, runs a bounded tool-using investigation, and decides by confidence — never auto-remediating. Five research ideas make that possible, each written up as a paper below.</p>
       </div>
 
       <!-- Runtime pipeline -->
-      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">The investigation pipeline</h3>
+      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-ink-subtle mb-5">The investigation pipeline</h3>
       <ol class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-14">
         {steps.map((s) => (
           <li class="da-step">
@@ -213,7 +213,7 @@ const stack = [
       </ol>
 
       <!-- Research ideas roster -->
-      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-slate-500 mb-5">Five ideas behind it</h3>
+      <h3 class="text-center text-xs font-semibold uppercase tracking-widest text-ink-subtle mb-5">Five ideas behind it</h3>
       <div class="glass-card overflow-hidden">
         {themes.map((t, i) => (
           <div class="da-idea" style={i > 0 ? "border-top: 1px solid var(--color-complement-alpha-20);" : ""}>
@@ -230,7 +230,7 @@ const stack = [
           </div>
         ))}
       </div>
-      <p class="text-center text-sm text-slate-600 mt-5">Each idea is written up as a <a href="#papers" class="text-complement-300 hover:underline">paper below</a>.</p>
+      <p class="text-center text-sm text-ink-muted mt-5">Each idea is written up as a <a href="#papers" class="text-complement-300 hover:underline">paper below</a>.</p>
     </div>
   </section>
 
@@ -238,8 +238,8 @@ const stack = [
   <section id="architecture" class="py-12 relative">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">Anatomy of an investigation</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">Anatomy of an investigation</h2>
+        <p class="text-ink-muted max-w-2xl mx-auto">
           What happens when Alertmanager fires: a deterministic pre-LLM stage seeds suspects from the FalkorDB world-model, a bounded ReAct loop reasons against real tools through an MCP fleet — Loki, Tempo, Prometheus, Grafana, Kubernetes and more — with the LLM reached over a Cloudflare AI Gateway, and a verification gate decides when the evidence is enough to act.
         </p>
       </div>
@@ -251,8 +251,8 @@ const stack = [
   <section class="py-16 relative" style="background: var(--gradient-mesh-light);">
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="text-center mb-10">
-        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-slate-900 mb-3">See it in action</h2>
-        <p class="text-slate-600 max-w-2xl mx-auto">One agent, three incidents &mdash; the same StackGraph traversal and verification gate each time. Not an LLM guessing: evidence-grounded reasoning over a live world-model, honest enough to only notify when confidence is below the auto-PR bar.</p>
+        <h2 class="text-2xl sm:text-3xl font-display font-semibold text-ink mb-3">See it in action</h2>
+        <p class="text-ink-muted max-w-2xl mx-auto">One agent, three incidents &mdash; the same StackGraph traversal and verification gate each time. Not an LLM guessing: evidence-grounded reasoning over a live world-model, honest enough to only notify when confidence is below the auto-PR bar.</p>
       </div>
 
       <!-- Tablist -->
@@ -276,10 +276,10 @@ const stack = [
         <div class="mb-6">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="font-display font-semibold text-ink">The Detective</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; bad deploy &rarr; DB pool exhaustion</span>
           </div>
-          <p class="text-slate-600 max-w-2xl mt-4">An alert fires. The agent reads signals from three observability sources, traverses the FalkorDB StackGraph to find what changed, and proposes a fix &mdash; all before an on-call engineer opens their laptop.</p>
+          <p class="text-ink-muted max-w-2xl mt-4">An alert fires. The agent reads signals from three observability sources, traverses the FalkorDB StackGraph to find what changed, and proposes a fix &mdash; all before an on-call engineer opens their laptop.</p>
         </div>
 
         <div class="glass-card p-8 max-w-4xl mx-auto">
@@ -287,7 +287,7 @@ const stack = [
 
           <!-- Row: Alert signals in -->
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Signals</div>
             <div class="flex flex-wrap gap-3 flex-1">
               <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; P1 CRITICAL</span>
               <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; error spike 23%</span>
@@ -298,7 +298,7 @@ const stack = [
           <!-- Divider -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
               StackGraph traversal &mdash; FalkorDB world-model
             </div>
@@ -435,7 +435,7 @@ const stack = [
           <!-- Divider -->
           <div class="flex items-center gap-3">
             <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
-            <div class="text-xs text-slate-600 flex items-center gap-1.5">
+            <div class="text-xs text-ink-muted flex items-center gap-1.5">
               <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
               Debug agent &mdash; bounded ReAct loop + verification gate
             </div>
@@ -443,7 +443,7 @@ const stack = [
           </div>
 
           <!-- Row: Generated StackGraph query -->
-          <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+          <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-complement-alpha-20);">
             <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
               <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
@@ -461,12 +461,12 @@ const stack = [
 
           <!-- Row: Alert + verdict -->
           <div class="flex flex-col sm:flex-row items-start gap-4">
-            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+            <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">Alert</div>
             <div class="flex-1">
               <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
                 api-gateway: 502 error rate 23% &middot; P99 latency 4.2s &middot; fired 09:14 UTC
               </div>
-              <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+              <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--glass-white-30); border: 1px solid var(--color-neural-alpha-20);">
                 <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: postgres-primary connection pool exhausted (94% utilization). Cause: commit <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">a8f3d91</code> (Victor Robin, 2h before alert) increased <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">query_timeout</code> from 5s to 10s, doubling average connection hold time under load. Draft PR #127 opened to revert. Confidence: 0.87.
                 <div class="flex gap-2 mt-2.5 flex-wrap">
                   <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Tempo trace waterfall</span>
@@ -485,10 +485,10 @@ const stack = [
         <div class="mb-6">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="font-display font-semibold text-ink">The Detective</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; memory leak &rarr; OOMKill</span>
           </div>
-          <p class="text-slate-600 max-w-2xl mt-4">A pod keeps dying. The agent correlates restart events with a recent change, walks the StackGraph to the offending commit, and bounds the leak &mdash; no human paging required.</p>
+          <p class="text-ink-muted max-w-2xl mt-4">A pod keeps dying. The agent correlates restart events with a recent change, walks the StackGraph to the offending commit, and bounds the leak &mdash; no human paging required.</p>
         </div>
 
         <div class="glass-card p-8 max-w-4xl mx-auto">
@@ -496,7 +496,7 @@ const stack = [
 
             <!-- Row: Alert signals in -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Signals</div>
               <div class="flex flex-wrap gap-3 flex-1">
                 <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; Pod OOMKilled</span>
                 <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; 17 restarts / 1h</span>
@@ -507,7 +507,7 @@ const stack = [
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
                 StackGraph traversal &mdash; FalkorDB world-model
               </div>
@@ -644,7 +644,7 @@ const stack = [
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
                 Debug agent &mdash; bounded ReAct loop + verification gate
               </div>
@@ -652,7 +652,7 @@ const stack = [
             </div>
 
             <!-- Row: Generated StackGraph query -->
-            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+            <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-complement-alpha-20);">
               <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
@@ -670,12 +670,12 @@ const stack = [
 
             <!-- Row: Alert + verdict -->
             <div class="flex flex-col sm:flex-row items-start gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">Alert</div>
               <div class="flex-1">
                 <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
                   worker-svc: OOMKilled &times;17 in 1h &middot; RSS 98% of 512Mi limit &middot; fired 02:31 UTC
                 </div>
-                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--glass-white-30); border: 1px solid var(--color-neural-alpha-20);">
                   <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: worker-svc heap exhaustion driving repeated OOMKills. Cause: commit <code style="font-size: 0.75rem; background: var(--code-inline-bg); color: var(--code-inline-text); padding: 0 0.2rem; border-radius: 0.2rem;">4c1e7a2</code> (Victor Robin, 5h before alert) added an unbounded in-process response cache; RSS climbs ~6%/h under load until it hits the 512Mi limit. Draft PR #142 opened to bound the cache with an LRU + TTL. Confidence: 0.91.
                   <div class="flex gap-2 mt-2.5 flex-wrap">
                     <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Prometheus RSS series</span>
@@ -694,10 +694,10 @@ const stack = [
         <div class="mb-6">
           <div class="inline-flex items-center gap-2.5 px-4 py-2 rounded-xl" style="background: var(--color-complement-alpha-10); border: 1px solid var(--color-complement-alpha-20);">
             <svg class="w-4 h-4 shrink-0" style="color: var(--color-complement-300);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
-            <span class="font-display font-semibold text-slate-900">The Detective</span>
+            <span class="font-display font-semibold text-ink">The Detective</span>
             <span class="hidden sm:inline text-[11px] font-mono pl-2" style="color: var(--color-complement-300);">Debug agent &middot; cascading timeout &rarr; upstream dependency</span>
           </div>
-          <p class="text-slate-600 max-w-2xl mt-4">Latency cascades and there's no recent deploy. The agent follows the dependency graph to a saturated upstream, finds the cause is load &mdash; not a regression &mdash; and notifies rather than patching.</p>
+          <p class="text-ink-muted max-w-2xl mt-4">Latency cascades and there's no recent deploy. The agent follows the dependency graph to a saturated upstream, finds the cause is load &mdash; not a regression &mdash; and notifies rather than patching.</p>
         </div>
 
         <div class="glass-card p-8 max-w-4xl mx-auto">
@@ -705,7 +705,7 @@ const stack = [
 
             <!-- Row: Alert signals in -->
             <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600">3 Signals</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted">3 Signals</div>
               <div class="flex flex-wrap gap-3 flex-1">
                 <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: oklch(66% 0.21 43 / 0.10); border: 1px solid oklch(66% 0.21 43 / 0.25); color: var(--color-slate-700);">&#9888; Alertmanager &mdash; checkout 503s</span>
                 <span class="flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm" style="background: var(--color-neural-alpha-10); border: 1px solid var(--color-neural-alpha-20); color: var(--color-slate-700);">&#128203; Loki &mdash; upstream timeout 41%</span>
@@ -716,7 +716,7 @@ const stack = [
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-complement-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2.5"/><circle cx="18" cy="6" r="2.5"/><circle cx="12" cy="18" r="2.5"/><path d="M6 8.5v5.5M18 8.5v5.5M8.2 7.3l3.8 9.5M15.8 7.3l-3.8 9.5"/></svg>
                 StackGraph traversal &mdash; FalkorDB world-model
               </div>
@@ -854,7 +854,7 @@ const stack = [
             <!-- Divider -->
             <div class="flex items-center gap-3">
               <div class="flex-1 h-px" style="background: var(--color-neural-alpha-20);"></div>
-              <div class="text-xs text-slate-600 flex items-center gap-1.5">
+              <div class="text-xs text-ink-muted flex items-center gap-1.5">
                 <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v3l2 2"/></svg>
                 Debug agent &mdash; bounded ReAct loop + verification gate
               </div>
@@ -862,7 +862,7 @@ const stack = [
             </div>
 
             <!-- Row: Generated StackGraph query -->
-            <div class="rounded-xl overflow-hidden" style="background: #0a1119; border: 1px solid var(--color-complement-alpha-20);">
+            <div class="rounded-xl overflow-hidden" style="background: var(--code-bg); border: 1px solid var(--color-complement-alpha-20);">
               <div class="flex items-center gap-2 px-3 py-2" style="border-bottom: 1px solid var(--color-complement-alpha-20);">
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(66% 0.21 43);"></span>
                 <span class="w-2.5 h-2.5 rounded-full" style="background: oklch(80% 0.18 80);"></span>
@@ -879,12 +879,12 @@ const stack = [
 
             <!-- Row: Alert + verdict -->
             <div class="flex flex-col sm:flex-row items-start gap-4">
-              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-slate-600 pt-2">Alert</div>
+              <div class="shrink-0 w-28 text-xs font-semibold uppercase tracking-widest text-ink-muted pt-2">Alert</div>
               <div class="flex-1">
                 <div class="rounded-xl px-4 py-3 text-sm font-medium mb-3" style="background: oklch(66% 0.21 43 / 0.08); border: 1px solid oklch(66% 0.21 43 / 0.25); color: #7c3d12;">
                   checkout: 503 rate 18% &middot; P99 8.7s &middot; upstream timeouts 41% &middot; fired 17:48 UTC
                 </div>
-                <div class="rounded-xl px-4 py-3 text-sm text-slate-700 leading-relaxed" style="background: rgba(255, 255, 255, 0.85); border: 1px solid var(--color-neural-alpha-20);">
+                <div class="rounded-xl px-4 py-3 text-sm text-ink-body leading-relaxed" style="background: var(--glass-white-30); border: 1px solid var(--color-neural-alpha-20);">
                   <span class="font-medium" style="color: var(--color-complement-300);">Agent verdict:</span> Root cause: payments-svc thread pool saturated (queue depth 512, workers 100% busy). checkout-svc blocks on synchronous calls, so latency cascades into 503s. No recent deploy &mdash; the trigger is a 3.1&times; traffic spike, not a regression. Confidence 0.84 sits below the auto-PR bar, so the agent notified on-call with a scale-up recommendation instead of opening a patch. Confidence: 0.84.
                   <div class="flex gap-2 mt-2.5 flex-wrap">
                     <span class="text-xs px-2 py-0.5 rounded" style="background: var(--color-neural-alpha-10); color: var(--color-neural-400); border: 1px solid var(--color-neural-alpha-20);">Evidence: Tempo span waterfall</span>
@@ -905,16 +905,16 @@ const stack = [
     <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
       <header class="mb-10">
         <p class="text-sm font-medium text-complement-300 mb-2">Research Papers</p>
-        <h2 class="text-3xl font-display font-semibold text-slate-900 mb-3">Papers</h2>
-        <p class="text-lg text-slate-600 max-w-2xl">
+        <h2 class="text-3xl font-display font-semibold text-ink mb-3">Papers</h2>
+        <p class="text-lg text-ink-muted max-w-2xl">
           Each paper follows a scientific structure — abstract, related work, method, evaluation, discussion — and is published here and on ArXiv.
         </p>
       </header>
 
       {papers.length === 0 ? (
         <div class="glass-card p-12 text-center">
-          <p class="text-slate-600 text-lg mb-2">The papers are being prepared.</p>
-          <p class="text-slate-500 text-sm">Five write-ups are in progress, mirroring the five themes above.</p>
+          <p class="text-ink-muted text-lg mb-2">The papers are being prepared.</p>
+          <p class="text-ink-subtle text-sm">Five write-ups are in progress, mirroring the five themes above.</p>
         </div>
       ) : (
         <div class="space-y-6">
@@ -928,14 +928,14 @@ const stack = [
                     <div class="flex flex-wrap items-center gap-2 mb-2">
                       <span class={`text-xs px-2 py-0.5 rounded-full category-${post.data.category}`}>{categoryMeta?.title ?? post.data.category}</span>
                       <span class={`text-xs px-2 py-0.5 rounded-full difficulty-${post.data.difficulty}`}>{difficultyMeta?.label ?? post.data.difficulty}</span>
-                      {post.data.readTime && <span class="text-xs text-slate-500">{post.data.readTime}</span>}
+                      {post.data.readTime && <span class="text-xs text-ink-subtle">{post.data.readTime}</span>}
                     </div>
                     <a href={`/debug-agent/${post.slug}/`}>
-                      <h3 class="text-xl font-medium text-slate-900 hover:text-neural-400 transition-colors mb-2">{post.data.title}</h3>
+                      <h3 class="text-xl font-medium text-ink hover:text-neural-400 transition-colors mb-2">{post.data.title}</h3>
                     </a>
-                    <p class="text-slate-600 line-clamp-2">{post.data.description}</p>
+                    <p class="text-ink-muted line-clamp-2">{post.data.description}</p>
                   </div>
-                  <div class="text-sm text-slate-500 md:text-right space-y-1">
+                  <div class="text-sm text-ink-subtle md:text-right space-y-1">
                     <time datetime={post.data.pubDate.toISOString()}>{formatDate(post.data.pubDate)}</time>
                   </div>
                 </div>
@@ -947,7 +947,7 @@ const stack = [
 
       <!-- Tech stack -->
       <div class="mt-14 text-center">
-        <p class="text-sm font-semibold uppercase tracking-widest text-slate-500 mb-5">Built with</p>
+        <p class="text-sm font-semibold uppercase tracking-widest text-ink-subtle mb-5">Built with</p>
         <div class="flex flex-wrap justify-center gap-3">
           {stack.map((tech) => (
             <span class="tech-pill text-sm">
@@ -966,7 +966,7 @@ const stack = [
       display: flex;
       gap: 0.75rem;
       align-items: flex-start;
-      background: rgba(255, 255, 255, 0.6);
+      background: var(--glass-white-15);
       border: 1px solid var(--color-complement-alpha-20);
       border-radius: 0.9rem;
       padding: 1rem 1.1rem;
@@ -985,14 +985,14 @@ const stack = [
       color: var(--color-complement-300);
       border: 1px solid var(--color-complement-alpha-20);
     }
-    .da-step-title { font-weight: 600; color: #1e293b; font-size: 0.9rem; }
-    .da-step-blurb { font-size: 0.78rem; color: #64748b; line-height: 1.45; margin-top: 0.15rem; }
+    .da-step-title { font-weight: 600; color: var(--text-primary); font-size: 0.9rem; }
+    .da-step-blurb { font-size: 0.78rem; color: var(--text-muted); line-height: 1.45; margin-top: 0.15rem; }
 
     /* Research ideas roster */
     .da-idea { display: flex; gap: 0.85rem; align-items: flex-start; padding: 1.1rem 1.4rem; }
     .da-idea-n { font-family: ui-monospace, monospace; font-size: 0.85rem; font-weight: 600; color: var(--color-complement-300); flex-shrink: 0; padding-top: 0.1rem; }
-    .da-idea-title { font-family: var(--font-display, inherit); font-weight: 600; color: #1e293b; font-size: 0.98rem; }
-    .da-idea-blurb { font-size: 0.8rem; color: #64748b; line-height: 1.5; margin-top: 0.2rem; }
+    .da-idea-title { font-family: var(--font-display, inherit); font-weight: 600; color: var(--text-primary); font-size: 0.98rem; }
+    .da-idea-blurb { font-size: 0.8rem; color: var(--text-muted); line-height: 1.5; margin-top: 0.2rem; }
     .da-idea-tag {
       font-size: 0.68rem;
       padding: 0.05rem 0.45rem;
@@ -1016,21 +1016,21 @@ const stack = [
       gap: 0.55rem;
       padding: 0.55rem 1.1rem;
       border-radius: 0.85rem;
-      background: rgba(255, 255, 255, 0.55);
+      background: var(--glass-white-12);
       border: 1px solid var(--color-complement-alpha-20);
-      color: #475569;
+      color: var(--text-secondary);
       font-weight: 600;
       line-height: 1.15;
       cursor: pointer;
       transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
     }
     .da-tab svg { color: #b08968; transition: color 0.18s ease; }
-    .da-tab:hover { border-color: var(--color-complement-alpha-30); color: #1e293b; }
+    .da-tab:hover { border-color: var(--color-complement-alpha-30); color: var(--text-primary); }
     .da-tab .da-tab-sub {
       display: block;
       font-size: 0.68rem;
       font-weight: 500;
-      color: #94a3b8;
+      color: var(--text-faint);
       font-family: ui-monospace, monospace;
       margin-top: 0.1rem;
     }

@@ -11,8 +11,8 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADr9ZubD1O
 
 <section id="request-access" class="scroll-mt-24">
   <div class="glass-card p-6 sm:p-8 max-w-xl mx-auto">
-    <h2 class="text-2xl font-display font-semibold text-slate-900 mb-1.5">Request access to BlueRobin</h2>
-    <p class="text-slate-600 mb-6">
+    <h2 class="text-2xl font-display font-semibold text-ink mb-1.5">Request access to BlueRobin</h2>
+    <p class="text-ink-muted mb-6">
       BlueRobin runs in a controlled, invite-only beta. Tell me a bit about yourself and what
       you'd use it for, and I'll be in touch.
     </p>
@@ -20,18 +20,18 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADr9ZubD1O
     <form id="request-access-form" novalidate>
       <div class="grid gap-4">
         <div>
-          <label for="ra-name" class="block text-sm font-medium text-slate-700 mb-1">Name</label>
+          <label for="ra-name" class="block text-sm font-medium text-ink-body mb-1">Name</label>
           <input id="ra-name" name="name" type="text" required maxlength="100" autocomplete="name"
             class="ra-input" placeholder="Your name" />
         </div>
         <div>
-          <label for="ra-email" class="block text-sm font-medium text-slate-700 mb-1">Email</label>
+          <label for="ra-email" class="block text-sm font-medium text-ink-body mb-1">Email</label>
           <input id="ra-email" name="email" type="email" required maxlength="200" autocomplete="email"
             class="ra-input" placeholder="you@company.com" />
         </div>
         <div>
-          <label for="ra-message" class="block text-sm font-medium text-slate-700 mb-1">
-            Message <span class="text-slate-400 font-normal">(optional)</span>
+          <label for="ra-message" class="block text-sm font-medium text-ink-body mb-1">
+            Message <span class="text-ink-faint font-normal">(optional)</span>
           </label>
           <textarea id="ra-message" name="message" rows="3" maxlength="500"
             class="ra-input resize-y" placeholder="What would you like to explore, or why are you reaching out?"></textarea>
@@ -65,7 +65,7 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADr9ZubD1O
   function setStatus(msg: string, ok: boolean | null = null) {
     if (!status) return;
     status.textContent = msg;
-    status.style.color = ok === true ? "#0f6e56" : ok === false ? "#b4451f" : "var(--color-slate-500, #64748b)";
+    status.style.color = ok === true ? "#0f6e56" : ok === false ? "#b4451f" : "var(--text-muted, #64748b)";
   }
 
   form?.addEventListener("submit", async (e) => {
@@ -123,14 +123,14 @@ const siteKey = import.meta.env.PUBLIC_TURNSTILE_SITE_KEY ?? "0x4AAAAAADr9ZubD1O
   .ra-input {
     width: 100%;
     border-radius: var(--radius-md, 0.75rem);
-    border: 1px solid rgba(15, 23, 42, 0.12);
-    background: rgba(255, 255, 255, 0.85);
+    border: 1px solid var(--border-default);
+    background: var(--surface-card);
     padding: 0.625rem 0.875rem;
     font-size: 0.95rem;
-    color: var(--color-slate-800, #1e293b);
+    color: var(--text-primary);
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .ra-input::placeholder { color: #94a3b8; }
+  .ra-input::placeholder { color: var(--text-faint); }
   .ra-input:focus {
     outline: none;
     border-color: var(--color-neural-500);

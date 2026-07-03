@@ -66,11 +66,11 @@ const breadcrumbJsonLd = {
       <!-- Article Header -->
       <header class="mb-8">
         <!-- Breadcrumb -->
-        <nav class="text-sm text-slate-600 mb-4" aria-label="Breadcrumb">
+        <nav class="text-sm text-ink-muted mb-4" aria-label="Breadcrumb">
           <a href="/" class="hover:text-neural-400 transition-colors">Home</a>
-          <span class="mx-2 text-slate-400">/</span>
+          <span class="mx-2 text-ink-faint">/</span>
           <a href={projectMeta.hubHref} class="hover:text-neural-400 transition-colors">{projectMeta.label}</a>
-          <span class="mx-2 text-slate-400">/</span>
+          <span class="mx-2 text-ink-faint">/</span>
           <a href={`/${category}/`} class="hover:text-neural-400 transition-colors capitalize">{category}</a>
         </nav>
 
@@ -83,7 +83,7 @@ const breadcrumbJsonLd = {
             {difficultyMeta.label}
           </span>
           {readTime && (
-            <span class="text-sm text-slate-500">
+            <span class="text-sm text-ink-subtle">
               {readTime}
             </span>
           )}
@@ -95,12 +95,12 @@ const breadcrumbJsonLd = {
         </h1>
 
         <!-- Description -->
-        <p class="text-lg text-slate-600 mb-6">
+        <p class="text-lg text-ink-muted mb-6">
           {description}
         </p>
 
         <!-- Meta info -->
-        <div class="flex flex-wrap items-center gap-4 text-sm text-slate-500 mb-6">
+        <div class="flex flex-wrap items-center gap-4 text-sm text-ink-subtle mb-6">
           <span>By {author}</span>
           <span>•</span>
           <time datetime={pubDate.toISOString()}>{formatDate(pubDate)}</time>
@@ -115,9 +115,9 @@ const breadcrumbJsonLd = {
 
       <!-- Deprecation notice (frontmatter: deprecated) -->
       {deprecated && (
-        <div class="mb-8 flex gap-3 rounded-lg px-4 py-3.5 text-sm text-slate-700" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);" role="note">
+        <div class="mb-8 flex gap-3 rounded-lg px-4 py-3.5 text-sm text-ink-body" style="background: var(--color-glow-alpha-10); border: 1px solid var(--color-glow-alpha-20);" role="note">
           <svg class="w-5 h-5 shrink-0 mt-0.5" style="color: #BA7517;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          <span><strong class="font-semibold text-slate-900">Deprecated.</strong> {deprecatedReason || "This article documents an approach BlueRobin has since replaced. It is kept for historical context."}</span>
+          <span><strong class="font-semibold text-ink">Deprecated.</strong> {deprecatedReason || "This article documents an approach BlueRobin has since replaced. It is kept for historical context."}</span>
         </div>
       )}
 
@@ -127,7 +127,7 @@ const breadcrumbJsonLd = {
       </div>
 
       <!-- Article Footer -->
-        <footer class="mt-12 pt-8 border-t border-slate-900/10">
+        <footer class="mt-12 pt-8 border-t border-line">
         <div class="flex justify-between items-center">
           <a href={projectMeta.hubHref} class="btn-secondary">
             {projectMeta.backLabel}

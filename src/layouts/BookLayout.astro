@@ -120,19 +120,19 @@ const breadcrumbJsonLd = {
   <main id="main-content" class="flex-1">
     <article class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <!-- Breadcrumb -->
-      <nav class="text-sm text-slate-600 mb-6" aria-label="Breadcrumb">
+      <nav class="text-sm text-ink-muted mb-6" aria-label="Breadcrumb">
         <a href="/" class="hover:text-neural-400 transition-colors">Home</a>
-        <span class="mx-2 text-slate-400">/</span>
+        <span class="mx-2 text-ink-faint">/</span>
         <a href="/library/" class="hover:text-neural-400 transition-colors">Library</a>
-        <span class="mx-2 text-slate-400">/</span>
-        <span class="text-slate-500">{themeMeta.title}</span>
+        <span class="mx-2 text-ink-faint">/</span>
+        <span class="text-ink-subtle">{themeMeta.title}</span>
       </nav>
 
       <!-- Header band: cover rail + verdict -->
       <header class="grid grid-cols-1 sm:grid-cols-[180px_1fr] gap-6 sm:gap-8 mb-10">
         <!-- Cover -->
         <div class="shrink-0">
-          <div class="glass-card overflow-hidden rounded-xl aspect-[2/3] flex items-center justify-center bg-white/60">
+          <div class="glass-card overflow-hidden rounded-xl aspect-[2/3] flex items-center justify-center bg-card/60">
             <img
               src={coverSrc}
               alt={`Cover of ${title} by ${bookAuthor}`}
@@ -140,7 +140,7 @@ const breadcrumbJsonLd = {
               loading="eager"
               onerror="this.closest('.glass-card')?.classList.add('cover-missing'); this.remove();"
             />
-            <span class="cover-fallback hidden px-3 text-center text-sm font-display text-slate-500">{title}</span>
+            <span class="cover-fallback hidden px-3 text-center text-sm font-display text-ink-subtle">{title}</span>
           </div>
         </div>
 
@@ -165,8 +165,8 @@ const breadcrumbJsonLd = {
           <h1 class="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold mb-2 leading-tight title-blue">
             {title}
           </h1>
-          <p class="text-base text-slate-500 mb-3">by {bookAuthor}</p>
-          <p class="text-lg text-slate-600 mb-5">{description}</p>
+          <p class="text-base text-ink-subtle mb-3">by {bookAuthor}</p>
+          <p class="text-lg text-ink-muted mb-5">{description}</p>
 
           <!-- Ratings -->
           <div class="flex flex-wrap items-center gap-x-6 gap-y-2 mb-5">
@@ -190,36 +190,36 @@ const breadcrumbJsonLd = {
                     </svg>
                   ))}
                 </span>
-                <span class="text-sm font-medium text-slate-700">{rating.toFixed(1)}</span>
-                <span class="text-xs text-slate-400">my rating</span>
+                <span class="text-sm font-medium text-ink-body">{rating.toFixed(1)}</span>
+                <span class="text-xs text-ink-faint">my rating</span>
               </div>
             )}
             {goodreadsRating != null && (
-              <div class="text-sm text-slate-500">
-                <span class="font-medium text-slate-700">{goodreadsRating.toFixed(2)}</span>
-                <span class="text-xs text-slate-400"> public avg</span>
+              <div class="text-sm text-ink-subtle">
+                <span class="font-medium text-ink-body">{goodreadsRating.toFixed(2)}</span>
+                <span class="text-xs text-ink-faint"> public avg</span>
               </div>
             )}
           </div>
 
           <!-- Meta rows -->
           <dl class="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 text-sm">
-            <dt class="text-slate-400">Status</dt>
-            <dd class="text-slate-600">{readLabel}</dd>
-            <dt class="text-slate-400">Bought</dt>
-            <dd class="text-slate-600">{formatDate(purchaseDate)}</dd>
+            <dt class="text-ink-faint">Status</dt>
+            <dd class="text-ink-muted">{readLabel}</dd>
+            <dt class="text-ink-faint">Bought</dt>
+            <dd class="text-ink-muted">{formatDate(purchaseDate)}</dd>
             {audience.length > 0 && (
               <>
-                <dt class="text-slate-400">For</dt>
-                <dd class="text-slate-600">{audience.join(" · ")}</dd>
+                <dt class="text-ink-faint">For</dt>
+                <dd class="text-ink-muted">{audience.join(" · ")}</dd>
               </>
             )}
           </dl>
 
           <!-- Where it helped -->
           {(relatedProjects.length > 0 || relatedLinks.length > 0) && (
-            <div class="mt-5 pt-5 border-t border-slate-900/10">
-              <p class="text-xs uppercase tracking-wide text-slate-400 mb-2">Where it earned its place</p>
+            <div class="mt-5 pt-5 border-t border-line">
+              <p class="text-xs uppercase tracking-wide text-ink-faint mb-2">Where it earned its place</p>
               <div class="flex flex-wrap gap-2">
                 {relatedProjects.map((p) => {
                   const meta = PROJECT_META[p];
@@ -250,13 +250,13 @@ const breadcrumbJsonLd = {
       {tags.length > 0 && (
         <div class="mt-10 flex flex-wrap gap-2">
           {tags.map((tag) => (
-            <span class="text-xs text-slate-500">#{tag}</span>
+            <span class="text-xs text-ink-subtle">#{tag}</span>
           ))}
         </div>
       )}
 
       <!-- Footer -->
-      <footer class="mt-12 pt-8 border-t border-slate-900/10">
+      <footer class="mt-12 pt-8 border-t border-line">
         <div class="flex justify-between items-center">
           <a href="/library/" class="btn-secondary">← Back to the Library</a>
         </div>
