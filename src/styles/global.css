@@ -545,6 +545,68 @@
     --text-secondary: var(--color-slate-600);
     --text-muted: var(--color-slate-500);
     --text-faint: var(--color-slate-400);
+
+    /* LIGHT semantic surfaces / borders / glass — declared in :root (NOT @theme)
+       so they are the light default. The merged-in @theme now carries the
+       Web-app's Suno DARK values for these same token names; without these
+       :root overrides, "light" mode rendered dark surfaces under dark text
+       (unreadable). [data-theme="dark"] below re-overrides them for dark. */
+    --surface-base: #f6f8fb;
+    --surface-canvas: #f6f8fb;
+    --surface-card: #ffffff;
+    --surface-overlay: #ffffff;
+    --surface-sunken: #eef2f7;
+    --surface-hover: rgba(15, 23, 42, 0.04);
+    --surface-pressed: rgba(15, 23, 42, 0.07);
+    --surface-selected: oklch(69% 0.235 232 / 0.10);
+    --surface-selected-border: oklch(69% 0.235 232 / 0.30);
+    --border-hairline: rgba(15, 23, 42, 0.04);
+    --border-subtle: rgba(15, 23, 42, 0.07);
+    --border-default: rgba(15, 23, 42, 0.10);
+    --border-strong: rgba(15, 23, 42, 0.16);
+    --border-neural: oklch(69% 0.235 232 / 0.40);
+    --glass-border: rgba(15, 23, 42, 0.08);
+    --glass-white-10: rgba(255, 255, 255, 0.50);
+    --glass-white-12: rgba(255, 255, 255, 0.55);
+    --glass-white-15: rgba(255, 255, 255, 0.60);
+    --glass-white-20: rgba(255, 255, 255, 0.70);
+    --glass-white-25: rgba(255, 255, 255, 0.82);
+    --glass-white-30: rgba(255, 255, 255, 0.85);
+    --glass-white-35: rgba(255, 255, 255, 0.88);
+    --glass-white-40: rgba(255, 255, 255, 0.78);
+    --glass-white-60: rgba(255, 255, 255, 0.90);
+    --glass-white-70: rgba(255, 255, 255, 0.93);
+    --glass-white-80: rgba(255, 255, 255, 0.96);
+    --code-inline-bg: rgba(15, 23, 42, 0.05);
+    --code-inline-text: oklch(48% 0.19 250);
+    --gradient-mesh-light:
+        radial-gradient(ellipse 80% 55% at 50% -8%, oklch(20% 0.06 232 / 0.10) 0%, transparent 58%),
+        radial-gradient(ellipse 55% 45% at 95% 25%, oklch(18% 0.04 232 / 0.06) 0%, transparent 52%);
+    --lava-color-1: oklch(64% 0.20 232 / 0.22);
+    --lava-color-1-outer: oklch(60% 0.18 232 / 0.08);
+    --lava-color-2: oklch(72% 0.17 43 / 0.20);
+    --lava-color-2-outer: oklch(66% 0.15 43 / 0.07);
+    --lava-color-3: oklch(72% 0.20 232 / 0.14);
+    --lava-color-3-outer: oklch(66% 0.18 232 / 0.05);
+    --lava-color-4: oklch(70% 0.17 43 / 0.16);
+    --lava-color-4-outer: oklch(62% 0.15 43 / 0.05);
+
+    /* Tokens consumed ONLY by plain CSS / inline styles (page-title gradients,
+       code-block chrome, architecture-diagram accents). Declared here in a real
+       :root rule — NOT in @theme — because Tailwind v4 tree-shakes any @theme
+       variable that no utility class references, and plain-CSS / inline var()
+       usage does not count. That shaking silently blanked the gradient page
+       titles (transparent text with a missing background-image) in prod. */
+    --gradient-title: linear-gradient(115deg, oklch(60% 0.21 235) 0%, oklch(50% 0.19 250) 100%);
+    --gradient-title-warm: linear-gradient(115deg, oklch(66% 0.19 52) 0%, oklch(54% 0.175 34) 100%);
+    --code-bg: #1b1b1f;
+    --code-text: var(--color-slate-200);
+    --code-shadow: rgba(15, 23, 42, 0.18);
+    --color-signature-mid: oklch(56% 0.20 245);
+    --color-signature-mid-alpha-20: oklch(56% 0.20 245 / 0.20);
+    --color-neural-alpha-35: oklch(69% 0.235 232 / 0.35);
+    --color-complement-alpha-12: oklch(66% 0.21 43 / 0.12);
+    --color-complement-alpha-25: oklch(66% 0.21 43 / 0.25);
 }
 
 /* DARK theme — overrides ONLY the semantic tokens. The brand palette
