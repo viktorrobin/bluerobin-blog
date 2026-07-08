@@ -77,6 +77,11 @@ Frontmatter validated by Zod in `src/content/config.ts`:
 - **Collections**: blog, cookbook, architecture, pages (4 Zod-validated collections)
 - **Optional**: updatedDate, draft, featured, toc, tags[], series (string or {name, order?, part?}), seriesOrder, readTime
 
+## Active work / known invariants
+
+- **Dual-theme migration in progress** — light/dark toggle being added. See memory `blog-theme-light-migration-and-toggle.md`.
+- **OKLCH token ramps in the Web app are deliberately INVERTED for dark theme** — do NOT sync token values from `bluerobin-app/DESIGN-SYSTEM.md` into `design-tokens.css`; it will corrupt the blog palette. The `design-tokens.css` file is orphaned and must be tokenized separately.
+
 ## Conventions
 
 - Site: `https://blog.bluerobin.io`
