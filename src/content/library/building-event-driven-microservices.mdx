@@ -1,12 +1,12 @@
 ---
 title: "Building Event-Driven Microservices"
 bookAuthor: "Adam Bellemare"
-description: "The conceptual map for event-driven design — strong on ideas, weak as a reference."
+description: "The first quarter is solid; after that it repeats itself more than it deepens."
 purchaseDate: 2021-05-17
 status: "read"
 theme: "software-architecture"
-recommendation: "recommended"
-rating: 4.0
+recommendation: "optional"
+rating: 3.0
 goodreadsRating: 3.72
 audience:
   - "Backend & platform engineers"
@@ -34,13 +34,15 @@ draft: false
 import Callout from "@components/Callout.astro";
 import ExternalCite from "@components/ExternalCite.astro";
 
-<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 3.72)">
-The best single source for *how to think* about events as the source of truth across service boundaries. Read it for the mental model, not as a step-by-step manual.
+<Callout type="tip" title="Verdict — Optional (my rating 3.0 · public 3.72)">
+OK. The opening chapters on events-as-contracts are worth reading. After that it loses
+momentum and starts repeating the same ideas with different examples. Read the first
+quarter, skim the rest.
 </Callout>
 
 ## The one-paragraph verdict
 
-Bellemare's real contribution is reframing events as the contract between services — the event stream is the shared truth, and services are consumers of it rather than owners of private databases. The chapters on domain-driven decomposition and on testing are the cleanest in the book; they stand on their own. The criticism in the reviews is fair, though: it's dense, and large stretches read more like a thorough brain dump than a reference you'll reach for twice. It's also Kafka-shaped in places where the underlying idea is broker-agnostic. I still rate it above its Goodreads average because the ideas survive translation to other stacks.
+OK — and that verdict is shaped almost entirely by the first third. Bellemare's real contribution is reframing events as the contract between services — the event stream is the shared truth, and services are consumers of it rather than owners of private databases. The chapters on domain-driven decomposition and on testing are the cleanest in the book; they stand on their own. The criticism in the reviews is fair, though: it's dense, and large stretches read more like a thorough brain dump than a reference you'll reach for twice. It's also Kafka-shaped in places where the underlying idea is broker-agnostic. I still rate it above its Goodreads average because the ideas survive translation to other stacks.
 
 ## Who should read it
 
@@ -52,4 +54,4 @@ The book's insistence that the event *is* the contract shaped how Archives handl
 
 ## Skip it if…
 
-You already live in event-driven systems and just need broker specifics, or you want a tight reference rather than a discursive read — the density and organization will frustrate you.
+You already live in event-driven systems and just need broker specifics, or you want a tight reference. The back half of the book repeats itself more than it deepens — the density and lack of new ideas will frustrate you. Read the first quarter and stop there if you're short on time.

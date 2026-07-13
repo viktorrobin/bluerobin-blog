@@ -1,12 +1,12 @@
 ---
 title: "Designing Distributed Systems"
 bookAuthor: "Brendan Burns"
-description: "A pattern catalog dressed as a distributed-systems book — short, useful, and narrower than its title."
+description: "The first quarter is genuinely useful; after that it runs out of ideas and starts repeating itself."
 purchaseDate: 2022-12-26
 status: "read"
 theme: "software-architecture"
-recommendation: "recommended"
-rating: 4.0
+recommendation: "optional"
+rating: 3.0
 goodreadsRating: 3.58
 audience:
   - "Backend & platform engineers"
@@ -32,13 +32,15 @@ draft: false
 import Callout from "@components/Callout.astro";
 import ExternalCite from "@components/ExternalCite.astro";
 
-<Callout type="tip" title="Verdict — Recommended (my rating 4.0 · public 3.58)">
-A tight, honest catalog of container-orchestration patterns. Read it for the vocabulary — sidecar, ambassador, adapter, scatter/gather — not for a deep treatment of distributed systems.
+<Callout type="tip" title="Verdict — Optional (my rating 3.0 · public 3.58)">
+OK. The first quarter is genuinely useful — the container pattern vocabulary is clean and
+worth having. After that it runs out of new ideas and starts covering the same ground over
+and over. Read the opening chapters, skim the rest.
 </Callout>
 
 ## The one-paragraph verdict
 
-Burns co-founded Kubernetes, and it shows: this is really a book about multi-container patterns, named and drawn clearly enough that you stop reinventing them. The single-node groups (sidecar, ambassador, adapter) are the strongest chapters — short, concrete, immediately applicable. The public 3.58 is fair, though. The title oversells: this is "design patterns for container-based systems," not consensus, replication, or failure theory. At ~160 pages it's a long afternoon, and if you've run real orchestration for a year you'll already know most of it. I still keep it close for the shared names alone.
+OK, with an important caveat: the value is front-loaded. Burns co-founded Kubernetes, and it shows: this is really a book about multi-container patterns, named and drawn clearly enough that you stop reinventing them. The single-node groups (sidecar, ambassador, adapter) are the strongest chapters — short, concrete, immediately applicable. The public 3.58 is fair, though. The title oversells: this is "design patterns for container-based systems," not consensus, replication, or failure theory. At ~160 pages it's a long afternoon, and if you've run real orchestration for a year you'll already know most of it. I still keep it close for the shared names alone.
 
 ## Who should read it
 
@@ -50,4 +52,4 @@ When I built [distributed rate limiting on NATS KV](/articles/distributed-rate-l
 
 ## Skip it if…
 
-You want depth over breadth, or you've spent real time running orchestration. Veterans will find it thin, and theory-seekers will find it the wrong book entirely. <ExternalCite title="Designing Distributed Systems on Goodreads" url="https://www.goodreads.com/book/show/34691716-designing-distributed-systems" />
+You want depth over breadth, or you've spent real time running orchestration. Veterans will find it thin, theory-seekers will find it the wrong book entirely, and anyone reading cover to cover will notice it running out of steam well before the end. <ExternalCite title="Designing Distributed Systems on Goodreads" url="https://www.goodreads.com/book/show/34691716-designing-distributed-systems" />

@@ -1,7 +1,7 @@
 ---
 title: "Delta Lake: Up and Running"
 bookAuthor: "Bennie Haelen & Dan Davis"
-description: "A clean on-ramp to the lakehouse format — just don't expect it to go deep."
+description: "Not a great book per se, but a decent literature review on how data platforms evolved from lakes through lakehouses."
 purchaseDate: 2024-11-12
 status: "read"
 theme: "software-architecture"
@@ -31,12 +31,14 @@ import Callout from "@components/Callout.astro";
 import ExternalCite from "@components/ExternalCite.astro";
 
 <Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 4.0)">
-A tidy, well-paced introduction to the Delta format and the medallion pattern. It gets you running fast and stops well short of mastery.
+Not amazing, but a solid literature review on the different generations of data platforms
+— lambda, kappa, lakehouse — and a useful on-ramp if you need that evolution mapped out
+in one place rather than hunting through blog posts.
 </Callout>
 
 ## The one-paragraph verdict
 
-The book does exactly what the title promises: it walks you from "why data lakes rot" through ACID transactions, time travel, schema enforcement, and the bronze/silver/gold layout, with a companion repo that actually runs. The history-and-motivation framing in the early chapters is the strongest part — it explains *why* the transaction log exists, not just how to call the API. The honest limitation is scope: it sticks to Delta Lake OSS and explicitly punts on the Databricks-proprietary optimizations, and it leans hard on Spark notebooks, so almost everything is shown through one engine. By the back half it stays introductory where I wanted depth — concurrency semantics, file compaction trade-offs, and the log internals get a wave rather than a chapter.
+Not a great book in itself, but a useful one for a specific need: if you want the evolution of data platforms — from lambda architecture through data lakes to the lakehouse — laid out in one structured pass rather than scattered across years of blog posts, this is the clearest survey I've found. The book does exactly what the title promises beyond that: it walks you from "why data lakes rot" through ACID transactions, time travel, schema enforcement, and the bronze/silver/gold layout, with a companion repo that actually runs. The history-and-motivation framing in the early chapters is the strongest part — it explains *why* the transaction log exists, not just how to call the API. The honest limitation is scope: it sticks to Delta Lake OSS and explicitly punts on the Databricks-proprietary optimizations, and it leans hard on Spark notebooks, so almost everything is shown through one engine. By the back half it stays introductory where I wanted depth — concurrency semantics, file compaction trade-offs, and the log internals get a wave rather than a chapter.
 
 ## Who should read it
 

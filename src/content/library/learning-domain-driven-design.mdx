@@ -1,17 +1,17 @@
 ---
 title: "Learning Domain-Driven Design"
 bookAuthor: "Vlad Khononov"
-description: "The DDD book I hand to people instead of Evans — practical, current, and it actually finishes a thought."
+description: "A well-organised DDD introduction that risks leaving you with an oversimplified picture of what DDD actually demands."
 purchaseDate: 2022-04-30
 status: "read"
 theme: "software-architecture"
-recommendation: "recommended"
-rating: 4.3
+recommendation: "good"
+rating: 3.5
 goodreadsRating: 4.4
 audience:
-  - "Backend engineers adopting DDD for the first time"
-  - "Architects mapping bounded contexts onto services"
-  - "Anyone who bounced off the Evans blue book"
+  - "Backend engineers wanting a first pass at DDD vocabulary"
+  - "Architects who need an accessible entry point before Evans"
+  - "Anyone who bounced off the Evans blue book and needs a bridge"
 relatedProjects:
   - "archives"
 relatedLinks:
@@ -31,13 +31,14 @@ draft: false
 import Callout from "@components/Callout.astro";
 import ExternalCite from "@components/ExternalCite.astro";
 
-<Callout type="tip" title="Verdict — Recommended (my rating 4.3 · public 4.4)">
-The clearest modern on-ramp to DDD. If you only own one DDD book and you're not Eric Evans, own this one.
+<Callout type="tip" title="Verdict — Good (my rating 3.5 · public 4.4)">
+OK as a first pass. The simplifications that make it readable also make you lose sight of
+what DDD is really about. Use it as a bridge to Evans, not a destination.
 </Callout>
 
 ## The one-paragraph verdict
 
-Khononov does the thing the original blue book never quite managed: he makes strategic design — subdomains, bounded contexts, context maps — feel like decisions you can actually make on a Monday, then connects them to tactical patterns without drowning you in jargon. The writing is direct and the running narrative of rolling DDD out at a startup keeps it honest about the messy bits. Where it slips is the back third: the tour through aggregates, event sourcing, and architecture styles is a survey, not a deep dive, and if you already practice DDD you'll find whole chapters confirming what you know. That's the trade-off for being the best *introduction* on the shelf. <ExternalCite title="Learning Domain-Driven Design on Goodreads" url="https://www.goodreads.com/en/book/show/57573212" />
+OK, but the simplifications are a real cost. The book makes strategic design — subdomains, bounded contexts, context maps — feel approachable, and the writing is direct in a way Evans never is. That accessibility is also its problem: too many corners are rounded off, and you can come out the other side thinking you understand DDD when you've only absorbed the vocabulary. Khononov does the thing the original blue book never quite managed: he connects strategic to tactical patterns in a single readable arc. But where it slips is the back third — the tour through aggregates, event sourcing, and architecture styles is a survey, not a deep dive — and the overall simplification leaves you further from the real value of DDD than you might realise. <ExternalCite title="Learning Domain-Driven Design on Goodreads" url="https://www.goodreads.com/en/book/show/57573212" />
 
 ## Who should read it
 
@@ -49,4 +50,4 @@ The context-mapping chapters shaped how I drew boundaries in the Archives servic
 
 ## Skip it if…
 
-You want the canonical, exhaustive treatment — go to Evans or Vernon. This is the gateway drug, not the encyclopedia.
+You want the canonical, exhaustive treatment — go to Evans or Vernon. This is a bridge, not the destination. If you can stomach the prose, go to Evans directly.

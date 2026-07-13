@@ -1,12 +1,12 @@
 ---
 title: "Cloud Computing: Concepts, Technology & Architecture"
 bookAuthor: "Thomas Erl"
-description: "A solid vendor-neutral taxonomy buried under a lot of padding."
+description: "Not aging well — the concepts it named are now absorbed into platforms or superseded by better frameworks."
 purchaseDate: 2020-12-19
 status: "read"
 theme: "software-architecture"
-recommendation: "situational"
-rating: 3.5
+recommendation: "skip"
+rating: 2.5
 goodreadsRating: 3.72
 audience:
   - "Engineers new to cloud architecture vocabulary"
@@ -29,13 +29,14 @@ draft: false
 import Callout from "@components/Callout.astro";
 import ExternalCite from "@components/ExternalCite.astro";
 
-<Callout type="tip" title="Verdict — Situational (my rating 3.5 · public 3.72)">
-A clean, provider-agnostic taxonomy of cloud mechanisms — useful as a shared vocabulary, but it takes 500 pages to say what a sharp 150 would.
+<Callout type="tip" title="Verdict — Skip (my rating 2.5 · public 3.72)">
+Not aging well. The concepts it named are now absorbed into managed platforms or
+superseded by better frameworks. Hard to recommend in 2026.
 </Callout>
 
 ## The one-paragraph verdict
 
-Erl's strength is the same here as in his SOA books: he names things precisely and draws the same boxes the same way every time. The catalogue of cloud mechanisms — load balancers, hypervisors, resource pools, SLA monitors — gives you a vendor-neutral way to reason about architecture before AWS or Azure marketing gets in the way. The cost is verbosity: the layered, repetitive structure pads concepts that deserve a paragraph into whole sections, and there are no exercises or worked problems to anchor any of it. Read it for the model, not the depth. <ExternalCite title="Goodreads — Cloud Computing: Concepts, Technology & Architecture" url="https://www.goodreads.com/book/show/17133059-cloud-computing" />
+Not aging well. What was useful as a vendor-neutral taxonomy of cloud mechanisms when it was published in 2013 has since been absorbed — either into the actual product surfaces of AWS, Azure, and GCP, or into more modern frameworks that describe these patterns with less ceremony. Erl's strength is the same here as in his SOA books: he names things precisely and draws the same boxes the same way every time. The catalogue of cloud mechanisms — load balancers, hypervisors, resource pools, SLA monitors — gives you a vendor-neutral way to reason about architecture before AWS or Azure marketing gets in the way. The cost is verbosity: the layered, repetitive structure pads concepts that deserve a paragraph into whole sections, and there are no exercises or worked problems to anchor any of it. Read it for the model, not the depth. <ExternalCite title="Goodreads — Cloud Computing: Concepts, Technology & Architecture" url="https://www.goodreads.com/book/show/17133059-cloud-computing" />
 
 ## Who should read it
 
@@ -47,4 +48,4 @@ The vendor-neutral framing is exactly what made the [cloud-to-homelab decision](
 
 ## Skip it if…
 
-You want hands-on depth, real pricing math, or current managed-service detail. This is a conceptual reference, not an operations manual, and it shows its 2013 age.
+You want anything actionable in 2026 — skip it outright. The conceptual taxonomy it built was useful at the time and now lives in a dozen better sources. The 2013 age shows throughout, and the cloud has moved too far since publication to make this a meaningful investment of reading time.
