@@ -9,7 +9,7 @@ Auto-loaded on session start. The full framework at `../bluerobin-requirements/`
 
 ## Project Overview
 
-Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX articles about homelab AI, .NET architecture, Kubernetes, and observability.
+Technical blog for the BlueRobin platform. Astro 5 static site with 100+ MDX articles about homelab AI, .NET architecture, Kubernetes, and observability. Also hosts a Library collection (163 reviewed books) and a leadership-essay track (a `leadership` project/category value). A small request-access Worker (`src/worker/index.ts`: Turnstile + ntfy + Brevo; secrets via wrangler) gates optional access requests.
 
 ## Requirements as Code
 
@@ -28,7 +28,7 @@ should stay consistent with the architecture and ADRs documented there.
 | Syntax | Shiki (dracula theme) |
 | Search | Fuse.js (client-side) |
 | Diagrams | Mermaid |
-| Deployment | Docker multi-stage → nginx |
+| Deployment | Cloudflare Workers (static assets + request-access Worker) via Cloudflare Workers Builds Git integration; `wrangler.toml` is the deploy config. Legacy self-host: Docker multi-stage → nginx |
 | Analytics | Self-hosted analytics (optional) |
 
 ## MCP Servers
@@ -47,7 +47,7 @@ Canonical inventory:
 npm run dev          # Astro dev server (HMR)
 npm run build        # astro check + astro build
 npm run preview      # Preview static build
-npm run lint         # ESLint (.ts, .tsx, .astro)
+npm run lint         # NON-FUNCTIONAL (eslint not installed); real gate = astro check (in build) + format
 npm run format       # Prettier
 ```
 
@@ -57,8 +57,9 @@ npm run format       # Prettier
 src/
   content/
     blog/          # 100+ MDX articles
-    architecture/  # Structurizr DSL diagrams
-    cookbook/       # How-to guides
+    architecture/  # architecture content collection
+    library/       # reviewed bookshelf (163 books)
+    diagrams/      # diagram sources
     config.ts      # Zod collection schemas
   components/      # Astro components (Callout, ExternalCite, ImplementationNote)
   layouts/         # Page layouts
@@ -72,15 +73,15 @@ scripts/           # Content migration scripts (Python/JS)
 
 Frontmatter validated by Zod in `src/content/config.ts`:
 - **Required**: title, description, pubDate, category, difficulty
-- **Categories**: architecture, messaging, infrastructure, security, ai, frontend, backend, database, ci-cd, observability, storage
+- **Categories**: architecture, messaging, infrastructure, security, ai, frontend, backend, database, ci-cd, observability, storage, leadership (12 values)
 - **Difficulty**: beginner, intermediate, advanced, expert
-- **Collections**: blog, cookbook, architecture, pages (4 Zod-validated collections)
+- **Collections**: blog, architecture, pages, library (4 Zod-validated collections)
 - **Optional**: updatedDate, draft, featured, toc, tags[], series (string or {name, order?, part?}), seriesOrder, readTime
 
 ## Active work / known invariants
 
-- **Dual-theme migration in progress** — light/dark toggle being added. See memory `blog-theme-light-migration-and-toggle.md`.
-- **OKLCH token ramps in the Web app are deliberately INVERTED for dark theme** — do NOT sync token values from `bluerobin-app/DESIGN-SYSTEM.md` into `design-tokens.css`; it will corrupt the blog palette. The `design-tokens.css` file is orphaned and must be tokenized separately.
+- **Light/dark theme toggle shipped** — default light (NFR-13).
+- **OKLCH token ramps in the Web app are deliberately INVERTED for dark theme** — do NOT sync token values from `bluerobin-app/DESIGN-SYSTEM.md` into `src/styles/global.css`; it will corrupt the blog palette.
 
 ## Conventions
 
