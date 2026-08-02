@@ -1,0 +1,55 @@
+---
+title: "Organising Teams Around Backlogs, Not Projects"
+description: "A team fed by several competing backlogs doesn't have several priorities — it has none. Give every team exactly one queue, and make priorities fight in the queue instead of fighting for the people."
+pubDate: 2026-08-02
+author: "Victor Robin"
+draft: false
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "org-design", "prioritization", "backlogs", "an-elegant-puzzle"]
+difficulty: "advanced"
+readTime: "4 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+## The problem
+
+I once ran a team that answered to three backlogs at once: the product roadmap, a platform-hardening list, and a stream of support escalations. Each had a legitimate owner, each owner had been promised "capacity," and every Monday we held a triage meeting to decide whose items mattered most this week. The meeting was really a negotiation, and the loudest stakeholder usually won. Engineers were pulled mid-task onto whatever had most recently been declared urgent, and by the end of the quarter we had started an impressive amount of work and finished almost none of it.
+
+The failure wasn't effort and it wasn't prioritisation skill. It was structure: I had built a team with three masters and called the resulting thrash "balancing priorities."
+
+## The model
+
+A team is the unit of delivery, and a backlog is the unit of intent. The two have to map one-to-one. A team with one prioritised backlog can be behind — that's honest and fixable. A team with three backlogs is in a permanent priority auction, and the auction is settled by interrupting engineers, which is the most expensive arbitration mechanism an organisation has.
+
+Multiple priorities are fine; multiple masters are not. The fix is to make competing demands merge *into* a single queue rather than compete *for* the people. One accountable prioritiser orders the queue; stakeholders argue with the ordering, not with the engineers. When two initiatives collide, the collision happens in a ranking conversation — visible, cheap, reversible — instead of in someone's half-finished branch. If a second backlog genuinely can't merge because it needs different pacing or different skills, that's not a scheduling problem; it's a signal the org is missing a team, and the honest options are to staff one or to say no.
+
+<Callout type="info" title="The finished-early test">
+  Ask an engineer what they'd pick up next if they finished their current task today. If the answer depends on who they ask, the team doesn't have one backlog — it has several, and the engineers are doing your arbitration for you.
+</Callout>
+
+## What to do
+
+- **Give every team exactly one backlog, with one accountable orderer.** Others can lobby; exactly one person commits the order, and the order is public.
+- **Route new work to the queue, never to a person.** The moment a stakeholder can hand an engineer work directly, the queue is fiction and the auction is back.
+- **Make the trade-off visible at merge time.** When something new lands, show what it displaces. "Yes, and it pushes X by two weeks" turns an argument about urgency into a decision about cost.
+- **Shift scope between teams, not people between backlogs.** If a priority outgrows its team, move the responsibility with headcount attached — don't peanut-butter individuals across queues.
+- **Carve interrupts out explicitly.** Escalations and operational work are a different *kind* of demand: give them a rotation with a capacity budget, so the queue's ordering isn't destroyed by its exceptions.
+
+<ImplementationNote>
+  The Monday meeting survived, but its job changed: instead of deciding who got the team this week, it reviewed the one merged queue. The surprise was how much easier "no" became. I had expected stakeholders to fight harder once ranking was explicit; instead, most fights evaporated, because "you're third in the queue and here's what's ahead of you" is a fact, while "we're busy" is an invitation to escalate.
+</ImplementationNote>
+
+## The results
+
+Throughput recovered within two quarters — not because anyone worked harder, but because work stopped being abandoned at 80% to serve a louder request. Stakeholders got something better than immediacy: predictability. The support owner who lost the ability to interrupt engineers directly gained a dated answer for every escalation, and dated answers turned out to be what their own customers wanted from them.
+
+The caveat: a single queue tempts you to pretend all work is the same shape. It isn't. When I first merged everything, urgent operational items sat behind roadmap epics until the queue's credibility broke. The interrupt lane — a budgeted rotation, not a second backlog — is what made one queue survivable. One team, one backlog, and an explicit valve for the work that genuinely can't wait.
+
+## Further reading
+
+- **[Reducing WIP: Why Finishing Beats Starting](/leadership/reducing-wip-finishing-beats-starting)** — the flow argument for why the auction was killing throughput.
+- **[Protecting Your Team by Learning to Say No](/leadership/protecting-teams-saying-no)** — what the single orderer actually does all day.
