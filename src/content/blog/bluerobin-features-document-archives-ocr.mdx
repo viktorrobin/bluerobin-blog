@@ -2,6 +2,7 @@
 title: "BlueRobin Archives: From Raw Upload to Searchable Intelligence"
 description: "A walkthrough of how BlueRobin transforms any uploaded document — PDF, image, or Office file — into a fully analysed, encrypted, and semantically indexed record."
 pubDate: 2026-03-04
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "ai"
 difficulty: "intermediate"
@@ -32,6 +33,10 @@ Each document within the archive carries:
 - **Analysis**: OCR'd text, translated text, AI-generated summary, keywords, and a friendly name
 - **Classification**: document category (Medical, Financial, Legal, etc.) and document type
 - **Status**: where the document sits in the processing pipeline
+
+<Callout type="warning" title="Update — August 2026">
+The storage layer described below has changed: documents now live in Cloudflare R2 under a per-user key prefix, encrypted client-side with per-user envelope encryption before they leave the cluster — MinIO and KES are retired (ADR-006). The rest of the pipeline in this article is still current.
+</Callout>
 
 Documents are stored as objects in a per-user MinIO bucket (`user-{blueRobinId}`) with server-side KES encryption. Each user has their own encryption key so no cross-contamination is possible at the storage layer.
 

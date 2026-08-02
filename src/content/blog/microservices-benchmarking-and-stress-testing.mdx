@@ -2,7 +2,7 @@
 title: "Benchmarking and Stress Testing Microservices"
 description: "Using NBomber and k6 to find the breaking points of our .NET API. Analysis of CPU vs Memory vs I/O bottlenecks."
 pubDate: 2026-01-05
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -102,6 +102,10 @@ We ran the test ramping up to 500 requests per second (RPS).
 - **350 RPS**: Errors started appearing (HTTP 503).
 
 ### The Investigation
+
+<Callout type="warning" title="Update — August 2026">
+SigNoz has since been replaced by the Grafana LGTM stack (OTEL Collector → Tempo/Loki/Mimir); today these graphs live in Grafana. The investigation method below is unchanged.
+</Callout>
 
 We looked at our **SigNoz** dashboards during the test.
 

@@ -1,0 +1,55 @@
+---
+title: "Using System Design to See the Big Picture"
+description: "I fixed the team everyone blamed and nothing improved. Organisations are systems of queues and feedback loops — draw the system before you intervene, or you'll optimise a component while the constraint sits elsewhere."
+pubDate: 2026-08-02
+author: "Victor Robin"
+draft: false
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "systems-thinking", "constraints", "flow", "an-elegant-puzzle"]
+difficulty: "advanced"
+readTime: "4 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+## The problem
+
+Everyone agreed which team was slow. Features "went into" that team and came out weeks later, stakeholders had the anecdotes, and I had the budget — so I did the obvious thing and added two engineers to it. A quarter later, end-to-end delivery hadn't improved at all. The team's own numbers looked better; features now cleared it faster and then sat waiting for a release train that ran on a fixed schedule, and behind that, for one overloaded staff engineer who had quietly become the approver of record for anything touching the core.
+
+I had treated a system problem as a component problem. The "slow" team was just where the queue was most visible — the constraint lived two stages downstream, and adding capacity upstream of a constraint doesn't produce output. It produces inventory.
+
+## The model
+
+This is the discipline we already apply to software, refused to the organisation. An engineering org is a pipeline: ideas become designs, designs become merged code, merged code becomes deployed, validated product. Every stage has a capacity, every hand-off has a queue, and the queues are connected by feedback loops — review latency breeds bigger batches, bigger batches breed riskier releases, riskier releases breed more process, which slows review further. None of that is visible if you look at teams one at a time, because each team, examined locally, is "doing its best."
+
+So design the org the way you'd design the system: draw the stages, measure the queues, find where work *waits* rather than where people look busy. The stock that keeps accumulating marks the constraint. Fix that — and only that — then redraw, because the constraint moves. Anecdotes point at whoever is most visible; the diagram points at whoever is most loaded. They are rarely the same place.
+
+<Callout type="info" title="Queues are the org's profiler">
+  You wouldn't optimise a service because it *looks* slow — you'd profile and fix the hot path. Where work waits is the org's flame graph. Measure wait time between stages, not activity within them: activity is what everyone defends; waiting is where delivery actually dies.
+</Callout>
+
+## What to do
+
+- **Draw the pipeline end to end before intervening.** Idea → build → review → release → validated. If you can't draw it, you don't yet know enough to reorganise anything.
+- **Measure stocks, not effort.** Count what's waiting at each hand-off and how long it's been there. Skip the utilisation metrics — a fully busy org can deliver nothing.
+- **Find the constraint and subordinate to it.** One overloaded approver, a fixed release train, a shared environment. Spend your next hire, process change, or automation *there*, even when the pressure to act is loudest elsewhere.
+- **Trace the feedback loops.** Before shipping a fix, ask what it increases load on later. Interventions that ignore second-order effects are how "process improvements" make things slower.
+- **Redraw after every change.** Relieving a constraint doesn't end the exercise; it relocates it. Systems thinking is a loop, not a diagnosis you run once.
+
+<ImplementationNote>
+  When we finally widened the real constraint — spreading approval across a reviewer group and putting the release train on demand — the bottleneck promptly moved to validation. My first reaction was that the fix had failed. It hadn't: throughput had risen until the next-narrowest stage was binding, which is exactly what the model predicts. I now tell teams up front that the constraint moving is what success looks like, so nobody reads it as another fire.
+</ImplementationNote>
+
+## The results
+
+End-to-end cycle time fell by more than a third within two quarters of fixing the *actual* constraint — a result two extra engineers upstream of it hadn't budged at all. Just as valuable: prioritisation arguments got quieter, because "where does work wait?" has a measurable answer, and anecdotes about which team feels slow stopped driving staffing.
+
+The caveat: the diagram is a model, and people are not queues. The map told me *where* to look; only talking to the humans at that stage told me *why* the queue formed — the staff engineer wasn't slow, they were the only person the org had allowed to feel safe approving risk. Use system design to choose where to stand and look. What you do once you're standing there is still leadership.
+
+## Further reading
+
+- **[Reducing WIP: Why Finishing Beats Starting](/leadership/reducing-wip-finishing-beats-starting)** — the same flow lens applied inside a single team.
+- **[Aligning Cross-Team Features With Incremental Milestones](/leadership/cross-team-features-incremental-milestones)** — sequencing work across the pipeline once you can see it.

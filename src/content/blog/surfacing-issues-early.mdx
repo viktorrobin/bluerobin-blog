@@ -1,0 +1,55 @@
+---
+title: "Learning to Surface Issues Early"
+description: "Bad news depreciates: an issue costs a conversation the day it's found and a launch three months later. Your reaction to the last flag sets the price of the next one."
+pubDate: 2026-08-02
+author: "Victor Robin"
+draft: false
+project: "leadership"
+category: "leadership"
+tags: ["leadership", "engineering-management", "escalation", "candor", "risk", "an-elegant-puzzle"]
+difficulty: "advanced"
+readTime: "4 min"
+toc: false
+---
+
+import Callout from '@components/Callout.astro';
+import ImplementationNote from '@components/ImplementationNote.astro';
+
+## The problem
+
+A launch slipped by six weeks once, and the slip reached me five days before the date. When I traced it back, the timeline was humiliating: an engineer had flagged the risky integration in a standup two months earlier. Someone said "let's keep an eye on it," and the topic never came up again. The team had known. The knowledge just never travelled upward, because nothing in the system made travelling worth it.
+
+The uncomfortable part came later, reviewing my own behaviour. Months before, a different engineer had raised an early warning that turned out to be a false alarm, and I had let a flicker of irritation show — *this is what you interrupted the sprint for?* I never said "don't bring me problems." I didn't have to. The team had priced my reaction and concluded that raising an issue early cost more than sitting on it.
+
+## The model
+
+Bad news depreciates. An issue surfaced the day it's discovered costs a conversation and a plan; the same issue surfaced in launch week costs the launch, plus the trust of everyone downstream who planned around it. There is no version where waiting makes it cheaper — yet organisations sit on problems constantly, because surfacing has a price and leaders set it.
+
+That's the core of the model: **the messenger's experience is the pricing signal.** People surface what's rewarded and bury what's punished, and punishment is subtle — a sigh, a "who owned this?", a reputation for panicking. The second half of the model is that surfacing must *do* something. A flag that changes nothing teaches the team that flags are theatre, which is its own kind of punishment. Early warning is a system property: a cheap channel in, a visible response out, and a leader whose reaction people aren't afraid to trigger.
+
+<Callout type="info" title="Price the delay, not the problem">
+  When an issue lands late, resist asking "why did this happen?" first. Ask "when did we first know?" The gap between first-known and first-surfaced is the number your leadership is producing — the defect itself usually isn't.
+</Callout>
+
+## What to do
+
+- **Thank first, triage second.** Every time, including the false alarms — *especially* the false alarms, because they're the premium you pay for the real ones arriving early.
+- **Define what warrants a flag.** A slipping estimate, a dependency going quiet, a "this feels wrong" with no data yet. If people must judge whether something is flag-worthy, they'll round down.
+- **Run pre-mortems on anything with a date.** "It's three months from now and this failed — why?" converts private worries into a shared list before they need courage to say.
+- **Close the loop visibly.** Every raised issue gets a decision someone can see — fix, accept, or watch with a named owner. Flags that vanish into silence stop coming.
+- **Make "when did we first know?" a standing retro question.** Track knowledge-to-surface latency the way you track incident count. It's the leading indicator; incidents are the lagging one.
+
+<ImplementationNote>
+  The hardest change was my own face. I started treating the first minute after someone raises a problem as the highest-leverage minute I get: whatever I do in it is the price list every witness takes away. I also stopped rewarding stoicism — the engineer who "handled it quietly" for six weeks got gentler feedback than the one who raised it noisily in week one, until I noticed the incentive I was building and reversed it publicly.
+</ImplementationNote>
+
+## The results
+
+Reported issues went up — which briefly looks like the team getting worse and is actually the system getting honest. Real surprises got rarer, and the ones that remained arrived while there were still options: cut scope, add help, move the date early enough that downstream teams could re-plan cheaply. Two launches later, a slip surfaced eleven weeks out instead of five days, and the re-plan took one meeting instead of a war room.
+
+The caveat: once surfacing became cheap, everything surfaced, and I nearly drowned the signal in noise. The fix wasn't raising the bar back up — it was adding a severity vocabulary, so "I'm watching this" and "stop and look at this now" stopped arriving in the same envelope. Surface everything early; just don't make every flag an alarm.
+
+## Further reading
+
+- **[No News Is Good News: Leading With Trust, Not Status](/leadership/no-news-good-news-trust)** — the other half of the deal: silence can only mean "fine" if flags travel reliably.
+- **[Building a Blameless On-Call](/leadership/on-call-blamelessness-incident-culture-hiring)** — the same pricing mechanism, applied after the incident instead of before it.

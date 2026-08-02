@@ -2,7 +2,7 @@
 title: "OpenTelemetry Instrumentation for .NET"
 description: "Implement distributed tracing, metrics, and logging with OpenTelemetry in .NET applications for full observability."
 pubDate: 2025-07-30
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "observability"
 difficulty: "intermediate"
@@ -25,6 +25,10 @@ When I first tackled observability for our distributed system, I made the classi
 When a user reports "the app is slow," where do you start looking? In a distributed system with APIs, workers, databases, and external services, the problem could be anywhere. Without proper instrumentation, you're debugging in the dark.
 
 <ExternalCite title="OpenTelemetry Specification" url="https://opentelemetry.io/docs/specs/otel/" author="OpenTelemetry" date="2024" />
+
+<Callout type="warning" title="Update — August 2026">
+Our backend today is the Grafana LGTM stack — OTEL Collector feeding Tempo (traces), Loki (logs), and Mimir (metrics). The SigNoz mentions in this article are historical; the vendor-neutral instrumentation below is exactly why the backend swap required no code changes.
+</Callout>
 
 **Why OpenTelemetry Matters:**
 
