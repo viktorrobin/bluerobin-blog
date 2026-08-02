@@ -2,7 +2,7 @@
 title: "Health Checks and Readiness Probes in .NET"
 description: "Implement comprehensive health checks for .NET applications with database, cache, and dependency monitoring for Kubernetes deployments."
 pubDate: 2025-02-25
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "backend"
 difficulty: "intermediate"
@@ -26,6 +26,10 @@ This guide covers implementing comprehensive health monitoring in .NET, ensuring
 <ExternalCite title="Health checks in ASP.NET Core" url="https://learn.microsoft.com/en-us/aspnet/core/host-and-deploy/health-checks" author="Microsoft" date="2024-11-01" />
 
 <ExternalCite title="Configure Liveness, Readiness and Startup Probes" url="https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/" author="Kubernetes Authors" date="2024-06-15" />
+
+<Callout type="warning" title="Update — August 2026">
+MinIO is retired (ADR-006): the `MinioHealthCheck` shown below has been replaced by an equivalent Cloudflare R2 reachability check. The check pattern is identical — swap the MinIO client for the S3-compatible R2 client.
+</Callout>
 
 ### What We'll Build
 1.  **Liveness & Readiness Probes**: Separate checks for startup, liveness, and readiness.

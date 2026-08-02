@@ -2,7 +2,7 @@
 title: "Building a Telegram Mini App with Blazor Server"
 description: "A deep dive into creating a Telegram Mini App that enables passkey authentication, leveraging Blazor Server, WebAuthn, and Telegram's native theming system."
 pubDate: 2026-01-25
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "frontend"
 difficulty: "advanced"
@@ -498,6 +498,10 @@ HttpContext.Response.Cookies.Append("App-TelegramSession", user.Id.Value, new Co
 });
 ```
 </ImplementationNote>
+
+<Callout type="warning" title="Update — August 2026">
+The staging environment no longer exists (prod-only collapse, ADR-034) — the Mini App is served from the production URL only.
+</Callout>
 
 The Mini App URL must be HTTPS and publicly accessible. In our staging environment, we use `https://web-staging.bluerobin.local/telegram/setup-passkey`.
 

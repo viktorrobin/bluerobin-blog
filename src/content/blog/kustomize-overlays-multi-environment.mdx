@@ -2,7 +2,7 @@
 title: "Kustomize Overlays for Multi-Environment Deployments"
 description: "Manage Kubernetes configurations across environments with Kustomize overlays, patches, and ConfigMap generators."
 pubDate: 2024-05-27
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -19,6 +19,10 @@ import ImplementationNote from '@components/ImplementationNote.astro';
 import ExternalCite from '@components/ExternalCite.astro';
 
 When I first started managing multiple environments in my homelab cluster, I made the mistake that everyone warns you about: I copied entire YAML files for staging and production, then tried to keep them in sync manually. Within a week, a resource limit change I made in staging never made it to prod, and my API pod got OOM-killed during a load test. Kustomize overlays solved this by letting me define a single base and override only what differs per environment. The initial restructuring of my repository took an evening, but it paid for itself the very next time I needed to add a new environment variable across all environments with a single edit to the base.
+
+<Callout type="warning" title="Update — August 2026">
+BlueRobin has since collapsed to a single production environment (ADR-034), so the staging overlays shown here no longer exist in our repo, and the `signoz-otel-collector` endpoints in the examples are now the Grafana LGTM stack's OTEL Collector. The overlay patterns themselves are unchanged and still what we use for prod.
+</Callout>
 
 ## Introduction
 

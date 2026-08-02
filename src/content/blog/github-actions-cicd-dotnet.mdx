@@ -2,7 +2,7 @@
 title: "GitHub Actions CI/CD for .NET Applications"
 description: "Build robust CI/CD pipelines with GitHub Actions for .NET applications including testing, Docker builds, and Kubernetes deployment."
 pubDate: 2024-05-17
-updatedDate: 2026-02-28
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "ci-cd"
 difficulty: "intermediate"
@@ -200,6 +200,10 @@ The CI workflow runs in parallel jobs (build, lint, security) to minimize total 
 </ImplementationNote>
 
 ## CD Workflow
+
+<Callout type="warning" title="Update — August 2026">
+The `staging` deployment target in this workflow no longer exists (prod-only collapse, ADR-034), and production images for the core apps now ship via a local buildx build pinned by digest into the GitOps repo rather than this workflow (ADR-027). The CI structure above is still current.
+</Callout>
 
 ### Docker Build and Deploy
 

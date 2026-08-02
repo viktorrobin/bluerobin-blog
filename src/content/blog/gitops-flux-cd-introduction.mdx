@@ -2,7 +2,7 @@
 title: "GitOps with Flux CD: From Zero to Automated Deployments"
 description: "Learn how to implement GitOps for your Kubernetes cluster using Flux CD, including repository structure, Kustomize overlays, and automated image updates."
 pubDate: 2024-05-07
-updatedDate: 2026-02-27
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "intermediate"
@@ -186,6 +186,10 @@ spec:
               memory: "512Mi"
               cpu: "500m"
 ```
+
+<Callout type="warning" title="Update — August 2026">
+Keel and the staging environment are both retired (ADR-027, ADR-034). Every image now deploys the same way the production path below describes: an immutable digest is committed to the prod overlay and Flux reconciles it — no `:latest` polling anywhere.
+</Callout>
 
 <ImplementationNote>
     We use Keel for automated image updates in staging—it polls the container registry every 30 seconds and updates the deployment when a new `:latest` tag appears. For production, we use a manual GitHub Actions workflow that commits an immutable image tag (e.g., `20260215143022-abc1234`) to the infra repository. Flux then detects the git change and reconciles.

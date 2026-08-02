@@ -2,7 +2,7 @@
 title: "Kubernetes Cluster Setup for AI Workloads"
 description: "A practical cluster setup guide for running AI services alongside traditional backends with reliable data, messaging, and observability."
 pubDate: 2025-09-15
-updatedDate: 2026-02-27
+updatedDate: 2026-08-02
 author: "Victor Robin"
 category: "infrastructure"
 difficulty: "advanced"
@@ -27,6 +27,10 @@ Running AI workloads on Kubernetes isn't just about deploying a model behind an 
 />
 
 ## Namespace Topology
+
+<Callout type="warning" title="Update — August 2026">
+This topology has moved on: the staging namespaces are gone (BlueRobin collapsed to a prod-only cluster, ADR-034), SigNoz was replaced by the Grafana LGTM stack (OTEL Collector → Tempo/Loki/Mimir), and MinIO by Cloudflare R2 (ADR-006). The organize-by-concern principle below still holds.
+</Callout>
 
 Organize workloads by concern, not by team:
 
