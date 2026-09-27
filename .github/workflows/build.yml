@@ -1,0 +1,42 @@
+name: Build check
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # manual re-run; nothing in this workflow deploys
+
+jobs:
+  build:
+    # This workflow does NOT deploy. Production is published by Cloudflare Workers Builds
+    # (Git integration, driven by wrangler.toml) on push to main; the push->main trigger
+    # was removed from here in #42. The job exists for one reason: the
+    # "Workers Builds: bluerobin-blog" commit status reports pass/fail with no error text,
+    # only a dash.cloudflare.com link, so a PR needs a readable build log of its own.
+    #
+    # Do not re-add a deploy step. cloudflare/pages-action was deleted upstream by
+    # Cloudflare (its repo now 404s, so the SHA pin cannot be restored), the site has
+    # migrated off Pages to Workers-with-static-assets, and a deploy step on a
+    # pull_request trigger would publish PR code to production.
+    #
+    # Stays on GitHub-hosted ubuntu-latest: `npm ci` needs npm-registry egress the
+    # egress-locked in-cluster ARC pool (ADR-032) cannot provide. This repo is public,
+    # so hosted minutes are free. (COST-1, ADR-029)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Astro site
+        run: npm run build
