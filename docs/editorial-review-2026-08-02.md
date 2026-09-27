@@ -60,9 +60,6 @@ current platform (CX43 + LAN node, R2, LGTM, AI Gateway, prod-only).
 
 ## New-article suggestions (from May–Aug 2026 platform work)
 
-Excluded by editorial decision: anything deaddrop/SimpleX/calculator-adjacent,
-including the Signal workstation deployment.
-
 ### Tier 1 — strongest war stories / novelty
 
 1. **"Why We Dropped SigNoz: the LGTM Migration"** — fills the dangling-link gap above; the only major platform migration with zero blog coverage.
